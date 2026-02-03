@@ -8,6 +8,7 @@
         const heroQuoteBtn = document.getElementById('heroQuoteBtn');
         const heroVideo = document.getElementById('heroVideo');
         const heroFallbackImage = document.getElementById('heroFallbackImage');
+        const header = document.getElementById('header');
         const navLinks = document.querySelectorAll('#nav a[href^="#"]');
         const mobileToggle = document.getElementById('mobileToggle');
         const navMenu = document.getElementById('nav');
@@ -3093,6 +3094,31 @@
             }
         }
 
+        const updateHeaderScrolled = () => {
+            if (!header) return;
+            const y = window.scrollY || document.documentElement.scrollTop || 0;
+            header.classList.toggle('scrolled', y > 12);
+        };
+
+        updateHeaderScrolled();
+        window.addEventListener('scroll', updateHeaderScrolled, { passive: true });
+
+        const closeMobileNav = () => {
+            if (navMenu) navMenu.classList.remove('active');
+            if (mobileToggle) {
+                mobileToggle.classList.remove('active');
+                mobileToggle.setAttribute('aria-expanded', 'false');
+            }
+        };
+
+        const toggleMobileNav = () => {
+            if (!navMenu || !mobileToggle) return;
+            const nextOpen = !navMenu.classList.contains('active');
+            navMenu.classList.toggle('active', nextOpen);
+            mobileToggle.classList.toggle('active', nextOpen);
+            mobileToggle.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
+        };
+
         if (navLinks.length) {
             navLinks.forEach((link) => {
                 link.addEventListener('click', (e) => {
@@ -3109,16 +3135,34 @@
                     }
 
                     target.scrollIntoView({ behavior: 'smooth' });
-                    if (navMenu) navMenu.classList.remove('active');
+                    closeMobileNav();
                 });
             });
         }
 
         if (mobileToggle && navMenu) {
-            mobileToggle.addEventListener('click', () => {
-                navMenu.classList.toggle('active');
+            mobileToggle.setAttribute('aria-expanded', 'false');
+            mobileToggle.addEventListener('click', (e) => {
+                e.preventDefault();
+                toggleMobileNav();
             });
         }
+
+        document.addEventListener('click', (e) => {
+            if (!navMenu || !mobileToggle) return;
+            if (!navMenu.classList.contains('active')) return;
+            if (e.target.closest('#nav')) return;
+            if (e.target.closest('#mobileToggle')) return;
+            closeMobileNav();
+        });
+
+        window.addEventListener('resize', () => {
+            try {
+                if (window.matchMedia && window.matchMedia('(min-width: 901px)').matches) {
+                    closeMobileNav();
+                }
+            } catch {}
+        }, { passive: true });
 
         if (shortcutSidebar && shortcutSidebarTab) {
             let autoHideTimer = null;
