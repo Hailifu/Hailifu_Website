@@ -110,6 +110,10 @@
             color: var(--white) !important;
         }
 
+        html {
+            scroll-padding-top: 96px;
+        }
+
         #services .services-grid .card {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
@@ -661,9 +665,9 @@
 
         /* Modern Glassmorphism Navigation Bar */
         header {
-            background: var(--gradient-dark);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            background: rgba(10, 10, 10, 0.62);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             border-bottom: 1px solid rgba(255, 140, 0, 0.3);
             padding: 20px 5%;
             display: flex;
@@ -674,11 +678,12 @@
             top: 0;
             left: 0;
             z-index: 1000;
+            box-sizing: border-box;
             transition: all 0.3s ease;
         }
 
         [data-theme='light'] header {
-            background: rgba(245, 245, 247, 0.75);
+            background: rgba(245, 245, 247, 0.65);
             border-bottom: 1px solid rgba(255, 140, 0, 0.25);
         }
 
@@ -756,9 +761,9 @@
 
         header.scrolled {
             padding: 0.7rem 5%;
-            background: rgba(26, 26, 26, 0.95);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
+            background: rgba(10, 10, 10, 0.88);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
         }
 
@@ -768,7 +773,10 @@
             color: var(--orange);
             text-decoration: none;
             transition: transform 0.3s ease;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-right: auto;
         }
 
         .logo:hover {
@@ -890,8 +898,18 @@
         }
 
         @media (max-width: 900px) {
+            header {
+                padding: 14px 16px;
+            }
+
+            .theme-toggle {
+                margin-left: 10px;
+            }
+
             .mobile-menu-toggle {
                 display: flex;
+                padding: 10px;
+                margin-left: 6px;
             }
 
             nav {
@@ -924,18 +942,18 @@
 
         /* Hero Section */
         .hero {
-            height: 100vh;
-            min-height: 600px;
+            min-height: 90vh;
             color: var(--white);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
-            padding: 0 20px;
+            padding: 90px 20px 48px;
             position: relative;
             overflow: hidden;
             background: transparent !important;
+            box-sizing: border-box;
         }
 
         .hero-video-container {
@@ -995,6 +1013,9 @@
             background: transparent;
             backdrop-filter: none;
             animation: slideUp 1s ease-out 0.3s both;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         @keyframes slideUp {
@@ -1081,6 +1102,15 @@
             animation: slideUp 1s ease-out 0.5s both;
         }
 
+        .hero-actions {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
         .btn {
             display: inline-block;
             background: var(--gradient-primary);
@@ -1090,6 +1120,8 @@
             text-decoration: none;
             font-weight: 600;
             margin-top: 20px;
+            margin-left: 10px;
+            margin-right: 10px;
             transition: all 0.3s ease;
             letter-spacing: 1px;
             text-transform: uppercase;
@@ -1097,6 +1129,20 @@
             cursor: pointer;
             position: relative;
             overflow: hidden;
+        }
+
+        .hero .btn {
+            margin-left: 0;
+            margin-right: 0;
+        }
+
+        @media (max-width: 600px) {
+            .hero .btn {
+                width: min(92vw, 360px);
+                text-align: center;
+                margin-left: 0;
+                margin-right: 0;
+            }
         }
 
         #heroQuoteBtn {
@@ -1128,7 +1174,6 @@
 
         /* Section Styles */
         header {
-            position: relative;
             z-index: 2;
         }
 
