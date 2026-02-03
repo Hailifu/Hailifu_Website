@@ -480,6 +480,15 @@
             transition: background-color 0.5s ease, color 0.5s ease;
         }
 
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-family: 'Sora', 'Segoe UI', sans-serif;
+        }
+
         [data-theme='light'] body {
             background: var(--bg-color);
         }
@@ -508,11 +517,12 @@
         .shortcut-sidebar {
             position: fixed;
             top: 46%;
-            left: 0;
+            right: 0;
+            left: auto;
             transform: translateY(-50%);
             z-index: 9999;
             display: flex;
-            flex-direction: row;
+            flex-direction: row-reverse;
             align-items: stretch;
             pointer-events: auto;
         }
@@ -524,10 +534,10 @@
         .shortcut-sidebar-tab {
             width: 44px;
             height: 74px;
-            border-radius: 0 18px 18px 0;
+            border-radius: 18px 0 0 18px;
             background: var(--surface-strong);
             border: 1px solid rgba(255, 140, 0, 0.7);
-            border-left: none;
+            border-right: none;
             color: var(--orange);
             display: inline-flex;
             align-items: center;
@@ -544,7 +554,7 @@
         }
 
         .shortcut-sidebar-tab:hover {
-            transform: translateX(2px);
+            transform: translateX(-2px);
             border-color: rgba(255, 140, 0, 0.85);
             background: rgba(0, 0, 0, 0.85);
             box-shadow: 0 18px 48px rgba(0, 0, 0, 0.62), 0 0 0 4px rgba(255, 140, 0, 0.14), 0 0 22px rgba(255, 140, 0, 0.35);
@@ -560,12 +570,14 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            border-radius: 0 18px 18px 0;
+            border-radius: 18px 0 0 18px;
             border: 1px solid rgba(255, 140, 0, 0.35);
-            border-left: 3px solid rgba(255, 140, 0, 0.95);
-            background: var(--surface-card);
+            border-right: 3px solid rgba(255, 140, 0, 0.95);
+            background: rgba(12, 12, 12, 0.55);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             box-shadow: 0 16px 46px rgba(0, 0, 0, 0.62);
-            transform: translateX(-100%);
+            transform: translateX(100%);
             opacity: 0;
             pointer-events: none;
             transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1);
@@ -604,13 +616,13 @@
             background: rgba(255, 140, 0, 0.12);
             border-color: rgba(255, 140, 0, 0.55);
             box-shadow: 0 0 18px rgba(255, 140, 0, 0.28);
-            transform: translateX(2px);
+            transform: translateX(-2px);
         }
 
         @media (max-width: 768px) {
             .shortcut-sidebar {
                 top: auto;
-                bottom: 230px;
+                bottom: calc(230px + env(safe-area-inset-bottom, 0px));
                 transform: none;
             }
         }
@@ -1079,24 +1091,24 @@
             font-size: clamp(2rem, 8vw, 4rem);
             margin-bottom: 0.5rem;
             color: var(--white);
-            text-shadow: 2px 2px 10px rgba(0,0,0,0.7);
+            text-shadow: 2px 2px 15px rgba(0,0,0,0.7);
             font-weight: 700;
             animation: slideUp 1s ease-out 0.3s both;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Sora', 'Segoe UI', sans-serif;
             text-transform: uppercase;
             letter-spacing: -1.5px;
         }
 
         .hero-slogan {
             font-size: clamp(1.1rem, 4.8vw, 1.8rem);
-            color: var(--text-primary);
+            color: var(--white);
             font-weight: 600;
             margin-bottom: 1.5rem;
             text-shadow: 0 4px 0 rgba(0, 0, 0, 0.95), 0 14px 30px rgba(0, 0, 0, 0.85);
             font-style: normal;
             letter-spacing: -1.5px;
             text-transform: uppercase;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Sora', 'Segoe UI', sans-serif;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -1127,6 +1139,7 @@
         @media (max-width: 768px) {
             .hero {
                 padding-top: calc(92px + env(safe-area-inset-top, 0px));
+                padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px));
                 padding-left: 16px;
                 padding-right: 16px;
             }
@@ -1134,6 +1147,7 @@
             .hero-content {
                 width: min(800px, 92vw);
                 padding: 22px 20px;
+                margin-top: clamp(-90px, -12vh, -50px);
             }
         }
 
@@ -1169,7 +1183,8 @@
         .hero p {
             font-size: clamp(1rem, 3.8vw, 1.4rem);
             margin-bottom: 2rem;
-            text-shadow: 1px 1px 5px rgba(0,0,0,0.5);
+            color: var(--white);
+            text-shadow: 2px 2px 15px rgba(0,0,0,0.7);
             animation: slideUp 1s ease-out 0.5s both;
         }
 
