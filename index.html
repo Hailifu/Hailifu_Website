@@ -1,0 +1,943 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hailifu Brilliant Installation | Electrical & CCTV Experts</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+        <link rel="stylesheet" href="style.css">
+        <style>
+            #chatbotToggle.chatbot-toggle,
+            #brilliantChatBtn.brilliant-chat-btn {
+                left: 30px;
+                left: calc(30px + env(safe-area-inset-left, 0px));
+                right: auto;
+                bottom: 30px;
+                bottom: calc(30px + env(safe-area-inset-bottom, 0px));
+                width: 45px;
+                height: 45px;
+                border-radius: 50%;
+                border: 4px solid var(--orange);
+                background: var(--surface-strong);
+                color: var(--orange);
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                box-shadow: 0 14px 34px rgba(0, 0, 0, 0.65), 0 0 22px rgba(255, 140, 0, 0.55);
+                transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+                z-index: 10002;
+                -webkit-tap-highlight-color: transparent;
+                touch-action: manipulation;
+                isolation: isolate;
+            }
+
+            #chatbotToggle.chatbot-toggle::before,
+            #brilliantChatBtn.brilliant-chat-btn::before {
+                content: 'Chat';
+                position: absolute;
+                left: calc(100% + 12px);
+                top: 50%;
+                transform: translateY(-50%) translateX(-6px);
+                padding: 10px 12px;
+                border-radius: 999px;
+                background: var(--surface-strong);
+                border: 1px solid var(--orange);
+                color: var(--orange);
+                font-size: 0.85rem;
+                font-weight: 800;
+                letter-spacing: 0.2px;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                white-space: nowrap;
+            }
+
+            #chatbotToggle.chatbot-toggle::after,
+            #brilliantChatBtn.brilliant-chat-btn::after {
+                content: '';
+                position: absolute;
+                inset: -8px;
+                border-radius: 50%;
+                border: 1px solid rgba(255, 140, 0, 0.45);
+                opacity: 0;
+                transform: scale(0.94);
+                transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+                z-index: -1;
+            }
+
+            #chatbotToggle.chatbot-toggle:hover,
+            #brilliantChatBtn.brilliant-chat-btn:hover {
+                transform: translateY(-3px);
+                background: var(--surface-strong);
+                color: var(--orange);
+                box-shadow: 0 18px 44px rgba(0, 0, 0, 0.7), 0 0 0 4px rgba(255, 140, 0, 0.22), 0 0 34px rgba(255, 140, 0, 0.75);
+            }
+
+            #chatbotToggle.chatbot-toggle:hover::before,
+            #brilliantChatBtn.brilliant-chat-btn:hover::before {
+                opacity: 1;
+                transform: translateY(-50%) translateX(0);
+            }
+
+            #chatbotToggle.chatbot-toggle:hover::after,
+            #brilliantChatBtn.brilliant-chat-btn:hover::after {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            #chatbotToggle.chatbot-toggle:active,
+            #brilliantChatBtn.brilliant-chat-btn:active {
+                transform: translateY(-1px) scale(0.985);
+            }
+
+            #chatbotToggle.chatbot-toggle:focus-visible,
+            #brilliantChatBtn.brilliant-chat-btn:focus-visible {
+                outline: none;
+                box-shadow: 0 18px 44px rgba(0, 0, 0, 0.65), 0 0 0 4px rgba(255, 140, 0, 0.35);
+            }
+
+            #chatbotToggle.chatbot-toggle i,
+            #brilliantChatBtn.brilliant-chat-btn i {
+                font-size: 1.15rem;
+            }
+
+            .chatbot-container,
+            .brilliant-chat-window {
+                left: 30px;
+                left: calc(30px + env(safe-area-inset-left, 0px));
+                right: auto;
+            }
+
+            @media (max-width: 768px) {
+                #chatbotToggle.chatbot-toggle,
+                #brilliantChatBtn.brilliant-chat-btn {
+                    left: 16px;
+                    left: calc(16px + env(safe-area-inset-left, 0px));
+                    right: auto;
+                    bottom: 30px;
+                    bottom: calc(30px + env(safe-area-inset-bottom, 0px));
+                }
+
+                .chatbot-container,
+                .brilliant-chat-window {
+                    left: 16px;
+                    left: calc(16px + env(safe-area-inset-left, 0px));
+                    right: auto;
+                }
+            }
+        </style>
+</head>
+ <body>
+
+    <aside class="shortcut-sidebar" id="shortcutSidebar" aria-label="Shortcut Menu">
+        <button class="shortcut-sidebar-tab" id="shortcutSidebarTab" type="button" aria-label="Open shortcut menu" aria-expanded="false">
+            <i class="fas fa-ellipsis-v" aria-hidden="true"></i>
+        </button>
+        <nav class="shortcut-sidebar-panel" aria-label="Shortcut links">
+            <a class="shortcut-sidebar-link" href="#home" data-shortcut-scroll>
+                <i class="fas fa-home" aria-hidden="true"></i>
+                <span>Home</span>
+            </a>
+            <a class="shortcut-sidebar-link" href="#services" data-shortcut-scroll>
+                <i class="fas fa-layer-group" aria-hidden="true"></i>
+                <span>Services</span>
+            </a>
+            <a class="shortcut-sidebar-link" href="#showcase" data-shortcut-scroll>
+                <i class="fas fa-briefcase" aria-hidden="true"></i>
+                <span>Work Showcase</span>
+            </a>
+            <a class="shortcut-sidebar-link" href="#testimonials" data-shortcut-scroll>
+                <i class="fas fa-star" aria-hidden="true"></i>
+                <span>Reviews</span>
+            </a>
+            <a class="shortcut-sidebar-link" href="#testimonials" data-review-modal-open data-shortcut-scroll>
+                <i class="fas fa-pen-nib" aria-hidden="true"></i>
+                <span>Leave 5-Star Review</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Sticky Navigation Bar -->
+    <header id="header">
+        <a href="#home" class="logo" id="headerLogo">
+            <span class="whatsapp-logo" style="width: 46px; height: 46px; border-radius: 14px; border: 1px solid rgba(255, 140, 0, 0.25); background: rgba(255, 255, 255, 0.06); display: inline-flex; align-items: center; justify-content: center;">
+                <img src="./logo.webp" alt="Hailifu Logo" id="admin-trigger" style="width: 30px; height: 30px; object-fit: cover; border-radius: 8px;">
+            </span>
+            HAILIFU <span>BRILLIANT</span>
+        </a>
+ 
+        <nav id="nav">
+            <a href="#home">Home</a>
+            <a href="#services">Services</a>
+            <a href="#showcase">Work Showcase</a>
+            <a href="#testimonials">Reviews</a>
+            <a href="https://wa.me/233550997270" class="contact-btn" target="_blank">
+                <i class="fab fa-whatsapp"></i> Contact Us
+            </a>
+        </nav>
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle light and dark mode" aria-pressed="false">
+            <span class="theme-toggle-icon" aria-hidden="true">
+                <i class="fas fa-sun theme-icon theme-icon--sun"></i>
+                <i class="fas fa-moon theme-icon theme-icon--moon"></i>
+            </span>
+        </button>
+        <div class="mobile-menu-toggle" id="mobileToggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </header>
+ 
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="hero-video-container" aria-hidden="true">
+            <iframe
+                id="heroVideo"
+                data-src="https://www.youtube.com/embed/NZ3LQ1A6igk?autoplay=1&mute=1&loop=1&playlist=NZ3LQ1A6igk&controls=0&showinfo=0&modestbranding=1&playsinline=1"
+                title="Background Video"
+                allow="autoplay; fullscreen"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+            ></iframe>
+        </div>
+        <div class="hero-content stay-light">
+        <h1>Hailifu Brilliant Installation</h1>
+            <div class="hero-slogan">Where Safety Meets <span class="hero-slogan-accent">Innovation</span></div>
+            <p>Professional CCTV, Electrical Wiring, Air Conditioning, Automated Gates, Electric Fencing & Smart Home Setup</p>
+            <a href="#" class="btn" id="heroQuoteBtn">
+                <i class="fas fa-quote-right"></i> Request a Quote
+            </a>
+        </div>
+    </section>
+
+    <!-- Featured Work Section -->
+    <section class="section featured-work" id="featured-work">
+        <h2 class="section-title">Featured Work</h2>
+        <p class="section-subtitle">A bento showcase of standout installations we're proud of.</p>
+        <div class="featured-bento" id="featuredBento" aria-live="polite"></div>
+    </section>
+ 
+    <!-- Services Section -->
+    <section class="section" id="services">
+        <h2 class="section-title"><a href="#" id="servicesTitleCta"></a>Our Specialized Services</a></h2>
+        <p class="section-subtitle">Expert solutions for all your installation and security needs</p>
+        <div class="services-grid">
+            <div class="card animate-on-scroll" id="service-cctv">
+                <i class="fas fa-video"></i>
+                <h3>CCTV Installation</h3>
+                <p>High-definition surveillance systems with remote monitoring capabilities for maximum security and peace of mind.</p>
+            </div>
+            <div class="card animate-on-scroll" id="service-electrical">
+                <i class="fas fa-bolt"></i>
+                <h3>Electrical Wiring</h3>
+                <p>Professional domestic and industrial electrical installations, maintenance, and fault finding services.</p>
+            </div>
+            <div class="card animate-on-scroll" id="service-gates">
+                <i class="fas fa-door-open"></i>
+                <h3>Automated Gates</h3>
+                <p>Smart gate motor installation and automation systems for enhanced convenience and security.</p>
+            </div>
+            <div class="card animate-on-scroll" id="service-fencing">
+                <i class="fas fa-shield-alt"></i>
+                <h3>Electric Fencing</h3>
+                <p>Advanced electric fence security systems to protect your property with reliable perimeter defense.</p>
+            </div>
+            <div class="card animate-on-scroll" id="service-smarthome">
+                <i class="fas fa-house"></i>
+                <h3>Smart Home System</h3>
+                <p>Smart home installation and automation for lights, access control, cameras, and remote monitoring</p>
+            </div>
+            <div class="card animate-on-scroll" id="service-airconditioning">
+                <i class="fas fa-snowflake"></i>
+                <h3>Air Conditioning</h3>
+                <p>Air conditioner installation, servicing, and repairs for homes and offices. Stay cool with reliable support.</p>
+            </div>
+            <div class="card animate-on-scroll" id="service-blindcurtain">
+                <svg class="curtain-brand-logo" viewBox="0 0 120 80" role="img" aria-label="Smart Window Solutions logo">
+                    <defs>
+                        <linearGradient id="curtainChromeService" x1="0" x2="1">
+                            <stop offset="0%" stop-color="var(--orange-light)" />
+                            <stop offset="50%" stop-color="var(--orange)" />
+                            <stop offset="100%" stop-color="var(--orange-dark)" />
+                        </linearGradient>
+                        <linearGradient id="curtainSheenService" x1="0" x2="0" y1="0" y2="1">
+                            <stop offset="0%" stop-color="var(--orange-light)" stop-opacity="0.85" />
+                            <stop offset="100%" stop-color="var(--orange-dark)" stop-opacity="0.4" />
+                        </linearGradient>
+                        <linearGradient id="curtainGoldService" x1="0" x2="1">
+                            <stop offset="0%" stop-color="var(--orange-light)" />
+                            <stop offset="50%" stop-color="var(--orange)" />
+                            <stop offset="100%" stop-color="var(--orange-dark)" />
+                        </linearGradient>
+                    </defs>
+                    <g class="curtain-brand-panel curtain-brand-panel--left">
+                        <path d="M10 8 C26 18, 26 62, 10 72 L44 72 C54 58, 54 22, 44 8 Z" fill="url(#curtainChromeService)" />
+                        <path d="M22 12 C30 24, 30 56, 22 68" stroke="url(#curtainSheenService)" stroke-width="4" fill="none" opacity="0.6" />
+                        <circle cx="20" cy="40" r="5" fill="url(#curtainGoldService)" />
+                    </g>
+                    <g class="curtain-brand-panel curtain-brand-panel--right">
+                        <path d="M110 8 C94 18, 94 62, 110 72 L76 72 C66 58, 66 22, 76 8 Z" fill="url(#curtainChromeService)" />
+                        <path d="M98 12 C90 24, 90 56, 98 68" stroke="url(#curtainSheenService)" stroke-width="4" fill="none" opacity="0.6" />
+                        <circle cx="100" cy="40" r="5" fill="url(#curtainGoldService)" />
+                    </g>
+                </svg>
+                <h3>Smart Window Solutions</h3>
+                <div class="service-tagline">A Hailifu Smart Solution</div>
+                <p>Advanced motorized blinds, automated curtains, and intelligent window treatments with smart home integration for modern residential and commercial spaces.</p>
+            </div>
+        </div>
+    </section>
+ 
+    <!-- Work Showcase Section -->
+    <section class="showcase" id="showcase">
+        <div class="showcase-content">
+            <h2 class="section-title">Work Showcase</h2>
+            <p class="section-subtitle">Explore our portfolio of expertly delivered security, automation, and electrical installations</p>
+            
+            <!-- Filter Buttons -->
+            <div class="showcase-filters">
+                <button class="filter-btn active" data-filter="all">All Projects</button>
+                <button class="filter-btn" data-filter="cctv">CCTV</button>
+                <button class="filter-btn" data-filter="electrical">Electrical</button>
+                <button class="filter-btn" data-filter="gates">Automated Gates</button>
+                <button class="filter-btn" data-filter="fencing">Electric Fencing</button>
+                <button class="filter-btn" data-filter="smarthome">Smart Home</button>
+                <button class="filter-btn" data-filter="airconditioning">Air Conditioning</button>
+                <button class="filter-btn" data-filter="smartwindows">Smart Windows</button>
+            </div>
+            
+            <div class="showcase-grid">
+                <div class="showcase-item animate-on-scroll" data-category="cctv">
+                    <div class="project-category">CCTV</div>
+                    <div class="showcase-placeholder">
+                        <i class="fas fa-video"></i>
+                        <span>Commercial CCTV Installation</span>
+                    </div>
+                    <div class="showcase-overlay">
+                        <h3 class="showcase-title">Commercial CCTV Installation</h3>
+                        <p class="showcase-description">Complete 16-camera surveillance system with remote monitoring for commercial property</p>
+                    </div>
+                    <a href="#" class="view-project-btn">
+                        <i class="fas fa-eye"></i> View Project
+                    </a>
+                    <!-- Replace with: <img src="projects/cctv-commercial.jpg" alt="Commercial CCTV Installation"> -->
+                </div>
+                
+                <div class="showcase-item animate-on-scroll" data-category="electrical">
+                    <div class="project-category">Electrical</div>
+                    <div class="showcase-placeholder">
+                        <i class="fas fa-bolt"></i>
+                        <span>Residential Electrical Wiring</span>
+                    </div>
+                    <div class="showcase-overlay">
+                        <h3 class="showcase-title">Residential Electrical Wiring</h3>
+                        <p class="showcase-description">Complete house rewiring with modern circuit breakers and safety installations</p>
+                    </div>
+                    <a href="#" class="view-project-btn">
+                        <i class="fas fa-eye"></i> View Project
+                    </a>
+                    <!-- Replace with: <img src="projects/electrical-residential.jpg" alt="Residential Electrical Wiring"> -->
+                </div>
+                
+                <div class="showcase-item animate-on-scroll" data-category="gates">
+                    <div class="video-badge">
+                        <i class="fas fa-play-circle"></i> Video
+                    </div>
+                    <div class="project-category">Automated Gates</div>
+                    <div class="showcase-placeholder">
+                        <i class="fas fa-door-open"></i>
+                        <span>Smart Gate Automation</span>
+                    </div>
+                    <div class="showcase-overlay">
+                        <h3 class="showcase-title">Smart Gate Automation</h3>
+                        <p class="showcase-description">Motorized gate installation with remote access and safety sensors</p>
+                    </div>
+                    <a href="#" class="view-project-btn">
+                        <i class="fas fa-eye"></i> Watch Video
+                    </a>
+                    <!-- Replace with: <video src="projects/gate-automation.mp4" controls></video> -->
+                </div>
+                
+                <div class="showcase-item animate-on-scroll" data-category="fencing">
+                    <div class="project-category">Electric Fencing</div>
+                    <div class="showcase-placeholder">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Perimeter Security Fence</span>
+                    </div>
+                    <div class="showcase-overlay">
+                        <h3 class="showcase-title">Perimeter Security Fence</h3>
+                        <p class="showcase-description">High-voltage electric fence installation with alarm integration</p>
+                    </div>
+                    <a href="#" class="view-project-btn">
+                        <i class="fas fa-eye"></i> View Project
+                    </a>
+                    <!-- Replace with: <img src="projects/electric-fence.jpg" alt="Electric Fence Installation"> -->
+                </div>
+                
+                <div class="showcase-item animate-on-scroll" data-category="smarthome">
+                    <div class="project-category">Smart Home</div>
+                    <div class="showcase-placeholder">
+                        <i class="fas fa-house"></i>
+                        <span>Smart Home System Setup</span>
+                    </div>
+                    <div class="showcase-overlay">
+                        <h3 class="showcase-title">Smart Home System Setup</h3>
+                        <p class="showcase-description">Smart home installation and automation for lights, access control, cameras, and remote monitoring</p>
+                    </div>
+                    <a href="#" class="view-project-btn">
+                        <i class="fas fa-eye"></i> View Project
+                    </a>
+                    <!-- Replace with: <img src="projects/smart-home.jpg" alt="Smart Home System Setup"> -->
+                </div>
+                
+                <div class="showcase-item animate-on-scroll" data-category="airconditioning">
+                    <div class="project-category">Air Conditioning</div>
+                    <div class="showcase-placeholder">
+                        <i class="fas fa-snowflake"></i>
+                        <span>Air Conditioning Installation</span>
+                    </div>
+                    <div class="showcase-overlay">
+                        <h3 class="showcase-title">Air Conditioning Installation</h3>
+                        <p class="showcase-description">Air conditioner installation, servicing, and repairs for homes and offices.</p>
+                    </div>
+                    <a href="#" class="view-project-btn">
+                        <i class="fas fa-eye"></i> View Project
+                    </a>
+                    <!-- Replace with: <img src="./images/ac-install.jpg" alt="Air Conditioning Installation"> -->
+                </div>
+                
+                <div class="showcase-item animate-on-scroll" data-category="cctv">
+                    <div class="video-badge">
+                        <i class="fas fa-play-circle"></i> Video
+                    </div>
+                    <div class="project-category">CCTV</div>
+                    <div class="showcase-placeholder">
+                        <i class="fas fa-video"></i>
+                        <span>Industrial Surveillance</span>
+                    </div>
+                    <div class="showcase-overlay">
+                        <h3 class="showcase-title">Industrial Surveillance</h3>
+                        <p class="showcase-description">Large-scale CCTV system for industrial facility with 24/7 monitoring</p>
+                    </div>
+                    <a href="#" class="view-project-btn">
+                        <i class="fas fa-eye"></i> Watch Video
+                    </a>
+                    <!-- Replace with: <video src="projects/industrial-cctv.mp4" controls></video> -->
+                </div>
+                
+                <div class="showcase-item animate-on-scroll" data-category="smartwindows">
+                    <div class="project-category project-category--curtain">
+                        <svg class="curtain-brand-logo curtain-brand-logo--small" viewBox="0 0 120 80" role="img" aria-hidden="true">
+                            <defs>
+                                <linearGradient id="curtainChromeTag" x1="0" x2="1">
+                                    <stop offset="0%" stop-color="var(--orange-light)" />
+                                    <stop offset="50%" stop-color="var(--orange)" />
+                                    <stop offset="100%" stop-color="var(--orange-dark)" />
+                                </linearGradient>
+                                <linearGradient id="curtainGoldTag" x1="0" x2="1">
+                                    <stop offset="0%" stop-color="var(--orange-light)" />
+                                    <stop offset="50%" stop-color="var(--orange)" />
+                                    <stop offset="100%" stop-color="var(--orange-dark)" />
+                                </linearGradient>
+                            </defs>
+                            <g class="curtain-brand-panel curtain-brand-panel--left">
+                                <path d="M10 10 C24 20, 24 60, 10 70 L44 70 C52 58, 52 22, 44 10 Z" fill="url(#curtainChromeTag)" />
+                                <circle cx="20" cy="40" r="5" fill="url(#curtainGoldTag)" />
+                            </g>
+                            <g class="curtain-brand-panel curtain-brand-panel--right">
+                                <path d="M110 10 C96 20, 96 60, 110 70 L76 70 C68 58, 68 22, 76 10 Z" fill="url(#curtainChromeTag)" />
+                                <circle cx="100" cy="40" r="5" fill="url(#curtainGoldTag)" />
+                            </g>
+                        </svg>
+                        <span>Smart Windows</span>
+                    </div>
+                    <div class="showcase-placeholder">
+                        <svg class="curtain-brand-logo" viewBox="0 0 120 80" role="img" aria-label="Open curtain icon">
+                            <defs>
+                                <linearGradient id="curtainChromeShowcase" x1="0" x2="1">
+                                    <stop offset="0%" stop-color="var(--orange-light)" />
+                                    <stop offset="50%" stop-color="var(--orange)" />
+                                    <stop offset="100%" stop-color="var(--orange-dark)" />
+                                </linearGradient>
+                                <linearGradient id="curtainSheenShowcase" x1="0" x2="0" y1="0" y2="1">
+                                    <stop offset="0%" stop-color="var(--orange-light)" stop-opacity="0.85" />
+                                    <stop offset="100%" stop-color="var(--orange-dark)" stop-opacity="0.4" />
+                                </linearGradient>
+                                <linearGradient id="curtainGoldShowcase" x1="0" x2="1">
+                                    <stop offset="0%" stop-color="var(--orange-light)" />
+                                    <stop offset="50%" stop-color="var(--orange)" />
+                                    <stop offset="100%" stop-color="var(--orange-dark)" />
+                                </linearGradient>
+                            </defs>
+                            <g class="curtain-brand-panel curtain-brand-panel--left">
+                                <path d="M10 8 C26 18, 26 62, 10 72 L44 72 C54 58, 54 22, 44 8 Z" fill="url(#curtainChromeShowcase)" />
+                                <path d="M22 12 C30 24, 30 56, 22 68" stroke="url(#curtainSheenShowcase)" stroke-width="4" fill="none" opacity="0.6" />
+                                <circle cx="20" cy="40" r="5" fill="url(#curtainGoldShowcase)" />
+                            </g>
+                            <g class="curtain-brand-panel curtain-brand-panel--right">
+                                <path d="M110 8 C94 18, 94 62, 110 72 L76 72 C66 58, 66 22, 76 8 Z" fill="url(#curtainChromeShowcase)" />
+                                <path d="M98 12 C90 24, 90 56, 98 68" stroke="url(#curtainSheenShowcase)" stroke-width="4" fill="none" opacity="0.6" />
+                                <circle cx="100" cy="40" r="5" fill="url(#curtainGoldShowcase)" />
+                            </g>
+                        </svg>
+                        <span>Automated Blind System</span>
+                    </div>
+                    <div class="showcase-overlay">
+                        <h3 class="showcase-title">Automated Blind System</h3>
+                        <p class="showcase-description">Complete motorized blind installation with smart home integration and remote control functionality</p>
+                    </div>
+                    <a href="#" class="view-project-btn">
+                        <i class="fas fa-eye"></i> View Project
+                    </a>
+                    <!-- Replace with: <img src="projects/smart-windows.jpg" alt="Automated Blind System"> -->
+                </div>
+            </div>
+        </div>
+    </section>
+ 
+    <!-- Modern Leave Review Section -->
+    <section class="modern-review-section" id="testimonials">
+        <div class="modern-review-container">
+            <div class="modern-review-header">
+                <h2 class="section-title">Share Your Experience</h2>
+                <p class="section-subtitle">Your feedback helps us serve you better</p>
+                <div class="header-star-rating" style="font-size: 2.5rem; color: var(--orange); margin: 20px 0; text-align: center; animation: pulse 2s infinite;">
+                    ★★★★★
+                </div>
+            </div>
+            
+            <div class="modern-review-grid">
+                <!-- Review Stats Card -->
+                <div class="review-stats-card animate-on-scroll">
+                    <div class="review-stats-header">
+                        <div class="google-logo-large">
+                            <i class="fab fa-google"></i>
+                        </div>
+                        <div class="rating-info">
+                            <div class="rating-number-large">5.0</div>
+                            <div class="rating-stars-large">★★★★★</div>
+                            <div class="review-count-large">21 Google Reviews</div>
+                        </div>
+                    </div>
+                    
+                    <div class="review-metrics">
+                        <div class="metric-row">
+                            <span class="metric-label">5</span>
+                            <div class="metric-bar">
+                                <div class="metric-fill" style="width: 100%"></div>
+                            </div>
+                            <span class="metric-value">★★★★★</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">4</span>
+                            <div class="metric-bar">
+                                <div class="metric-fill" style="width: 0%"></div>
+                            </div>
+                            <span class="metric-value">★★★★</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">3</span>
+                            <div class="metric-bar">
+                                <div class="metric-fill" style="width: 0%"></div>
+                            </div>
+                            <span class="metric-value">★★★</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">2</span>
+                            <div class="metric-bar">
+                                <div class="metric-fill" style="width: 0%"></div>
+                            </div>
+                            <span class="metric-value">★★</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">1</span>
+                            <div class="metric-bar">
+                                <div class="metric-fill" style="width: 0%"></div>
+                            </div>
+                            <span class="metric-value">★</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Customer Reviews Panel -->
+                <div class="hailifu-review-panel animate-on-scroll">
+                    <div class="hailifu-review-header">
+                        <h3>21+ Five-Star Reviews on Google</h3>
+                        <div class="hailifu-review-stars">★★★★★</div>
+                    </div>
+ 
+                    <div class="hailifu-review-grid" id="publicReviewsGrid">
+                        <article class="hailifu-review-card">
+                            <div class="hailifu-review-card-header">
+                                <span class="hailifu-reviewer">Google Reviewer</span>
+                                <span class="hailifu-review-score">★★★★★</span>
+                            </div>
+                            <p>"Excellent electrical installation service! Very professional and quality is outstanding."</p>
+                        </article>
+ 
+                        <article class="hailifu-review-card">
+                            <div class="hailifu-review-card-header">
+                                <span class="hailifu-reviewer">Google Reviewer</span>
+                                <span class="hailifu-review-score">★★★★★</span>
+                            </div>
+                            <p>"Great CCTV installation! The team was punctual, knowledgeable, and finished on schedule."</p>
+                        </article>
+ 
+                        <article class="hailifu-review-card">
+                            <div class="hailifu-review-card-header">
+                                <span class="hailifu-reviewer">Google Reviewer</span>
+                                <span class="hailifu-review-score">★★★★★</span>
+                            </div>
+                            <p>"Outstanding service from start to finish. The team explained everything clearly and delivered clean, safe wiring."</p>
+                        </article>
+ 
+                        <article class="hailifu-review-card">
+                            <div class="hailifu-review-card-header">
+                                <span class="hailifu-reviewer">Google Reviewer</span>
+                                <span class="hailifu-review-score">★★★★★</span>
+                            </div>
+                            <p>"Reliable, courteous, and very tidy installation. Our gate automation works perfectly and looks great."</p>
+                        </article>
+                    </div>
+ 
+                    <a class="hailifu-review-link" href="https://g.page/r/CdsiXmzUDUmjEAE/review" target="_blank" rel="noopener">
+                        <i class="fab fa-google"></i>
+                        View All Reviews on Google
+                    </a>
+                </div>
+            </div>
+ 
+            <!-- Call to Action -->
+            <div class="review-cta-section animate-on-scroll">
+                <h3>Join Our Happy Customers</h3>
+                <p>Over 100+ satisfied customers have shared their experience</p>
+                <div class="cta-buttons">
+                    <button type="button" class="primary-cta-btn" data-review-modal-open>
+                        <i class="fas fa-star"></i>
+                        <span>Leave 5-Star Review</span>
+                    </button>
+                    <a href="https://wa.me/233550997270" class="secondary-cta-btn" target="_blank">
+                        <i class="fab fa-whatsapp"></i>
+                        <span>Contact Us</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="review-modal" id="reviewModal" aria-hidden="true">
+        <div class="review-modal-dialog" role="dialog" aria-modal="true">
+            <div class="review-modal-header">
+                <div>
+                    <h3>Submit a Review</h3>
+                    <p>Share your experience with Hailifu</p>
+                </div>
+                <button class="review-modal-close" id="reviewModalClose" type="button">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="review-modal-body">
+                <form id="reviewForm" class="review-form">
+                    <div class="form-group">
+                        <label for="reviewerName">Your Name</label>
+                        <input type="text" id="reviewerName" name="name" required placeholder="Enter your full name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Rating</label>
+                        <div class="star-rating">
+                            <input type="radio" id="star5" name="rating" value="5" required>
+                            <label for="star5">★</label>
+                            <input type="radio" id="star4" name="rating" value="4">
+                            <label for="star4">★</label>
+                            <input type="radio" id="star3" name="rating" value="3">
+                            <label for="star3">★</label>
+                            <input type="radio" id="star2" name="rating" value="2">
+                            <label for="star2">★</label>
+                            <input type="radio" id="star1" name="rating" value="1">
+                            <label for="star1">★</label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reviewComment">Your Review</label>
+                        <textarea id="reviewComment" name="comment" required placeholder="Tell us about your experience..."></textarea>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn">
+                        <i class="fas fa-paper-plane"></i> Submit Review
+                    </button>
+                    
+                    <div class="form-success" id="formSuccess">
+                        Thank you for your review! We appreciate your feedback.
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+ 
+    <div class="project-modal" id="projectModal" aria-hidden="true">
+        <div class="project-modal-dialog" role="dialog" aria-modal="true">
+            <div class="project-modal-header">
+                <div class="project-modal-title">
+                    <strong id="projectModalTitle">Project</strong>
+                    <span id="projectModalCategory"></span>
+                </div>
+                <button class="project-modal-close" id="projectModalClose" type="button">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="project-modal-body">
+                <div class="project-modal-media" id="projectModalMedia"></div>
+                <div class="project-modal-meta">
+                    <h4>Details</h4>
+                    <p id="projectModalDescription"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+ 
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-content">
+ 
+            <!-- Brand Section -->
+            <div class="footer-brand">
+                <div class="footer-logo">
+                    <img src="./logo.webp" alt="Hailifu Logo" class="footer-logo-img">
+                </div>
+                <h3>Hailifu Brilliant Installation</h3>
+                <p>Your trusted partner for professional installation and security solutions</p>
+                <div class="footer-social">
+                    <a href="https://wa.me/233550997270" class="social-link" target="_blank">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
+                    <a href="mailto:01hailifu@gmail.com" class="social-link">
+                        <i class="fas fa-envelope"></i>
+                    </a>
+                    <a href="tel:+233550997270" class="social-link">
+                        <i class="fas fa-phone"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Quick Links -->
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <div class="footer-links">
+                    <a href="#home">Home</a>
+                    <a href="#services">Services</a>
+                    <a href="#showcase">Work Showcase</a>
+                    <a href="#testimonials">Reviews</a>
+                    <a href="#" data-review-modal-open>Submit Review</a>
+                </div>
+            </div>
+            
+            <!-- Contact Info -->
+            <div class="footer-section">
+                <h4>Contact Us</h4>
+                <div class="footer-contact">
+                    <div class="contact-item">
+                        <i class="fas fa-phone"></i>
+                        <div>
+                            <span class="footer-contact-label">Phone</span>
+                            <span class="footer-contact-value">0550997270</span>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <span class="footer-contact-label">Email</span>
+                            <span class="footer-contact-value">01hailifu@gmail.com</span>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
+                            <span class="footer-contact-label">Location</span>
+                            <span class="footer-contact-value">Accra, Ghana</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Services -->
+            <div class="footer-section">
+                <h4>Our Services</h4>
+                <div class="footer-services">
+                    <a href="#service-cctv">CCTV Installation</a>
+                    <a href="#service-electrical">Electrical Wiring</a>
+                    <a href="#service-gates">Automated Gates</a>
+                    <a href="#service-fencing">Electric Fencing</a>
+                    <a href="#service-smarthome">Smart Home System</a>
+                    <a href="#service-airconditioning">Air Conditioning</a>
+                    <a href="#service-blindcurtain">Smart Window Solutions</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer Bottom -->
+        <div class="footer-bottom">
+            <div class="footer-bottom-content">
+                <p>&copy; 2024 Hailifu Brilliant Installation. Where Safety Meets Innovation.</p>
+                <p class="footer-bottom-tagline">Professional Installation & Security Solutions</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Brilliant AI Chat Button -->
+    <button class="brilliant-chat-btn" id="brilliantChatBtn" style="display: none;">
+        <i class="fas fa-comments"></i>
+    </button>
+
+    <!-- Brilliant AI Chat Window -->
+    <div class="brilliant-chat-window" id="brilliantChatWindow" style="display: none;">
+        <div class="brilliant-chat-header">
+            <span class="brilliant-chat-title">
+                <img src="./logo.webp" alt="Hailifu Logo" class="chatbot-logo">
+                Hailifu Assistance
+            </span>
+            <button class="brilliant-chat-close" id="brilliantChatClose">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="brilliant-chat-messages" id="brilliantChatMessages">
+            <!-- Welcome message will be added here -->
+        </div>
+    </div>
+
+    <!-- Branded WhatsApp FAB Button -->
+    <a href="https://wa.me/233550997270" class="whatsapp-fab-pill floating-whatsapp" target="_blank">
+        <div class="whatsapp-content">
+            <div class="whatsapp-text">
+                <i class="fab fa-whatsapp"></i>
+                <span>CHAT NOW</span>
+            </div>
+        </div>
+    </a>
+
+    <!-- AI Chatbot -->
+    <div id="chatbotContainer" class="chatbot-container">
+        <div class="chatbot-header">
+            <h3>
+                <img src="./logo.webp" alt="Hailifu Logo" class="chatbot-logo">
+                Hailifu Assistance
+            </h3>
+            <div class="chatbot-status">
+                <div class="status-dot"></div>
+                <span>Online</span>
+            </div>
+            <button class="chatbot-close" id="chatbotClose" type="button" aria-label="Close chat">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="chatbot-messages" id="chatbotMessages">
+            <div class="message bot">
+                Welcome to Hailifu! I can help you with a quick quote. Are you interested in CCTV, Gate Automation, Electrical Wiring, Air Conditioning, or Smart Window Solutions?
+            </div>
+            <div class="typing-indicator" id="typingIndicator">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        </div>
+        
+        <div class="chatbot-input">
+            <div class="chat-input-wrapper">
+                <input type="text" class="chat-input" id="chatInput" placeholder="Type your message...">
+                <button class="chat-send-btn" id="chatSendBtn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chatbot Toggle Button -->
+    <button class="chatbot-toggle" id="chatbotToggle" type="button" aria-label="Chat with Hailifu" title="Chat with Hailifu">
+        <i class="fas fa-comments"></i>
+    </button>
+
+    <!-- Pop-up Contact Form -->
+    <div class="popup-overlay" id="popupOverlay">
+        <div class="popup-form">
+            <div class="popup-header">
+                <h2><i class="fas fa-quote-right"></i> Request a Quote</h2>
+                <button class="popup-close" id="popupClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="popup-body">
+                <div class="service-context" id="serviceContext">
+                    <i class="fas fa-video"></i>
+                    <h3>CCTV Installation</h3>
+                    <p>Get a free quote for professional CCTV installation services</p>
+                </div>
+                
+                <form id="popupQuoteForm">
+                    <div style="position:absolute; left:-9999px; top:auto; width:1px; height:1px; overflow:hidden;">
+                        <label for="popupWebsite">Website</label>
+                        <input type="text" id="popupWebsite" name="website" autocomplete="off" tabindex="-1">
+                    </div>
+                    <div class="popup-form-group">
+                        <label for="popupName">Your Name</label>
+                        <input type="text" id="popupName" required placeholder="Enter your full name">
+                    </div>
+                    
+                    <div class="popup-form-group">
+                        <label for="popupPhone">Phone Number</label>
+                        <input type="tel" id="popupPhone" required placeholder="0550XXXXXXX">
+                    </div>
+                    
+                    <div class="popup-form-group">
+                        <label for="popupEmail">Email Address</label>
+                        <input type="email" id="popupEmail" required placeholder="your.email@example.com">
+                    </div>
+                    
+                    <div class="popup-form-group">
+                        <label for="popupLocation">Property Location</label>
+                        <input type="text" id="popupLocation" required placeholder="Enter your property location">
+                    </div>
+                    
+                    <div class="popup-form-group">
+                        <label for="popupService">Service Type</label>
+                        <select id="popupService" required>
+                            <option value="">Select a service</option>
+                            <option value="cctv">CCTV Installation</option>
+                            <option value="electrical">Electrical Wiring</option>
+                            <option value="airconditioning">Air Conditioning</option>
+                            <option value="gates">Automated Gates</option>
+                            <option value="fencing">Electric Fencing</option>
+                            <option value="smarthome">Smart Home System</option>
+                            <option value="blindcurtain">Smart Window Solutions</option>
+                        </select>
+                    </div>
+                    
+                    <div class="popup-form-group">
+                        <label for="popupMessage">Project Details</label>
+                        <textarea id="popupMessage" required placeholder="Tell us about your project requirements..."></textarea>
+                    </div>
+                    
+                    <button type="submit" class="popup-submit-btn">
+                        <i class="fas fa-paper-plane"></i> Send Quote Request
+                    </button>
+                    
+                    <div class="popup-success" id="popupSuccess">
+                        Thank you! Your quote request has been sent. We'll contact you within 24 hours.
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript for Interactivity -->
+    <script src="script.js" defer></script>
+
+ </body>
+ </html>
