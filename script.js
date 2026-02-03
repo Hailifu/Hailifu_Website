@@ -1,4 +1,4 @@
-const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
+﻿const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         const adminUnlockStorageKey = 'hailifu_admin_unlocked';
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -16,6 +16,108 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         const shortcutSidebarTab = document.getElementById('shortcutSidebarTab');
         const themeToggle = document.getElementById('themeToggle');
 
+        const deepLinkServiceMap = {
+            cctv: {
+                scrollSectionId: 'services',
+                cardId: 'service-cctv',
+                featuredCategory: 'cctv',
+                showcaseCategory: 'cctv'
+            },
+            electrical: {
+                scrollSectionId: 'services',
+                cardId: 'service-electrical',
+                featuredCategory: 'electrical',
+                showcaseCategory: 'electrical'
+            },
+            gates: {
+                scrollSectionId: 'showcase',
+                cardId: 'service-gates',
+                featuredCategory: 'gates',
+                showcaseCategory: 'gates'
+            },
+            gate: {
+                scrollSectionId: 'showcase',
+                cardId: 'service-gates',
+                featuredCategory: 'gates',
+                showcaseCategory: 'gates'
+            },
+            ac: {
+                scrollSectionId: 'services',
+                cardId: 'service-airconditioning',
+                featuredCategory: 'airconditioning',
+                showcaseCategory: 'airconditioning'
+            },
+            aircondition: {
+                scrollSectionId: 'services',
+                cardId: 'service-airconditioning',
+                featuredCategory: 'airconditioning',
+                showcaseCategory: 'airconditioning'
+            },
+            airconditioning: {
+                scrollSectionId: 'services',
+                cardId: 'service-airconditioning',
+                featuredCategory: 'airconditioning',
+                showcaseCategory: 'airconditioning'
+            },
+            blinds: {
+                scrollSectionId: 'services',
+                cardId: 'service-blindcurtain',
+                featuredCategory: 'blindcurtain',
+                showcaseCategory: 'smartwindows'
+            },
+            blindcurtain: {
+                scrollSectionId: 'services',
+                cardId: 'service-blindcurtain',
+                featuredCategory: 'blindcurtain',
+                showcaseCategory: 'smartwindows'
+            }
+        };
+
+        const getDeepLinkServiceKey = () => {
+            try {
+                const params = new URLSearchParams(window.location.search || '');
+                const raw = String(params.get('service') || '').toLowerCase().trim();
+                return raw;
+            } catch {
+                return '';
+            }
+        };
+
+        let preferredFeaturedCategoryKey = '';
+        const deepLinkServiceKey = getDeepLinkServiceKey();
+        if (deepLinkServiceKey && deepLinkServiceMap[deepLinkServiceKey]) {
+            preferredFeaturedCategoryKey = deepLinkServiceMap[deepLinkServiceKey].featuredCategory;
+        }
+
+        function applyServiceDeepLink() {
+            if (!deepLinkServiceKey) return;
+            const config = deepLinkServiceMap[deepLinkServiceKey];
+            if (!config) return;
+
+            const card = document.getElementById(config.cardId);
+            if (card) {
+                try { card.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {}
+            }
+
+            const pulseFor = (node, clearSelector, className) => {
+                if (!node) return;
+                try {
+                    document.querySelectorAll(clearSelector).forEach((el) => el.classList.remove(className));
+                    node.classList.add(className);
+                    window.setTimeout(() => {
+                        try { node.classList.remove(className); } catch {}
+                    }, 3000);
+                } catch {}
+            };
+
+            if (card) pulseFor(card, '#services .services-grid .card.highlight-service', 'highlight-service');
+
+            if (config.showcaseCategory) {
+                const showcaseItem = document.querySelector(`.showcase-item[data-category="${config.showcaseCategory}"]`);
+                if (showcaseItem) pulseFor(showcaseItem, '.showcase-item.highlight', 'highlight');
+            }
+        }
+
         let featuredVideoObserver = null;
         let featuredVideoKickstartCleanup = null;
         let featuredBindingsReady = false;
@@ -27,6 +129,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         let featuredLoopDots = null;
         let featuredLoopPrev = null;
         let featuredLoopNext = null;
+        let featuredLoopSlides = [];
         let featuredLoopTimer = null;
         let featuredLoopIndex = 0;
         let featuredLoopCount = 0;
@@ -233,6 +336,39 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             return `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
         }
 
+        function normalizeCloudinaryUrl(urlString) {
+            const raw = String(urlString || '').trim();
+            if (!raw) return raw;
+            if (!/^https?:\/\//i.test(raw)) return raw;
+            if (!/res\.cloudinary\.com/i.test(raw)) return raw;
+
+            const uploadToken = '/upload/';
+            const uploadIndex = raw.indexOf(uploadToken);
+            if (uploadIndex < 0) return raw;
+
+            const prefix = raw.slice(0, uploadIndex + uploadToken.length);
+            const after = raw.slice(uploadIndex + uploadToken.length);
+            if (!after) return raw;
+
+            const parts = after.split('/');
+            const first = parts[0] || '';
+            const hasFAuto = /\bf_auto\b/.test(first);
+            const hasQAuto = /\bq_auto\b/.test(first);
+            const isTransformSegment = first.includes(',') || /(^|,)(w_|h_|c_|g_|ar_|q_|f_|e_|dpr_|fl_)/.test(first);
+
+            if (isTransformSegment) {
+                const additions = [];
+                if (!hasFAuto) additions.push('f_auto');
+                if (!hasQAuto) additions.push('q_auto');
+                if (!additions.length) return raw;
+                parts[0] = `${additions.join(',')},${first}`;
+                return `${prefix}${parts.join('/')}`;
+            }
+
+            if (hasFAuto && hasQAuto) return raw;
+            return `${prefix}f_auto,q_auto/${after}`;
+        }
+
         function resolveProjectMediaFromUrl(urlString, requestedType) {
             const raw = String(urlString || '').trim();
             if (!raw) return null;
@@ -281,7 +417,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const name = String(review.name || 'Customer').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 const comment = String(review.comment || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 const rating = Math.max(1, Math.min(5, Number(review.rating) || 5));
-                const stars = '★★★★★'.slice(0, rating).padEnd(5, '★');
+                const stars = 'â˜…â˜…â˜…â˜…â˜…'.slice(0, rating).padEnd(5, 'â˜…');
                 return `
                     <article class="hailifu-review-card">
                         <div class="hailifu-review-card-header">
@@ -303,7 +439,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const name = String(review.name || 'Customer').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 const comment = String(review.comment || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 const rating = Math.max(1, Math.min(5, Number(review.rating) || 5));
-                const stars = '★★★★★'.slice(0, rating).padEnd(5, '★');
+                const stars = 'â˜…â˜…â˜…â˜…â˜…'.slice(0, rating).padEnd(5, 'â˜…');
                 const actions = statusLabel === 'pending'
                     ? `<button type="button" data-review-approve="${review.id}">Approve</button>`
                     : '';
@@ -480,6 +616,69 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         const chatInput = document.getElementById('chatInput');
         const chatSendBtn = document.getElementById('chatSendBtn');
         const typingIndicator = document.getElementById('typingIndicator');
+
+        function setTyping(isTyping) {
+            if (!typingIndicator) return;
+            typingIndicator.style.display = isTyping ? '' : 'none';
+        }
+
+        function scrollChatToBottom() {
+            if (!chatbotMessages) return;
+            try {
+                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+            } catch {}
+        }
+
+        function addMessage(role, html) {
+            if (!chatbotMessages) return;
+            const node = document.createElement('div');
+            node.className = `message ${role === 'user' ? 'user' : 'bot'}`;
+            node.innerHTML = html;
+            chatbotMessages.insertBefore(node, typingIndicator || null);
+            scrollChatToBottom();
+        }
+
+        function addUserMessage(text) {
+            if (!chatbotMessages) return;
+            const node = document.createElement('div');
+            node.className = 'message user';
+            node.textContent = String(text || '').trim();
+            chatbotMessages.insertBefore(node, typingIndicator || null);
+            scrollChatToBottom();
+        }
+
+        function clearChatMessages() {
+            if (!chatbotMessages) return;
+            Array.from(chatbotMessages.querySelectorAll('.message')).forEach((msg) => msg.remove());
+        }
+
+        function getServiceGreeting(serviceKey) {
+            const key = String(serviceKey || '').toLowerCase().trim();
+            const greetings = {
+                cctv: 'Hi! Need expert CCTV installation for your property? I can help!',
+                gate: 'Hello! Looking for a professional Auto-Gate technician?',
+                gates: 'Hello! Looking for a professional Auto-Gate technician?',
+                ac: 'Hi! Need an AC Installer or Air Condition Technician for installation or repairs?',
+                aircondition: 'Hi! Need an AC Installer or Air Condition Technician for installation or repairs?',
+                airconditioning: 'Hi! Need an AC Installer or Air Condition Technician for installation or repairs?',
+                blinds: 'Hello! Interested in Smart Blinds / Curtain & Window Blinds?',
+                blindcurtain: 'Hello! Interested in Smart Blinds / Curtain & Window Blinds?',
+                electrical: 'Hi! Need a professional Electrician for wiring, installations, or repairs?'
+            };
+            return greetings[key] || '';
+        }
+
+        function applyServiceGreetingToStaticChatbot() {
+            if (!chatbotMessages) return;
+            const greeting = getServiceGreeting(deepLinkServiceKey);
+            if (!greeting) return;
+            const firstBot = chatbotMessages.querySelector('.message.bot');
+            if (!firstBot) return;
+            firstBot.textContent = greeting;
+            scrollChatToBottom();
+        }
+
+        applyServiceGreetingToStaticChatbot();
 
         const adminKnockWindowMs = 3000;
         const adminKnockCount = 5;
@@ -947,6 +1146,14 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
             if (adminPanel) {
                 adminPanel.addEventListener('click', (e) => {
+                    const closeBtn = e.target.closest('#adminToggle, .admin-toggle');
+                    if (closeBtn) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        haltDataSync();
+                        return;
+                    }
+
                     const tabBtn = e.target.closest('.admin-tab');
                     if (tabBtn) {
                         e.preventDefault();
@@ -1261,13 +1468,14 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             featuredLoopDots = document.getElementById('featuredLoopDots');
             featuredLoopPrev = document.getElementById('featuredLoopPrev');
             featuredLoopNext = document.getElementById('featuredLoopNext');
+            featuredLoopSlides = featuredLoop
+                ? Array.from(featuredLoop.querySelectorAll('.featured-loop-slide'))
+                : [];
         }
 
         function setFeaturedLoopTransitionEnabled(enabled) {
-            if (!featuredLoopTrack) return;
-            featuredLoopTrack.style.transition = enabled
-                ? 'transform 0.7s cubic-bezier(0.4, 0, 0.2, 1)'
-                : 'none';
+            if (!featuredLoop) return;
+            featuredLoop.classList.toggle('no-transition', !enabled);
         }
 
         function updateFeaturedLoopDots() {
@@ -1275,7 +1483,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             const dots = Array.from(featuredLoopDots.querySelectorAll('.featured-loop-dot'));
             if (!dots.length) return;
             const active = featuredLoopCount
-                ? ((featuredLoopIndex - 1 + featuredLoopCount) % featuredLoopCount)
+                ? ((featuredLoopIndex % featuredLoopCount) + featuredLoopCount) % featuredLoopCount
                 : 0;
             dots.forEach((dot, idx) => {
                 dot.classList.toggle('active', idx === active);
@@ -1283,12 +1491,38 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         }
 
         function setFeaturedLoopIndex(nextIndex, opts = {}) {
-            if (!featuredLoopTrack) return;
             const { animate = true } = opts;
-            featuredLoopIndex = nextIndex;
+            if (!featuredLoopSlides.length) return;
+            if (featuredLoopCount <= 0) return;
+            const normalized = ((Number(nextIndex) || 0) % featuredLoopCount + featuredLoopCount) % featuredLoopCount;
+            featuredLoopIndex = normalized;
             setFeaturedLoopTransitionEnabled(animate);
-            featuredLoopTrack.style.transform = `translate3d(${-100 * featuredLoopIndex}%, 0, 0)`;
+
+            featuredLoopSlides.forEach((slide, idx) => {
+                const isActive = idx === featuredLoopIndex;
+                slide.classList.toggle('is-active', isActive);
+                const videos = Array.from(slide.querySelectorAll('video'));
+                videos.forEach((video) => {
+                    if (isActive) {
+                        try {
+                            video.muted = true;
+                            video.defaultMuted = true;
+                            video.volume = 0;
+                            video.playsInline = true;
+                            video.setAttribute('muted', '');
+                            video.setAttribute('playsinline', '');
+                            video.setAttribute('webkit-playsinline', '');
+                            const playPromise = video.play();
+                            if (playPromise && typeof playPromise.catch === 'function') playPromise.catch(() => {});
+                        } catch {}
+                    } else {
+                        try { video.pause(); } catch {}
+                    }
+                });
+            });
+
             updateFeaturedLoopDots();
+            markFeaturedMediaLoaded();
         }
 
         function stopFeaturedLoop() {
@@ -1300,42 +1534,18 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
         function startFeaturedLoop() {
             stopFeaturedLoop();
-            if (!featuredLoop || !featuredLoopTrack) return;
             if (featuredLoopCount <= 1) return;
             if (document.hidden) return;
             featuredLoopTimer = setInterval(() => {
                 advanceFeaturedLoop(1);
-            }, 4500);
+            }, 5000);
         }
 
         function advanceFeaturedLoop(delta) {
-            if (!featuredLoopTrack) return;
             if (featuredLoopCount <= 1) return;
             const step = delta >= 0 ? 1 : -1;
-            const next = featuredLoopIndex + step;
+            const next = (featuredLoopIndex + step + featuredLoopCount) % featuredLoopCount;
             setFeaturedLoopIndex(next, { animate: true });
-        }
-
-        function handleFeaturedLoopTransitionEnd() {
-            if (!featuredLoopTrack) return;
-            if (featuredLoopCount <= 1) return;
-            const lastRealIndex = featuredLoopCount;
-            const cloneFirstIndex = featuredLoopCount + 1;
-
-            if (featuredLoopIndex === 0) {
-                setFeaturedLoopIndex(lastRealIndex, { animate: false });
-                requestAnimationFrame(() => {
-                    setFeaturedLoopTransitionEnabled(true);
-                });
-                return;
-            }
-
-            if (featuredLoopIndex === cloneFirstIndex) {
-                setFeaturedLoopIndex(1, { animate: false });
-                requestAnimationFrame(() => {
-                    setFeaturedLoopTransitionEnabled(true);
-                });
-            }
         }
 
         function ensureFeaturedLoopBindings() {
@@ -1343,10 +1553,6 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             if (featuredLoopHasBindings && featuredLoopBoundNode === featuredLoop) return;
             featuredLoopHasBindings = true;
             featuredLoopBoundNode = featuredLoop;
-
-            if (featuredLoopTrack) {
-                featuredLoopTrack.addEventListener('transitionend', handleFeaturedLoopTransitionEnd);
-            }
 
             featuredLoop.addEventListener('pointerenter', () => {
                 stopFeaturedLoop();
@@ -1382,7 +1588,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     const idx = dots.indexOf(dot);
                     if (idx < 0) return;
                     stopFeaturedLoop();
-                    setFeaturedLoopIndex(idx + 1, { animate: true });
+                    setFeaturedLoopIndex(idx, { animate: true });
                     startFeaturedLoop();
                 });
             }
@@ -1423,7 +1629,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     <div class="featured-loop" id="featuredLoop">
                         <div class="featured-loop-viewport">
                             <div class="featured-loop-track" id="featuredLoopTrack">
-                                <article class="featured-card featured-loop-slide is-empty">
+                                <article class="featured-card featured-loop-slide is-empty is-active">
                                     <div class="featured-card-content">
                                         <div class="featured-card-category"><i class="fas fa-star"></i> Featured</div>
                                         <div class="featured-card-title">Toggle Lazy Loop in the Admin Panel</div>
@@ -1443,14 +1649,15 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const isVideo = project.mediaType === 'video';
                 const isYoutube = project.mediaType === 'youtube';
                 const fallbackYoutubeThumb = getYoutubeThumbUrl(getYoutubeVideoId(project.mediaSrc));
-                const youtubeThumb = project.thumbSrc || fallbackYoutubeThumb;
+                const youtubeThumb = normalizeCloudinaryUrl(project.thumbSrc || fallbackYoutubeThumb);
                 if (isYoutube) return `<img src="${youtubeThumb || ''}" alt="${safeTitle}" loading="lazy">`;
-                if (isVideo) return `<video src="${project.mediaSrc}" muted playsinline webkit-playsinline loop preload="metadata"></video>`;
-                return `<img src="${project.mediaSrc}" alt="${safeTitle}" loading="lazy">`;
+
+                const normalizedSrc = normalizeCloudinaryUrl(project.mediaSrc);
+                if (isVideo) return `<video src="${normalizedSrc}" muted playsinline webkit-playsinline loop preload="metadata"></video>`;
+                return `<img src="${normalizedSrc}" alt="${safeTitle}" loading="lazy">`;
             };
 
-            const buildSlide = (project, opts = {}) => {
-                const { clone = false } = opts;
+            const buildSlide = (project, idx) => {
                 const safeTitle = (project.title || 'Project').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 const safeDescription = (project.description || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 const categoryKey = normalizeCategory(project.category);
@@ -1461,9 +1668,9 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const videoBadge = isVideo || isYoutube
                     ? `<div class="video-badge"><i class="fas fa-play-circle"></i> Video</div>`
                     : '';
-                const cloneAttr = clone ? ' data-featured-clone="1"' : '';
+                const isActiveClass = idx === 0 ? ' is-active' : '';
                 return `
-                    <article class="featured-card featured-loop-slide"${cloneAttr} data-generated-project-id="${project.id}" data-media-type="${project.mediaType}" data-media-src="${project.mediaSrc}">
+                    <article class="featured-card featured-loop-slide${isActiveClass}" data-featured-index="${idx}" data-generated-project-id="${project.id}" data-media-type="${project.mediaType}" data-media-src="${normalizeCloudinaryUrl(project.mediaSrc)}">
                         ${videoBadge}
                         <div class="featured-card-media">${mediaMarkup}</div>
                         <div class="featured-card-content">
@@ -1475,9 +1682,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 `;
             };
 
-            const slides = featured.map((project) => buildSlide(project)).join('');
-            const cloneFirst = featuredLoopCount > 1 ? buildSlide(featured[0], { clone: true }) : '';
-            const cloneLast = featuredLoopCount > 1 ? buildSlide(featured[featuredLoopCount - 1], { clone: true }) : '';
+            const slides = featured.map((project, idx) => buildSlide(project, idx)).join('');
             const dotsMarkup = featuredLoopCount > 1
                 ? featured.map((_, idx) => {
                     const active = idx === 0 ? ' active' : '';
@@ -1499,7 +1704,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             featuredBento.innerHTML = `
                 <div class="featured-loop" id="featuredLoop">
                     <div class="featured-loop-viewport">
-                        <div class="featured-loop-track" id="featuredLoopTrack">${cloneLast}${slides}${cloneFirst}</div>
+                        <div class="featured-loop-track" id="featuredLoopTrack">${slides}</div>
                         ${navMarkup}
                     </div>
                     <div class="featured-loop-dots" id="featuredLoopDots" aria-hidden="true">${dotsMarkup}</div>
@@ -1509,14 +1714,18 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             syncFeaturedLoopNodes();
             ensureFeaturedLoopBindings();
 
+            let startIndex = 0;
+            if (preferredFeaturedCategoryKey) {
+                const matchIdx = featured.findIndex((p) => normalizeCategory(p?.category) === preferredFeaturedCategoryKey);
+                if (matchIdx >= 0) startIndex = matchIdx;
+            }
+
+            setFeaturedLoopIndex(startIndex, { animate: false });
             if (featuredLoopCount > 1) {
-                setFeaturedLoopIndex(1, { animate: false });
                 requestAnimationFrame(() => {
                     setFeaturedLoopTransitionEnabled(true);
                     startFeaturedLoop();
                 });
-            } else {
-                setFeaturedLoopIndex(0, { animate: false });
             }
 
             if (!featuredBindingsReady) {
@@ -1529,13 +1738,51 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 });
             }
 
+            markFeaturedMediaLoaded();
             initFeaturedVideoObserver();
-
             renderAdminLazyLoop();
+        }
+
+        function markFeaturedMediaLoaded() {
+            if (!featuredLoopSlides.length) return;
+
+            featuredLoopSlides.forEach((slide) => {
+                const media = slide.querySelector('.featured-card-media');
+                if (!media) return;
+                if (media.classList.contains('is-loaded')) return;
+
+                const img = media.querySelector('img');
+                if (img) {
+                    if (img.complete && img.naturalWidth > 0) {
+                        media.classList.add('is-loaded');
+                    } else {
+                        img.addEventListener('load', () => media.classList.add('is-loaded'), { once: true });
+                        img.addEventListener('error', () => media.classList.add('is-loaded'), { once: true });
+                    }
+                    return;
+                }
+
+                const video = media.querySelector('video');
+                if (video) {
+                    if (video.readyState >= 2) {
+                        media.classList.add('is-loaded');
+                    } else {
+                        video.addEventListener('loadeddata', () => media.classList.add('is-loaded'), { once: true });
+                        video.addEventListener('error', () => media.classList.add('is-loaded'), { once: true });
+                    }
+                    return;
+                }
+
+                const frame = media.querySelector('iframe');
+                if (frame) {
+                    media.classList.add('is-loaded');
+                }
+            });
         }
 
         function initFeaturedVideoObserver() {
             if (!featuredBento) return;
+
             if (featuredVideoObserver) {
                 featuredVideoObserver.disconnect();
             }
@@ -1559,6 +1806,12 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             const safePlay = (video, kickstartVisible) => {
                 if (!video) return;
                 try {
+                    const parentSlide = video.closest('.featured-loop-slide');
+                    if (parentSlide && !parentSlide.classList.contains('is-active')) {
+                        try { video.pause(); } catch {}
+                        return;
+                    }
+
                     video.muted = true;
                     video.defaultMuted = true;
                     video.volume = 0;
@@ -1599,6 +1852,11 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 try {
                     const viewH = window.innerHeight || document.documentElement.clientHeight || 0;
                     videos.forEach((video) => {
+                        const parentSlide = video.closest('.featured-loop-slide');
+                        if (parentSlide && !parentSlide.classList.contains('is-active')) {
+                            try { video.pause(); } catch {}
+                            return;
+                        }
                         const rect = video.getBoundingClientRect();
                         const isVisible = rect.bottom > 0 && rect.top < viewH;
                         if (isVisible) {
@@ -1623,6 +1881,11 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             featuredVideoObserver = new IntersectionObserver((entries) => {
                 entries.forEach((entry) => {
                     const video = entry.target;
+                    const parentSlide = video.closest('.featured-loop-slide');
+                    if (parentSlide && !parentSlide.classList.contains('is-active')) {
+                        try { video.pause(); } catch {}
+                        return;
+                    }
 
                     if (entry.isIntersecting) {
                         safePlay(video, kickstartVisible);
@@ -1712,7 +1975,6 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             if (t.includes('curtain') || t.includes('blind') || t.includes('smart window') || t.includes('smart windows') || t.includes('window')) return 'blindcurtain';
             return '';
         }
-
         function normalizePhone(text) {
             const raw = (text || '').trim();
             const digits = raw.replace(/[^0-9+]/g, '');
@@ -1724,7 +1986,12 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         }
 
         function showGreeting() {
-            addMessage('bot', `Welcome to Hailifu! I can help you with a quick quote. Are you interested in CCTV, Gate Automation, Electrical Wiring, Air Conditioning, or Smart Window Solutions?
+            clearChatMessages();
+
+            const serviceGreeting = getServiceGreeting(deepLinkServiceKey);
+            const greetingText = serviceGreeting || 'Welcome to Hailifu! I can help you with a quick quote. Are you interested in CCTV, Gate Automation, Electrical Wiring, Air Conditioning, or Smart Window Solutions?';
+
+            addMessage('bot', `${greetingText}
                 <div class="brilliant-quick-actions">
                     <button class="brilliant-quick-btn" type="button" data-assistant-service="cctv">CCTV</button>
                     <button class="brilliant-quick-btn" type="button" data-assistant-service="gates">Gate Automation</button>
@@ -1878,6 +2145,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         renderProjects();
         hydrateShowcaseFromStoredProjects();
         renderFeaturedWork();
+        applyServiceDeepLink();
 
         const projectModal = document.getElementById('projectModal');
         const projectModalClose = document.getElementById('projectModalClose');
@@ -2030,7 +2298,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     wrap.style.color = 'rgba(255, 255, 255, 0.82)';
                     wrap.innerHTML = `
                         <div style="font-size:2rem; margin-bottom:10px; color: var(--orange);"><i class="fas fa-play-circle"></i></div>
-                        <div style="margin-bottom:12px;">This video can’t be embedded in file preview mode.</div>
+                        <div style="margin-bottom:12px;">This video canâ€™t be embedded in file preview mode.</div>
                         <a href="${watchUrl}" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; justify-content:center; gap:10px; background: var(--orange); color: #fff; padding: 12px 18px; border-radius: 999px; font-weight: 800; text-decoration: none;">Open on YouTube</a>
                     `;
                     content.appendChild(wrap);
@@ -2173,7 +2441,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                             wrap.style.color = 'rgba(255, 255, 255, 0.82)';
                             wrap.innerHTML = `
                                 <div style="font-size:2rem; margin-bottom:10px; color: var(--orange);"><i class="fas fa-play-circle"></i></div>
-                                <div style="margin-bottom:12px;">This video can’t be embedded in file preview mode.</div>
+                                <div style="margin-bottom:12px;">This video canâ€™t be embedded in file preview mode.</div>
                                 <a href="${watchUrl}" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; justify-content:center; gap:10px; background: var(--orange); color: #fff; padding: 12px 18px; border-radius: 999px; font-weight: 800; text-decoration: none;">Open on YouTube</a>
                             `;
                             projectModalMedia.appendChild(wrap);
@@ -2339,6 +2607,72 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         const popupSuccess = document.getElementById('popupSuccess');
         const popupService = document.getElementById('popupService');
         const serviceContext = document.getElementById('serviceContext');
+
+        const sharePortfolioFab = document.getElementById('sharePortfolioFab');
+        const sharePortfolioToast = document.getElementById('sharePortfolioToast');
+        const portfolioShareUrl = 'https://hailifu.github.io/Hailifu_Website/';
+        let sharePortfolioToastTimer = null;
+
+        function showSharePortfolioToast(message) {
+            if (!sharePortfolioToast) return;
+            sharePortfolioToast.textContent = message || 'Link Copied!';
+            sharePortfolioToast.classList.add('active');
+            if (sharePortfolioToastTimer) clearTimeout(sharePortfolioToastTimer);
+            sharePortfolioToastTimer = setTimeout(() => {
+                sharePortfolioToast.classList.remove('active');
+            }, 1600);
+        }
+
+        async function copyPortfolioUrl() {
+            try {
+                if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                    await navigator.clipboard.writeText(portfolioShareUrl);
+                    return true;
+                }
+            } catch {}
+
+            try {
+                const input = document.createElement('input');
+                input.value = portfolioShareUrl;
+                input.setAttribute('readonly', '');
+                input.style.position = 'fixed';
+                input.style.left = '-9999px';
+                document.body.appendChild(input);
+                input.select();
+                input.setSelectionRange(0, input.value.length);
+                const ok = document.execCommand('copy');
+                input.remove();
+                return !!ok;
+            } catch {
+                return false;
+            }
+        }
+
+        function isLikelyMobile() {
+            const ua = navigator.userAgent || '';
+            return /android|iphone|ipad|ipod|mobile/i.test(ua);
+        }
+
+        if (sharePortfolioFab) {
+            sharePortfolioFab.addEventListener('click', async (e) => {
+                e.preventDefault();
+
+                const canNativeShare = typeof navigator.share === 'function' && isLikelyMobile();
+                if (canNativeShare) {
+                    try {
+                        await navigator.share({
+                            title: 'Hailifu Portfolio',
+                            text: 'Check out the Hailifu portfolio.',
+                            url: portfolioShareUrl
+                        });
+                        return;
+                    } catch {}
+                }
+
+                const copied = await copyPortfolioUrl();
+                showSharePortfolioToast(copied ? 'Link Copied!' : 'Copy failed');
+            });
+        }
 
         function setQuoteService(serviceKey) {
             const labelMap = {
@@ -2802,3 +3136,4 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         }
 
         });
+
