@@ -178,6 +178,7 @@
         let adminLazyLoopIndex = 0;
         let adminLazyLoopCount = 0;
         let adminLazyLoopHasBindings = false;
+        let adminLazyLoopSlides = [];
 
         const themeStorageKey = 'hailifu_theme';
 
@@ -885,6 +886,149 @@
             return adminPanel;
         }
 
+        function syncAdminLazyLoopNodes() {
+            if (!adminPanel) return;
+            if (!adminLazyLoop) adminLazyLoop = document.getElementById('adminLazyLoop');
+            if (!adminLazyLoopTrack) adminLazyLoopTrack = document.getElementById('adminLazyLoopTrack');
+            if (!adminLazyLoopDots) adminLazyLoopDots = document.getElementById('adminLazyLoopDots');
+            if (!adminLazyLoopTrack) return;
+            adminLazyLoopSlides = Array.from(adminLazyLoopTrack.querySelectorAll('.admin-lazyloop-slide'));
+        }
+
+        function setAdminLazyLoopIndex(nextIndex, opts = {}) {
+            syncAdminLazyLoopNodes();
+            if (!adminLazyLoopTrack) return;
+            if (adminLazyLoopCount <= 0) return;
+            if (!adminLazyLoopSlides.length) return;
+
+            const animate = opts.animate !== false;
+            const normalized = ((Number(nextIndex) || 0) % adminLazyLoopCount + adminLazyLoopCount) % adminLazyLoopCount;
+            adminLazyLoopIndex = normalized;
+
+            adminLazyLoopTrack.style.transition = animate ? '' : 'none';
+            adminLazyLoopTrack.style.transform = `translate3d(${-adminLazyLoopIndex * 100}%, 0, 0)`;
+
+            if (!animate) {
+                requestAnimationFrame(() => {
+                    try { adminLazyLoopTrack.style.transition = ''; } catch {}
+                });
+            }
+
+            if (adminLazyLoopDots) {
+                const dots = Array.from(adminLazyLoopDots.querySelectorAll('.admin-lazyloop-dot'));
+                dots.forEach((dot, idx) => dot.classList.toggle('active', idx === adminLazyLoopIndex));
+            }
+        }
+
+        function advanceAdminLazyLoop(delta = 1) {
+            setAdminLazyLoopIndex(adminLazyLoopIndex + (Number(delta) || 1), { animate: true });
+        }
+
+        function stopAdminLazyLoop() {
+            if (adminLazyLoopTimer) {
+                clearInterval(adminLazyLoopTimer);
+                adminLazyLoopTimer = null;
+            }
+        }
+
+        function startAdminLazyLoop() {
+            stopAdminLazyLoop();
+            if (adminLazyLoopCount <= 1) return;
+            adminLazyLoopTimer = setInterval(() => {
+                advanceAdminLazyLoop(1);
+            }, 4500);
+        }
+
+        function ensureAdminLazyLoopBindings() {
+            if (!adminLazyLoopDots) return;
+            if (adminLazyLoopHasBindings) return;
+            adminLazyLoopHasBindings = true;
+
+            adminLazyLoopDots.addEventListener('click', (e) => {
+                const dot = e.target.closest('.admin-lazyloop-dot');
+                if (!dot) return;
+                const dots = Array.from(adminLazyLoopDots.querySelectorAll('.admin-lazyloop-dot'));
+                const idx = dots.indexOf(dot);
+                if (idx < 0) return;
+                stopAdminLazyLoop();
+                setAdminLazyLoopIndex(idx, { animate: true });
+                startAdminLazyLoop();
+            });
+        }
+
+        function renderAdminLazyLoop() {
+            syncAdminLazyLoopNodes();
+            if (!adminLazyLoopTrack || !adminLazyLoopDots) return;
+
+            const projects = getProjects();
+            const featured = projects.filter((p) => p && p.isFeatured);
+
+            adminLazyLoopCount = featured.length;
+            adminLazyLoopIndex = 0;
+
+            if (!featured.length) {
+                adminLazyLoopTrack.innerHTML = `
+                    <div class="admin-lazyloop-slide is-empty">
+                        <div class="admin-lazyloop-overlay">
+                            <div class="admin-lazyloop-title">No featured projects yet</div>
+                            <div class="admin-lazyloop-subtitle">Mark projects as “Feature in Lazy Loop”.</div>
+                        </div>
+                    </div>
+                `;
+                adminLazyLoopDots.innerHTML = '';
+                syncAdminLazyLoopNodes();
+                stopAdminLazyLoop();
+                return;
+            }
+
+            const getMediaMarkup = (project) => {
+                const type = String(project?.mediaType || 'image').toLowerCase();
+                const srcRaw = String(project?.mediaSrc || '').trim();
+                const thumbRaw = String(project?.thumbSrc || '').trim();
+
+                const normalize = (url) => {
+                    try {
+                        if (typeof normalizeCloudinaryUrl === 'function') return normalizeCloudinaryUrl(url);
+                    } catch {}
+                    return url;
+                };
+
+                if (type === 'youtube') {
+                    const thumb = normalize(thumbRaw) || normalize(srcRaw);
+                    return `<img src="${thumb}" alt="" loading="lazy">`;
+                }
+                if (type === 'video') {
+                    const src = normalize(srcRaw);
+                    return `<video src="${src}" muted playsinline webkit-playsinline loop preload="metadata"></video>`;
+                }
+                const src = normalize(srcRaw);
+                return `<img src="${src}" alt="" loading="lazy">`;
+            };
+
+            adminLazyLoopTrack.innerHTML = featured.map((p) => {
+                const title = String(p?.title || 'Project').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                const category = String(p?.category || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                return `
+                    <div class="admin-lazyloop-slide" data-generated-project-id="${String(p?.id || '')}">
+                        <div class="admin-lazyloop-media">${getMediaMarkup(p)}</div>
+                        <div class="admin-lazyloop-overlay">
+                            <div class="admin-lazyloop-title">${title}</div>
+                            <div class="admin-lazyloop-subtitle">${category}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            adminLazyLoopDots.innerHTML = featured.map((_, idx) => {
+                const active = idx === 0 ? ' active' : '';
+                return `<span class="admin-lazyloop-dot${active}" role="presentation"></span>`;
+            }).join('');
+
+            syncAdminLazyLoopNodes();
+            ensureAdminLazyLoopBindings();
+            setAdminLazyLoopIndex(0, { animate: false });
+        }
+
         function setAdminTab(tabKey) {
             if (!adminTabs.length || !adminTabPanels.length) {
                 adminTabs = Array.from(document.querySelectorAll('.admin-tab'));
@@ -1206,7 +1350,7 @@
         }
 
         function haltDataSync() {
-            stopAdminLazyLoop();
+            try { stopAdminLazyLoop(); } catch {}
             if (adminPanel) {
                 adminPanel.classList.remove('active');
                 adminPanel.setAttribute('aria-hidden', 'true');
@@ -1269,6 +1413,23 @@
                 }, adminClickDelayMs);
             });
         }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Escape') return;
+            if (adminPanel && adminPanel.classList.contains('active')) {
+                haltDataSync();
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            const closeBtn = e.target.closest('#adminToggle, .admin-toggle');
+            if (!closeBtn) return;
+            if (adminPanel && adminPanel.classList.contains('active')) {
+                e.preventDefault();
+                e.stopPropagation();
+                haltDataSync();
+            }
+        });
 
         if (isAdminUnlocked()) {
             seedOpsLayer();
