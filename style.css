@@ -1043,6 +1043,48 @@
             }
         }
 
+        @media (max-width: 420px) {
+            header {
+                padding: calc(12px + env(safe-area-inset-top, 0px)) 12px 12px;
+                gap: 8px;
+            }
+
+            .logo {
+                font-size: 0.95rem;
+                gap: 8px;
+            }
+
+            .whatsapp-logo {
+                width: 40px !important;
+                height: 40px !important;
+                border-radius: 12px !important;
+            }
+
+            #admin-trigger {
+                width: 26px !important;
+                height: 26px !important;
+                border-radius: 7px !important;
+            }
+
+            .header-right {
+                gap: 8px;
+            }
+
+            .header-actions {
+                gap: 8px;
+            }
+
+            .theme-toggle {
+                width: 36px;
+                height: 36px;
+            }
+
+            .mobile-menu-toggle {
+                padding: 8px;
+                margin-left: 2px;
+            }
+        }
+
         /* Hero Section */
         .hero {
             height: 100vh;
