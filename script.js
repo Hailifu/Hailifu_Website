@@ -81,13 +81,13 @@
                 showcaseCategory: 'electrical'
             },
             gates: {
-                scrollSectionId: 'showcase',
+                scrollSectionId: 'services',
                 cardId: 'service-gates',
                 featuredCategory: 'gates',
                 showcaseCategory: 'gates'
             },
             gate: {
-                scrollSectionId: 'showcase',
+                scrollSectionId: 'services',
                 cardId: 'service-gates',
                 featuredCategory: 'gates',
                 showcaseCategory: 'gates'
@@ -145,11 +145,6 @@
             const config = deepLinkServiceMap[deepLinkServiceKey];
             if (!config) return;
 
-            const card = document.getElementById(config.cardId);
-            if (card) {
-                try { card.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {}
-            }
-
             const pulseFor = (node, clearSelector, className) => {
                 if (!node) return;
                 try {
@@ -161,12 +156,27 @@
                 } catch {}
             };
 
-            if (card) pulseFor(card, '#services .services-grid .card.highlight-service', 'highlight-service');
+            const focusCard = () => {
+                const card = document.getElementById(config.cardId);
+                if (card) {
+                    try { card.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {}
+                    pulseFor(card, '#services .services-grid .card.highlight-service', 'highlight-service');
+                }
 
-            if (config.showcaseCategory) {
-                const showcaseItem = document.querySelector(`.showcase-item[data-category="${config.showcaseCategory}"]`);
-                if (showcaseItem) pulseFor(showcaseItem, '.showcase-item.highlight', 'highlight');
+                if (config.showcaseCategory) {
+                    const showcaseItem = document.querySelector(`.showcase-item[data-category="${config.showcaseCategory}"]`);
+                    if (showcaseItem) pulseFor(showcaseItem, '.showcase-item.highlight', 'highlight');
+                }
+            };
+
+            const section = config.scrollSectionId ? document.getElementById(config.scrollSectionId) : null;
+            if (section) {
+                try { section.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {}
+                window.setTimeout(focusCard, 250);
+                return;
             }
+
+            focusCard();
         }
 
         let featuredVideoObserver = null;
