@@ -3267,6 +3267,12 @@
                 closeSidebar();
             });
 
+            shortcutSidebar.addEventListener('click', (e) => {
+                const link = e.target.closest('.shortcut-sidebar-link');
+                if (!link) return;
+                closeSidebar();
+            });
+
             shortcutSidebar.querySelectorAll('[data-shortcut-scroll]').forEach((a) => {
                 a.addEventListener('click', (e) => {
                     const href = a.getAttribute('href') || '';
