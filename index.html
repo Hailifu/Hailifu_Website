@@ -171,19 +171,29 @@
             HAILIFU <span>BRILLIANT</span>
         </a>
  
-        <nav id="nav">
-            <a href="#home">Home</a>
-            <a href="#services">Services</a>
-            <a href="#showcase">Work Showcase</a>
-            <a href="#testimonials">Reviews</a>
-            <a href="https://wa.me/233550997270" class="contact-btn" target="_blank">
-                <i class="fab fa-whatsapp"></i> Contact Us
-            </a>
-        </nav>
-        <div class="mobile-menu-toggle" id="mobileToggle">
-            <span></span>
-            <span></span>
-            <span></span>
+        <div class="header-right">
+            <nav id="nav">
+                <a href="#home">Home</a>
+                <a href="#services">Services</a>
+                <a href="#showcase">Work Showcase</a>
+                <a href="#testimonials">Reviews</a>
+            </nav>
+            <div class="header-actions">
+                <a href="https://wa.me/233550997270" class="contact-btn" target="_blank">
+                    <i class="fab fa-whatsapp"></i> Contact Us
+                </a>
+                <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme" aria-pressed="false" title="Theme">
+                    <span class="theme-toggle-icon" aria-hidden="true">
+                        <span class="theme-icon theme-icon--moon"><i class="fas fa-moon"></i></span>
+                        <span class="theme-icon theme-icon--sun"><i class="fas fa-sun"></i></span>
+                    </span>
+                </button>
+            </div>
+            <div class="mobile-menu-toggle" id="mobileToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
         </div>
     </header>
  
@@ -814,18 +824,6 @@
             </div>
         </div>
     </a>
-
-    <div class="action-hub" id="actionHub">
-        <button class="action-hub-main" id="actionHubMain" type="button" aria-label="Open quick actions" aria-expanded="false">
-            <i class="fas fa-plus" aria-hidden="true"></i>
-        </button>
-        <div class="action-hub-items" aria-hidden="true">
-            <button class="action-hub-item" id="actionHubTheme" type="button" aria-label="Toggle theme" style="--hub-delay: 0ms">
-                <span class="action-hub-label">Theme</span>
-                <span class="action-hub-icon" aria-hidden="true"><i class="fas fa-moon"></i></span>
-            </button>
-        </div>
-    </div>
 
     <!-- AI Chatbot -->
     <div id="chatbotContainer" class="chatbot-container">
