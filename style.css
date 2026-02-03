@@ -942,7 +942,9 @@
 
         /* Hero Section */
         .hero {
-            min-height: 90vh;
+            height: 100vh;
+            height: 100svh;
+            width: 100%;
             color: var(--white);
             display: flex;
             flex-direction: column;
@@ -954,6 +956,7 @@
             overflow: hidden;
             background: transparent !important;
             box-sizing: border-box;
+            isolation: isolate;
         }
 
         .hero-video-container {
@@ -963,20 +966,23 @@
             width: 100%;
             height: 100%;
             min-height: 100%;
-            z-index: 1;
+            z-index: -2;
             overflow: hidden;
             pointer-events: none;
+            background-image: url('https://res.cloudinary.com/daovfi3i5/image/upload/f_auto,q_auto/v1770110454/logo_k1iyvc.png');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: cover;
         }
 
-        .hero-video-container iframe {
+        .hero-video-container video {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 120vw;
-            height: 120vh;
-            min-width: 177.77vh;
-            min-height: 100vh;
-            transform: translate(-50%, -50%) scale(1.02);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
             border: 0;
         }
 
@@ -998,8 +1004,8 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(180deg, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.58));
-            z-index: 2;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.62) 0%, rgba(0, 0, 0, 0.48) 45%, rgba(0, 0, 0, 0.62) 100%);
+            z-index: 0;
             pointer-events: none;
         }
 
@@ -1079,6 +1085,11 @@
         }
 
         @media (max-width: 768px) {
+            .hero {
+                padding-top: 110px;
+                padding-bottom: 56px;
+            }
+
             .hero-content {
                 padding: 22px 20px;
             }
@@ -1174,7 +1185,7 @@
 
         /* Section Styles */
         header {
-            z-index: 2;
+            z-index: 1000;
         }
 
         section {

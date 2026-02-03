@@ -16,6 +16,56 @@
         const shortcutSidebarTab = document.getElementById('shortcutSidebarTab');
         const themeToggle = document.getElementById('themeToggle');
 
+        function shouldSkipHeroVideo() {
+            try {
+                const saveData = navigator.connection && navigator.connection.saveData;
+                if (saveData) return true;
+            } catch {}
+
+            try {
+                const effectiveType = navigator.connection && navigator.connection.effectiveType;
+                if (effectiveType && /(^|-)2g$/.test(String(effectiveType))) return true;
+            } catch {}
+
+            try {
+                if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return true;
+            } catch {}
+
+            try {
+                if (window.matchMedia && window.matchMedia('(max-width: 600px)').matches) return true;
+            } catch {}
+
+            return false;
+        }
+
+        function initHeroVideo() {
+            if (!heroVideo) return;
+            const container = heroVideo.closest('.hero-video-container');
+
+            if (heroVideo.tagName === 'VIDEO') {
+                try {
+                    heroVideo.play().catch(() => {});
+                } catch {}
+                return;
+            }
+
+            const src = heroVideo.getAttribute('data-src');
+            if (!src) return;
+
+            if (container) container.classList.remove('is-loaded');
+
+            if (shouldSkipHeroVideo()) {
+                return;
+            }
+
+            heroVideo.src = src;
+            heroVideo.addEventListener('load', () => {
+                if (container) container.classList.add('is-loaded');
+            }, { once: true });
+        }
+
+        initHeroVideo();
+
         const deepLinkServiceMap = {
             cctv: {
                 scrollSectionId: 'services',
