@@ -828,16 +828,6 @@
         </div>
     </div>
 
-    <!-- Branded WhatsApp FAB Button -->
-    <a href="https://wa.me/233550997270" class="whatsapp-fab-pill floating-whatsapp" target="_blank">
-        <div class="whatsapp-content">
-            <div class="whatsapp-text">
-                <i class="fab fa-whatsapp"></i>
-                <span>CHAT NOW</span>
-            </div>
-        </div>
-    </a>
-
     <!-- AI Chatbot -->
     <div id="chatbotContainer" class="chatbot-container">
         <div class="chatbot-header">
@@ -875,14 +865,25 @@
         </div>
     </div>
 
-    <!-- Chatbot Toggle Button -->
-    <button class="chatbot-toggle" id="chatbotToggle" type="button" aria-label="Chat with Hailifu" title="Chat with Hailifu">
-        <i class="fas fa-comments"></i>
-    </button>
-
-    <button class="share-portfolio-fab" id="sharePortfolioFab" type="button" aria-label="Share Portfolio" title="Share Portfolio">
-        <i class="fas fa-share-alt" aria-hidden="true"></i>
-    </button>
+    <div class="action-hub" id="actionHub">
+        <button class="action-hub-main" id="actionHubMain" type="button" aria-label="Open quick actions" aria-expanded="false">
+            <i class="fas fa-plus" aria-hidden="true"></i>
+        </button>
+        <div class="action-hub-items" aria-hidden="true">
+            <button class="action-hub-item" id="actionHubChat" type="button" aria-label="Chat with AI" style="--hub-delay: 0ms">
+                <span class="action-hub-label">Chat with AI</span>
+                <span class="action-hub-icon" aria-hidden="true"><i class="fas fa-comments"></i></span>
+            </button>
+            <button class="action-hub-item" id="actionHubShare" type="button" aria-label="Share Portfolio" style="--hub-delay: 50ms">
+                <span class="action-hub-label">Share Portfolio</span>
+                <span class="action-hub-icon" aria-hidden="true"><i class="fas fa-share-alt"></i></span>
+            </button>
+            <button class="action-hub-item" id="actionHubWhatsApp" type="button" aria-label="WhatsApp" style="--hub-delay: 100ms">
+                <span class="action-hub-label">WhatsApp</span>
+                <span class="action-hub-icon" aria-hidden="true"><i class="fab fa-whatsapp"></i></span>
+            </button>
+        </div>
+    </div>
 
     <div class="share-portfolio-toast" id="sharePortfolioToast" role="status" aria-live="polite" aria-atomic="true">Link Copied!</div>
 

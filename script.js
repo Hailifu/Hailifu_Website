@@ -613,6 +613,13 @@
         const chatbotContainer = document.getElementById('chatbotContainer');
         const chatbotClose = document.getElementById('chatbotClose');
 
+        const actionHub = document.getElementById('actionHub');
+        const actionHubMain = document.getElementById('actionHubMain');
+        const actionHubItems = actionHub ? actionHub.querySelector('.action-hub-items') : null;
+        const actionHubChat = document.getElementById('actionHubChat');
+        const actionHubShare = document.getElementById('actionHubShare');
+        const actionHubWhatsApp = document.getElementById('actionHubWhatsApp');
+
         const chatbotMessages = document.getElementById('chatbotMessages');
         const chatInput = document.getElementById('chatInput');
         const chatSendBtn = document.getElementById('chatSendBtn');
@@ -2162,6 +2169,17 @@
                 </div>`);
         }
 
+        function openChatbot() {
+            if (!chatbotContainer) return;
+            const opening = !chatbotContainer.classList.contains('active');
+            chatbotContainer.classList.add('active');
+            if (opening) {
+                setTyping(false);
+                resetAssistant();
+                showGreeting();
+            }
+        }
+
         function showWhatsAppButton() {
             const label = assistantState.serviceLabel || 'Service';
             addMessage('bot', `
@@ -2299,6 +2317,29 @@
         if (chatbotClose && chatbotContainer) {
             chatbotClose.addEventListener('click', () => {
                 chatbotContainer.classList.remove('active');
+            });
+        }
+
+        let actionHubIsOpen = false;
+        function setActionHubOpen(next) {
+            actionHubIsOpen = !!next;
+            if (actionHub) actionHub.classList.toggle('is-open', actionHubIsOpen);
+            if (actionHubMain) actionHubMain.setAttribute('aria-expanded', actionHubIsOpen ? 'true' : 'false');
+            if (actionHubItems) actionHubItems.setAttribute('aria-hidden', actionHubIsOpen ? 'false' : 'true');
+        }
+
+        if (actionHubMain) {
+            actionHubMain.addEventListener('click', (e) => {
+                e.preventDefault();
+                setActionHubOpen(!actionHubIsOpen);
+            });
+        }
+
+        if (actionHubChat) {
+            actionHubChat.addEventListener('click', (e) => {
+                e.preventDefault();
+                setActionHubOpen(false);
+                openChatbot();
             });
         }
 
@@ -2814,26 +2855,48 @@
             return /android|iphone|ipad|ipod|mobile/i.test(ua);
         }
 
-        if (sharePortfolioFab) {
-            sharePortfolioFab.addEventListener('click', async (e) => {
+        async function handleSharePortfolioClick(e) {
+            if (e && typeof e.preventDefault === 'function') e.preventDefault();
+            setActionHubOpen(false);
+
+            const canNativeShare = typeof navigator.share === 'function' && isLikelyMobile();
+            if (canNativeShare) {
+                try {
+                    await navigator.share({
+                        title: 'Hailifu Portfolio',
+                        text: 'Check out the Hailifu portfolio.',
+                        url: portfolioShareUrl
+                    });
+                    return;
+                } catch {}
+            }
+
+            const copied = await copyPortfolioUrl();
+            showSharePortfolioToast(copied ? 'Link Copied!' : 'Copy failed');
+        }
+
+        [sharePortfolioFab, actionHubShare].filter(Boolean).forEach((btn) => {
+            btn.addEventListener('click', handleSharePortfolioClick);
+        });
+
+        if (actionHubWhatsApp) {
+            actionHubWhatsApp.addEventListener('click', (e) => {
                 e.preventDefault();
-
-                const canNativeShare = typeof navigator.share === 'function' && isLikelyMobile();
-                if (canNativeShare) {
-                    try {
-                        await navigator.share({
-                            title: 'Hailifu Portfolio',
-                            text: 'Check out the Hailifu portfolio.',
-                            url: portfolioShareUrl
-                        });
-                        return;
-                    } catch {}
-                }
-
-                const copied = await copyPortfolioUrl();
-                showSharePortfolioToast(copied ? 'Link Copied!' : 'Copy failed');
+                setActionHubOpen(false);
+                window.open('https://wa.me/233550997270', '_blank');
             });
         }
+
+        document.addEventListener('click', (e) => {
+            if (!actionHubIsOpen) return;
+            if (e.target.closest('#actionHub')) return;
+            setActionHubOpen(false);
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Escape') return;
+            if (actionHubIsOpen) setActionHubOpen(false);
+        });
 
         function setQuoteService(serviceKey) {
             const labelMap = {
