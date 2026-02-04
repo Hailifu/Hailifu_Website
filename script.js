@@ -2437,9 +2437,17 @@
             const { animate = true } = opts;
             if (!featuredLoopSlides.length) return;
             if (featuredLoopCount <= 0) return;
+            if (!featuredLoopTrack) {
+                syncFeaturedLoopNodes();
+            }
+            if (!featuredLoopTrack) return;
             const normalized = ((Number(nextIndex) || 0) % featuredLoopCount + featuredLoopCount) % featuredLoopCount;
             featuredLoopIndex = normalized;
             setFeaturedLoopTransitionEnabled(animate);
+
+            try {
+                featuredLoopTrack.style.transform = `translate3d(${-featuredLoopIndex * 100}%, 0, 0)`;
+            } catch {}
 
             featuredLoopSlides.forEach((slide, idx) => {
                 const isActive = idx === featuredLoopIndex;
@@ -3150,7 +3158,9 @@
         renderLeads();
         renderProjects();
         hydrateShowcaseFromStoredProjects();
-        renderFeaturedWork();
+        if (!firebaseIsReady()) {
+            renderFeaturedWork();
+        }
         applyServiceDeepLink();
 
         const projectModal = document.getElementById('projectModal');

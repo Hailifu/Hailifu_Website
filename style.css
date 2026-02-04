@@ -1946,6 +1946,7 @@
             width: min(1200px, 95%);
             margin: 50px auto 0;
             display: block;
+            min-height: clamp(260px, 40vw, 520px);
         }
 
         .featured-loop {
@@ -1958,6 +1959,7 @@
             width: 100%;
             border-radius: 18px;
             overflow: hidden;
+            min-height: clamp(260px, 40vw, 520px);
         }
 
         .featured-loop-track {
@@ -1965,27 +1967,35 @@
             width: 100%;
             min-height: clamp(260px, 40vw, 520px);
             transform: translate3d(0, 0, 0);
+            transition: transform 0.62s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-wrap: nowrap;
         }
 
         .featured-loop-slide {
-            position: absolute;
-            inset: 0;
+            position: relative;
+            inset: auto;
             width: 100%;
-            opacity: 0;
-            transform: perspective(1100px) rotateY(-12deg) scale(0.985);
-            transition: opacity 0.62s cubic-bezier(0.4, 0, 0.2, 1), transform 0.62s cubic-bezier(0.4, 0, 0.2, 1);
-            will-change: opacity, transform;
-            pointer-events: none;
+            flex: 0 0 100%;
+            opacity: 1;
+            transform: none;
+            transition: none;
+            will-change: auto;
+            pointer-events: auto;
         }
 
         .featured-loop-slide.is-active {
             opacity: 1;
-            transform: perspective(1100px) rotateY(0deg) scale(1);
+            transform: none;
             pointer-events: auto;
             z-index: 1;
         }
 
         .featured-loop.no-transition .featured-loop-slide {
+            transition: none;
+        }
+
+        .featured-loop.no-transition .featured-loop-track {
             transition: none;
         }
 
