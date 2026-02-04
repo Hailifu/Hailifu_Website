@@ -261,7 +261,7 @@
         let selectedMediaType = 'image';
 
         const cloudinaryCloudName = 'daovfi3i5';
-        const defaultCloudinaryUnsignedPreset = 'hailifu_preset';
+        const defaultCloudinaryUnsignedPreset = 'hailifu_presset';
         const cloudinaryPresetStorageKey = 'hailifu_cloudinary_upload_preset';
         const remoteConfigPublicIdStorageKey = 'hailifu_remote_config_public_id';
         const remoteConfigUrlStorageKey = 'hailifu_remote_config_url';
@@ -454,8 +454,6 @@
             const onProgress = typeof opts.onProgress === 'function' ? opts.onProgress : null;
             const folder = String(opts.folder || '').trim();
             const publicId = String(opts.publicId || '').trim();
-            const overwrite = opts.overwrite === undefined ? undefined : !!opts.overwrite;
-            const invalidate = opts.invalidate === undefined ? undefined : !!opts.invalidate;
 
             return new Promise((resolve, reject) => {
                 if (!preset) {
@@ -495,8 +493,6 @@
                 fd.append('upload_preset', preset);
                 if (folder) fd.append('folder', folder);
                 if (publicId) fd.append('public_id', publicId);
-                if (overwrite !== undefined) fd.append('overwrite', overwrite ? 'true' : 'false');
-                if (invalidate !== undefined) fd.append('invalidate', invalidate ? 'true' : 'false');
                 xhr.send(fd);
             });
         }
@@ -517,8 +513,6 @@
                 preset,
                 resourceType: 'raw',
                 publicId,
-                overwrite: true,
-                invalidate: true,
                 onProgress: (pct) => setUploadUiState({ active: true, pct, text: 'Saving...' })
             });
         }
