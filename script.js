@@ -39,13 +39,40 @@
             return false;
         }
 
-        function initHeroVideo() {
+        function initHeroVideo(nextSrc) {
             if (!heroVideo) return;
             const container = heroVideo.closest('.hero-video-container');
 
             if (heroVideo.tagName === 'VIDEO') {
                 try {
-                    heroVideo.play().catch(() => {});
+                    heroVideo.muted = true;
+                    heroVideo.defaultMuted = true;
+                    heroVideo.volume = 0;
+                    heroVideo.playsInline = true;
+                    heroVideo.setAttribute('muted', '');
+                    heroVideo.setAttribute('playsinline', '');
+                    heroVideo.setAttribute('webkit-playsinline', '');
+
+                    if (typeof nextSrc === 'string' && nextSrc.trim()) {
+                        const sourceEl = heroVideo.querySelector('source');
+                        if (sourceEl) sourceEl.src = nextSrc.trim();
+                        else heroVideo.src = nextSrc.trim();
+                        try { heroVideo.load(); } catch {}
+                    }
+
+                    const attemptPlay = () => {
+                        try {
+                            const playPromise = heroVideo.play();
+                            if (playPromise && typeof playPromise.catch === 'function') playPromise.catch(() => {});
+                        } catch {}
+                    };
+
+                    if (heroVideo.readyState >= 2) attemptPlay();
+                    else {
+                        heroVideo.addEventListener('loadeddata', attemptPlay, { once: true });
+                        heroVideo.addEventListener('canplay', attemptPlay, { once: true });
+                        heroVideo.addEventListener('canplaythrough', attemptPlay, { once: true });
+                    }
                 } catch {}
                 return;
             }
@@ -217,6 +244,13 @@
         let leadsGrid = null;
         let projectsGrid = null;
         let uploadBtn = null;
+        let uploadProgress = null;
+        let uploadProgressFill = null;
+        let uploadProgressText = null;
+        let cloudinaryPresetInput = null;
+        let remoteConfigPublicIdInput = null;
+        let remoteConfigUrlInput = null;
+        let setAsHeroToggle = null;
         let projectTitle = null;
         let projectCategory = null;
         let projectDescription = null;
@@ -225,6 +259,17 @@
         let fileUploadArea = null;
         let mediaTypeButtons = [];
         let selectedMediaType = 'image';
+
+        const cloudinaryCloudName = 'daovfi3i5';
+        const defaultCloudinaryUnsignedPreset = 'hailifu_preset';
+        const cloudinaryPresetStorageKey = 'hailifu_cloudinary_upload_preset';
+        const remoteConfigPublicIdStorageKey = 'hailifu_remote_config_public_id';
+        const remoteConfigUrlStorageKey = 'hailifu_remote_config_url';
+        const defaultRemoteConfigPublicId = 'hailifu_site_config';
+
+        let remoteConfigState = null;
+        let remoteConfigFingerprint = '';
+        let remoteConfigPollTimer = null;
 
         let adminPanel = null;
         let adminToggle = null;
@@ -299,6 +344,183 @@
 
         function writeJsonStorage(key, value) {
             localStorage.setItem(key, JSON.stringify(value));
+        }
+
+        function getRemoteConfigUrl() {
+            const explicitUrl = String(readJsonStorage(remoteConfigUrlStorageKey, '') || '').trim();
+            if (explicitUrl && /^https?:\/\//i.test(explicitUrl)) return explicitUrl;
+            const publicIdRaw = String(readJsonStorage(remoteConfigPublicIdStorageKey, '') || '').trim() || defaultRemoteConfigPublicId;
+            const publicId = publicIdRaw.endsWith('.json') ? publicIdRaw : `${publicIdRaw}.json`;
+            return `https://res.cloudinary.com/${cloudinaryCloudName}/raw/upload/${publicId}`;
+        }
+
+        function setRemoteConfigUrl(url) {
+            const next = String(url || '').trim();
+            writeJsonStorage(remoteConfigUrlStorageKey, next);
+        }
+
+        function setRemoteConfigPublicId(publicId) {
+            const next = String(publicId || '').trim();
+            writeJsonStorage(remoteConfigPublicIdStorageKey, next);
+        }
+
+        async function fetchRemoteConfigOnce() {
+            const baseUrl = getRemoteConfigUrl();
+            if (!baseUrl) return null;
+            const url = `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}t=${Date.now()}`;
+            const res = await fetch(url, { cache: 'no-store' });
+            if (!res.ok) throw new Error('Failed to load remote config');
+            const json = await res.json();
+            if (!json || typeof json !== 'object') return null;
+            return json;
+        }
+
+        function computeConfigFingerprint(config) {
+            try {
+                const updatedAt = String(config?.updatedAt || '').trim();
+                if (updatedAt) return updatedAt;
+            } catch {}
+            try {
+                return JSON.stringify(config || {});
+            } catch {
+                return '';
+            }
+        }
+
+        async function syncFromRemoteConfig(opts = {}) {
+            const { forceRender = false } = opts;
+            try {
+                const cfg = await fetchRemoteConfigOnce();
+                if (!cfg) return;
+                const fp = computeConfigFingerprint(cfg);
+                const changed = fp && fp !== remoteConfigFingerprint;
+                if (!changed && !forceRender) return;
+                remoteConfigState = cfg;
+                remoteConfigFingerprint = fp;
+                const heroUrl = String(remoteConfigState?.heroVideoUrl || '').trim();
+                if (heroUrl) initHeroVideo(heroUrl);
+                if (Array.isArray(remoteConfigState?.projects)) {
+                    writeJsonStorage('hailifu_projects', remoteConfigState.projects);
+                }
+                renderProjects();
+                hydrateShowcaseFromStoredProjects();
+                renderFeaturedWork();
+            } catch {}
+        }
+
+        function startRemoteConfigPolling() {
+            if (remoteConfigPollTimer) return;
+            remoteConfigPollTimer = window.setInterval(() => {
+                syncFromRemoteConfig();
+            }, 15000);
+        }
+
+        function stopRemoteConfigPolling() {
+            if (!remoteConfigPollTimer) return;
+            clearInterval(remoteConfigPollTimer);
+            remoteConfigPollTimer = null;
+        }
+
+        function getCloudinaryPresetValue() {
+            const fromInput = String(cloudinaryPresetInput?.value || '').trim();
+            if (fromInput) return fromInput;
+            const stored = String(readJsonStorage(cloudinaryPresetStorageKey, '') || '').trim();
+            if (stored) return stored;
+            return defaultCloudinaryUnsignedPreset;
+        }
+
+        function persistCloudinaryPreset() {
+            const preset = String(cloudinaryPresetInput?.value || '').trim();
+            if (!preset) return;
+            writeJsonStorage(cloudinaryPresetStorageKey, preset);
+        }
+
+        function setUploadUiState(state) {
+            const active = !!state?.active;
+            const pct = Math.max(0, Math.min(100, Number(state?.pct) || 0));
+            const text = String(state?.text || '').trim();
+            if (uploadProgress) {
+                uploadProgress.classList.toggle('is-active', active);
+                uploadProgress.setAttribute('aria-hidden', String(!active));
+            }
+            if (uploadProgressFill) uploadProgressFill.style.width = `${pct}%`;
+            if (uploadProgressText) uploadProgressText.textContent = text || (active ? 'Uploading...' : '');
+            if (uploadBtn) uploadBtn.disabled = active;
+        }
+
+        function cloudinaryUnsignedUpload(file, opts = {}) {
+            const preset = String(opts.preset || '').trim();
+            const resourceType = String(opts.resourceType || 'auto').trim();
+            const onProgress = typeof opts.onProgress === 'function' ? opts.onProgress : null;
+            const folder = String(opts.folder || '').trim();
+            const publicId = String(opts.publicId || '').trim();
+            const overwrite = opts.overwrite === undefined ? undefined : !!opts.overwrite;
+            const invalidate = opts.invalidate === undefined ? undefined : !!opts.invalidate;
+
+            return new Promise((resolve, reject) => {
+                if (!preset) {
+                    reject(new Error('Missing upload preset'));
+                    return;
+                }
+                if (!file) {
+                    reject(new Error('Missing file'));
+                    return;
+                }
+
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudinaryCloudName}/${resourceType}/upload`);
+                xhr.responseType = 'json';
+
+                if (xhr.upload && onProgress) {
+                    xhr.upload.onprogress = (e) => {
+                        if (!e || !e.lengthComputable) return;
+                        const pct = Math.round((e.loaded / e.total) * 100);
+                        try { onProgress(pct); } catch {}
+                    };
+                }
+
+                xhr.onerror = () => reject(new Error('Upload failed'));
+                xhr.onload = () => {
+                    const payload = xhr.response || null;
+                    const ok = xhr.status >= 200 && xhr.status < 300 && payload && payload.secure_url;
+                    if (ok) resolve(payload);
+                    else {
+                        const msg = payload?.error?.message || 'Upload failed';
+                        reject(new Error(msg));
+                    }
+                };
+
+                const fd = new FormData();
+                fd.append('file', file);
+                fd.append('upload_preset', preset);
+                if (folder) fd.append('folder', folder);
+                if (publicId) fd.append('public_id', publicId);
+                if (overwrite !== undefined) fd.append('overwrite', overwrite ? 'true' : 'false');
+                if (invalidate !== undefined) fd.append('invalidate', invalidate ? 'true' : 'false');
+                xhr.send(fd);
+            });
+        }
+
+        async function uploadRemoteConfig(config, preset) {
+            const publicIdRaw = String(remoteConfigPublicIdInput?.value || '').trim() || String(readJsonStorage(remoteConfigPublicIdStorageKey, '') || '').trim() || defaultRemoteConfigPublicId;
+            const publicId = publicIdRaw.endsWith('.json') ? publicIdRaw : `${publicIdRaw}.json`;
+            const explicitUrl = String(remoteConfigUrlInput?.value || '').trim();
+            if (publicIdRaw) setRemoteConfigPublicId(publicIdRaw);
+
+            if (explicitUrl) setRemoteConfigUrl(explicitUrl);
+            else setRemoteConfigUrl('');
+
+            const jsonText = JSON.stringify(config || {});
+            const blob = new Blob([jsonText], { type: 'application/json' });
+
+            return cloudinaryUnsignedUpload(blob, {
+                preset,
+                resourceType: 'raw',
+                publicId,
+                overwrite: true,
+                invalidate: true,
+                onProgress: (pct) => setUploadUiState({ active: true, pct, text: 'Saving...' })
+            });
         }
 
         function getServiceInterest() {
@@ -890,6 +1112,18 @@
                                 <h3><i class="fas fa-photo-video"></i> Upload Project</h3>
                                 <form class="upload-form">
                                     <div class="form-group">
+                                        <label for="cloudinaryPreset">Cloudinary Unsigned Upload Preset</label>
+                                        <input id="cloudinaryPreset" type="password" placeholder="Preset name">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="remoteConfigPublicId">Remote Config Public ID</label>
+                                        <input id="remoteConfigPublicId" type="text" placeholder="hailifu_site_config">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="remoteConfigUrl">Remote Config URL (optional override)</label>
+                                        <input id="remoteConfigUrl" type="url" placeholder="https://res.cloudinary.com/.../raw/upload/...json">
+                                    </div>
+                                    <div class="form-group">
                                         <label for="projectTitle">Project Title</label>
                                         <input id="projectTitle" type="text" placeholder="Project name">
                                     </div>
@@ -931,7 +1165,20 @@
                                         <label for="projectMediaUrl">Or Media URL (YouTube / direct link)</label>
                                         <input id="projectMediaUrl" type="url" placeholder="https://youtube.com/shorts/...">
                                     </div>
+                                    <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+                                        <input type="checkbox" id="setAsHeroToggle" style="width:auto;">
+                                        <label for="setAsHeroToggle" style="margin:0; text-transform:none; letter-spacing:0; font-weight:700;">Set as Hero Background Video</label>
+                                    </div>
                                     <button class="upload-btn" id="uploadBtn" type="button"><i class="fas fa-upload"></i> Save Project</button>
+                                    <div class="upload-progress" id="uploadProgress" aria-hidden="true">
+                                        <div class="upload-progress-row">
+                                            <span class="upload-spinner" aria-hidden="true"></span>
+                                            <span class="upload-progress-text" id="uploadProgressText">Uploading...</span>
+                                        </div>
+                                        <div class="upload-progress-bar">
+                                            <div class="upload-progress-fill" id="uploadProgressFill" style="width:0%"></div>
+                                        </div>
+                                    </div>
                                 </form>
                             </div>
                             <div class="admin-section">
@@ -1159,6 +1406,13 @@
             leadsGrid = document.getElementById('leadsGrid');
             projectsGrid = document.getElementById('projectsGrid');
             uploadBtn = document.getElementById('uploadBtn');
+            uploadProgress = document.getElementById('uploadProgress');
+            uploadProgressFill = document.getElementById('uploadProgressFill');
+            uploadProgressText = document.getElementById('uploadProgressText');
+            cloudinaryPresetInput = document.getElementById('cloudinaryPreset');
+            remoteConfigPublicIdInput = document.getElementById('remoteConfigPublicId');
+            remoteConfigUrlInput = document.getElementById('remoteConfigUrl');
+            setAsHeroToggle = document.getElementById('setAsHeroToggle');
             projectTitle = document.getElementById('projectTitle');
             projectCategory = document.getElementById('projectCategory');
             projectDescription = document.getElementById('projectDescription');
@@ -1187,6 +1441,29 @@
                 reviewsRequireApproval.addEventListener('change', () => {
                     saveReviewSettings({ requireApproval: !!reviewsRequireApproval.checked });
                 });
+            }
+
+            if (cloudinaryPresetInput) {
+                const stored = String(readJsonStorage(cloudinaryPresetStorageKey, '') || '').trim();
+                if (!cloudinaryPresetInput.value) {
+                    cloudinaryPresetInput.value = stored || defaultCloudinaryUnsignedPreset;
+                }
+                cloudinaryPresetInput.addEventListener('change', persistCloudinaryPreset);
+                cloudinaryPresetInput.addEventListener('blur', persistCloudinaryPreset);
+            }
+
+            if (remoteConfigPublicIdInput) {
+                const stored = String(readJsonStorage(remoteConfigPublicIdStorageKey, '') || '').trim();
+                remoteConfigPublicIdInput.value = stored || defaultRemoteConfigPublicId;
+                remoteConfigPublicIdInput.addEventListener('change', () => setRemoteConfigPublicId(remoteConfigPublicIdInput.value));
+                remoteConfigPublicIdInput.addEventListener('blur', () => setRemoteConfigPublicId(remoteConfigPublicIdInput.value));
+            }
+
+            if (remoteConfigUrlInput) {
+                const stored = String(readJsonStorage(remoteConfigUrlStorageKey, '') || '').trim();
+                if (stored && !remoteConfigUrlInput.value) remoteConfigUrlInput.value = stored;
+                remoteConfigUrlInput.addEventListener('change', () => setRemoteConfigUrl(remoteConfigUrlInput.value));
+                remoteConfigUrlInput.addEventListener('blur', () => setRemoteConfigUrl(remoteConfigUrlInput.value));
             }
 
             mediaTypeButtons.forEach((btn) => {
@@ -1218,12 +1495,21 @@
                 uploadBtn.addEventListener('click', (e) => {
                     e.preventDefault();
 
+                    setUploadUiState({ active: false, pct: 0, text: '' });
+
                     const mediaUrl = String(projectMediaUrl?.value || '').trim();
                     if (mediaUrl) {
                         const resolved = resolveProjectMediaFromUrl(mediaUrl, selectedMediaType);
                         if (!resolved) {
                             alert('Please enter a valid Media URL (must start with http:// or https://).');
                             return;
+                        }
+
+                        const setAsHero = !!setAsHeroToggle?.checked;
+                        if (setAsHero && resolved.mediaType === 'video') {
+                            try { initHeroVideo(resolved.mediaSrc); } catch {}
+                            remoteConfigState = remoteConfigState && typeof remoteConfigState === 'object' ? remoteConfigState : {};
+                            remoteConfigState.heroVideoUrl = resolved.mediaSrc;
                         }
 
                         const id = `p_${Date.now()}`;
@@ -1247,6 +1533,26 @@
                         hydrateShowcaseFromStoredProjects();
                         renderFeaturedWork();
 
+                        if (setAsHeroToggle) setAsHeroToggle.checked = false;
+
+                        try {
+                            const preset = getCloudinaryPresetValue();
+                            if (preset) {
+                                const nextConfig = {
+                                    updatedAt: new Date().toISOString(),
+                                    heroVideoUrl: String(remoteConfigState?.heroVideoUrl || '').trim() || undefined,
+                                    projects: getProjects()
+                                };
+                                setUploadUiState({ active: true, pct: 100, text: 'Saving...' });
+                                uploadRemoteConfig(nextConfig, preset)
+                                    .then(() => {
+                                        remoteConfigFingerprint = '';
+                                        syncFromRemoteConfig({ forceRender: true });
+                                    })
+                                    .finally(() => setUploadUiState({ active: false, pct: 0, text: '' }));
+                            }
+                        } catch {}
+
                         if (projectTitle) projectTitle.value = '';
                         if (projectDescription) projectDescription.value = '';
                         if (projectFile) projectFile.value = '';
@@ -1260,13 +1566,32 @@
                         return;
                     }
 
-                    if (file.size > 4 * 1024 * 1024) {
-                        alert('File is too large to save in browser storage. Please use a smaller file (under 4MB).');
+                    const preset = getCloudinaryPresetValue();
+                    if (!preset) {
+                        alert('Enter your Cloudinary unsigned upload preset first.');
                         return;
                     }
 
-                    const reader = new FileReader();
-                    reader.onload = () => {
+                    persistCloudinaryPreset();
+
+                    const setAsHero = !!setAsHeroToggle?.checked;
+                    setUploadUiState({ active: true, pct: 0, text: 'Uploading...' });
+
+                    cloudinaryUnsignedUpload(file, {
+                        preset,
+                        resourceType: 'auto',
+                        onProgress: (pct) => setUploadUiState({ active: true, pct, text: 'Uploading...' }),
+                        folder: 'hailifu'
+                    }).then((payload) => {
+                        const url = String(payload?.secure_url || '').trim();
+                        if (!url) throw new Error('Upload failed');
+
+                        if (setAsHero && selectedMediaType === 'video') {
+                            try { initHeroVideo(url); } catch {}
+                            remoteConfigState = remoteConfigState && typeof remoteConfigState === 'object' ? remoteConfigState : {};
+                            remoteConfigState.heroVideoUrl = url;
+                        }
+
                         const id = `p_${Date.now()}`;
                         const project = {
                             id,
@@ -1275,7 +1600,7 @@
                             category: projectCategory?.value || 'cctv',
                             description: projectDescription?.value || '',
                             mediaType: selectedMediaType,
-                            mediaSrc: String(reader.result || ''),
+                            mediaSrc: url,
                             thumbSrc: '',
                             isStarred: false,
                             isFeatured: false
@@ -1288,12 +1613,27 @@
                         hydrateShowcaseFromStoredProjects();
                         renderFeaturedWork();
 
+                        const nextConfig = {
+                            updatedAt: new Date().toISOString(),
+                            heroVideoUrl: String(remoteConfigState?.heroVideoUrl || '').trim() || undefined,
+                            projects: getProjects()
+                        };
+
+                        setUploadUiState({ active: true, pct: 100, text: 'Saving...' });
+                        return uploadRemoteConfig(nextConfig, preset);
+                    }).then(() => {
+                        if (setAsHeroToggle) setAsHeroToggle.checked = false;
+                        remoteConfigFingerprint = '';
+                        syncFromRemoteConfig({ forceRender: true });
+                    }).catch((err) => {
+                        alert(String(err?.message || err || 'Upload failed'));
+                    }).finally(() => {
+                        setUploadUiState({ active: false, pct: 0, text: '' });
                         if (projectTitle) projectTitle.value = '';
                         if (projectDescription) projectDescription.value = '';
                         if (projectFile) projectFile.value = '';
                         if (projectMediaUrl) projectMediaUrl.value = '';
-                    };
-                    reader.readAsDataURL(file);
+                    });
                 });
             }
 
@@ -1564,7 +1904,11 @@
         }
 
         function getProjects() {
-            const projects = readJsonStorage('hailifu_projects', []);
+            const remoteProjects = remoteConfigState && Array.isArray(remoteConfigState.projects)
+                ? remoteConfigState.projects
+                : null;
+
+            const projects = remoteProjects || readJsonStorage('hailifu_projects', []);
             const list = Array.isArray(projects) ? projects : [];
 
             let changed = false;
@@ -1599,6 +1943,11 @@
                 ? projects.map(stripProjectQuoteFields)
                 : [];
             writeJsonStorage('hailifu_projects', sanitized);
+
+            if (remoteConfigState && typeof remoteConfigState === 'object') {
+                remoteConfigState.projects = sanitized;
+                remoteConfigState.updatedAt = new Date().toISOString();
+            }
         }
 
         function renderProjects() {
@@ -2421,6 +2770,9 @@
                 openChatbot();
             });
         }
+
+        syncFromRemoteConfig();
+        startRemoteConfigPolling();
 
         renderLeads();
         renderProjects();
