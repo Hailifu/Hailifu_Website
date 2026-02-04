@@ -2658,18 +2658,19 @@
             position: fixed;
             top: 0;
             right: 0;
-            transform: translateX(110%);
-            width: min(400px, calc(100vw - 32px));
+            width: 10px;
             height: 100vh;
-            background: var(--surface-main);
+            background: var(--gradient-dark);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            box-shadow: -18px 0 50px rgba(0, 0, 0, 0.45);
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: -5px 0 20px rgba(0, 0, 0, 0.3);
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 10001;
+            overflow-x: hidden;
             overflow-y: auto;
-            border-left: 2px solid rgba(255, 140, 0, 0.55);
+            border-left: 2px solid var(--orange);
             color: rgba(255, 255, 255, 0.92);
+            transform: none !important;
         }
 
         .admin-panel::before {
@@ -2688,13 +2689,16 @@
         }
 
         .admin-panel.active {
-            transform: translateX(0);
+            width: min(400px, calc(100vw - 32px));
+        }
+
+        .admin-header, .admin-content {
+            min-width: 350px;
         }
 
         @media (max-width: 768px) {
-            .admin-panel {
+            .admin-panel.active {
                 width: 95vw;
-                max-width: 95vw;
             }
         }
 

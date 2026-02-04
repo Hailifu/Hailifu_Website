@@ -230,41 +230,43 @@
  
     <!-- Services Section -->
     <section class="section" id="services">
-        <h2 class="section-title"><a href="#" id="servicesTitleCta"></a>Our Specialized Services: CCTV, Electrician, Auto Gate Service &amp; More</a></h2>
+        <h2 class="section-title"><a href="#" id="servicesTitleCta">Our Specialized Services: CCTV, Electrician, Auto Gate Service &amp; More</a></h2>
         <p class="section-subtitle">Expert solutions for all your installation and security needs</p>
         <div class="services-grid">
-            <div class="showcase-item animate-on-scroll" id="service-cctv" data-category="cctv" onclick="openMediaRoom('cctv')">
-                <div class="project-category">CCTV</div>
-                <div class="showcase-placeholder">
-                    <i class="fas fa-camera"></i>
-                    <span>CCTV Installation</span>
-                </div>
-                <div class="showcase-overlay">
-                    <h3 class="showcase-title">CCTV Installation</h3>
-                    <p class="showcase-description">State-of-the-art security cameras and monitoring systems for 24/7 peace of mind.</p>
-                </div>
+            <div class="card animate-on-scroll" id="service-cctv" data-service-category="cctv" onclick="openMediaRoom('cctv')" role="button" tabindex="0">
+                <i class="fas fa-video"></i>
+                <h3>CCTV Installation</h3>
+                <p>State-of-the-art security cameras and monitoring systems for 24/7 peace of mind.</p>
             </div>
-            <div class="showcase-item animate-on-scroll" id="service-electrical" data-category="electrical" onclick="openMediaRoom('electrical')">
-                <div class="project-category">Electrical</div>
-                <div class="showcase-placeholder">
-                    <i class="fas fa-bolt"></i>
-                    <span>Electrical Services</span>
-                </div>
-                <div class="showcase-overlay">
-                    <h3 class="showcase-title">Electrical Services</h3>
-                    <p class="showcase-description">Expert wiring, lighting installation, and electrical repairs by certified professionals.</p>
-                </div>
+            <div class="card animate-on-scroll" id="service-electrical" data-service-category="electrical" onclick="openMediaRoom('electrical')" role="button" tabindex="0">
+                <i class="fas fa-bolt"></i>
+                <h3>Electrical Wiring</h3>
+                <p>Expert wiring, lighting installation, and electrical repairs by certified professionals.</p>
             </div>
-            <div class="showcase-item animate-on-scroll" id="service-gates" data-category="autogate" onclick="openMediaRoom('autogate')">
-                <div class="project-category">Auto Gate</div>
-                <div class="showcase-placeholder">
-                    <i class="fas fa-gate"></i>
-                    <span>Auto Gate Service</span>
-                </div>
-                <div class="showcase-overlay">
-                    <h3 class="showcase-title">Auto Gate Service</h3>
-                    <p class="showcase-description">Smart gate automation and maintenance for enhanced security and convenience.</p>
-                </div>
+            <div class="card animate-on-scroll" id="service-gates" data-service-category="gates" onclick="openMediaRoom('gates')" role="button" tabindex="0">
+                <i class="fas fa-door-open"></i>
+                <h3>Auto Gate Service</h3>
+                <p>Smart gate automation and maintenance for enhanced security and convenience.</p>
+            </div>
+            <div class="card animate-on-scroll" id="service-fencing" data-service-category="fencing" onclick="openMediaRoom('fencing')" role="button" tabindex="0">
+                <i class="fas fa-shield-halved"></i>
+                <h3>Electric Fencing</h3>
+                <p>Reliable perimeter protection systems for homes and businesses.</p>
+            </div>
+            <div class="card animate-on-scroll" id="service-smarthome" data-service-category="smarthome" onclick="openMediaRoom('smarthome')" role="button" tabindex="0">
+                <i class="fas fa-house"></i>
+                <h3>Smart Home Setup</h3>
+                <p>Modern automation and control solutions for comfort, safety, and convenience.</p>
+            </div>
+            <div class="card animate-on-scroll" id="service-airconditioning" data-service-category="airconditioning" onclick="openMediaRoom('airconditioning')" role="button" tabindex="0">
+                <i class="fas fa-snowflake"></i>
+                <h3>Air Conditioning</h3>
+                <p>Installation, servicing, and repairs to keep your space cool and efficient.</p>
+            </div>
+            <div class="card animate-on-scroll" id="service-blindcurtain" data-service-category="blindcurtain" onclick="openMediaRoom('blindcurtain')" role="button" tabindex="0">
+                <i class="fas fa-window-maximize"></i>
+                <h3>Smart Window Solutions</h3>
+                <p>Motorized blinds and curtains for elegant control and privacy.</p>
             </div>
         </div>
     </section>
