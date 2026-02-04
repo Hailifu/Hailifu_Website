@@ -225,6 +225,14 @@
         let featuredLoopBoundNode = null;
         let featuredLoopVisibilityBound = false;
 
+        let featuredLoopSwipeActive = false;
+        let featuredLoopSwipeLocked = false;
+        let featuredLoopSwipeStartX = 0;
+        let featuredLoopSwipeStartY = 0;
+        let featuredLoopSwipeDeltaX = 0;
+        let featuredLoopSwipeWidth = 0;
+        let featuredLoopSwipePointerId = null;
+
         let approvedReviewsGrid = null;
         let overviewTotalLeads = null;
 
@@ -2504,6 +2512,101 @@
             if (featuredLoopHasBindings && featuredLoopBoundNode === featuredLoop) return;
             featuredLoopHasBindings = true;
             featuredLoopBoundNode = featuredLoop;
+
+            const viewport = featuredLoop.querySelector('.featured-loop-viewport');
+            const swipeTarget = viewport || featuredLoop;
+
+            const resetSwipe = () => {
+                featuredLoopSwipeActive = false;
+                featuredLoopSwipeLocked = false;
+                featuredLoopSwipeDeltaX = 0;
+                featuredLoopSwipeWidth = 0;
+                featuredLoopSwipePointerId = null;
+            };
+
+            const applySwipeTransform = () => {
+                if (!featuredLoopTrack) return;
+                const w = featuredLoopSwipeWidth || 0;
+                if (!w) return;
+                const base = -featuredLoopIndex * w;
+                try {
+                    featuredLoopTrack.style.transform = `translate3d(${base + featuredLoopSwipeDeltaX}px, 0, 0)`;
+                } catch {}
+            };
+
+            const onSwipeDown = (e) => {
+                if (featuredLoopCount <= 1) return;
+                if (!e) return;
+                if (e.pointerType === 'mouse' && e.button !== 0) return;
+
+                syncFeaturedLoopNodes();
+                const w = Number(viewport?.clientWidth || featuredLoop?.clientWidth || 0);
+                if (!w) return;
+
+                featuredLoopSwipeActive = true;
+                featuredLoopSwipeLocked = false;
+                featuredLoopSwipeStartX = Number(e.clientX || 0);
+                featuredLoopSwipeStartY = Number(e.clientY || 0);
+                featuredLoopSwipeDeltaX = 0;
+                featuredLoopSwipeWidth = w;
+                featuredLoopSwipePointerId = e.pointerId;
+
+                stopFeaturedLoop();
+                setFeaturedLoopTransitionEnabled(false);
+            };
+
+            const onSwipeMove = (e) => {
+                if (!featuredLoopSwipeActive) return;
+                if (!e) return;
+                if (featuredLoopSwipePointerId != null && e.pointerId !== featuredLoopSwipePointerId) return;
+
+                const dx = Number(e.clientX || 0) - featuredLoopSwipeStartX;
+                const dy = Number(e.clientY || 0) - featuredLoopSwipeStartY;
+
+                if (!featuredLoopSwipeLocked) {
+                    if (Math.abs(dx) < 10) return;
+                    if (Math.abs(dy) > Math.abs(dx)) {
+                        resetSwipe();
+                        startFeaturedLoop();
+                        return;
+                    }
+                    featuredLoopSwipeLocked = true;
+                }
+
+                featuredLoopSwipeDeltaX = dx;
+                try { e.preventDefault(); } catch {}
+                applySwipeTransform();
+            };
+
+            const onSwipeUp = (e) => {
+                if (!featuredLoopSwipeActive) return;
+                if (featuredLoopSwipePointerId != null && e?.pointerId !== featuredLoopSwipePointerId) return;
+
+                const w = featuredLoopSwipeWidth || 0;
+                const dx = featuredLoopSwipeDeltaX || 0;
+                const threshold = w ? w * 0.18 : 0;
+
+                setFeaturedLoopTransitionEnabled(true);
+
+                if (featuredLoopSwipeLocked && threshold && Math.abs(dx) > threshold) {
+                    const dir = dx < 0 ? 1 : -1;
+                    const next = (featuredLoopIndex + dir + featuredLoopCount) % featuredLoopCount;
+                    setFeaturedLoopIndex(next, { animate: true });
+                } else {
+                    setFeaturedLoopIndex(featuredLoopIndex, { animate: true });
+                }
+
+                resetSwipe();
+                startFeaturedLoop();
+            };
+
+            if (swipeTarget) {
+                swipeTarget.addEventListener('pointerdown', onSwipeDown, { passive: true });
+                swipeTarget.addEventListener('pointermove', onSwipeMove, { passive: false });
+                swipeTarget.addEventListener('pointerup', onSwipeUp, { passive: true });
+                swipeTarget.addEventListener('pointercancel', onSwipeUp, { passive: true });
+                swipeTarget.addEventListener('lostpointercapture', onSwipeUp, { passive: true });
+            }
 
             featuredLoop.addEventListener('pointerenter', () => {
                 stopFeaturedLoop();
