@@ -1789,7 +1789,47 @@
             });
 
             if (fileUploadArea && projectFile) {
-                fileUploadArea.addEventListener('click', () => projectFile.click());
+                try {
+                    projectFile.setAttribute('accept', 'image/*,video/*');
+                    if (!projectFile.hasAttribute('capture')) {
+                        projectFile.setAttribute('capture', 'environment');
+                    }
+                    if (projectFile.style && String(projectFile.style.display || '').toLowerCase() === 'none') {
+                        projectFile.style.display = '';
+                    }
+                    projectFile.style.position = 'absolute';
+                    projectFile.style.left = '-9999px';
+                    projectFile.style.width = '1px';
+                    projectFile.style.height = '1px';
+                    projectFile.style.opacity = '0';
+                } catch {}
+
+                const openPicker = () => {
+                    try {
+                        projectFile.focus();
+                        projectFile.click();
+                    } catch {}
+                };
+
+                fileUploadArea.addEventListener('click', openPicker);
+                fileUploadArea.addEventListener('pointerup', (e) => {
+                    try { e.preventDefault(); } catch {}
+                    openPicker();
+                });
+
+                projectFile.addEventListener('change', () => {
+                    try {
+                        const f = projectFile?.files?.[0];
+                        console.log('Mobile file selected:', {
+                            name: f?.name,
+                            type: f?.type,
+                            size: f?.size
+                        });
+                    } catch {
+                        console.log('Mobile file selected');
+                    }
+                });
+
                 fileUploadArea.addEventListener('dragover', (e) => {
                     e.preventDefault();
                     fileUploadArea.classList.add('dragover');
@@ -1800,6 +1840,7 @@
                     fileUploadArea.classList.remove('dragover');
                     if (e.dataTransfer?.files?.[0]) {
                         projectFile.files = e.dataTransfer.files;
+                        try { projectFile.dispatchEvent(new Event('change', { bubbles: true })); } catch {}
                     }
                 });
             }
