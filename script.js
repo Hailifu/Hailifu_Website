@@ -187,7 +187,7 @@
                 const card = document.getElementById(config.cardId);
                 if (card) {
                     try { card.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {}
-                    pulseFor(card, '#services .services-grid .card.highlight-service', 'highlight-service');
+                    pulseFor(card, '#services .services-grid .showcase-item.highlight-service', 'highlight-service');
                 }
 
                 if (config.showcaseCategory) {
@@ -2670,6 +2670,65 @@
             openProjectLightbox(playlist[startIndex].mediaItem, playlist[startIndex].title);
         }
 
+        function openServiceCategoryMediaRoom(categoryKey) {
+            const normalized = String(categoryKey || '').toLowerCase().trim();
+            if (!normalized) return;
+
+            const categoryMap = {
+                autogate: 'gates'
+            };
+
+            const resolved = categoryMap[normalized] || normalized;
+
+            const labelMap = {
+                cctv: 'CCTV Installation',
+                electrical: 'Electrical Services',
+                gates: 'Auto Gate Service',
+                autogate: 'Auto Gate Service'
+            };
+
+            const serviceLabel = labelMap[normalized] || labelMap[resolved] || 'Service';
+            const projects = getProjects();
+            const matches = projects
+                .filter((p) => p && String(p.category || '').toLowerCase().trim() === resolved)
+                .filter((p) => p.mediaSrc || (Array.isArray(p.mediaItems) && p.mediaItems.length));
+
+            const playlist = [];
+            matches.forEach((p) => {
+                const titlePart = String(p?.title || '').trim();
+                const entryTitle = titlePart ? `${serviceLabel}: ${titlePart}` : serviceLabel;
+                const items = Array.isArray(p.mediaItems) ? p.mediaItems.map(normalizeMediaItem).filter(Boolean) : [];
+                const single = p.mediaSrc
+                    ? [{ mediaSrc: String(p.mediaSrc), mediaType: String(p.mediaType || 'image'), thumbSrc: String(p.thumbSrc || '') }].map(normalizeMediaItem).filter(Boolean)
+                    : [];
+
+                [...items, ...single].forEach((m) => {
+                    if (!m || !m.mediaSrc) return;
+                    playlist.push({ mediaItem: m, title: entryTitle });
+                });
+            });
+
+            if (!playlist.length) return;
+
+            const seen = new Set();
+            const unique = playlist.filter((entry) => {
+                const m = entry?.mediaItem;
+                const key = `${m?.mediaType || ''}::${m?.mediaSrc || ''}`;
+                if (!m || !m.mediaSrc) return false;
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            });
+
+            if (!unique.length) return;
+            setProjectLightboxPlaylist(unique, 0);
+            openProjectLightbox(unique[0].mediaItem, unique[0].title);
+        }
+
+        window.openMediaRoom = function openMediaRoom(categoryKey) {
+            try { openServiceCategoryMediaRoom(categoryKey); } catch {}
+        };
+
         function syncFeaturedLoopNodes() {
             featuredLoop = document.getElementById('featuredLoop');
             featuredLoopTrack = document.getElementById('featuredLoopTrack');
@@ -4309,30 +4368,14 @@
         }
 
         document.querySelectorAll('#service-cctv, #service-electrical, #service-airconditioning, #service-gates, #service-fencing, #service-smarthome, #service-blindcurtain').forEach((card) => {
-            card.setAttribute('role', 'link');
+            card.setAttribute('role', 'button');
             card.tabIndex = 0;
-
-            const fireWhatsApp = () => {
-                const id = card.id || '';
-                const key = id.replace('service-', '');
-                bumpServiceInterest(key);
-
-                const title = card.querySelector('h3')?.textContent?.trim() || 'Service';
-                const msg = `Hi Hailifu, I’d like a quote for ${title}.`;
-                const url = `https://wa.me/233550997270?text=${encodeURIComponent(msg)}`;
-                window.open(url, '_blank');
-            };
-
-            card.addEventListener('click', (e) => {
-                if (e?.target?.closest?.('a,button,input,textarea,select,label')) return;
-                e.preventDefault();
-                fireWhatsApp();
-            });
 
             card.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    fireWhatsApp();
+                    const category = card.getAttribute('data-category') || card.dataset?.category || '';
+                    if (typeof window.openMediaRoom === 'function') window.openMediaRoom(category);
                 }
             });
         });
@@ -4393,7 +4436,7 @@
             });
         });
 
-        document.querySelectorAll('.showcase-item').forEach(item => item.classList.add('is-visible'));
+        document.querySelectorAll('.showcase-grid .showcase-item').forEach(item => item.classList.add('is-visible'));
         if (filterButtons.length) {
             const active = document.querySelector('.showcase-filters .filter-btn.active') || filterButtons[0];
             if (active) {

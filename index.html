@@ -233,68 +233,38 @@
         <h2 class="section-title"><a href="#" id="servicesTitleCta"></a>Our Specialized Services: CCTV, Electrician, Auto Gate Service &amp; More</a></h2>
         <p class="section-subtitle">Expert solutions for all your installation and security needs</p>
         <div class="services-grid">
-            <div class="card animate-on-scroll" id="service-cctv">
-                <i class="fas fa-video"></i>
-                <h3>CCTV Installation</h3>
-                <p>High-definition surveillance systems with remote monitoring capabilities for maximum security and peace of mind.</p>
+            <div class="showcase-item animate-on-scroll" id="service-cctv" data-category="cctv" onclick="openMediaRoom('cctv')">
+                <div class="project-category">CCTV</div>
+                <div class="showcase-placeholder">
+                    <i class="fas fa-camera"></i>
+                    <span>CCTV Installation</span>
+                </div>
+                <div class="showcase-overlay">
+                    <h3 class="showcase-title">CCTV Installation</h3>
+                    <p class="showcase-description">State-of-the-art security cameras and monitoring systems for 24/7 peace of mind.</p>
+                </div>
             </div>
-            <div class="card animate-on-scroll" id="service-electrical">
-                <i class="fas fa-bolt"></i>
-                <h3>Electrician &amp; Electrical Wiring</h3>
-                <p>Professional domestic and industrial electrical installations, maintenance, and fault finding services.</p>
+            <div class="showcase-item animate-on-scroll" id="service-electrical" data-category="electrical" onclick="openMediaRoom('electrical')">
+                <div class="project-category">Electrical</div>
+                <div class="showcase-placeholder">
+                    <i class="fas fa-bolt"></i>
+                    <span>Electrical Services</span>
+                </div>
+                <div class="showcase-overlay">
+                    <h3 class="showcase-title">Electrical Services</h3>
+                    <p class="showcase-description">Expert wiring, lighting installation, and electrical repairs by certified professionals.</p>
+                </div>
             </div>
-            <div class="card animate-on-scroll" id="service-gates">
-                <i class="fas fa-door-open"></i>
-                <h3>Auto Gate Service (Automated Gates)</h3>
-                <p>Smart gate motor installation and automation systems for enhanced convenience and security.</p>
-            </div>
-            <div class="card animate-on-scroll" id="service-fencing">
-                <i class="fas fa-shield-alt"></i>
-                <h3>Electric Fencing</h3>
-                <p>Advanced electric fence security systems to protect your property with reliable perimeter defense.</p>
-            </div>
-            <div class="card animate-on-scroll" id="service-smarthome">
-                <i class="fas fa-house"></i>
-                <h3>Smart Home System</h3>
-                <p>Smart home installation and automation for lights, access control, cameras, and remote monitoring</p>
-            </div>
-            <div class="card animate-on-scroll" id="service-airconditioning">
-                <i class="fas fa-snowflake"></i>
-                <h3>AC Installer &amp; Air Condition Technician</h3>
-                <p>Air conditioner installation, servicing, and repairs for homes and offices. Stay cool with reliable support.</p>
-            </div>
-            <div class="card animate-on-scroll" id="service-blindcurtain">
-                <svg class="curtain-brand-logo" viewBox="0 0 120 80" role="img" aria-label="Smart Window Solutions logo">
-                    <defs>
-                        <linearGradient id="curtainChromeService" x1="0" x2="1">
-                            <stop offset="0%" stop-color="var(--orange-light)" />
-                            <stop offset="50%" stop-color="var(--orange)" />
-                            <stop offset="100%" stop-color="var(--orange-dark)" />
-                        </linearGradient>
-                        <linearGradient id="curtainSheenService" x1="0" x2="0" y1="0" y2="1">
-                            <stop offset="0%" stop-color="var(--orange-light)" stop-opacity="0.85" />
-                            <stop offset="100%" stop-color="var(--orange-dark)" stop-opacity="0.4" />
-                        </linearGradient>
-                        <linearGradient id="curtainGoldService" x1="0" x2="1">
-                            <stop offset="0%" stop-color="var(--orange-light)" />
-                            <stop offset="50%" stop-color="var(--orange)" />
-                            <stop offset="100%" stop-color="var(--orange-dark)" />
-                        </linearGradient>
-                    </defs>
-                    <g class="curtain-brand-panel curtain-brand-panel--left">
-                        <path d="M10 8 C26 18, 26 62, 10 72 L44 72 C54 58, 54 22, 44 8 Z" fill="url(#curtainChromeService)" />
-                        <path d="M22 12 C30 24, 30 56, 22 68" stroke="url(#curtainSheenService)" stroke-width="4" fill="none" opacity="0.6" />
-                        <circle cx="20" cy="40" r="5" fill="url(#curtainGoldService)" />
-                    </g>
-                    <g class="curtain-brand-panel curtain-brand-panel--right">
-                        <path d="M110 8 C94 18, 94 62, 110 72 L76 72 C66 58, 66 22, 76 8 Z" fill="url(#curtainChromeService)" />
-                        <path d="M98 12 C90 24, 90 56, 98 68" stroke="url(#curtainSheenService)" stroke-width="4" fill="none" opacity="0.6" />
-                        <circle cx="100" cy="40" r="5" fill="url(#curtainGoldService)" />
-                    </g>
-                </svg>
-                <h3>Curtain/Window Blinds &amp; Smart Window Solutions</h3>
-                <div class="service-tagline">A Hailifu Smart Solution</div>
-                <p>Advanced motorized blinds, automated curtains, and intelligent window treatments with smart home integration for modern residential and commercial spaces.</p>
+            <div class="showcase-item animate-on-scroll" id="service-gates" data-category="autogate" onclick="openMediaRoom('autogate')">
+                <div class="project-category">Auto Gate</div>
+                <div class="showcase-placeholder">
+                    <i class="fas fa-gate"></i>
+                    <span>Auto Gate Service</span>
+                </div>
+                <div class="showcase-overlay">
+                    <h3 class="showcase-title">Auto Gate Service</h3>
+                    <p class="showcase-description">Smart gate automation and maintenance for enhanced security and convenience.</p>
+                </div>
             </div>
         </div>
     </section>
