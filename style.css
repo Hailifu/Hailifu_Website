@@ -1923,6 +1923,7 @@
             padding: 80px 5% 70px;
             background: radial-gradient(circle at top, rgba(24, 24, 24, 0.9) 0%, rgba(8, 8, 8, 0.95) 55%, rgba(2, 2, 2, 0.98) 100%);
             position: relative;
+            scroll-snap-type: none;
         }
 
         .featured-work::after {
@@ -1947,11 +1948,13 @@
             margin: 50px auto 0;
             display: block;
             min-height: clamp(260px, 40vw, 520px);
+            scroll-snap-type: none;
         }
 
         .featured-loop {
             position: relative;
             width: 100%;
+            scroll-snap-type: none;
         }
 
         .featured-loop-viewport {
@@ -1960,6 +1963,7 @@
             border-radius: 18px;
             overflow: hidden;
             min-height: clamp(260px, 40vw, 520px);
+            scroll-snap-type: none;
         }
 
         .featured-loop-track {

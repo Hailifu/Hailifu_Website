@@ -233,11 +233,26 @@
         let featuredLoopSwipeWidth = 0;
         let featuredLoopSwipePointerId = null;
 
+        let featuredLoopObserver = null;
+        let featuredLoopIsVisible = true;
+
         function featuredLoopPrefersNativeScroll() {
             try {
                 return !!window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
             } catch {
                 return false;
+            }
+        }
+
+        function featuredLoopIsProbablyVisible() {
+            if (!featuredLoop) return false;
+            try {
+                const rect = featuredLoop.getBoundingClientRect();
+                const vh = window.innerHeight || document.documentElement.clientHeight || 0;
+                if (!vh) return true;
+                return rect.bottom > 0 && rect.top < vh;
+            } catch {
+                return true;
             }
         }
 
@@ -2505,12 +2520,13 @@
             if (featuredLoopPrefersNativeScroll()) {
                 const viewport = featuredLoop ? featuredLoop.querySelector('.featured-loop-viewport') : null;
                 const slide = featuredLoopSlides[featuredLoopIndex];
-                if (viewport && slide && typeof slide.scrollIntoView === 'function') {
+                if (viewport && slide && typeof viewport.scrollTo === 'function') {
                     try {
-                        slide.scrollIntoView({
-                            behavior: animate ? 'smooth' : 'auto',
-                            block: 'nearest',
-                            inline: 'start'
+                        const maxLeft = Math.max(0, Number(viewport.scrollWidth || 0) - Number(viewport.clientWidth || 0));
+                        const targetLeft = Math.max(0, Math.min(maxLeft, Number(slide.offsetLeft || 0)));
+                        viewport.scrollTo({
+                            left: targetLeft,
+                            behavior: animate ? 'smooth' : 'auto'
                         });
                     } catch {}
                 }
@@ -2558,6 +2574,8 @@
             stopFeaturedLoop();
             if (featuredLoopCount <= 1) return;
             if (document.hidden) return;
+            if (!featuredLoopIsVisible) return;
+            if (!featuredLoopObserver && !featuredLoopIsProbablyVisible()) return;
             featuredLoopTimer = setInterval(() => {
                 advanceFeaturedLoop(1);
             }, 5000);
@@ -2578,6 +2596,25 @@
 
             const viewport = featuredLoop.querySelector('.featured-loop-viewport');
             const swipeTarget = viewport || featuredLoop;
+
+            if (!featuredLoopObserver && viewport && typeof IntersectionObserver !== 'undefined') {
+                featuredLoopObserver = new IntersectionObserver((entries) => {
+                    const entry = Array.isArray(entries) ? entries[0] : null;
+                    const nextVisible = !!entry && entry.isIntersecting && (Number(entry.intersectionRatio || 0) > 0);
+                    featuredLoopIsVisible = nextVisible;
+
+                    if (featuredLoopPrefersNativeScroll()) {
+                        try {
+                            viewport.style.scrollSnapType = nextVisible ? '' : 'none';
+                        } catch {}
+                    }
+
+                    if (nextVisible) startFeaturedLoop();
+                    else stopFeaturedLoop();
+                }, { threshold: [0, 0.15] });
+
+                try { featuredLoopObserver.observe(featuredLoop); } catch {}
+            }
 
             if (featuredLoopPrefersNativeScroll() && viewport) {
                 let scrollRaf = 0;
