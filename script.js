@@ -2584,33 +2584,63 @@
 
                 if (!slot.dataset.modalBound) {
                     slot.dataset.modalBound = '1';
-                    slot.setAttribute('role', 'link');
+                    slot.setAttribute('role', 'button');
                     slot.tabIndex = 0;
 
-                    const fireWhatsApp = () => {
-                        const title = slot.querySelector('.showcase-title')?.textContent?.trim()
-                            || slot.querySelector('.showcase-placeholder span')?.textContent?.trim()
-                            || 'Project';
-                        const category = slot.querySelector('.project-category')?.textContent?.trim() || slot.dataset?.category || 'Project';
-                        const msg = `Hi Hailifu, I’m interested in ${category} (${title}). Please share details and a quote.`;
-                        const url = `https://wa.me/233550997270?text=${encodeURIComponent(msg)}`;
-                        window.open(url, '_blank');
+                    const openMediaRoom = () => {
+                        try { openShowcaseMediaRoom(slot); } catch {}
                     };
 
                     slot.addEventListener('click', (e) => {
                         if (e?.target?.closest?.('a,button,input,textarea,select,label')) return;
                         e.preventDefault();
-                        fireWhatsApp();
+                        openMediaRoom();
                     });
 
                     slot.addEventListener('keydown', (e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                             e.preventDefault();
-                            fireWhatsApp();
+                            openMediaRoom();
                         }
                     });
                 }
             });
+        }
+
+        function buildShowcaseMediaRoomPlaylist() {
+            const grid = document.querySelector('.showcase-grid');
+            if (!grid) return [];
+
+            const items = Array.from(grid.querySelectorAll('.showcase-item'));
+            const visible = items.filter((item) => {
+                if (!item) return false;
+                if (item.hidden) return false;
+                if (item.classList && item.classList.contains('is-hidden')) return false;
+                try {
+                    const style = window.getComputedStyle(item);
+                    if (style && style.display === 'none') return false;
+                } catch {}
+                return true;
+            });
+
+            return visible.map((item) => {
+                const title = item.querySelector('.showcase-title')?.textContent?.trim()
+                    || item.querySelector('.showcase-placeholder span')?.textContent?.trim()
+                    || 'Project';
+                const mediaItems = getMediaItemsForModal(item);
+                const mediaItem = mediaItems && mediaItems.length ? mediaItems[0] : null;
+                if (!mediaItem || !mediaItem.mediaSrc) return null;
+                return { sourceEl: item, title, mediaItem };
+            }).filter(Boolean);
+        }
+
+        function openShowcaseMediaRoom(startEl) {
+            const playlist = buildShowcaseMediaRoomPlaylist();
+            if (!playlist.length) return;
+
+            const startIndex = Math.max(0, playlist.findIndex((p) => p.sourceEl === startEl));
+            setProjectLightboxPlaylist(playlist, startIndex);
+            openProjectLightbox(playlist[startIndex].mediaItem, playlist[startIndex].title);
         }
 
         function syncFeaturedLoopNodes() {
@@ -3544,6 +3574,8 @@
         const projectModalMedia = document.getElementById('projectModalMedia');
 
         let projectLightbox = null;
+        let projectLightboxPlaylist = null;
+        let projectLightboxIndex = 0;
 
         function ensureProjectLightbox() {
             if (projectLightbox) return;
@@ -3555,6 +3587,12 @@
                 <button class="media-lightbox-close" type="button" aria-label="Close">
                     <i class="fas fa-times"></i>
                 </button>
+                <button class="media-lightbox-nav media-lightbox-prev" type="button" aria-label="Previous">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="media-lightbox-nav media-lightbox-next" type="button" aria-label="Next">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
                 <div class="media-lightbox-content"></div>
             `;
 
@@ -3563,9 +3601,69 @@
 
             const closeBtn = node.querySelector('.media-lightbox-close');
             if (closeBtn) closeBtn.addEventListener('click', closeProjectLightbox);
+
+            const prevBtn = node.querySelector('.media-lightbox-prev');
+            if (prevBtn) prevBtn.addEventListener('click', () => stepProjectLightboxPlaylist(-1));
+            const nextBtn = node.querySelector('.media-lightbox-next');
+            if (nextBtn) nextBtn.addEventListener('click', () => stepProjectLightboxPlaylist(1));
+
+            const content = node.querySelector('.media-lightbox-content');
+            if (content) {
+                let touchStartX = 0;
+                let touchStartY = 0;
+                content.addEventListener('touchstart', (e) => {
+                    const t = e.touches && e.touches[0];
+                    if (!t) return;
+                    touchStartX = t.clientX;
+                    touchStartY = t.clientY;
+                }, { passive: true });
+
+                content.addEventListener('touchend', (e) => {
+                    const t = e.changedTouches && e.changedTouches[0];
+                    if (!t) return;
+                    const dx = t.clientX - touchStartX;
+                    const dy = t.clientY - touchStartY;
+                    if (Math.abs(dx) < 55) return;
+                    if (Math.abs(dx) < Math.abs(dy) * 1.2) return;
+                    if (!hasProjectLightboxPlaylist()) return;
+                    stepProjectLightboxPlaylist(dx < 0 ? 1 : -1);
+                }, { passive: true });
+            }
+
             node.addEventListener('click', (e) => {
                 if (e.target === node) closeProjectLightbox();
             });
+        }
+
+        function hasProjectLightboxPlaylist() {
+            return Array.isArray(projectLightboxPlaylist) && projectLightboxPlaylist.length > 1;
+        }
+
+        function setProjectLightboxPlaylist(playlist, startIndex = 0) {
+            const list = Array.isArray(playlist) ? playlist : [];
+            projectLightboxPlaylist = list.length ? list : null;
+            const idx = Number(startIndex);
+            projectLightboxIndex = Number.isFinite(idx) ? Math.max(0, Math.min(idx, (list.length ? list.length - 1 : 0))) : 0;
+            syncProjectLightboxNav();
+        }
+
+        function syncProjectLightboxNav() {
+            if (!projectLightbox) return;
+            const prevBtn = projectLightbox.querySelector('.media-lightbox-prev');
+            const nextBtn = projectLightbox.querySelector('.media-lightbox-next');
+            const enabled = hasProjectLightboxPlaylist();
+            if (prevBtn) prevBtn.style.display = enabled ? '' : 'none';
+            if (nextBtn) nextBtn.style.display = enabled ? '' : 'none';
+        }
+
+        function stepProjectLightboxPlaylist(delta) {
+            if (!hasProjectLightboxPlaylist()) return;
+            const len = projectLightboxPlaylist.length;
+            const next = (projectLightboxIndex + Number(delta || 0) + len) % len;
+            projectLightboxIndex = next;
+            const entry = projectLightboxPlaylist[next];
+            if (!entry || !entry.mediaItem) return;
+            openProjectLightbox(entry.mediaItem, entry.title);
         }
 
         function closeProjectLightbox() {
@@ -3574,6 +3672,9 @@
             projectLightbox.setAttribute('aria-hidden', 'true');
             const content = projectLightbox.querySelector('.media-lightbox-content');
             if (content) content.innerHTML = '';
+            projectLightboxPlaylist = null;
+            projectLightboxIndex = 0;
+            syncProjectLightboxNav();
         }
 
         function isProjectLightboxOpen() {
@@ -3710,6 +3811,7 @@
 
             projectLightbox.classList.add('active');
             projectLightbox.setAttribute('aria-hidden', 'false');
+            syncProjectLightboxNav();
         }
 
         function buildProjectModalGallery(mediaItems, title) {
@@ -3894,6 +3996,19 @@
         }
 
         document.addEventListener('keydown', (e) => {
+            if (isProjectLightboxOpen()) {
+                if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    stepProjectLightboxPlaylist(-1);
+                    return;
+                }
+                if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    stepProjectLightboxPlaylist(1);
+                    return;
+                }
+            }
+
             if (e.key === 'Escape') {
                 if (isProjectLightboxOpen()) {
                     closeProjectLightbox();
