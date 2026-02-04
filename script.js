@@ -233,6 +233,14 @@
         let featuredLoopSwipeWidth = 0;
         let featuredLoopSwipePointerId = null;
 
+        function featuredLoopPrefersNativeScroll() {
+            try {
+                return !!window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+            } catch {
+                return false;
+            }
+        }
+
         let approvedReviewsGrid = null;
         let overviewTotalLeads = null;
 
@@ -2453,9 +2461,23 @@
             featuredLoopIndex = normalized;
             setFeaturedLoopTransitionEnabled(animate);
 
-            try {
-                featuredLoopTrack.style.transform = `translate3d(${-featuredLoopIndex * 100}%, 0, 0)`;
-            } catch {}
+            if (featuredLoopPrefersNativeScroll()) {
+                const viewport = featuredLoop ? featuredLoop.querySelector('.featured-loop-viewport') : null;
+                const slide = featuredLoopSlides[featuredLoopIndex];
+                if (viewport && slide && typeof slide.scrollIntoView === 'function') {
+                    try {
+                        slide.scrollIntoView({
+                            behavior: animate ? 'smooth' : 'auto',
+                            block: 'nearest',
+                            inline: 'start'
+                        });
+                    } catch {}
+                }
+            } else {
+                try {
+                    featuredLoopTrack.style.transform = `translate3d(${-featuredLoopIndex * 100}%, 0, 0)`;
+                } catch {}
+            }
 
             featuredLoopSlides.forEach((slide, idx) => {
                 const isActive = idx === featuredLoopIndex;
@@ -2515,6 +2537,38 @@
 
             const viewport = featuredLoop.querySelector('.featured-loop-viewport');
             const swipeTarget = viewport || featuredLoop;
+
+            if (featuredLoopPrefersNativeScroll() && viewport) {
+                let scrollRaf = 0;
+                const onScroll = () => {
+                    if (scrollRaf) return;
+                    scrollRaf = requestAnimationFrame(() => {
+                        scrollRaf = 0;
+                        if (!featuredLoopSlides.length) return;
+                        const viewportLeft = viewport.getBoundingClientRect().left;
+                        let bestIdx = 0;
+                        let bestDist = Infinity;
+                        featuredLoopSlides.forEach((slide, idx) => {
+                            const rect = slide.getBoundingClientRect();
+                            const dist = Math.abs(rect.left - viewportLeft);
+                            if (dist < bestDist) {
+                                bestDist = dist;
+                                bestIdx = idx;
+                            }
+                        });
+                        if (bestIdx !== featuredLoopIndex) {
+                            featuredLoopIndex = bestIdx;
+                            featuredLoopSlides.forEach((slide, idx) => {
+                                slide.classList.toggle('is-active', idx === featuredLoopIndex);
+                            });
+                            updateFeaturedLoopDots();
+                        }
+                    });
+                };
+
+                viewport.addEventListener('scroll', onScroll, { passive: true });
+                return;
+            }
 
             const resetSwipe = () => {
                 featuredLoopSwipeActive = false;

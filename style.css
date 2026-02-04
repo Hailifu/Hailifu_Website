@@ -2259,26 +2259,38 @@
             }
 
             .featured-loop-viewport {
-                width: min(100%, 560px);
-                margin: 0 auto;
-                border-radius: 18px;
-                overflow: hidden;
-                touch-action: pan-y;
+                width: 100vw;
+                margin-left: calc(50% - 50vw);
+                margin-right: calc(50% - 50vw);
+                border-radius: 0;
+                overflow-x: auto;
+                overflow-y: hidden;
+                -webkit-overflow-scrolling: touch;
+                scroll-snap-type: x mandatory;
+                scroll-behavior: smooth;
+                touch-action: pan-x pan-y;
             }
 
             .featured-loop-track {
                 width: 100%;
                 will-change: transform;
+                transform: none;
+                transition: none;
             }
 
             .featured-loop-slide {
-                padding: 0 10px;
+                width: 100vw;
+                flex: 0 0 100vw;
+                scroll-snap-align: start;
+                scroll-snap-stop: always;
+                padding: 0 20px;
                 box-sizing: border-box;
             }
 
             .featured-loop .featured-card {
                 width: 100%;
-                aspect-ratio: 16 / 9;
+                min-height: 400px;
+                aspect-ratio: 4 / 3;
                 min-height: 0;
             }
 
@@ -2287,7 +2299,7 @@
             }
 
             .featured-card-title {
-                font-size: 1.25rem;
+                font-size: 1.5rem;
             }
 
             .featured-card {
