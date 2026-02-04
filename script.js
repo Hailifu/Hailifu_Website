@@ -248,6 +248,9 @@
         let uploadProgressFill = null;
         let uploadProgressText = null;
         let cloudinaryPresetInput = null;
+        let firebaseConfigInput = null;
+        let firebaseProjectsPathInput = null;
+        let firebaseSettingsPathInput = null;
         let remoteConfigPublicIdInput = null;
         let remoteConfigUrlInput = null;
         let setAsHeroToggle = null;
@@ -263,6 +266,20 @@
         const cloudinaryCloudName = 'daovfi3i5';
         const defaultCloudinaryUnsignedPreset = 'hailifu_presset';
         const cloudinaryPresetStorageKey = 'hailifu_cloudinary_upload_preset';
+        const firebaseConfigStorageKey = 'hailifu_firebase_config';
+        const hardcodedFirebaseConfig = {
+            apiKey: 'AIzaSyBf0-nHMqu_ojZ1Ls-CEIHCXyiCnkNbRCY',
+            authDomain: 'hailifu-website.firebaseapp.com',
+            databaseURL: 'https://hailifu-website-default-rtdb.firebaseio.com/',
+            projectId: 'hailifu-website',
+            storageBucket: 'hailifu-website.firebasestorage.app',
+            messagingSenderId: '209696316971',
+            appId: '1:209696316971:web:4074db68735ba09221d46e'
+        };
+        const firebaseProjectsPathStorageKey = 'hailifu_firebase_projects_path';
+        const defaultFirebaseProjectsPath = 'projects';
+        const firebaseSettingsPathStorageKey = 'hailifu_firebase_settings_path';
+        const defaultFirebaseSettingsPath = 'hailifu/settings';
         const remoteConfigPublicIdStorageKey = 'hailifu_remote_config_public_id';
         const remoteConfigUrlStorageKey = 'hailifu_remote_config_url';
         const defaultRemoteConfigPublicId = 'hailifu_site_config';
@@ -270,6 +287,11 @@
         let remoteConfigState = null;
         let remoteConfigFingerprint = '';
         let remoteConfigPollTimer = null;
+
+        let firebaseDb = null;
+        let firebaseProjectsState = null;
+        let firebaseProjectsRef = null;
+        let firebaseSettingsRef = null;
 
         let adminPanel = null;
         let adminToggle = null;
@@ -346,6 +368,201 @@
             localStorage.setItem(key, JSON.stringify(value));
         }
 
+        function readFirebaseConfig() {
+            try {
+                const fromWindow = window.HAILIFU_FIREBASE_CONFIG;
+                if (fromWindow && typeof fromWindow === 'object') return fromWindow;
+            } catch {}
+            const stored = readJsonStorage(firebaseConfigStorageKey, null);
+            if (stored && typeof stored === 'object') return stored;
+            try {
+                if (hardcodedFirebaseConfig && typeof hardcodedFirebaseConfig === 'object') return hardcodedFirebaseConfig;
+            } catch {}
+            return null;
+        }
+
+        function persistFirebaseConfigFromText(text) {
+            const raw = String(text || '').trim();
+            if (!raw) {
+                try { localStorage.removeItem(firebaseConfigStorageKey); } catch {}
+                return true;
+            }
+            try {
+                const parsed = JSON.parse(raw);
+                if (!parsed || typeof parsed !== 'object') return false;
+                writeJsonStorage(firebaseConfigStorageKey, parsed);
+                return true;
+            } catch {
+                return false;
+            }
+        }
+
+        function resetFirebaseRuntime() {
+            stopFirebaseProjectsSync();
+            stopFirebaseSettingsSync();
+            firebaseDb = null;
+            firebaseProjectsState = null;
+        }
+
+        function getFirebaseProjectsPath() {
+            const stored = String(readJsonStorage(firebaseProjectsPathStorageKey, '') || '').trim();
+            if (!stored) return defaultFirebaseProjectsPath;
+            if (stored === 'hailifu/projects') return 'projects';
+            return stored;
+        }
+
+        function getFirebaseSettingsPath() {
+            const stored = String(readJsonStorage(firebaseSettingsPathStorageKey, '') || '').trim();
+            return stored || defaultFirebaseSettingsPath;
+        }
+
+        function persistFirebaseProjectsPath(path) {
+            const next = String(path || '').trim();
+            writeJsonStorage(firebaseProjectsPathStorageKey, next);
+        }
+
+        function persistFirebaseSettingsPath(path) {
+            const next = String(path || '').trim();
+            writeJsonStorage(firebaseSettingsPathStorageKey, next);
+        }
+
+        function firebaseIsReady() {
+            const cfg = readFirebaseConfig();
+            if (!cfg) return false;
+            if (!window.firebase) return false;
+            if (!firebase.initializeApp) return false;
+            if (!firebase.database) return false;
+            return true;
+        }
+
+        function ensureFirebaseDb() {
+            if (firebaseDb) return firebaseDb;
+            if (!firebaseIsReady()) return null;
+            try {
+                if (!firebase.apps || !firebase.apps.length) {
+                    firebase.initializeApp(readFirebaseConfig());
+                }
+            } catch {}
+            try {
+                firebaseDb = firebase.database();
+                return firebaseDb;
+            } catch {
+                return null;
+            }
+        }
+
+        function startFirebaseProjectsSync() {
+            const db = ensureFirebaseDb();
+            if (!db) return false;
+            const path = 'projects';
+            try {
+                if (firebaseProjectsRef) {
+                    try { firebaseProjectsRef.off(); } catch {}
+                }
+            } catch {}
+            firebaseProjectsRef = db.ref(path);
+            firebaseProjectsRef.on('value', (snap) => {
+                try {
+                    const raw = snap && typeof snap.val === 'function' ? snap.val() : null;
+                    const map = raw && typeof raw === 'object' ? raw : {};
+                    const list = Object.keys(map).map((id) => {
+                        const p = map[id];
+                        if (!p || typeof p !== 'object') return null;
+                        return { ...p, id: String(p.id || id) };
+                    }).filter(Boolean);
+                    list.sort((a, b) => {
+                        const ta = Date.parse(a.createdAt || '') || 0;
+                        const tb = Date.parse(b.createdAt || '') || 0;
+                        return tb - ta;
+                    });
+                    firebaseProjectsState = list;
+                    renderProjects();
+                    hydrateShowcaseFromStoredProjects();
+                    renderFeaturedWork();
+                    renderAdminLazyLoop();
+                } catch {}
+            });
+            return true;
+        }
+
+        function stopFirebaseProjectsSync() {
+            if (firebaseProjectsRef) {
+                try { firebaseProjectsRef.off(); } catch {}
+            }
+            firebaseProjectsRef = null;
+        }
+
+        function startFirebaseSettingsSync() {
+            const db = ensureFirebaseDb();
+            if (!db) return false;
+            const path = getFirebaseSettingsPath();
+            try {
+                if (firebaseSettingsRef) {
+                    try { firebaseSettingsRef.off(); } catch {}
+                }
+            } catch {}
+            firebaseSettingsRef = db.ref(path);
+            firebaseSettingsRef.on('value', (snap) => {
+                try {
+                    const raw = snap && typeof snap.val === 'function' ? snap.val() : null;
+                    const settings = raw && typeof raw === 'object' ? raw : {};
+                    const heroUrl = String(settings?.heroVideoUrl || '').trim();
+                    if (heroUrl) {
+                        try { initHeroVideo(heroUrl); } catch {}
+                    }
+                } catch {}
+            });
+            return true;
+        }
+
+        function stopFirebaseSettingsSync() {
+            if (firebaseSettingsRef) {
+                try { firebaseSettingsRef.off(); } catch {}
+            }
+            firebaseSettingsRef = null;
+        }
+
+        function setFirebaseHeroVideoUrl(url) {
+            const db = ensureFirebaseDb();
+            if (!db) return Promise.reject(new Error('Firebase not configured'));
+            const path = getFirebaseSettingsPath();
+            const next = String(url || '').trim();
+            return db.ref(`${path}/heroVideoUrl`).set(next);
+        }
+
+        function upsertProjectInFirebase(project) {
+            const db = ensureFirebaseDb();
+            if (!db) return Promise.reject(new Error('Firebase not configured'));
+            const path = 'projects';
+            const id = String(project?.id || '').trim();
+            if (!id) return Promise.reject(new Error('Missing project id'));
+            return db.ref(`${path}/${id}`).set(stripProjectQuoteFields(project));
+        }
+
+        function addProjectInFirebase(project) {
+            const db = ensureFirebaseDb();
+            if (!db) return Promise.reject(new Error('Firebase not configured'));
+            const path = 'projects';
+            const listRef = db.ref(path);
+            const newRef = listRef.push();
+            const key = String(newRef?.key || '').trim();
+            if (!key) return Promise.reject(new Error('Failed to create project id'));
+            const record = stripProjectQuoteFields({
+                ...(project && typeof project === 'object' ? project : {}),
+                id: key
+            });
+            return newRef.set(record);
+        }
+
+        function removeProjectInFirebase(projectId) {
+            const db = ensureFirebaseDb();
+            if (!db) return Promise.reject(new Error('Firebase not configured'));
+            const path = 'projects';
+            const id = String(projectId || '').trim();
+            if (!id) return Promise.resolve();
+            return db.ref(`${path}/${id}`).remove();
+        }
+
         function getRemoteConfigUrl() {
             const explicitUrl = String(readJsonStorage(remoteConfigUrlStorageKey, '') || '').trim();
             if (explicitUrl && /^https?:\/\//i.test(explicitUrl)) return explicitUrl;
@@ -399,12 +616,6 @@
                 remoteConfigFingerprint = fp;
                 const heroUrl = String(remoteConfigState?.heroVideoUrl || '').trim();
                 if (heroUrl) initHeroVideo(heroUrl);
-                if (Array.isArray(remoteConfigState?.projects)) {
-                    writeJsonStorage('hailifu_projects', remoteConfigState.projects);
-                }
-                renderProjects();
-                hydrateShowcaseFromStoredProjects();
-                renderFeaturedWork();
             } catch {}
         }
 
@@ -419,6 +630,18 @@
             if (!remoteConfigPollTimer) return;
             clearInterval(remoteConfigPollTimer);
             remoteConfigPollTimer = null;
+        }
+
+        function startServerlessProjectsSync() {
+            if (startFirebaseProjectsSync()) {
+                startFirebaseSettingsSync();
+                stopRemoteConfigPolling();
+                return true;
+            }
+            stopFirebaseSettingsSync();
+            syncFromRemoteConfig();
+            startRemoteConfigPolling();
+            return false;
         }
 
         function getCloudinaryPresetValue() {
@@ -1110,6 +1333,18 @@
                                         <input id="cloudinaryPreset" type="password" placeholder="Preset name">
                                     </div>
                                     <div class="form-group">
+                                        <label for="firebaseConfig">Firebase Config (JSON)</label>
+                                        <textarea id="firebaseConfig" placeholder='{"apiKey":"...","authDomain":"...","databaseURL":"...","projectId":"...","appId":"..."}'></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="firebaseProjectsPath">Firebase Projects Path</label>
+                                        <input id="firebaseProjectsPath" type="text" placeholder="hailifu/projects">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="firebaseSettingsPath">Firebase Settings Path</label>
+                                        <input id="firebaseSettingsPath" type="text" placeholder="hailifu/settings">
+                                    </div>
+                                    <div class="form-group">
                                         <label for="remoteConfigPublicId">Remote Config Public ID</label>
                                         <input id="remoteConfigPublicId" type="text" placeholder="hailifu_site_config">
                                     </div>
@@ -1404,6 +1639,9 @@
             uploadProgressFill = document.getElementById('uploadProgressFill');
             uploadProgressText = document.getElementById('uploadProgressText');
             cloudinaryPresetInput = document.getElementById('cloudinaryPreset');
+            firebaseConfigInput = document.getElementById('firebaseConfig');
+            firebaseProjectsPathInput = document.getElementById('firebaseProjectsPath');
+            firebaseSettingsPathInput = document.getElementById('firebaseSettingsPath');
             remoteConfigPublicIdInput = document.getElementById('remoteConfigPublicId');
             remoteConfigUrlInput = document.getElementById('remoteConfigUrl');
             setAsHeroToggle = document.getElementById('setAsHeroToggle');
@@ -1444,6 +1682,48 @@
                 }
                 cloudinaryPresetInput.addEventListener('change', persistCloudinaryPreset);
                 cloudinaryPresetInput.addEventListener('blur', persistCloudinaryPreset);
+            }
+
+            if (firebaseConfigInput) {
+                const stored = readFirebaseConfig();
+                if (!firebaseConfigInput.value && stored) {
+                    try { firebaseConfigInput.value = JSON.stringify(stored); } catch {}
+                }
+                const persist = () => {
+                    const ok = persistFirebaseConfigFromText(firebaseConfigInput.value);
+                    if (!ok) {
+                        alert('Firebase config must be valid JSON.');
+                        return;
+                    }
+                    resetFirebaseRuntime();
+                    startServerlessProjectsSync();
+                };
+                firebaseConfigInput.addEventListener('change', persist);
+                firebaseConfigInput.addEventListener('blur', persist);
+            }
+
+            if (firebaseProjectsPathInput) {
+                const stored = String(readJsonStorage(firebaseProjectsPathStorageKey, '') || '').trim();
+                if (!firebaseProjectsPathInput.value) firebaseProjectsPathInput.value = stored || defaultFirebaseProjectsPath;
+                const persist = () => {
+                    persistFirebaseProjectsPath(firebaseProjectsPathInput.value);
+                    resetFirebaseRuntime();
+                    startServerlessProjectsSync();
+                };
+                firebaseProjectsPathInput.addEventListener('change', persist);
+                firebaseProjectsPathInput.addEventListener('blur', persist);
+            }
+
+            if (firebaseSettingsPathInput) {
+                const stored = String(readJsonStorage(firebaseSettingsPathStorageKey, '') || '').trim();
+                if (!firebaseSettingsPathInput.value) firebaseSettingsPathInput.value = stored || defaultFirebaseSettingsPath;
+                const persist = () => {
+                    persistFirebaseSettingsPath(firebaseSettingsPathInput.value);
+                    resetFirebaseRuntime();
+                    startServerlessProjectsSync();
+                };
+                firebaseSettingsPathInput.addEventListener('change', persist);
+                firebaseSettingsPathInput.addEventListener('blur', persist);
             }
 
             if (remoteConfigPublicIdInput) {
@@ -1502,13 +1782,15 @@
                         const setAsHero = !!setAsHeroToggle?.checked;
                         if (setAsHero && resolved.mediaType === 'video') {
                             try { initHeroVideo(resolved.mediaSrc); } catch {}
-                            remoteConfigState = remoteConfigState && typeof remoteConfigState === 'object' ? remoteConfigState : {};
-                            remoteConfigState.heroVideoUrl = resolved.mediaSrc;
+                            if (firebaseIsReady()) {
+                                setFirebaseHeroVideoUrl(resolved.mediaSrc).catch(() => {});
+                            } else {
+                                remoteConfigState = remoteConfigState && typeof remoteConfigState === 'object' ? remoteConfigState : {};
+                                remoteConfigState.heroVideoUrl = resolved.mediaSrc;
+                            }
                         }
 
-                        const id = `p_${Date.now()}`;
                         const project = {
-                            id,
                             createdAt: new Date().toISOString(),
                             title: projectTitle?.value || 'Project',
                             category: projectCategory?.value || 'cctv',
@@ -1520,18 +1802,25 @@
                             isFeatured: false
                         };
 
-                        const projects = getProjects();
-                        projects.unshift(project);
-                        saveProjects(projects);
-                        renderProjects();
-                        hydrateShowcaseFromStoredProjects();
-                        renderFeaturedWork();
+                        if (firebaseIsReady()) {
+                            setUploadUiState({ active: true, pct: 100, text: 'Saving...' });
+                            addProjectInFirebase(project)
+                                .finally(() => setUploadUiState({ active: false, pct: 0, text: '' }));
+                        } else {
+                            project.id = `p_${Date.now()}`;
+                            const projects = getProjects();
+                            projects.unshift(project);
+                            saveProjects(projects);
+                            renderProjects();
+                            hydrateShowcaseFromStoredProjects();
+                            renderFeaturedWork();
+                        }
 
                         if (setAsHeroToggle) setAsHeroToggle.checked = false;
 
                         try {
                             const preset = getCloudinaryPresetValue();
-                            if (preset) {
+                            if (preset && !firebaseIsReady()) {
                                 const nextConfig = {
                                     updatedAt: new Date().toISOString(),
                                     heroVideoUrl: String(remoteConfigState?.heroVideoUrl || '').trim() || undefined,
@@ -1582,13 +1871,15 @@
 
                         if (setAsHero && selectedMediaType === 'video') {
                             try { initHeroVideo(url); } catch {}
-                            remoteConfigState = remoteConfigState && typeof remoteConfigState === 'object' ? remoteConfigState : {};
-                            remoteConfigState.heroVideoUrl = url;
+                            if (firebaseIsReady()) {
+                                setFirebaseHeroVideoUrl(url).catch(() => {});
+                            } else {
+                                remoteConfigState = remoteConfigState && typeof remoteConfigState === 'object' ? remoteConfigState : {};
+                                remoteConfigState.heroVideoUrl = url;
+                            }
                         }
 
-                        const id = `p_${Date.now()}`;
                         const project = {
-                            id,
                             createdAt: new Date().toISOString(),
                             title: projectTitle?.value || 'Project',
                             category: projectCategory?.value || 'cctv',
@@ -1599,6 +1890,13 @@
                             isStarred: false,
                             isFeatured: false
                         };
+
+                        if (firebaseIsReady()) {
+                            setUploadUiState({ active: true, pct: 100, text: 'Saving...' });
+                            return addProjectInFirebase(project);
+                        }
+
+                        project.id = `p_${Date.now()}`;
 
                         const projects = getProjects();
                         projects.unshift(project);
@@ -1617,8 +1915,10 @@
                         return uploadRemoteConfig(nextConfig, preset);
                     }).then(() => {
                         if (setAsHeroToggle) setAsHeroToggle.checked = false;
-                        remoteConfigFingerprint = '';
-                        syncFromRemoteConfig({ forceRender: true });
+                        if (!firebaseIsReady()) {
+                            remoteConfigFingerprint = '';
+                            syncFromRemoteConfig({ forceRender: true });
+                        }
                     }).catch((err) => {
                         alert(String(err?.message || err || 'Upload failed'));
                     }).finally(() => {
@@ -1642,9 +1942,13 @@
                         const idx = projects.findIndex((p) => p.id === id);
                         if (idx >= 0) {
                             projects[idx].isStarred = !projects[idx].isStarred;
-                            saveProjects(projects);
-                            renderProjects();
-                            renderFeaturedWork();
+                            if (firebaseIsReady()) {
+                                upsertProjectInFirebase(projects[idx]).catch(() => {});
+                            } else {
+                                saveProjects(projects);
+                                renderProjects();
+                                renderFeaturedWork();
+                            }
                         }
                         return;
                     }
@@ -1658,8 +1962,12 @@
                         const idx = projects.findIndex((p) => p.id === id);
                         if (idx >= 0) {
                             projects[idx].isFeatured = featureToggle.checked;
-                            saveProjects(projects);
-                            renderFeaturedWork();
+                            if (firebaseIsReady()) {
+                                upsertProjectInFirebase(projects[idx]).catch(() => {});
+                            } else {
+                                saveProjects(projects);
+                                renderFeaturedWork();
+                            }
                         }
                         return;
                     }
@@ -1667,9 +1975,13 @@
                     const deleteBtn = e.target.closest('[data-delete-project-id]');
                     if (deleteBtn) {
                         const id = deleteBtn.getAttribute('data-delete-project-id');
-                        const projects = getProjects().filter((p) => p.id !== id);
-                        saveProjects(projects);
-                        renderProjects();
+                        if (firebaseIsReady()) {
+                            removeProjectInFirebase(id).catch(() => {});
+                        } else {
+                            const projects = getProjects().filter((p) => p.id !== id);
+                            saveProjects(projects);
+                            renderProjects();
+                        }
                         const generated = document.querySelector(`[data-generated-project-id="${id}"]`);
                         if (generated) generated.remove();
                         renderFeaturedWork();
@@ -1898,12 +2210,20 @@
         }
 
         function getProjects() {
-            const remoteProjects = remoteConfigState && Array.isArray(remoteConfigState.projects)
-                ? remoteConfigState.projects
+            const firebaseProjects = firebaseProjectsState && Array.isArray(firebaseProjectsState)
+                ? firebaseProjectsState
                 : null;
 
-            const projects = remoteProjects || readJsonStorage('hailifu_projects', []);
-            const list = Array.isArray(projects) ? projects : [];
+            if (firebaseProjects) {
+                const list = Array.isArray(firebaseProjects) ? firebaseProjects : [];
+                return list.map((project) => ({
+                    ...stripProjectQuoteFields(project),
+                    isStarred: Boolean(project?.isStarred),
+                    isFeatured: Boolean(project?.isFeatured)
+                }));
+            }
+
+            const list = [];
 
             let changed = false;
             const sanitized = list.map((project) => {
@@ -1933,15 +2253,16 @@
         }
 
         function saveProjects(projects) {
+            if (firebaseProjectsState && Array.isArray(firebaseProjectsState)) {
+                firebaseProjectsState = Array.isArray(projects)
+                    ? projects.map(stripProjectQuoteFields)
+                    : [];
+                return;
+            }
             const sanitized = Array.isArray(projects)
                 ? projects.map(stripProjectQuoteFields)
                 : [];
-            writeJsonStorage('hailifu_projects', sanitized);
-
-            if (remoteConfigState && typeof remoteConfigState === 'object') {
-                remoteConfigState.projects = sanitized;
-                remoteConfigState.updatedAt = new Date().toISOString();
-            }
+            void sanitized;
         }
 
         function renderProjects() {
@@ -2765,8 +3086,7 @@
             });
         }
 
-        syncFromRemoteConfig();
-        startRemoteConfigPolling();
+        startServerlessProjectsSync();
 
         renderLeads();
         renderProjects();
