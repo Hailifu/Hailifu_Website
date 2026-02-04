@@ -471,8 +471,8 @@
                         return { ...p, id: String(p.id || id) };
                     }).filter(Boolean);
                     list.sort((a, b) => {
-                        const ta = Date.parse(a.createdAt || '') || 0;
-                        const tb = Date.parse(b.createdAt || '') || 0;
+                        const ta = Number(a?.timestamp) || (Date.parse(a?.createdAt || '') || 0);
+                        const tb = Number(b?.timestamp) || (Date.parse(b?.createdAt || '') || 0);
                         return tb - ta;
                     });
                     firebaseProjectsState = list;
@@ -1520,7 +1520,25 @@
             if (!adminLazyLoopTrack || !adminLazyLoopDots) return;
 
             const projects = getProjects();
-            const featured = projects.filter((p) => p && p.isFeatured);
+            const maxSlides = 4;
+            const featured = projects
+                .map((p) => {
+                    if (!p || typeof p !== 'object') return null;
+                    const mediaSrc = String(p.mediaSrc || p.imageUrl || '').trim();
+                    if (!mediaSrc) return null;
+                    return {
+                        ...p,
+                        mediaSrc,
+                        mediaType: String(p.mediaType || 'image') || 'image'
+                    };
+                })
+                .filter(Boolean)
+                .sort((a, b) => {
+                    const ta = Number(a?.timestamp) || (Date.parse(a?.createdAt || '') || 0);
+                    const tb = Number(b?.timestamp) || (Date.parse(b?.createdAt || '') || 0);
+                    return tb - ta;
+                })
+                .slice(0, maxSlides);
 
             adminLazyLoopCount = featured.length;
             adminLazyLoopIndex = 0;
@@ -1529,8 +1547,8 @@
                 adminLazyLoopTrack.innerHTML = `
                     <div class="admin-lazyloop-slide is-empty">
                         <div class="admin-lazyloop-overlay">
-                            <div class="admin-lazyloop-title">No featured projects yet</div>
-                            <div class="admin-lazyloop-subtitle">Mark projects as “Feature in Lazy Loop”.</div>
+                            <div class="admin-lazyloop-title">No projects yet</div>
+                            <div class="admin-lazyloop-subtitle">Add a project in the Admin Panel to see it here.</div>
                         </div>
                     </div>
                 `;
@@ -2541,7 +2559,25 @@
             };
 
             const projects = getProjects();
-            const featured = projects.filter((p) => p && p.isFeatured);
+            const maxSlides = 4;
+            const featured = projects
+                .map((p) => {
+                    if (!p || typeof p !== 'object') return null;
+                    const mediaSrc = String(p.mediaSrc || p.imageUrl || '').trim();
+                    if (!mediaSrc) return null;
+                    return {
+                        ...p,
+                        mediaSrc,
+                        mediaType: String(p.mediaType || 'image') || 'image'
+                    };
+                })
+                .filter(Boolean)
+                .sort((a, b) => {
+                    const ta = Number(a?.timestamp) || (Date.parse(a?.createdAt || '') || 0);
+                    const tb = Number(b?.timestamp) || (Date.parse(b?.createdAt || '') || 0);
+                    return tb - ta;
+                })
+                .slice(0, maxSlides);
 
             stopFeaturedLoop();
             featuredLoopHasBindings = false;
@@ -2557,8 +2593,8 @@
                                 <article class="featured-card featured-loop-slide is-empty is-active">
                                     <div class="featured-card-content">
                                         <div class="featured-card-category"><i class="fas fa-star"></i> Featured</div>
-                                        <div class="featured-card-title">Toggle Lazy Loop in the Admin Panel</div>
-                                        <div class="featured-card-description">Only projects marked “Feature in Lazy Loop” appear here.</div>
+                                        <div class="featured-card-title">No projects yet</div>
+                                        <div class="featured-card-description">Add a project in the Admin Panel to see it here instantly.</div>
                                     </div>
                                 </article>
                             </div>
@@ -2573,11 +2609,12 @@
                 const safeTitle = (project.title || 'Project').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 const isVideo = project.mediaType === 'video';
                 const isYoutube = project.mediaType === 'youtube';
-                const fallbackYoutubeThumb = getYoutubeThumbUrl(getYoutubeVideoId(project.mediaSrc));
+                const mediaSrc = String(project.mediaSrc || project.imageUrl || '').trim();
+                const fallbackYoutubeThumb = getYoutubeThumbUrl(getYoutubeVideoId(mediaSrc));
                 const youtubeThumb = normalizeCloudinaryUrl(project.thumbSrc || fallbackYoutubeThumb);
                 if (isYoutube) return `<img src="${youtubeThumb || ''}" alt="${safeTitle}" loading="lazy">`;
 
-                const normalizedSrc = normalizeCloudinaryUrl(project.mediaSrc);
+                const normalizedSrc = normalizeCloudinaryUrl(mediaSrc);
                 if (isVideo) return `<video src="${normalizedSrc}" muted playsinline webkit-playsinline loop preload="metadata"></video>`;
                 return `<img src="${normalizedSrc}" alt="${safeTitle}" loading="lazy">`;
             };
@@ -2595,7 +2632,7 @@
                     : '';
                 const isActiveClass = idx === 0 ? ' is-active' : '';
                 return `
-                    <article class="featured-card featured-loop-slide${isActiveClass}" data-featured-index="${idx}" data-generated-project-id="${project.id}" data-media-type="${project.mediaType}" data-media-src="${normalizeCloudinaryUrl(project.mediaSrc)}">
+                    <article class="featured-card featured-loop-slide${isActiveClass}" data-featured-index="${idx}" data-generated-project-id="${project.id}" data-media-type="${project.mediaType}" data-media-src="${normalizeCloudinaryUrl(String(project.mediaSrc || project.imageUrl || '').trim())}">
                         ${videoBadge}
                         <div class="featured-card-media">${mediaMarkup}</div>
                         <div class="featured-card-content">
