@@ -2535,6 +2535,10 @@
             transform: translateY(0);
         }
 
+        .showcase-item .showcase-overlay {
+            padding-bottom: 22px;
+        }
+
         .showcase-placeholder {
             background: linear-gradient(135deg, var(--black), var(--orange-dark));
             width: 100%;
@@ -2646,28 +2650,7 @@
         }
 
         .view-project-btn {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            background: var(--gradient-primary);
-            color: var(--white);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            text-decoration: none;
-            opacity: 1;
-            transform: translateY(0);
-            transition: all 0.3s ease;
-            z-index: 3;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .view-project-btn:hover {
-            background: var(--gradient-primary);
-            transform: translateY(-2px);
+            display: none;
         }
 
         /* Admin Panel Styles */

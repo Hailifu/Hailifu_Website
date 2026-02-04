@@ -2584,9 +2584,30 @@
 
                 if (!slot.dataset.modalBound) {
                     slot.dataset.modalBound = '1';
+                    slot.setAttribute('role', 'link');
+                    slot.tabIndex = 0;
+
+                    const fireWhatsApp = () => {
+                        const title = slot.querySelector('.showcase-title')?.textContent?.trim()
+                            || slot.querySelector('.showcase-placeholder span')?.textContent?.trim()
+                            || 'Project';
+                        const category = slot.querySelector('.project-category')?.textContent?.trim() || slot.dataset?.category || 'Project';
+                        const msg = `Hi Hailifu, I’m interested in ${category} (${title}). Please share details and a quote.`;
+                        const url = `https://wa.me/233550997270?text=${encodeURIComponent(msg)}`;
+                        window.open(url, '_blank');
+                    };
+
                     slot.addEventListener('click', (e) => {
+                        if (e?.target?.closest?.('a,button,input,textarea,select,label')) return;
                         e.preventDefault();
-                        openProjectModalFromItem(slot);
+                        fireWhatsApp();
+                    });
+
+                    slot.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            fireWhatsApp();
+                        }
                     });
                 }
             });
@@ -4140,13 +4161,31 @@
         }
 
         document.querySelectorAll('#service-cctv, #service-electrical, #service-airconditioning, #service-gates, #service-fencing, #service-smarthome, #service-blindcurtain').forEach((card) => {
-            card.addEventListener('click', (e) => {
+            card.setAttribute('role', 'link');
+            card.tabIndex = 0;
+
+            const fireWhatsApp = () => {
                 const id = card.id || '';
                 const key = id.replace('service-', '');
                 bumpServiceInterest(key);
 
-                setQuoteService(key);
-                openQuotePopup();
+                const title = card.querySelector('h3')?.textContent?.trim() || 'Service';
+                const msg = `Hi Hailifu, I’d like a quote for ${title}.`;
+                const url = `https://wa.me/233550997270?text=${encodeURIComponent(msg)}`;
+                window.open(url, '_blank');
+            };
+
+            card.addEventListener('click', (e) => {
+                if (e?.target?.closest?.('a,button,input,textarea,select,label')) return;
+                e.preventDefault();
+                fireWhatsApp();
+            });
+
+            card.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    fireWhatsApp();
+                }
             });
         });
 
