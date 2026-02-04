@@ -2607,38 +2607,65 @@
             });
         }
 
-        function buildShowcaseMediaRoomPlaylist() {
-            const grid = document.querySelector('.showcase-grid');
-            if (!grid) return [];
+        function getProjectIsolatedMediaItems(item) {
+            const fromDataset = parseMediaItemsFromDataset(item);
+            if (fromDataset.length) return fromDataset;
 
-            const items = Array.from(grid.querySelectorAll('.showcase-item'));
-            const visible = items.filter((item) => {
-                if (!item) return false;
-                if (item.hidden) return false;
-                if (item.classList && item.classList.contains('is-hidden')) return false;
-                try {
-                    const style = window.getComputedStyle(item);
-                    if (style && style.display === 'none') return false;
-                } catch {}
-                return true;
-            });
+            const id = String(item?.dataset?.generatedProjectId || '').trim();
+            if (id) {
+                const projects = getProjects();
+                const base = projects.find((p) => String(p?.id || '') === id);
+                if (base) {
+                    const baseItems = Array.isArray(base.mediaItems)
+                        ? base.mediaItems.map(normalizeMediaItem).filter(Boolean)
+                        : [];
 
-            return visible.map((item) => {
-                const title = item.querySelector('.showcase-title')?.textContent?.trim()
-                    || item.querySelector('.showcase-placeholder span')?.textContent?.trim()
-                    || 'Project';
-                const mediaItems = getMediaItemsForModal(item);
-                const mediaItem = mediaItems && mediaItems.length ? mediaItems[0] : null;
-                if (!mediaItem || !mediaItem.mediaSrc) return null;
-                return { sourceEl: item, title, mediaItem };
-            }).filter(Boolean);
+                    const baseSingle = base.mediaSrc
+                        ? [{ mediaSrc: String(base.mediaSrc), mediaType: String(base.mediaType || 'image'), thumbSrc: String(base.thumbSrc || '') }]
+                        : [];
+
+                    const combined = [...baseItems, ...baseSingle]
+                        .map(normalizeMediaItem)
+                        .filter(Boolean);
+
+                    const seen = new Set();
+                    return combined.filter((m) => {
+                        const key = `${m.mediaType}::${m.mediaSrc}`;
+                        if (seen.has(key)) return false;
+                        seen.add(key);
+                        return true;
+                    }).slice(0, 24);
+                }
+            }
+
+            const src = String(item?.dataset?.mediaSrc || '').trim();
+            if (src) {
+                return [{
+                    mediaSrc: src,
+                    mediaType: String(item?.dataset?.mediaType || 'image').trim().toLowerCase() || 'image',
+                    thumbSrc: ''
+                }].map(normalizeMediaItem).filter(Boolean);
+            }
+
+            return [];
         }
 
         function openShowcaseMediaRoom(startEl) {
-            const playlist = buildShowcaseMediaRoomPlaylist();
-            if (!playlist.length) return;
+            if (!startEl) return;
 
-            const startIndex = Math.max(0, playlist.findIndex((p) => p.sourceEl === startEl));
+            const title = startEl.querySelector('.showcase-title')?.textContent?.trim()
+                || startEl.querySelector('.showcase-placeholder span')?.textContent?.trim()
+                || 'Project';
+
+            const mediaItems = getProjectIsolatedMediaItems(startEl);
+            if (!mediaItems.length) return;
+
+            const startSrc = String(startEl?.dataset?.mediaSrc || '').trim();
+            const startIndex = startSrc
+                ? Math.max(0, mediaItems.findIndex((m) => String(m?.mediaSrc || '') === startSrc))
+                : 0;
+
+            const playlist = mediaItems.map((m) => ({ mediaItem: m, title }));
             setProjectLightboxPlaylist(playlist, startIndex);
             openProjectLightbox(playlist[startIndex].mediaItem, playlist[startIndex].title);
         }
@@ -3594,6 +3621,7 @@
                     <i class="fas fa-chevron-right"></i>
                 </button>
                 <div class="media-lightbox-content"></div>
+                <div class="media-lightbox-caption" aria-live="polite"></div>
             `;
 
             document.body.appendChild(node);
@@ -3672,6 +3700,8 @@
             projectLightbox.setAttribute('aria-hidden', 'true');
             const content = projectLightbox.querySelector('.media-lightbox-content');
             if (content) content.innerHTML = '';
+            const caption = projectLightbox.querySelector('.media-lightbox-caption');
+            if (caption) caption.textContent = '';
             projectLightboxPlaylist = null;
             projectLightboxIndex = 0;
             syncProjectLightboxNav();
@@ -3765,6 +3795,9 @@
             const content = projectLightbox.querySelector('.media-lightbox-content');
             if (!content) return;
             content.innerHTML = '';
+
+            const caption = projectLightbox.querySelector('.media-lightbox-caption');
+            if (caption) caption.textContent = String(title || '').trim();
 
             const type = String(mediaItem?.mediaType || '').toLowerCase();
             const src = String(mediaItem?.mediaSrc || '').trim();

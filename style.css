@@ -5459,6 +5459,21 @@
             justify-content: center;
         }
 
+        .media-lightbox-caption {
+            position: absolute;
+            left: 22px;
+            right: 22px;
+            bottom: 18px;
+            padding: 10px 14px;
+            border-radius: 14px;
+            background: rgba(0, 0, 0, 0.58);
+            border: 1px solid rgba(255, 140, 0, 0.22);
+            color: rgba(255, 255, 255, 0.92);
+            font-weight: 700;
+            text-align: center;
+            pointer-events: none;
+        }
+
         .media-lightbox-content img,
         .media-lightbox-content video,
         .media-lightbox-content iframe {
