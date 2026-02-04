@@ -547,7 +547,12 @@
             const newRef = listRef.push();
             const key = String(newRef?.key || '').trim();
             if (!key) return Promise.reject(new Error('Failed to create project id'));
+            const title = String(project?.title || '').trim();
+            const imageUrl = String(project?.mediaSrc || project?.imageUrl || '').trim();
             const record = stripProjectQuoteFields({
+                title,
+                imageUrl,
+                timestamp: Date.now(),
                 ...(project && typeof project === 'object' ? project : {}),
                 id: key
             });
@@ -1805,6 +1810,14 @@
                         if (firebaseIsReady()) {
                             setUploadUiState({ active: true, pct: 100, text: 'Saving...' });
                             addProjectInFirebase(project)
+                                .then(() => {
+                                    console.log('Data saved to Firebase!');
+                                    alert('Project Saved Successfully!');
+                                })
+                                .catch((err) => {
+                                    console.error('Firebase save failed:', err);
+                                    alert(`Firebase save failed: ${String(err?.message || err || 'Unknown error')}`);
+                                })
                                 .finally(() => setUploadUiState({ active: false, pct: 0, text: '' }));
                         } else {
                             project.id = `p_${Date.now()}`;
@@ -1893,7 +1906,16 @@
 
                         if (firebaseIsReady()) {
                             setUploadUiState({ active: true, pct: 100, text: 'Saving...' });
-                            return addProjectInFirebase(project);
+                            return addProjectInFirebase(project)
+                                .then(() => {
+                                    console.log('Data saved to Firebase!');
+                                    alert('Project Saved Successfully!');
+                                })
+                                .catch((err) => {
+                                    console.error('Firebase save failed:', err);
+                                    alert(`Firebase save failed: ${String(err?.message || err || 'Unknown error')}`);
+                                    throw err;
+                                });
                         }
 
                         project.id = `p_${Date.now()}`;
