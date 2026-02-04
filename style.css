@@ -1701,20 +1701,21 @@
 
             #services .services-grid .card {
                 display: grid;
-                grid-template-columns: 56px 1fr;
+                grid-template-columns: 64px 1fr;
                 column-gap: 16px;
                 align-items: center;
-                padding: 18px 14px;
+                padding: 18px 16px;
                 min-height: 0;
-                border-radius: 0;
+                border-radius: 16px;
                 border: 0;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-                box-shadow: none;
-                background: rgba(8, 8, 8, 0.35);
+                border-left: 4px solid #FF8C00;
+                box-shadow: 0 4px 15px rgba(255, 140, 0, 0.1);
+                background: #1a1a1a;
+                margin-bottom: 20px;
             }
 
             #services .services-grid .card:last-child {
-                border-bottom: 0;
+                margin-bottom: 0;
             }
 
             #services .services-grid .card i,
@@ -1727,6 +1728,30 @@
                 flex-shrink: 0;
             }
 
+            #services .services-grid .card i {
+                width: 54px;
+                height: 54px;
+                font-size: 1.6rem;
+                border-radius: 999px;
+                background: rgba(255, 140, 0, 0.14);
+                border: 1px solid rgba(255, 140, 0, 0.28);
+                box-shadow: inset 0 0 0 1px rgba(255, 140, 0, 0.08);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+            }
+
+            #services .services-grid .card .curtain-brand-logo {
+                width: 54px;
+                height: 54px;
+                padding: 10px;
+                box-sizing: border-box;
+                border-radius: 999px;
+                background: rgba(255, 140, 0, 0.14);
+                border: 1px solid rgba(255, 140, 0, 0.22);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+            }
+
             #services .services-grid .card h3,
             #services .services-grid .card p,
             #services .services-grid .card .service-tagline {
@@ -1734,8 +1759,10 @@
             }
 
             #services .services-grid .card h3 {
-                font-size: 1.05rem;
+                font-size: 1.08rem;
                 margin: 0 0 6px;
+                font-weight: 800;
+                color: #ffffff;
             }
 
             #services .services-grid .card .service-tagline {
@@ -1746,12 +1773,16 @@
                 font-size: 0.9rem;
                 line-height: 1.5;
                 margin: 0;
+                color: rgba(255, 255, 255, 0.7);
             }
 
-            #services .services-grid .card i {
-                width: 52px;
-                height: 52px;
-                font-size: 1.55rem;
+            #services .services-grid .card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 26px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 140, 0, 0.14);
+            }
+
+            #services .services-grid .card:active {
+                transform: translateY(-1px) scale(0.995);
             }
         }
 
