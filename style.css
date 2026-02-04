@@ -1584,18 +1584,33 @@
             }
         }
 
-        #services .services-grid .card .service-media {
-            width: 100%;
-            height: 120px;
-            border-radius: 14px;
+        #services .services-grid .card {
+            position: relative;
             overflow: hidden;
+            isolation: isolate;
+        }
+
+        #services .services-grid .card .service-media {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            border-radius: inherit;
+            overflow: hidden;
+            pointer-events: none;
             background: color-mix(in srgb, var(--text-primary) 6%, transparent);
-            margin-bottom: 14px;
-            border: 1px solid color-mix(in srgb, var(--text-primary) 10%, transparent);
+        }
+
+        #services .services-grid .card .service-media::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.35) 45%, rgba(0,0,0,0.78) 100%);
         }
 
         #services .services-grid .card .service-media img,
         #services .services-grid .card .service-media video {
+            position: absolute;
+            inset: 0;
             width: 100%;
             height: 100%;
             object-fit: cover;
@@ -1604,6 +1619,11 @@
 
         #services .services-grid .card .service-media video {
             pointer-events: none;
+        }
+
+        #services .services-grid .card > :not(.service-media) {
+            position: relative;
+            z-index: 1;
         }
 
         .card:nth-child(1) { animation-delay: 0.1s; }
@@ -2000,8 +2020,26 @@
             z-index: 4;
         }
 
+        .showcase-item .showcase-bg {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+        }
+
+        .showcase-item .showcase-bg img,
+        .showcase-item .showcase-bg video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
         .showcase-item.has-media .showcase-placeholder {
             display: flex;
+        }
+
+        .showcase-item.has-media .showcase-placeholder {
+            background: none;
         }
 
         .showcase-item.is-hidden {
@@ -2032,6 +2070,14 @@
             height: 100%;
             object-fit: cover;
             transition: transform 0.6s ease;
+        }
+
+        .project-thumb img,
+        .project-thumb video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
         }
 
         .showcase-item:hover img,

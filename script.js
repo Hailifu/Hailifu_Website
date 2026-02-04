@@ -485,7 +485,7 @@
         function startFirebaseProjectsSync() {
             const db = ensureFirebaseDb();
             if (!db) return false;
-            const path = 'projects';
+            const path = getFirebaseProjectsPath();
             try {
                 if (firebaseProjectsRef) {
                     try { firebaseProjectsRef.off(); } catch {}
@@ -511,7 +511,12 @@
                     hydrateShowcaseFromStoredProjects();
                     renderFeaturedWork();
                     renderAdminLazyLoop();
+                    bindServiceCardsToMedia();
                 } catch {}
+            }, () => {
+                firebaseProjectsState = null;
+                stopFirebaseProjectsSync();
+                syncFromRemoteConfig({ forceRender: true }).catch(() => {});
             });
             return true;
         }
@@ -652,6 +657,20 @@
                 remoteConfigFingerprint = fp;
                 const heroUrl = String(remoteConfigState?.heroVideoUrl || '').trim();
                 if (heroUrl) initHeroVideo(heroUrl);
+                try {
+                    const projects = Array.isArray(remoteConfigState?.projects) ? remoteConfigState.projects : null;
+                    if (projects) {
+                        writeJsonStorage('hailifu_projects', projects);
+                    }
+                } catch {}
+
+                try {
+                    renderProjects();
+                    hydrateShowcaseFromStoredProjects();
+                    renderFeaturedWork();
+                    renderAdminLazyLoop();
+                    bindServiceCardsToMedia();
+                } catch {}
             } catch {}
         }
 
@@ -2321,21 +2340,71 @@
             return rest;
         }
 
+        function getHailifuPlaceholderDataUri(label = 'HAILIFU') {
+            const safeLabel = String(label || 'HAILIFU').slice(0, 60);
+            const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="750" viewBox="0 0 1200 750">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a0a0a"/>
+      <stop offset="1" stop-color="#1b1b1b"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="750" fill="url(#g)"/>
+  <rect x="40" y="40" width="1120" height="670" rx="34" fill="rgba(255,140,0,0.06)" stroke="rgba(255,140,0,0.35)" stroke-width="6"/>
+  <text x="600" y="380" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="84" font-weight="800" fill="#FF8C00" letter-spacing="6">${safeLabel}</text>
+  <text x="600" y="460" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="700" fill="rgba(255,255,255,0.72)">PROJECT IMAGE</text>
+</svg>`;
+            return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+        }
+
+        function bindHailifuMediaFallback(root, label) {
+            if (!root) return;
+            const imgs = Array.from(root.querySelectorAll('img'));
+            imgs.forEach((img) => {
+                if (img.dataset && img.dataset.hailifuFallbackBound === '1') return;
+                if (img.dataset) img.dataset.hailifuFallbackBound = '1';
+
+                img.addEventListener('error', () => {
+                    try {
+                        const placeholder = getHailifuPlaceholderDataUri(label);
+                        if (img.src === placeholder) return;
+                        img.src = placeholder;
+                    } catch {}
+                });
+            });
+        }
+
         function getProjects() {
             const firebaseProjects = firebaseProjectsState && Array.isArray(firebaseProjectsState)
                 ? firebaseProjectsState
                 : null;
 
-            if (firebaseProjects) {
+            if (firebaseProjects && firebaseProjects.length) {
                 const list = Array.isArray(firebaseProjects) ? firebaseProjects : [];
-                return list.map((project) => ({
-                    ...stripProjectQuoteFields(project),
-                    isStarred: Boolean(project?.isStarred),
-                    isFeatured: Boolean(project?.isFeatured)
-                }));
+                return list.map((project) => {
+                    const base = stripProjectQuoteFields(project);
+                    const mediaSrc = String(base?.mediaSrc || base?.imageUrl || base?.mediaUrl || '').trim();
+                    const thumbSrc = String(base?.thumbSrc || base?.thumbnailUrl || base?.thumbUrl || '').trim();
+                    const mediaType = String(base?.mediaType || (mediaSrc && /\.(mp4|webm|mov)(\?|#|$)/i.test(mediaSrc) ? 'video' : 'image') || 'image').trim().toLowerCase() || 'image';
+                    return {
+                        ...base,
+                        mediaSrc,
+                        thumbSrc,
+                        mediaType,
+                        isStarred: Boolean(project?.isStarred),
+                        isFeatured: Boolean(project?.isFeatured)
+                    };
+                });
             }
 
-            const list = [];
+            const fromRemote = remoteConfigState && Array.isArray(remoteConfigState?.projects)
+                ? remoteConfigState.projects
+                : null;
+            const fromStorage = readJsonStorage('hailifu_projects', []);
+            const list = (Array.isArray(fromRemote) && fromRemote.length)
+                ? fromRemote
+                : (Array.isArray(fromStorage) ? fromStorage : []);
 
             let changed = false;
             const sanitized = list.map((project) => {
@@ -2357,11 +2426,20 @@
                 writeJsonStorage('hailifu_projects', sanitized);
             }
 
-            return sanitized.map((project) => ({
-                ...project,
-                isStarred: Boolean(project?.isStarred),
-                isFeatured: Boolean(project?.isFeatured)
-            }));
+            return sanitized.map((project) => {
+                const base = stripProjectQuoteFields(project);
+                const mediaSrc = String(base?.mediaSrc || base?.imageUrl || base?.mediaUrl || '').trim();
+                const thumbSrc = String(base?.thumbSrc || base?.thumbnailUrl || base?.thumbUrl || '').trim();
+                const mediaType = String(base?.mediaType || (mediaSrc && /\.(mp4|webm|mov)(\?|#|$)/i.test(mediaSrc) ? 'video' : 'image') || 'image').trim().toLowerCase() || 'image';
+                return {
+                    ...base,
+                    mediaSrc,
+                    thumbSrc,
+                    mediaType,
+                    isStarred: Boolean(project?.isStarred),
+                    isFeatured: Boolean(project?.isFeatured)
+                };
+            });
         }
 
         function saveProjects(projects) {
@@ -2447,6 +2525,39 @@
                     slot.dataset.mediaSrc = project.mediaSrc || '';
                     slot.dataset.mediaType = project.mediaType || 'image';
 
+                    const ensureShowcaseMedia = () => {
+                        const existing = slot.querySelector('.showcase-bg');
+                        const mediaSrc = String(project.mediaSrc || project.imageUrl || project.mediaUrl || '').trim();
+                        const normalizedSrc = mediaSrc ? normalizeCloudinaryUrl(mediaSrc) : '';
+                        const type = String(project.mediaType || 'image').trim().toLowerCase() || 'image';
+                        let node = existing;
+                        if (!node) {
+                            node = document.createElement('div');
+                            node.className = 'showcase-bg';
+                            slot.insertBefore(node, slot.firstChild);
+                        }
+
+                        if (!normalizedSrc) {
+                            node.innerHTML = '';
+                            return;
+                        }
+
+                        if (type === 'video') {
+                            node.innerHTML = `<video src="${normalizedSrc}" muted playsinline webkit-playsinline loop preload="metadata"></video>`;
+                        } else if (type === 'youtube') {
+                            const youtubeId = getYoutubeVideoId(normalizedSrc);
+                            const thumb = normalizeCloudinaryUrl(String(project.thumbSrc || getYoutubeThumbUrl(youtubeId) || '').trim());
+                            node.innerHTML = `<img src="${thumb || normalizedSrc}" alt="" loading="lazy">`;
+                        } else {
+                            node.innerHTML = `<img src="${normalizedSrc}" alt="" loading="lazy">`;
+                        }
+
+                        slot.classList.add('has-media');
+                        bindHailifuMediaFallback(node, 'HAILIFU');
+                    };
+
+                    try { ensureShowcaseMedia(); } catch {}
+
                     const categoryEl = slot.querySelector('.project-category');
                     if (categoryEl) {
                         const categorySpan = categoryEl.querySelector('span');
@@ -2465,6 +2576,10 @@
                         const overlayDesc = slot.querySelector('.showcase-description');
                         if (overlayDesc) overlayDesc.textContent = description;
                     }
+                } else {
+                    const existingBg = slot.querySelector('.showcase-bg');
+                    if (existingBg) existingBg.remove();
+                    slot.classList.remove('has-media');
                 }
 
                 if (!slot.dataset.modalBound) {
@@ -2915,6 +3030,8 @@
                     <div class="featured-loop-dots" id="featuredLoopDots" aria-hidden="true">${dotsMarkup}</div>
                 </div>
             `;
+
+            bindHailifuMediaFallback(featuredBento, 'HAILIFU');
 
             syncFeaturedLoopNodes();
             ensureFeaturedLoopBindings();
@@ -3805,17 +3922,20 @@
                 if (!project || !project.mediaSrc) return '';
                 const safeTitle = String(titleText || project.title || 'Service').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
+                const normalizedSrc = normalizeCloudinaryUrl(String(project.mediaSrc || '').trim());
+                const normalizedThumb = normalizeCloudinaryUrl(String(project.thumbSrc || '').trim());
+
                 if (project.mediaType === 'video') {
-                    return `<video src="${project.mediaSrc}" muted playsinline webkit-playsinline loop autoplay preload="metadata"></video>`;
+                    return `<video src="${normalizedSrc}" muted playsinline webkit-playsinline loop autoplay preload="metadata"></video>`;
                 }
 
                 if (project.mediaType === 'youtube') {
-                    const youtubeId = getYoutubeVideoId(project.mediaSrc);
-                    const thumb = project.thumbSrc || getYoutubeThumbUrl(youtubeId) || '';
+                    const youtubeId = getYoutubeVideoId(normalizedSrc);
+                    const thumb = normalizedThumb || getYoutubeThumbUrl(youtubeId) || '';
                     return thumb ? `<img src="${thumb}" alt="${safeTitle}" loading="lazy">` : '';
                 }
 
-                return `<img src="${project.mediaSrc}" alt="${safeTitle}" loading="lazy">`;
+                return `<img src="${normalizedSrc}" alt="${safeTitle}" loading="lazy">`;
             };
 
             const ensureServicePreview = (card, previewMarkup) => {
@@ -3823,12 +3943,14 @@
                 const existing = card.querySelector('.service-media');
                 if (existing) {
                     existing.innerHTML = previewMarkup;
+                    bindHailifuMediaFallback(existing, 'HAILIFU');
                     return;
                 }
                 const wrap = document.createElement('div');
                 wrap.className = 'service-media';
                 wrap.innerHTML = previewMarkup;
                 card.insertBefore(wrap, card.firstChild);
+                bindHailifuMediaFallback(wrap, 'HAILIFU');
             };
 
             cards.forEach((card) => {
@@ -3841,7 +3963,7 @@
                 const previewMarkup = buildPreviewMarkup(project, titleText);
 
                 if (project && project.mediaSrc) {
-                    card.dataset.mediaSrc = project.mediaSrc;
+                    card.dataset.mediaSrc = normalizeCloudinaryUrl(String(project.mediaSrc || '').trim());
                     card.dataset.mediaType = project.mediaType || 'image';
                     card.classList.add('has-media');
                 }
