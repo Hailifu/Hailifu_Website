@@ -3063,7 +3063,7 @@
                 }
             }
 
-            const src = String(item?.dataset?.mediaSrc || '').trim();
+            const src = String(item?.dataset?.mediaSrc || item?.dataset?.media || '').trim();
             if (src) {
                 return [{
                     mediaSrc: src,
@@ -3114,7 +3114,7 @@
             const mediaItems = getProjectIsolatedMediaItems(startEl);
             if (!mediaItems.length) return;
 
-            const startSrc = String(startEl?.dataset?.mediaSrc || '').trim();
+            const startSrc = String(startEl?.dataset?.mediaSrc || startEl?.dataset?.media || '').trim();
             const startIndex = startSrc
                 ? Math.max(0, mediaItems.findIndex((m) => String(m?.mediaSrc || '') === startSrc))
                 : 0;
@@ -4294,7 +4294,7 @@
                 }
             }
 
-            const src = String(item?.dataset?.mediaSrc || '').trim();
+            const src = String(item?.dataset?.mediaSrc || item?.dataset?.media || '').trim();
             if (src) {
                 return [{
                     mediaSrc: src,
@@ -4472,9 +4472,10 @@
                     projectModalMedia.appendChild(buildProjectModalGallery(mediaItems, title));
                 } else {
                     const datasetType = item.dataset?.mediaType || '';
-                    if (datasetType === 'youtube' && item.dataset?.mediaSrc) {
-                        const youtubeId = getYoutubeVideoId(item.dataset.mediaSrc);
-                        const watchUrl = youtubeId ? getYoutubeWatchUrl(youtubeId) : item.dataset.mediaSrc;
+                    const datasetMediaSrc = String(item.dataset?.mediaSrc || item.dataset?.media || '').trim();
+                    if (datasetType === 'youtube' && datasetMediaSrc) {
+                        const youtubeId = getYoutubeVideoId(datasetMediaSrc);
+                        const watchUrl = youtubeId ? getYoutubeWatchUrl(youtubeId) : datasetMediaSrc;
 
                         if (!canEmbedYoutube()) {
                             const wrap = document.createElement('div');
@@ -4489,7 +4490,7 @@
                             projectModalMedia.appendChild(wrap);
                         } else {
                             const iframe = document.createElement('iframe');
-                            iframe.src = youtubeId ? getYoutubeEmbedUrl(youtubeId) : item.dataset.mediaSrc;
+                            iframe.src = youtubeId ? getYoutubeEmbedUrl(youtubeId) : datasetMediaSrc;
                             iframe.title = title;
                             iframe.loading = 'lazy';
                             iframe.setAttribute('frameborder', '0');
@@ -4507,16 +4508,16 @@
                                 clone.muted = false;
                             }
                             projectModalMedia.appendChild(clone);
-                        } else if (item.dataset && item.dataset.mediaSrc) {
-                            const type = item.dataset.mediaType || 'image';
+                        } else if (datasetMediaSrc) {
+                            const type = datasetType || 'image';
                             if (type === 'video') {
                                 const video = document.createElement('video');
-                                video.src = item.dataset.mediaSrc;
+                                video.src = datasetMediaSrc;
                                 video.controls = true;
                                 projectModalMedia.appendChild(video);
                             } else {
                                 const img = document.createElement('img');
-                                img.src = item.dataset.mediaSrc;
+                                img.src = datasetMediaSrc;
                                 img.alt = title;
                                 projectModalMedia.appendChild(img);
                             }

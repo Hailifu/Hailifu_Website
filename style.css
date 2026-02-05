@@ -2563,6 +2563,17 @@
             transition: transform var(--hover-duration) var(--hover-ease);
         }
 
+        .project-card .showcase-bg {
+            background: rgba(5, 5, 5, 0.85);
+        }
+
+        .project-card img,
+        .project-card video,
+        .project-card .showcase-bg img,
+        .project-card .showcase-bg video {
+            object-fit: contain;
+        }
+
         .project-thumb img,
         .project-thumb video {
             width: 100%;
@@ -2574,6 +2585,11 @@
         .showcase-item:hover img,
         .showcase-item:hover video {
             transform: scale(1.15);
+        }
+
+        .project-card:hover img,
+        .project-card:hover video {
+            transform: none;
         }
 
         /* Featured Work Section */
@@ -6718,7 +6734,9 @@
             align-items: center;
             justify-content: center;
             padding: 22px;
-            background: color-mix(in srgb, var(--bg-primary) 88%, transparent);
+            background: rgba(4, 4, 6, 0.85);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
             z-index: 10060;
         }
 
@@ -6770,11 +6788,26 @@
             border-radius: 16px;
             overflow: hidden;
             background: rgba(15, 15, 15, 0.92);
-            border: 1px solid rgba(255, 140, 0, 0.25);
-            box-shadow: 0 30px 90px rgba(0, 0, 0, 0.75);
+            border: 2px solid rgba(255, 140, 0, 0.55);
+            box-shadow: 0 30px 90px rgba(0, 0, 0, 0.75), 0 0 26px rgba(255, 140, 0, 0.35);
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+
+        .media-lightbox.active .media-lightbox-content {
+            animation: lightboxZoom 0.35s ease;
+        }
+
+        @keyframes lightboxZoom {
+            0% {
+                transform: scale(0.92);
+                opacity: 0.2;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
         .media-lightbox-caption {
