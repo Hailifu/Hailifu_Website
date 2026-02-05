@@ -2519,6 +2519,15 @@
             display: block;
         }
 
+        .showcase-item.showcase-fallback .showcase-bg {
+            background: linear-gradient(135deg, rgba(18, 18, 18, 0.92), rgba(255, 140, 0, 0.18));
+        }
+
+        .showcase-item.showcase-fallback .showcase-bg img,
+        .showcase-item.showcase-fallback .showcase-bg video {
+            display: none;
+        }
+
         .showcase-item.has-media .showcase-placeholder {
             display: flex;
         }

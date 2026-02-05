@@ -3124,6 +3124,66 @@
             openProjectLightbox(playlist[startIndex].mediaItem, playlist[startIndex].title);
         }
 
+        function bindShowcaseGridDelegation() {
+            const showcaseGrid = document.querySelector('.showcase-grid');
+            if (!showcaseGrid) return;
+            if (showcaseGrid.dataset.modalDelegationBound === '1') return;
+            showcaseGrid.dataset.modalDelegationBound = '1';
+
+            const openFromTarget = (target) => {
+                const item = target?.closest?.('.showcase-item');
+                if (!item || item.classList.contains('is-hidden') || item.hidden) return;
+                openShowcaseMediaRoom(item);
+            };
+
+            showcaseGrid.addEventListener('click', (e) => {
+                if (e?.target?.closest?.('a,button,input,textarea,select,label')) return;
+                if (!e.target.closest('.showcase-item')) return;
+                e.preventDefault();
+                openFromTarget(e.target);
+            });
+
+            showcaseGrid.addEventListener('keydown', (e) => {
+                if (e.key !== 'Enter' && e.key !== ' ') return;
+                if (!e.target.closest('.showcase-item')) return;
+                e.preventDefault();
+                openFromTarget(e.target);
+            });
+        }
+
+        function applyShowcaseFallbacks() {
+            const showcaseGrid = document.querySelector('.showcase-grid');
+            if (!showcaseGrid) return;
+
+            const solarCards = showcaseGrid.querySelectorAll('.showcase-item[data-category="solar"]');
+            if (!solarCards.length) return;
+
+            solarCards.forEach((card) => {
+                if (!card.dataset) return;
+                if (card.dataset.fallbackBound === '1') return;
+                card.dataset.fallbackBound = '1';
+
+                const setFallback = () => {
+                    card.classList.add('showcase-fallback');
+                };
+
+                const media = card.querySelector('img, video');
+                if (!media) {
+                    setFallback();
+                    return;
+                }
+
+                if (media.tagName.toLowerCase() === 'video') {
+                    media.addEventListener('error', setFallback, { once: true });
+                } else {
+                    if (media.complete && media.naturalWidth === 0) {
+                        setFallback();
+                    }
+                    media.addEventListener('error', setFallback, { once: true });
+                }
+            });
+        }
+
         function openServiceCategoryMediaRoom(categoryKey) {
             const normalized = String(categoryKey || '').toLowerCase().trim();
             if (!normalized) return;
@@ -4106,6 +4166,8 @@
         renderLeads();
         renderProjects();
         hydrateShowcaseFromStoredProjects();
+        bindShowcaseGridDelegation();
+        applyShowcaseFallbacks();
         if (!firebaseIsReady()) {
             renderFeaturedWork();
         }
