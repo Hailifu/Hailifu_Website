@@ -58,6 +58,7 @@
             --glass-bg: rgba(255,255,255,0.05);
             --glass-border: rgba(255,255,255,0.1);
             --hover-ease: cubic-bezier(0.4, 0, 0.2, 1);
+            --hover-duration: 0.3s;
             --orange-bg: rgba(255,140,0,0.05);
             --surface-dark: rgba(8, 8, 8, 0.92);
             --surface-card: rgba(255,255,255,0.05);
@@ -497,7 +498,7 @@
             overflow-x: hidden;
             background: var(--bg-color);
             padding-left: 0;
-            transition: background-color 0.5s ease, color 0.5s ease;
+            transition: background-color var(--hover-duration) var(--hover-ease), color var(--hover-duration) var(--hover-ease);
         }
 
         h1,
@@ -537,7 +538,7 @@
             border-radius: 0 22px 22px 0;
             padding: 14px 6px;
             z-index: 1500;
-            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: width var(--hover-duration) var(--hover-ease), box-shadow var(--hover-duration) var(--hover-ease);
             box-shadow: 0 0 18px rgba(255, 140, 0, 0.2);
         }
 
@@ -573,7 +574,7 @@
             cursor: grab;
             touch-action: none;
             box-shadow: 0 18px 42px rgba(0, 0, 0, 0.55);
-            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform var(--hover-duration) var(--hover-ease), box-shadow var(--hover-duration) var(--hover-ease), border-color var(--hover-duration) var(--hover-ease), background-color var(--hover-duration) var(--hover-ease);
         }
 
         .shortcut-sidebar.is-dragging .shortcut-sidebar-tab {
@@ -607,7 +608,7 @@
             transform: translateX(110%);
             opacity: 0;
             pointer-events: none;
-            transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform var(--hover-duration) var(--hover-ease), opacity var(--hover-duration) var(--hover-ease);
         }
 
         [data-theme='light'] .shortcut-sidebar-panel {
@@ -637,7 +638,7 @@
             border: 1px solid rgba(255, 140, 0, 0.18);
             background: rgba(0, 0, 0, 0.45);
             font-size: 1.2rem;
-            transition: background 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: background var(--hover-duration) var(--hover-ease), border-color var(--hover-duration) var(--hover-ease), transform var(--hover-duration) var(--hover-ease);
         }
 
         [data-theme='light'] .shortcut-sidebar-link {
@@ -696,7 +697,7 @@
             text-transform: uppercase;
             letter-spacing: 0.08em;
             position: relative;
-            transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+            transition: background var(--hover-duration) var(--hover-ease), color var(--hover-duration) var(--hover-ease), border-color var(--hover-duration) var(--hover-ease), box-shadow var(--hover-duration) var(--hover-ease);
         }
 
         .quick-link svg {
@@ -704,14 +705,14 @@
             height: 20px;
             fill: var(--orange);
             flex-shrink: 0;
-            transition: transform 0.3s ease;
+            transition: transform var(--hover-duration) var(--hover-ease);
         }
 
         .quick-link span {
             opacity: 0;
             white-space: nowrap;
             transform: translateX(-6px);
-            transition: opacity 0.4s ease 0.1s, transform 0.4s ease 0.1s;
+            transition: opacity var(--hover-duration) var(--hover-ease) 0.1s, transform var(--hover-duration) var(--hover-ease) 0.1s;
         }
 
         .quick-links:hover .quick-link {
@@ -756,7 +757,7 @@
             margin: 0 auto;
             z-index: 1000;
             box-sizing: border-box;
-            transition: all 0.3s ease;
+            transition: all var(--hover-duration) var(--hover-ease);
             box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45), 0 0 25px rgba(255, 140, 0, 0.18);
         }
 
@@ -798,7 +799,7 @@
             margin-left: 0;
             flex: 0 0 auto;
             -webkit-tap-highlight-color: transparent;
-            transition: transform 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
+            transition: transform var(--hover-duration) var(--hover-ease), box-shadow var(--hover-duration) var(--hover-ease), background-color var(--hover-duration) var(--hover-ease);
         }
 
         .theme-toggle:hover {
@@ -828,7 +829,7 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            transition: opacity 0.25s ease;
+            transition: opacity var(--hover-duration) var(--hover-ease);
         }
 
         .theme-icon--sun {
@@ -876,7 +877,7 @@
             font-weight: bold;
             color: var(--orange);
             text-decoration: none;
-            transition: transform 0.3s ease;
+            transition: transform var(--hover-duration) var(--hover-ease);
             display: inline-flex;
             align-items: center;
             gap: 10px;
@@ -920,7 +921,7 @@
             color: var(--white);
             text-decoration: none;
             font-weight: 500;
-            transition: color 0.3s ease;
+            transition: color var(--hover-duration) var(--hover-ease);
             position: relative;
         }
 
@@ -938,7 +939,7 @@
             background: var(--orange);
             box-shadow: 0 0 12px rgba(255, 140, 0, 0.65);
             border-radius: 999px;
-            transition: width 0.3s ease;
+            transition: width var(--hover-duration) var(--hover-ease);
         }
 
         nav a:hover::after {
@@ -952,7 +953,7 @@
             border-radius: 30px;
             font-weight: bold;
             text-decoration: none;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all var(--hover-duration) var(--hover-ease);
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
@@ -969,7 +970,7 @@
             width: 100%;
             height: 100%;
             background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.6s;
+            transition: left var(--hover-duration) var(--hover-ease);
         }
 
         .contact-btn:hover::before {
@@ -993,7 +994,7 @@
             width: 25px;
             height: 3px;
             background: var(--white);
-            transition: all 0.3s ease;
+            transition: all var(--hover-duration) var(--hover-ease);
             border-radius: 2px;
         }
 
@@ -1415,7 +1416,7 @@
             margin-top: 20px;
             margin-left: 10px;
             margin-right: 10px;
-            transition: all 0.3s ease;
+            transition: all var(--hover-duration) var(--hover-ease);
             letter-spacing: 1px;
             text-transform: uppercase;
             border: none;
@@ -1815,7 +1816,7 @@
             box-shadow: none;
             border: 1px solid rgba(255, 140, 0, 0.1);
             border-top: 4px solid var(--orange);
-            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            transition: all var(--hover-duration) var(--hover-ease);
             text-align: left;
             opacity: 0;
             animation: fadeInUp 0.6s ease-out forwards;
@@ -1844,7 +1845,7 @@
             border: 1px solid rgba(255, 140, 0, 0.25);
             box-shadow: 0 0 18px rgba(255, 140, 0, 0.25);
             opacity: 0;
-            transition: opacity 0.4s ease;
+            transition: opacity var(--hover-duration) var(--hover-ease);
             pointer-events: none;
         }
 
@@ -1866,7 +1867,7 @@
             border: 1px solid rgba(255, 140, 0, 0.1);
             border-top: 4px solid var(--orange);
             box-shadow: none;
-            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            transition: all var(--hover-duration) var(--hover-ease);
             touch-action: manipulation;
         }
 
@@ -1995,7 +1996,7 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             filter: drop-shadow(0 0 8px var(--orange-glow));
-            transition: transform 0.3s ease;
+            transition: transform var(--hover-duration) var(--hover-ease);
         }
 
         .card:hover i {
@@ -2010,7 +2011,7 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             filter: drop-shadow(0 0 8px var(--orange-glow));
-            transition: transform 0.3s ease;
+            transition: transform var(--hover-duration) var(--hover-ease);
         }
 
         #services .services-grid .card:hover i,
@@ -2019,7 +2020,7 @@
         }
 
         #services .services-grid .card .curtain-brand-logo {
-            transition: transform 0.22s ease, filter 0.22s ease;
+            transition: transform var(--hover-duration) var(--hover-ease), filter var(--hover-duration) var(--hover-ease);
             filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.22));
         }
 
@@ -2161,7 +2162,7 @@
             border-radius: 16px;
             border: 1px solid var(--accent-gold-highlight);
             opacity: 0;
-            transition: opacity 0.4s ease;
+            transition: opacity var(--hover-duration) var(--hover-ease);
             pointer-events: none;
         }
 
@@ -2175,7 +2176,7 @@
 
         .curtain-brand-panel {
             transform-origin: center;
-            transition: transform 0.35s ease;
+            transition: transform var(--hover-duration) var(--hover-ease);
         }
 
         #service-blindcurtain .curtain-brand-logo {
@@ -2285,7 +2286,7 @@
             font-size: 0.95rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all var(--hover-duration) var(--hover-ease);
             text-transform: uppercase;
             letter-spacing: 1px;
         }
@@ -2343,7 +2344,7 @@
             box-shadow: 0 8px 30px rgba(0,0,0,0.6);
             aspect-ratio: 16/10;
             cursor: pointer;
-            transition: all 0.4s ease;
+            transition: all var(--hover-duration) var(--hover-ease);
             opacity: 0;
             animation: fadeInUp 0.6s ease-out forwards;
             background: var(--black);
@@ -2417,7 +2418,7 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.6s ease;
+            transition: transform var(--hover-duration) var(--hover-ease);
         }
 
         .project-thumb img,
@@ -2486,7 +2487,7 @@
             width: 100%;
             min-height: clamp(260px, 40vw, 520px);
             transform: translate3d(0, 0, 0);
-            transition: transform 0.62s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform var(--hover-duration) var(--hover-ease);
             display: flex;
             flex-wrap: nowrap;
         }
@@ -2541,7 +2542,7 @@
             border-radius: 999px;
             background: rgba(255, 255, 255, 0.25);
             box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
-            transition: transform 0.2s ease, background 0.2s ease;
+            transition: transform var(--hover-duration) var(--hover-ease), background var(--hover-duration) var(--hover-ease);
         }
 
         .featured-loop-dot.active {
@@ -2566,7 +2567,7 @@
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
             opacity: 0.7;
-            transition: opacity 0.2s ease, transform 0.2s ease, background 0.2s ease;
+            transition: opacity var(--hover-duration) var(--hover-ease), transform var(--hover-duration) var(--hover-ease), background var(--hover-duration) var(--hover-ease);
         }
 
         .featured-loop-nav.prev {
@@ -2592,7 +2593,7 @@
             background: rgba(0, 0, 0, 0.92);
             border: 1px solid rgba(255, 140, 0, 0.18);
             min-height: 220px;
-            transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+            transition: transform var(--hover-duration) var(--hover-ease), box-shadow var(--hover-duration) var(--hover-ease), border-color var(--hover-duration) var(--hover-ease);
             display: flex;
             align-items: stretch;
             transform-style: preserve-3d;
@@ -2643,7 +2644,7 @@
             animation: featuredSkeletonPulse 1.6s ease-in-out infinite;
             z-index: 2;
             pointer-events: none;
-            transition: opacity 0.35s ease;
+            transition: opacity var(--hover-duration) var(--hover-ease);
         }
 
         .featured-card-media::after {
@@ -2656,7 +2657,7 @@
             opacity: 0.85;
             z-index: 3;
             pointer-events: none;
-            transition: opacity 0.35s ease;
+            transition: opacity var(--hover-duration) var(--hover-ease);
         }
 
         .featured-card-media.is-loaded::before,
@@ -2680,7 +2681,7 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.45s ease;
+            transition: transform var(--hover-duration) var(--hover-ease);
             position: relative;
             z-index: 1;
         }
@@ -2848,7 +2849,7 @@
             bottom: 0;
             background: linear-gradient(to top, rgba(255, 140, 0, 0.85) 0%, rgba(26, 26, 26, 0.82) 55%, rgba(0, 0, 0, 0) 100%);
             opacity: 0;
-            transition: opacity 0.4s ease;
+            transition: opacity var(--hover-duration) var(--hover-ease);
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
@@ -2866,7 +2867,7 @@
             font-weight: 700;
             margin-bottom: 0;
             transform: translateY(20px);
-            transition: transform 0.4s ease;
+            transition: transform var(--hover-duration) var(--hover-ease);
             text-transform: uppercase;
             letter-spacing: 1px;
         }
@@ -2877,7 +2878,7 @@
             line-height: 1.5;
             margin: 0;
             transform: translateY(20px);
-            transition: transform 0.4s ease 0.1s;
+            transition: transform var(--hover-duration) var(--hover-ease) 0.1s;
         }
 
         .showcase-item:hover .showcase-title,
@@ -2946,7 +2947,7 @@
         .showcase-placeholder i,
         .showcase-placeholder span,
         .showcase-placeholder .curtain-brand-logo {
-            transition: opacity 0.25s ease;
+            transition: opacity var(--hover-duration) var(--hover-ease);
         }
 
         .showcase-item:hover .showcase-placeholder i,
@@ -3014,7 +3015,7 @@
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             box-shadow: -12px 0 32px rgba(0, 0, 0, 0.55), 0 0 35px rgba(255, 140, 0, 0.12);
-            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: width var(--hover-duration) var(--hover-ease);
             z-index: 10001;
             overflow-x: hidden;
             overflow-y: auto;
@@ -3078,7 +3079,7 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            transition: all 0.2s ease;
+            transition: all var(--hover-duration) var(--hover-ease);
             letter-spacing: 0.02em;
         }
 
@@ -3167,7 +3168,7 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            transition: transform var(--hover-duration) var(--hover-ease), box-shadow var(--hover-duration) var(--hover-ease), border-color var(--hover-duration) var(--hover-ease);
         }
 
         .metrics-card:hover {
@@ -3237,7 +3238,7 @@
             color: rgba(255, 255, 255, 0.9);
             cursor: pointer;
             text-align: left;
-            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+            transition: transform var(--hover-duration) var(--hover-ease), box-shadow var(--hover-duration) var(--hover-ease), border-color var(--hover-duration) var(--hover-ease);
         }
 
         .action-tile:hover {
@@ -3417,7 +3418,7 @@
             background: linear-gradient(90deg, rgba(255, 140, 0, 0.95), rgba(255, 107, 53, 0.95));
             width: 0%;
             box-shadow: 0 0 14px rgba(255, 140, 0, 0.55), 0 0 24px rgba(255, 140, 0, 0.35);
-            transition: width 0.4s ease;
+            transition: width var(--hover-duration) var(--hover-ease);
         }
 
         .admin-lead-row {
@@ -3649,7 +3650,7 @@
             cursor: pointer;
             padding: 5px;
             border-radius: 5px;
-            transition: all 0.3s ease;
+            transition: all var(--hover-duration) var(--hover-ease);
             position: relative;
             z-index: 2;
             pointer-events: auto;
@@ -3742,7 +3743,7 @@
             display: flex;
             width: 100%;
             transform: translate3d(0, 0, 0);
-            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform var(--hover-duration) var(--hover-ease);
             will-change: transform;
         }
 
@@ -3783,7 +3784,7 @@
             padding: 14px;
             background: linear-gradient(180deg, rgba(0, 0, 0, 0.00) 20%, rgba(0, 0, 0, 0.70) 100%);
             opacity: 1;
-            transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: opacity var(--hover-duration) var(--hover-ease);
             pointer-events: none;
         }
 
@@ -3842,7 +3843,7 @@
             border-radius: 999px;
             background: rgba(255, 255, 255, 0.25);
             box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
-            transition: transform 0.2s ease, background 0.2s ease;
+            transition: transform var(--hover-duration) var(--hover-ease), background var(--hover-duration) var(--hover-ease);
         }
 
         .admin-lazyloop-dot.active {
@@ -3884,7 +3885,7 @@
             border-radius: 10px;
             color: var(--white);
             font-size: 0.9rem;
-            transition: all 0.3s ease;
+            transition: all var(--hover-duration) var(--hover-ease);
         }
 
         .upload-form input::placeholder,
@@ -3918,7 +3919,7 @@
             border-radius: 8px;
             color: var(--light-grey);
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all var(--hover-duration) var(--hover-ease);
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -3938,7 +3939,7 @@
             padding: 30px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all var(--hover-duration) var(--hover-ease);
             background: var(--glass-bg);
         }
 
@@ -3975,7 +3976,7 @@
             font-size: 1rem;
             font-weight: bold;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all var(--hover-duration) var(--hover-ease);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -4048,7 +4049,7 @@
             border-radius: 999px;
             background: linear-gradient(90deg, rgba(255, 140, 0, 0.95), rgba(255, 107, 53, 0.95));
             box-shadow: 0 0 0 1px rgba(255, 140, 0, 0.25);
-            transition: width 0.15s ease;
+            transition: width var(--hover-duration) var(--hover-ease);
         }
 
         .admin-fab {
@@ -4064,7 +4065,7 @@
             font-size: 1.5rem;
             cursor: pointer;
             box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
-            transition: all 0.3s ease;
+            transition: all var(--hover-duration) var(--hover-ease);
             z-index: 10000;
         }
 
@@ -4086,7 +4087,7 @@
             font-size: 1.5rem;
             cursor: pointer;
             box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
-            transition: all 0.3s ease;
+            transition: all var(--hover-duration) var(--hover-ease);
             z-index: 9999;
             text-decoration: none;
             display: flex;
@@ -4116,7 +4117,7 @@
             place-items: center;
             text-decoration: none;
             box-shadow: 0 14px 34px rgba(0, 0, 0, 0.65), 0 0 22px rgba(255, 140, 0, 0.55);
-            transition: all 0.35s ease;
+            transition: all var(--hover-duration) var(--hover-ease);
             z-index: 9999;
             min-width: 0;
         }
@@ -4237,7 +4238,7 @@
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all var(--hover-duration) var(--hover-ease);
         }
 
         .project-thumb:hover {
@@ -4266,7 +4267,7 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all var(--hover-duration) var(--hover-ease);
             z-index: 2;
         }
 
@@ -4297,7 +4298,7 @@
             align-items: center;
             justify-content: center;
             z-index: 3;
-            transition: transform 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+            transition: transform var(--hover-duration) var(--hover-ease), box-shadow var(--hover-duration) var(--hover-ease), color var(--hover-duration) var(--hover-ease);
         }
 
         .project-thumb:hover .project-delete {
@@ -4367,7 +4368,7 @@
             border-radius: 20px;
             padding: 32px;
             backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
+            transition: all var(--hover-duration) var(--hover-ease);
             display: flex;
             flex-direction: column;
             gap: 22px;
@@ -4485,7 +4486,7 @@
             border-radius: 4px;
             background: var(--orange);
             border-radius: 4px;
-            transition: width 0.3s ease;
+            transition: width var(--hover-duration) var(--hover-ease);
         }
 
         .metric-value {
@@ -4576,7 +4577,7 @@
             text-decoration: none;
             border: none;
             cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+            transition: transform var(--hover-duration) var(--hover-ease), box-shadow var(--hover-duration) var(--hover-ease), background var(--hover-duration) var(--hover-ease);
         }
 
         .primary-cta-btn {
@@ -4691,7 +4692,7 @@
             border-radius: 10px;
             font-size: 1rem;
             font-family: inherit;
-            transition: all 0.3s ease;
+            transition: all var(--hover-duration) var(--hover-ease);
             background: rgba(7, 7, 7, 0.85);
             color: rgba(255, 255, 255, 0.92);
         }
@@ -4758,7 +4759,7 @@
             text-decoration: none;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            transition: all 0.3s ease;
+            transition: all var(--hover-duration) var(--hover-ease);
         }
 
         .hailifu-review-link:hover {
@@ -4908,7 +4909,7 @@
             border: 1px solid rgba(255, 140, 0, 0.25);
             color: var(--text-color);
             text-decoration: none;
-            transition: transform 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+            transition: transform var(--hover-duration) var(--hover-ease), background var(--hover-duration) var(--hover-ease), box-shadow var(--hover-duration) var(--hover-ease);
         }
 
         .site-footer .social-link:hover {
@@ -4934,7 +4935,7 @@
         .site-footer .footer-services a {
             color: rgba(255, 255, 255, 0.75);
             text-decoration: none;
-            transition: color 0.25s ease, transform 0.25s ease;
+            transition: color var(--hover-duration) var(--hover-ease), transform var(--hover-duration) var(--hover-ease);
         }
 
         [data-theme='light'] .site-footer .footer-links a,
@@ -4975,7 +4976,7 @@
             display: block;
             color: var(--text-primary);
             text-decoration: none;
-            transition: color 0.25s ease;
+            transition: color var(--hover-duration) var(--hover-ease);
         }
 
         .site-footer .footer-contact-value:hover {
@@ -5062,6 +5063,7 @@
            color: var(--text-primary);
            font-weight: 600;
            font-size: 1rem;
+           transition: color var(--hover-duration) var(--hover-ease);
        }
  
       .review-form-container .form-group input,
@@ -5072,10 +5074,10 @@
            border-radius: 10px;
            font-size: 1rem;
            font-family: inherit;
-           transition: all 0.3s ease;
+           transition: all var(--hover-duration) var(--hover-ease);
            background: rgba(255, 255, 255, 0.06);
            color: var(--text-primary);
-       }
+      }
 
       [data-theme='light'] .review-form-container .form-group input,
       [data-theme='light'] .review-form-container .form-group textarea {
@@ -5116,9 +5118,9 @@
            font-size: 2.2rem;
            color: rgba(255, 255, 255, 0.25);
            cursor: pointer;
-           transition: color 0.2s ease, transform 0.2s ease, text-shadow 0.2s ease;
+           transition: color var(--hover-duration) var(--hover-ease), transform var(--hover-duration) var(--hover-ease), text-shadow var(--hover-duration) var(--hover-ease);
            margin: 0;
-       }
+      }
  
       .star-rating label:hover,
       .star-rating label:hover ~ label,
@@ -5138,12 +5140,12 @@
            font-size: 1.05rem;
            font-weight: 700;
            cursor: pointer;
-           transition: all 0.3s ease;
+           transition: all var(--hover-duration) var(--hover-ease);
            display: flex;
            align-items: center;
            justify-content: center;
            gap: 10px;
-       }
+      }
  
       .submit-btn:hover {
            background: var(--gradient-primary);
@@ -5174,7 +5176,7 @@
             color: var(--orange);
             cursor: pointer;
             box-shadow: 0 14px 34px rgba(0, 0, 0, 0.55), 0 0 18px rgba(255, 140, 0, 0.45);
-            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), filter 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform var(--hover-duration) var(--hover-ease), box-shadow var(--hover-duration) var(--hover-ease), filter var(--hover-duration) var(--hover-ease);
             z-index: 10002;
         }
 
@@ -5190,7 +5192,7 @@
             color: var(--orange);
             cursor: pointer;
             box-shadow: 0 14px 34px rgba(0, 0, 0, 0.55), 0 0 18px rgba(255, 140, 0, 0.45);
-            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), filter 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform var(--hover-duration) var(--hover-ease), box-shadow var(--hover-duration) var(--hover-ease), filter var(--hover-duration) var(--hover-ease);
             z-index: 10002;
             display: inline-flex;
             align-items: center;
@@ -5227,7 +5229,7 @@
             opacity: 0;
             transform: translateY(8px);
             pointer-events: none;
-            transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: opacity var(--hover-duration) var(--hover-ease), transform var(--hover-duration) var(--hover-ease);
             z-index: 10004;
         }
 
@@ -5262,7 +5264,7 @@
             align-items: center;
             justify-content: center;
             position: relative;
-            transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1), filter 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform var(--hover-duration) var(--hover-ease), box-shadow var(--hover-duration) var(--hover-ease), filter var(--hover-duration) var(--hover-ease);
         }
 
         [data-theme='light'] .action-hub-main {
@@ -5271,7 +5273,7 @@
         }
 
         .action-hub-main i {
-            transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform var(--hover-duration) var(--hover-ease);
         }
 
         .action-hub-main::after {
@@ -5282,7 +5284,7 @@
             background: radial-gradient(circle, rgba(255, 140, 0, 0.38) 0%, rgba(255, 140, 0, 0.0) 70%);
             opacity: 0;
             transform: scale(0.72);
-            transition: opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1), transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: opacity var(--hover-duration) var(--hover-ease), transform var(--hover-duration) var(--hover-ease);
             pointer-events: none;
             z-index: -1;
         }
@@ -5328,7 +5330,7 @@
             transform: translateY(14px) scale(0.96);
             opacity: 0;
             pointer-events: none;
-            transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1), filter 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform var(--hover-duration) var(--hover-ease), opacity var(--hover-duration) var(--hover-ease), filter var(--hover-duration) var(--hover-ease);
             transition-delay: var(--hub-delay, 0ms);
         }
 
@@ -5373,7 +5375,7 @@
             white-space: nowrap;
             opacity: 0;
             transform: translateX(6px);
-            transition: opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1), transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: opacity var(--hover-duration) var(--hover-ease), transform var(--hover-duration) var(--hover-ease);
         }
 
         .action-hub.is-open .action-hub-label {
@@ -5513,7 +5515,7 @@
             padding: 8px 12px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s ease, background 0.2s ease;
+            transition: transform var(--hover-duration) var(--hover-ease), background var(--hover-duration) var(--hover-ease);
         }
 
         .brilliant-quick-btn:hover {
@@ -5854,7 +5856,7 @@
             padding: 24px;
             z-index: 10005;
             opacity: 0;
-            transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: opacity var(--hover-duration) var(--hover-ease);
         }
 
         .popup-overlay.active {
@@ -5876,7 +5878,7 @@
             flex-direction: column;
             transform: translateY(10px) scale(0.98);
             opacity: 0;
-            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform var(--hover-duration) var(--hover-ease), opacity var(--hover-duration) var(--hover-ease);
         }
 
         .popup-overlay.active .popup-form {
@@ -5971,7 +5973,7 @@
             border-radius: 14px;
             font-weight: 800;
             cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+            transition: transform var(--hover-duration) var(--hover-ease), box-shadow var(--hover-duration) var(--hover-ease), filter var(--hover-duration) var(--hover-ease);
         }
  
         .popup-submit-btn:hover {
@@ -6095,11 +6097,11 @@
             position: relative;
             padding: 0;
             border: 1px solid rgba(255, 255, 255, 0.10);
-            border-radius: 8px;
+            border-radius: 12px;
             overflow: hidden;
             background: rgba(0, 0, 0, 0.35);
             cursor: pointer;
-            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+            transition: transform var(--hover-duration) var(--hover-ease), border-color var(--hover-duration) var(--hover-ease), box-shadow var(--hover-duration) var(--hover-ease);
             transform: translateZ(0);
             aspect-ratio: 4 / 3;
         }
