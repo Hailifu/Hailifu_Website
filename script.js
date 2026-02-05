@@ -1982,6 +1982,7 @@
             if (uploadBtn) {
                 uploadBtn.addEventListener('click', (e) => {
                     e.preventDefault();
+                    e.stopPropagation();
 
                     setUploadUiState({ active: false, pct: 0, text: '' });
 
@@ -2747,6 +2748,35 @@
                 }].map(normalizeMediaItem).filter(Boolean);
             }
 
+            const mediaEl = item?.querySelector?.('img, video, iframe');
+            if (mediaEl) {
+                const tag = mediaEl.tagName ? mediaEl.tagName.toLowerCase() : '';
+                let mediaSrc = '';
+                let mediaType = 'image';
+
+                if (tag === 'video') {
+                    const source = mediaEl.querySelector('source');
+                    mediaSrc = String(mediaEl.currentSrc || mediaEl.src || source?.src || '').trim();
+                    mediaType = 'video';
+                } else if (tag === 'iframe') {
+                    mediaSrc = String(mediaEl.src || '').trim();
+                    const youtubeId = getYoutubeVideoId(mediaSrc);
+                    if (youtubeId) {
+                        mediaSrc = getYoutubeEmbedUrl(youtubeId);
+                        mediaType = 'youtube';
+                    } else {
+                        mediaSrc = '';
+                    }
+                } else {
+                    mediaSrc = String(mediaEl.currentSrc || mediaEl.src || '').trim();
+                    mediaType = 'image';
+                }
+
+                if (mediaSrc) {
+                    return [{ mediaSrc, mediaType, thumbSrc: '' }].map(normalizeMediaItem).filter(Boolean);
+                }
+            }
+
             return [];
         }
 
@@ -2784,7 +2814,11 @@
                 cctv: 'CCTV Installation',
                 electrical: 'Electrical Services',
                 gates: 'Auto Gate Service',
-                autogate: 'Auto Gate Service'
+                autogate: 'Auto Gate Service',
+                airconditioning: 'Air Conditioning Systems',
+                fencing: 'Electric Fencing',
+                smarthome: 'Smart Home Integration',
+                blindcurtain: 'Blind Curtain Automation'
             };
 
             const serviceLabel = labelMap[normalized] || labelMap[resolved] || 'Service';
@@ -4474,7 +4508,7 @@
             card.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    const category = card.getAttribute('data-category') || card.dataset?.category || '';
+                    const category = card.getAttribute('data-service-category') || card.dataset?.serviceCategory || card.getAttribute('data-category') || card.dataset?.category || '';
                     if (typeof window.openMediaRoom === 'function') window.openMediaRoom(category);
                 }
             });
