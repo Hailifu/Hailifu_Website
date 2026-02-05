@@ -5938,11 +5938,12 @@
             width: 100%;
             padding: 12px 14px;
             border-radius: 14px;
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: rgba(6, 6, 6, 0.62);
             color: rgba(255, 255, 255, 0.92);
             font-family: inherit;
             box-sizing: border-box;
+            transition: border-color var(--hover-duration) var(--hover-ease), box-shadow var(--hover-duration) var(--hover-ease), background-color var(--hover-duration) var(--hover-ease);
         }
 
         .popup-form-group input::placeholder,
@@ -5954,8 +5955,8 @@
         .popup-form-group select:focus,
         .popup-form-group textarea:focus {
             outline: none;
-            border-color: rgba(255, 140, 0, 0.7);
-            box-shadow: 0 0 0 2px rgba(255, 140, 0, 0.2);
+            border-color: var(--orange);
+            box-shadow: 0 0 0 2px rgba(255, 140, 0, 0.2), 0 0 18px rgba(255, 140, 0, 0.35);
         }
  
         .popup-form-group textarea {
