@@ -13,6 +13,17 @@
             padding: 0;
         }
 
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 99999;
+            opacity: 0.01;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0%200%20200%20200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+            background-repeat: repeat;
+        }
+
         img {
             max-width: 100%;
             height: auto;
@@ -45,7 +56,8 @@
             --gradient-dark: linear-gradient(135deg, #000000, #1A1A1A);
             --gradient-glass: linear-gradient(135deg, rgba(255,140,0,0.1), rgba(255,140,0,0.05));
             --glass-bg: rgba(255,255,255,0.05);
-            --glass-border: rgba(255,140,0,0.2);
+            --glass-border: rgba(255,255,255,0.1);
+            --hover-ease: cubic-bezier(0.4, 0, 0.2, 1);
             --orange-bg: rgba(255,140,0,0.05);
             --surface-dark: rgba(8, 8, 8, 0.92);
             --surface-card: rgba(255,255,255,0.05);
@@ -6254,4 +6266,25 @@
             .project-modal-body {
                 grid-template-columns: 1fr;
             }
+        }
+
+        /* Global UI Enhancements */
+        [class*="subtitle"] {
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .project-modal-title span {
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        :where(a, button, .btn, .card, .project-thumb, .quick-link, .shortcut-sidebar-link, .shortcut-sidebar-tab, .theme-toggle, .contact-btn, .filter-btn, .featured-loop-nav, .featured-card, .showcase-item, .project-modal-tile, .media-lightbox-nav, .popup-submit-btn, .popup-close, .project-modal-close, .media-lightbox-close) {
+            transition-timing-function: var(--hover-ease);
+        }
+
+        [class*="glass"] {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
         }
