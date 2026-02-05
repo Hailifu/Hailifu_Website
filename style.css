@@ -4558,6 +4558,11 @@
             color: var(--orange);
             margin: 5px 0;
             letter-spacing: 3px;
+            text-shadow: 0 0 10px color-mix(in srgb, var(--orange) 55%, transparent);
+        }
+
+        .header-star-rating {
+            text-shadow: 0 0 12px color-mix(in srgb, var(--orange) 50%, transparent);
         }
 
         .rating-info .review-count-large {
@@ -4656,7 +4661,7 @@
             font-size: 2.2rem;
             color: var(--rating-star);
             letter-spacing: 4px;
-            text-shadow: 0 0 12px rgba(255, 209, 102, 0.5), 0 0 24px rgba(255, 140, 0, 0.6);
+            text-shadow: 0 0 10px color-mix(in srgb, var(--orange) 45%, transparent);
         }
 
         .hailifu-review-grid {
@@ -4666,8 +4671,8 @@
         }
 
         .hailifu-review-card {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 140, 0, 0.2);
+            background: linear-gradient(140deg, color-mix(in srgb, var(--bg-secondary) 85%, transparent), color-mix(in srgb, var(--bg-primary) 92%, transparent));
+            border: 1px solid color-mix(in srgb, var(--orange) 28%, transparent);
             border-radius: 16px;
             padding: 18px;
             color: var(--text-secondary);
@@ -4676,6 +4681,17 @@
             flex: 1 1 220px;
             box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
             backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hailifu-review-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-top: 2px solid color-mix(in srgb, var(--orange) 45%, transparent);
+            opacity: 0.6;
+            pointer-events: none;
         }
 
         .review-cta-section {
@@ -4756,9 +4772,9 @@
             width: min(560px, 100%);
             border-radius: 18px;
             overflow: hidden;
-            background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
-            border: 1px solid rgba(255, 140, 0, 0.18);
-            box-shadow: 0 20px 70px rgba(0, 0, 0, 0.65);
+            background: linear-gradient(160deg, color-mix(in srgb, var(--bg-primary) 88%, transparent), color-mix(in srgb, var(--bg-secondary) 92%, transparent));
+            border: 1px solid color-mix(in srgb, var(--orange) 25%, transparent);
+            box-shadow: 0 24px 80px color-mix(in srgb, var(--bg-primary) 55%, transparent);
             backdrop-filter: blur(18px);
             -webkit-backdrop-filter: blur(18px);
             max-height: 90vh;
@@ -4771,7 +4787,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 16px 18px;
-            background: linear-gradient(135deg, rgba(255, 140, 0, 0.16), color-mix(in srgb, var(--bg-secondary) 75%, transparent));
+            background: linear-gradient(135deg, color-mix(in srgb, var(--orange) 18%, transparent), color-mix(in srgb, var(--bg-secondary) 70%, transparent));
             border-bottom: 1px solid rgba(255, 140, 0, 0.14);
             color: var(--text-main);
             flex-shrink: 0;
@@ -4813,6 +4829,10 @@
             color: var(--text-main);
             margin-bottom: 8px;
             font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 0.78rem;
         }
 
         [data-theme='light'] .review-form label {
@@ -4823,19 +4843,19 @@
         .review-form textarea {
             width: 100%;
             padding: 12px 15px;
-            border: 1px solid color-mix(in srgb, var(--text-main) 18%, transparent);
+            border: 1px solid color-mix(in srgb, var(--orange) 28%, transparent);
             border-radius: 10px;
             font-size: 1rem;
             font-family: inherit;
             transition: border-color var(--hover-duration) var(--hover-ease), box-shadow var(--hover-duration) var(--hover-ease), background-color var(--hover-duration) var(--hover-ease);
-            background: color-mix(in srgb, var(--bg-secondary) 75%, transparent);
+            background: color-mix(in srgb, var(--bg-primary) 85%, transparent);
             color: var(--text-main);
         }
 
         [data-theme='light'] .review-form input,
         [data-theme='light'] .review-form textarea {
-            border-color: color-mix(in srgb, var(--text-main) 18%, transparent);
-            background: color-mix(in srgb, var(--bg-secondary) 75%, transparent);
+            border-color: color-mix(in srgb, var(--orange) 24%, transparent);
+            background: color-mix(in srgb, var(--bg-primary) 88%, transparent);
             color: var(--text-main);
         }
 
@@ -4849,11 +4869,24 @@
             min-height: 120px;
         }
 
+        .review-form .submit-btn {
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+            font-size: 0.9rem;
+            border: 1px solid color-mix(in srgb, var(--orange) 55%, transparent);
+            box-shadow: 0 12px 28px color-mix(in srgb, var(--orange) 28%, transparent);
+        }
+
+        .review-form .submit-btn:hover {
+            box-shadow: 0 18px 38px color-mix(in srgb, var(--orange) 45%, transparent);
+        }
+
         .review-form input:focus,
         .review-form textarea:focus {
             outline: none;
             border-color: var(--orange);
-            box-shadow: 0 0 0 2px rgba(255, 140, 0, 0.2), 0 0 18px rgba(255, 140, 0, 0.35);
+            box-shadow: 0 0 0 1px color-mix(in srgb, var(--orange) 60%, transparent), 0 0 18px color-mix(in srgb, var(--orange) 65%, transparent);
         }
 
         .form-success {
@@ -4870,15 +4903,49 @@
         .hailifu-review-card-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
             margin-bottom: 10px;
             font-weight: 600;
             color: var(--text-primary);
             font-size: 0.9rem;
+            gap: 12px;
+        }
+
+        .hailifu-review-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-dim);
+        }
+
+        .field-report-label {
+            padding: 4px 8px;
+            border-radius: 999px;
+            border: 1px solid color-mix(in srgb, var(--orange) 38%, transparent);
+            background: color-mix(in srgb, var(--bg-primary) 78%, transparent);
+            color: var(--text-main);
+        }
+
+        .hailifu-review-meta .hailifu-reviewer {
+            color: var(--text-main);
+        }
+
+        .review-verified {
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--orange);
+            color: var(--orange);
+            background: color-mix(in srgb, var(--orange) 12%, transparent);
         }
 
         .hailifu-review-score {
             color: var(--rating-star);
+            text-shadow: 0 0 8px color-mix(in srgb, var(--orange) 55%, transparent);
         }
 
         .hailifu-review-link {
