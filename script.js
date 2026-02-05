@@ -1296,8 +1296,8 @@
                                 <img src="./logo.webp" alt="Hailifu" class="admin-logo">
                             </div>
                             <div class="admin-brand-text">
-                                <div class="admin-title">Hailifu Command</div>
-                                <div class="admin-subtitle">Operations Console</div>
+                                <div class="admin-title">Premium Command Center</div>
+                                <div class="admin-subtitle">Hailifu Ops Console</div>
                             </div>
                         </div>
 
@@ -1313,64 +1313,92 @@
                             <button class="admin-tab" type="button" data-admin-tab="reviews">Reviews</button>
                         </div>
                         <div class="admin-tab-panel active" data-admin-panel="overview">
-                            <div class="command-stats">
-                                <div class="command-stat-card new">
-                                    <div class="command-stat-label">Total Leads</div>
-                                    <div class="command-stat-value" id="overviewTotalLeads">0</div>
-                                </div>
-                                <div class="command-stat-card">
-                                    <div class="command-stat-label">Reviews</div>
-                                    <div class="command-stat-value" id="overviewRecentReviews">0</div>
-                                </div>
-                                <div class="command-stat-card success">
-                                    <div class="command-stat-label">Page Reach</div>
-                                    <div class="command-stat-value" id="overviewReach">0</div>
-                                </div>
-                            </div>
-                            <div class="admin-section">
-                                <h3><i class="fas fa-infinity"></i> Lazy Loop Preview</h3>
-                                <div class="admin-lazyloop" id="adminLazyLoop">
-                                    <div class="admin-lazyloop-viewport">
-                                        <div class="admin-lazyloop-track" id="adminLazyLoopTrack"></div>
+                            <div class="command-center-grid">
+                                <div class="admin-section admin-section--metrics full-span">
+                                    <div class="admin-section-heading">
+                                        <h3><i class="fas fa-gauge-high"></i> Performance Metrics</h3>
+                                        <span class="admin-section-tag">Live Sync</span>
                                     </div>
-                                    <div class="admin-lazyloop-dots" id="adminLazyLoopDots" aria-hidden="true"></div>
+                                    <div class="metrics-grid">
+                                        <div class="metrics-card metrics-card--accent">
+                                            <span class="metrics-label">Total Leads</span>
+                                            <div class="metrics-value" id="overviewTotalLeads">0</div>
+                                            <span class="metrics-meta">Active inquiries</span>
+                                        </div>
+                                        <div class="metrics-card">
+                                            <span class="metrics-label">Reviews</span>
+                                            <div class="metrics-value" id="overviewRecentReviews">0</div>
+                                            <span class="metrics-meta">Awaiting approval</span>
+                                        </div>
+                                        <div class="metrics-card metrics-card--success">
+                                            <span class="metrics-label">Page Reach</span>
+                                            <div class="metrics-value" id="overviewReach">0</div>
+                                            <span class="metrics-meta">Weekly touches</span>
+                                        </div>
+                                        <div class="metrics-card">
+                                            <span class="metrics-label">Response Window</span>
+                                            <div class="metrics-value">12m</div>
+                                            <span class="metrics-meta">Avg. turnaround</span>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="admin-section">
-                                <h3><i class="fas fa-chart-line"></i> Service Interest</h3>
-                                <div class="interest-row">
-                                    <span>CCTV</span>
-                                    <div class="interest-bar"><div class="interest-fill" id="interestCctv"></div></div>
-                                    <strong id="interestCctvCount">0</strong>
-                                </div>
+                                <div class="admin-section admin-section--interest">
+                                    <h3><i class="fas fa-signal"></i> Client Interest</h3>
+                                    <div class="interest-grid">
+                                        <div class="interest-row">
+                                            <div class="interest-label">
+                                                <span>CCTV</span>
+                                                <strong id="interestCctvCount">0</strong>
+                                            </div>
+                                            <div class="interest-bar"><div class="interest-fill" id="interestCctv"></div></div>
+                                        </div>
 
-                                <div class="interest-row">
-                                    <span>Electrical</span>
-                                    <div class="interest-bar"><div class="interest-fill" id="interestElectrical"></div></div>
-                                    <strong id="interestElectricalCount">0</strong>
-                                </div>
+                                        <div class="interest-row">
+                                            <div class="interest-label">
+                                                <span>Electrical</span>
+                                                <strong id="interestElectricalCount">0</strong>
+                                            </div>
+                                            <div class="interest-bar"><div class="interest-fill" id="interestElectrical"></div></div>
+                                        </div>
 
-                                <div class="interest-row">
-                                    <span>Air Conditioning</span>
-                                    <div class="interest-bar"><div class="interest-fill" id="interestAirconditioning"></div></div>
-                                    <strong id="interestAirconditioningCount">0</strong>
-                                </div>
+                                        <div class="interest-row">
+                                            <div class="interest-label">
+                                                <span>Air Conditioning</span>
+                                                <strong id="interestAirconditioningCount">0</strong>
+                                            </div>
+                                            <div class="interest-bar"><div class="interest-fill" id="interestAirconditioning"></div></div>
+                                        </div>
 
-                                <div class="interest-row">
-                                    <span>Smart Window Solutions</span>
-                                    <div class="interest-bar"><div class="interest-fill" id="interestBlindcurtain"></div></div>
-                                    <strong id="interestBlindcurtainCount">0</strong>
-                                </div>
+                                        <div class="interest-row">
+                                            <div class="interest-label">
+                                                <span>Smart Window Solutions</span>
+                                                <strong id="interestBlindcurtainCount">0</strong>
+                                            </div>
+                                            <div class="interest-bar"><div class="interest-fill" id="interestBlindcurtain"></div></div>
+                                        </div>
 
-                                <div class="interest-row">
-                                    <span>Automated Gates</span>
-                                    <div class="interest-bar"><div class="interest-fill" id="interestGates"></div></div>
-                                    <strong id="interestGatesCount">0</strong>
+                                        <div class="interest-row">
+                                            <div class="interest-label">
+                                                <span>Automated Gates</span>
+                                                <strong id="interestGatesCount">0</strong>
+                                            </div>
+                                            <div class="interest-bar"><div class="interest-fill" id="interestGates"></div></div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="admin-section">
-                                <h3><i class="fas fa-user-clock"></i> Recent Leads</h3>
-                                <div id="overviewLeadsList"></div>
+                                <div class="admin-section admin-section--preview">
+                                    <h3><i class="fas fa-infinity"></i> Live Showcase Loop</h3>
+                                    <div class="admin-lazyloop" id="adminLazyLoop">
+                                        <div class="admin-lazyloop-viewport">
+                                            <div class="admin-lazyloop-track" id="adminLazyLoopTrack"></div>
+                                        </div>
+                                        <div class="admin-lazyloop-dots" id="adminLazyLoopDots" aria-hidden="true"></div>
+                                    </div>
+                                </div>
+                                <div class="admin-section admin-section--leads full-span">
+                                    <h3><i class="fas fa-user-clock"></i> Recent Leads</h3>
+                                    <div id="overviewLeadsList"></div>
+                                </div>
                             </div>
                         </div>
                         <div class="admin-tab-panel" data-admin-panel="leads">
