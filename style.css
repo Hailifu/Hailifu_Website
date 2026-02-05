@@ -4883,9 +4883,15 @@
         }
 
         .hailifu-review-grid {
-            display: flex;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 18px;
+        }
+
+        @media (max-width: 768px) {
+            .hailifu-review-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         .hailifu-review-card {
@@ -5168,6 +5174,19 @@
             letter-spacing: 0.12em;
             text-transform: uppercase;
             color: var(--text-dim);
+        }
+
+        .review-source-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: color-mix(in srgb, var(--bg-primary) 75%, transparent);
+            border: 1px solid color-mix(in srgb, var(--orange) 40%, transparent);
+            color: var(--orange);
+            font-size: 0.6rem;
         }
 
         .field-report-label {
