@@ -1,4 +1,5 @@
 ﻿/* CSS Variables - Orange & Black Theme with Modern Gradients */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         * {
             box-sizing: border-box;
         }
@@ -60,6 +61,7 @@
             --card-border: rgba(255, 255, 255, 0.10);
             --card-shadow: 0 18px 40px rgba(0, 0, 0, 0.40);
             --surface-strong: rgba(0, 0, 0, 0.92);
+            --terminal-font: 'Press Start 2P', 'Courier New', monospace;
         }
 
         [data-theme='light'] {
@@ -3149,6 +3151,114 @@
             gap: 14px;
         }
 
+        .action-tiles {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .action-tile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(8, 8, 8, 0.78);
+            color: rgba(255, 255, 255, 0.9);
+            cursor: pointer;
+            text-align: left;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+        }
+
+        .action-tile:hover {
+            transform: translateY(-3px);
+            border-color: rgba(255, 140, 0, 0.5);
+            box-shadow: 0 18px 32px rgba(0, 0, 0, 0.5), 0 0 18px rgba(255, 140, 0, 0.25);
+        }
+
+        .action-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            background: rgba(255, 140, 0, 0.12);
+            border: 1px solid rgba(255, 140, 0, 0.35);
+            box-shadow: 0 0 18px rgba(255, 140, 0, 0.25);
+            flex: 0 0 auto;
+        }
+
+        .action-icon i {
+            color: var(--orange);
+            text-shadow: 0 0 10px rgba(255, 140, 0, 0.65);
+        }
+
+        .action-details {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .action-details strong {
+            font-size: 0.85rem;
+            font-weight: 800;
+        }
+
+        .action-details span {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .admin-logs {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 14px;
+            border-radius: 14px;
+            background: rgba(0, 0, 0, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 0 0 1px rgba(255, 140, 0, 0.08);
+            font-family: var(--terminal-font);
+        }
+
+        .log-row {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 12px;
+            align-items: center;
+            font-size: 0.55rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.78);
+        }
+
+        .log-time {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .log-message {
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .log-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--orange);
+            text-shadow: 0 0 10px rgba(255, 140, 0, 0.6);
+        }
+
+        .log-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--orange);
+            box-shadow: 0 0 8px rgba(255, 140, 0, 0.9), 0 0 16px rgba(255, 140, 0, 0.6);
+        }
+
         .command-stats {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -3279,9 +3389,24 @@
             .metrics-grid {
                 grid-template-columns: 1fr;
             }
+
+            .action-tiles {
+                grid-template-columns: 1fr;
+            }
+
+            .log-row {
+                grid-template-columns: 1fr;
+                gap: 6px;
+            }
         }
 
         @media (max-width: 520px) {
+            .admin-status {
+                flex: 1 1 100%;
+                margin-left: 0;
+                justify-content: flex-start;
+            }
+
             .command-stats {
                 grid-template-columns: 1fr;
             }
@@ -3304,6 +3429,7 @@
             align-items: center;
             justify-content: space-between;
             gap: 12px;
+            flex-wrap: wrap;
             overflow: hidden;
         }
 
@@ -3317,6 +3443,71 @@
             background: linear-gradient(90deg, rgba(255, 140, 0, 0.9), transparent);
             border-radius: 999px;
             pointer-events: none;
+        }
+
+        .admin-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 140, 0, 0.4);
+            background: rgba(0, 0, 0, 0.45);
+            box-shadow: inset 0 0 0 1px rgba(255, 140, 0, 0.2), 0 0 18px rgba(255, 140, 0, 0.25);
+            margin-left: auto;
+        }
+
+        .status-pulse {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--orange);
+            position: relative;
+            box-shadow: 0 0 8px rgba(255, 140, 0, 0.7), 0 0 16px rgba(255, 140, 0, 0.5);
+        }
+
+        .status-pulse::after {
+            content: '';
+            position: absolute;
+            inset: -6px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 140, 0, 0.35);
+            animation: statusPulse 1.6s ease-out infinite;
+        }
+
+        .status-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .status-label {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 700;
+        }
+
+        .status-value {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--orange);
+            text-shadow: 0 0 10px rgba(255, 140, 0, 0.65);
+        }
+
+        @keyframes statusPulse {
+            0% {
+                transform: scale(0.6);
+                opacity: 0.6;
+            }
+            70% {
+                transform: scale(1.2);
+                opacity: 0;
+            }
+            100% {
+                opacity: 0;
+            }
         }
 
         .admin-brand {
@@ -3459,6 +3650,8 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            box-shadow: 0 0 12px rgba(255, 140, 0, 0.45);
+            text-shadow: 0 0 8px rgba(255, 140, 0, 0.65);
         }
 
         .admin-lazyloop {

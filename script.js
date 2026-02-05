@@ -1301,6 +1301,14 @@
                             </div>
                         </div>
 
+                        <div class="admin-status" role="status" aria-live="polite">
+                            <span class="status-pulse" aria-hidden="true"></span>
+                            <div class="status-text">
+                                <span class="status-label">System Status</span>
+                                <span class="status-value">Operational</span>
+                            </div>
+                        </div>
+
                         <button class="admin-toggle" id="adminToggle" type="button" aria-label="Close admin panel">
                             <i class="fas fa-times"></i>
                         </button>
@@ -1340,6 +1348,42 @@
                                             <div class="metrics-value">12m</div>
                                             <span class="metrics-meta">Avg. turnaround</span>
                                         </div>
+                                    </div>
+                                </div>
+                                <div class="admin-section admin-section--actions full-span">
+                                    <div class="admin-section-heading">
+                                        <h3><i class="fas fa-rocket"></i> Action Tiles</h3>
+                                        <span class="admin-section-tag">Rapid Deploy</span>
+                                    </div>
+                                    <div class="action-tiles">
+                                        <button class="action-tile" type="button">
+                                            <span class="action-icon"><i class="fas fa-bolt"></i></span>
+                                            <div class="action-details">
+                                                <strong>Deploy Update</strong>
+                                                <span>Sync new assets</span>
+                                            </div>
+                                        </button>
+                                        <button class="action-tile" type="button">
+                                            <span class="action-icon"><i class="fas fa-sync-alt"></i></span>
+                                            <div class="action-details">
+                                                <strong>Restart Loop</strong>
+                                                <span>Refresh showcase</span>
+                                            </div>
+                                        </button>
+                                        <button class="action-tile" type="button">
+                                            <span class="action-icon"><i class="fas fa-satellite-dish"></i></span>
+                                            <div class="action-details">
+                                                <strong>Broadcast Brief</strong>
+                                                <span>Team status ping</span>
+                                            </div>
+                                        </button>
+                                        <button class="action-tile" type="button">
+                                            <span class="action-icon"><i class="fas fa-shield-alt"></i></span>
+                                            <div class="action-details">
+                                                <strong>Run Diagnostics</strong>
+                                                <span>Integrity scan</span>
+                                            </div>
+                                        </button>
                                     </div>
                                 </div>
                                 <div class="admin-section admin-section--interest">
@@ -1393,6 +1437,34 @@
                                             <div class="admin-lazyloop-track" id="adminLazyLoopTrack"></div>
                                         </div>
                                         <div class="admin-lazyloop-dots" id="adminLazyLoopDots" aria-hidden="true"></div>
+                                    </div>
+                                </div>
+                                <div class="admin-section admin-section--logs full-span">
+                                    <div class="admin-section-heading">
+                                        <h3><i class="fas fa-terminal"></i> Recent Logs</h3>
+                                        <span class="admin-section-tag">Live Feed</span>
+                                    </div>
+                                    <div class="admin-logs">
+                                        <div class="log-row">
+                                            <span class="log-time">00:24:18</span>
+                                            <span class="log-message">Deploy package queued</span>
+                                            <span class="log-status"><span class="log-dot" aria-hidden="true"></span>OK</span>
+                                        </div>
+                                        <div class="log-row">
+                                            <span class="log-time">00:24:41</span>
+                                            <span class="log-message">Lead sync handshake</span>
+                                            <span class="log-status"><span class="log-dot" aria-hidden="true"></span>PASS</span>
+                                        </div>
+                                        <div class="log-row">
+                                            <span class="log-time">00:25:02</span>
+                                            <span class="log-message">Media pipeline aligned</span>
+                                            <span class="log-status"><span class="log-dot" aria-hidden="true"></span>LIVE</span>
+                                        </div>
+                                        <div class="log-row">
+                                            <span class="log-time">00:25:30</span>
+                                            <span class="log-message">Analytics pulse check</span>
+                                            <span class="log-status"><span class="log-dot" aria-hidden="true"></span>OK</span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="admin-section admin-section--leads full-span">
