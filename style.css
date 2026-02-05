@@ -6279,7 +6279,9 @@
             letter-spacing: 3px;
         }
 
-        :where(a, button, .btn, .card, .project-thumb, .quick-link, .shortcut-sidebar-link, .shortcut-sidebar-tab, .theme-toggle, .contact-btn, .filter-btn, .featured-loop-nav, .featured-card, .showcase-item, .project-modal-tile, .media-lightbox-nav, .popup-submit-btn, .popup-close, .project-modal-close, .media-lightbox-close) {
+        :root *,
+        :root *::before,
+        :root *::after {
             transition-timing-function: var(--hover-ease);
         }
 
