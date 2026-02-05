@@ -1547,6 +1547,11 @@
             overflow: hidden;
         }
 
+        #about {
+            display: block !important;
+            visibility: visible !important;
+        }
+
         .hero + .about-section {
             margin-top: 100px;
         }
