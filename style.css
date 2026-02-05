@@ -1022,7 +1022,7 @@
             border: 1px solid rgba(255, 140, 0, 0.35);
             background: rgba(8, 8, 8, 0.55);
             box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
-            transition: transform var(--hover-duration) var(--hover-ease), box-shadow var(--hover-duration) var(--hover-ease), background-color var(--hover-duration) var(--hover-ease);
+            transition: transform var(--hover-duration) var(--hover-ease), box-shadow var(--hover-duration) var(--hover-ease), background-color var(--hover-duration) var(--hover-ease), border-color var(--hover-duration) var(--hover-ease);
         }
 
         .mobile-menu-toggle:hover {
@@ -1039,8 +1039,9 @@
             width: 25px;
             height: 3px;
             background: var(--white);
-            transition: all var(--hover-duration) var(--hover-ease);
+            transition: transform var(--hover-duration) var(--hover-ease), opacity var(--hover-duration) var(--hover-ease), background-color var(--hover-duration) var(--hover-ease), box-shadow var(--hover-duration) var(--hover-ease);
             border-radius: 2px;
+            transform-origin: center;
         }
 
         .mobile-menu-toggle.active span:nth-child(1) {
@@ -1053,6 +1054,11 @@
 
         .mobile-menu-toggle.active span:nth-child(3) {
             transform: translateY(-8px) rotate(-45deg);
+        }
+
+        .mobile-menu-toggle.active span {
+            background: var(--orange);
+            box-shadow: 0 0 8px rgba(255, 140, 0, 0.4), 0 0 18px rgba(255, 140, 0, 0.55);
         }
 
         @media (max-width: 1100px) {
