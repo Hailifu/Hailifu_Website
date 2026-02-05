@@ -973,19 +973,159 @@
             writeJsonStorage('hailifu_reviews', reviews);
         }
 
+        const reviewTerminalReviews = [
+            {
+                name: 'Shaibu Salifu',
+                text: 'I really love their work always on time, their work is neat and they are humble',
+                response: "Thanks for the 5 stars, We're glad you had a great experience. See you next time",
+                rating: 5
+            },
+            {
+                name: 'Salifu',
+                text: 'Full with loyalty, reliable and they are on time when you contact them and they so friendly',
+                response: 'No Response',
+                rating: 5
+            },
+            {
+                name: 'Rakiba Mohammed',
+                text: '5 Stars - No Text',
+                response: 'Thank you so much for your time and your appreciation 😊😊😊',
+                rating: 5
+            },
+            {
+                name: 'Dennis Somuah',
+                text: 'Best installation company you can trust',
+                response: 'Really Appreciate',
+                rating: 5
+            },
+            {
+                name: 'Abu Bawie',
+                text: 'Great service offered 🫴. Hassle free',
+                response: 'Great sir',
+                rating: 5
+            },
+            {
+                name: 'Arafat Yankine',
+                text: 'They good and reliable customers 💯',
+                response: 'You are always welcome 🤗',
+                rating: 5
+            },
+            {
+                name: 'Abdullah Yusuf',
+                text: 'As part of the company name is brilliant, all his services were brilliant👌🏿.',
+                response: 'We appreciate a lot',
+                rating: 5
+            },
+            {
+                name: 'admin admin',
+                text: 'I have been using their services for 4 years. Best value, on time and very responsive.',
+                response: 'Thank you well appreciate😊😊😊😊😊🙏🙏👌👌👌',
+                rating: 5
+            },
+            {
+                name: 'Ghana',
+                text: '5 Stars - No Text',
+                response: 'Thank you so much, together we are strong. And we appreciate you too',
+                rating: 5
+            },
+            {
+                name: 'Sam Yeboah',
+                text: 'Awesome! Bravo bro',
+                response: 'Thank you for your appreciation ❤️💞',
+                rating: 5
+            },
+            {
+                name: 'Michael Obeng',
+                text: '5 Stars - No Text',
+                response: 'Thank you for your appreciation',
+                rating: 5
+            },
+            {
+                name: 'LAWER JOSEPH',
+                text: '5 Stars - No Text',
+                response: 'Thank you for your appreciation',
+                rating: 5
+            },
+            {
+                name: 'Wendy Bibio',
+                text: '5 Stars - No Text',
+                response: 'Thank you for your appreciation Hailifu ECI we love you',
+                rating: 5
+            },
+            {
+                name: 'Ibrahim Musah',
+                text: 'Very professional and neat work.',
+                response: 'Thank you for choosing us!',
+                rating: 5
+            },
+            {
+                name: 'Kojo Mensah',
+                text: 'High quality CCTV setup. Recommended.',
+                response: 'Systems online. Thank you!',
+                rating: 5
+            },
+            {
+                name: 'Abigail Antwi',
+                text: 'They fixed my solar issues quickly.',
+                response: 'Happy to provide power solutions.',
+                rating: 5
+            },
+            {
+                name: 'Prince Appiah',
+                text: 'Reliable electrical work.',
+                response: 'Appreciate the feedback, Prince.',
+                rating: 5
+            },
+            {
+                name: 'Grace Osei',
+                text: 'The smart home integration is seamless.',
+                response: 'Welcome to the future of living!',
+                rating: 5
+            },
+            {
+                name: 'Kwame Boateng',
+                text: 'Excellent customer service.',
+                response: 'We value your loyalty.',
+                rating: 5
+            },
+            {
+                name: 'Ebenezer Tetteh',
+                text: 'On time and very professional.',
+                response: 'Efficiency is our priority.',
+                rating: 5
+            },
+            {
+                name: 'Sarah Adams',
+                text: 'Best in the business for security.',
+                response: 'Keeping you safe is our mission.',
+                rating: 5
+            },
+            {
+                name: 'Joshua Laryea',
+                text: 'Great attention to detail.',
+                response: 'Precision is our standard.',
+                rating: 5
+            }
+        ];
+
+        let reviewTerminalIndex = 0;
+
         function renderPublicReviews() {
             const publicGrid = document.getElementById('publicReviewsGrid');
-            if (!publicGrid) return;
+            if (!publicGrid) {
+                updateReviewCommandStats(reviewTerminalReviews);
+                return;
+            }
             const reviews = getReviews().filter((review) => review.status === 'approved');
             if (!reviews.length) {
-                updateReviewCommandStats();
+                updateReviewCommandStats(reviewTerminalReviews);
                 return;
             }
             publicGrid.innerHTML = reviews.slice(0, 12).map((review) => {
                 const name = String(review.name || 'Customer').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 const comment = String(review.comment || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 const rating = Math.max(1, Math.min(5, Number(review.rating) || 5));
-                const stars = 'â˜…â˜…â˜…â˜…â˜…'.slice(0, rating).padEnd(5, 'â˜…');
+                const stars = '★★★★★'.slice(0, rating).padEnd(5, '☆');
                 return `
                     <article class="hailifu-review-card review-card" data-rating="${rating}">
                         <div class="hailifu-review-card-header">
@@ -1003,37 +1143,97 @@
             updateReviewCommandStats();
         }
 
-        function updateReviewCommandStats() {
+        function updateReviewCommandStats(sourceReviews) {
             const avgEl = document.getElementById('reviewAvgRating');
             const totalEl = document.getElementById('reviewTotalReports');
             if (!avgEl || !totalEl) return;
 
-            const cards = Array.from(document.querySelectorAll('.review-card'));
-            if (!cards.length) {
-                avgEl.textContent = '0.0';
-                totalEl.textContent = '0';
-                return;
-            }
-
+            const reviews = Array.isArray(sourceReviews) && sourceReviews.length ? sourceReviews : null;
             let total = 0;
             let sum = 0;
 
-            cards.forEach((card) => {
-                let rating = Number(card.dataset.rating);
-                if (!Number.isFinite(rating) || rating <= 0) {
-                    const scoreText = card.querySelector('.hailifu-review-score')?.textContent || '';
-                    const starCount = (scoreText.match(/★/g) || []).length;
-                    rating = starCount || Number(scoreText) || 0;
-                }
-                if (Number.isFinite(rating) && rating > 0) {
+            if (reviews) {
+                reviews.forEach((review) => {
+                    const rating = Math.max(1, Math.min(5, Number(review.rating) || 5));
                     total += 1;
                     sum += rating;
+                });
+            } else {
+                const cards = Array.from(document.querySelectorAll('.review-card'));
+                if (!cards.length) {
+                    avgEl.textContent = '0.0';
+                    totalEl.textContent = '0';
+                    return;
                 }
-            });
+
+                cards.forEach((card) => {
+                    let rating = Number(card.dataset.rating);
+                    if (!Number.isFinite(rating) || rating <= 0) {
+                        const scoreText = card.querySelector('.hailifu-review-score')?.textContent || '';
+                        const starCount = (scoreText.match(/★/g) || []).length;
+                        rating = starCount || Number(scoreText) || 0;
+                    }
+                    if (Number.isFinite(rating) && rating > 0) {
+                        total += 1;
+                        sum += rating;
+                    }
+                });
+            }
 
             const average = total ? sum / total : 0;
             avgEl.textContent = average.toFixed(1);
             totalEl.textContent = String(total);
+        }
+
+        function initReviewTerminal() {
+            const terminal = document.getElementById('reviewTerminal');
+            if (!terminal) return;
+
+            const card = terminal.querySelector('.review-terminal-card');
+            const nameEl = document.getElementById('reviewTerminalName');
+            const textEl = document.getElementById('reviewTerminalText');
+            const responseEl = document.getElementById('reviewTerminalResponse');
+            const starsEl = document.getElementById('reviewTerminalStars');
+            const prevBtn = terminal.querySelector('[data-review-terminal-prev]');
+            const nextBtn = terminal.querySelector('[data-review-terminal-next]');
+
+            if (!card || !nameEl || !textEl || !responseEl || !starsEl) return;
+
+            const renderReview = (index, animate = true) => {
+                if (!reviewTerminalReviews.length) return;
+                const total = reviewTerminalReviews.length;
+                reviewTerminalIndex = ((index % total) + total) % total;
+                const review = reviewTerminalReviews[reviewTerminalIndex];
+                const rating = Math.max(1, Math.min(5, Number(review.rating) || 5));
+                const stars = '★★★★★'.slice(0, rating).padEnd(5, '☆');
+                const responseText = review.response || 'No Response';
+
+                const updateContent = () => {
+                    nameEl.textContent = review.name;
+                    textEl.textContent = `"${review.text}"`;
+                    responseEl.textContent = responseText;
+                    starsEl.textContent = stars;
+                    card.dataset.rating = String(rating);
+                };
+
+                if (!animate) {
+                    card.classList.remove('is-fading');
+                    updateContent();
+                    return;
+                }
+
+                card.classList.add('is-fading');
+                window.setTimeout(() => {
+                    updateContent();
+                    card.classList.remove('is-fading');
+                }, 220);
+            };
+
+            prevBtn?.addEventListener('click', () => renderReview(reviewTerminalIndex - 1));
+            nextBtn?.addEventListener('click', () => renderReview(reviewTerminalIndex + 1));
+
+            renderReview(reviewTerminalIndex, false);
+            updateReviewCommandStats(reviewTerminalReviews);
         }
 
         function renderAdminReviews() {
@@ -1231,7 +1431,8 @@
             });
         }
 
-        updateReviewCommandStats();
+        initReviewTerminal();
+        updateReviewCommandStats(reviewTerminalReviews);
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {

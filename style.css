@@ -4882,6 +4882,80 @@
             text-shadow: 0 0 10px color-mix(in srgb, var(--orange) 45%, transparent);
         }
 
+        .review-terminal {
+            margin-top: 18px;
+            padding: 18px;
+            border-radius: 18px;
+            border: 1px solid color-mix(in srgb, var(--orange) 28%, transparent);
+            background: linear-gradient(150deg, color-mix(in srgb, var(--bg-secondary) 90%, transparent), color-mix(in srgb, var(--bg-primary) 92%, transparent));
+            box-shadow: 0 16px 40px color-mix(in srgb, var(--bg-primary) 55%, transparent);
+        }
+
+        .review-terminal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .review-terminal-labels {
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-main);
+        }
+
+        .review-terminal-label {
+            display: block;
+            font-size: 0.8rem;
+        }
+
+        .review-terminal-subtitle {
+            display: block;
+            font-size: 0.65rem;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+
+        .review-terminal-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .review-terminal-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid color-mix(in srgb, var(--orange) 35%, transparent);
+            background: color-mix(in srgb, var(--bg-primary) 75%, transparent);
+            color: var(--text-main);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: transform var(--hover-duration) var(--hover-ease), box-shadow var(--hover-duration) var(--hover-ease), color var(--hover-duration) var(--hover-ease);
+        }
+
+        .review-terminal-btn:hover {
+            color: var(--orange);
+            transform: translateY(-1px);
+            box-shadow: 0 0 14px color-mix(in srgb, var(--orange) 35%, transparent);
+        }
+
+        .review-terminal-card {
+            transition: opacity 0.35s ease, transform 0.35s ease;
+        }
+
+        .review-terminal-card.is-fading {
+            opacity: 0;
+            transform: translateY(6px);
+        }
+
         .hailifu-review-grid {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
