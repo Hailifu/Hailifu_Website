@@ -4621,7 +4621,7 @@
             width: min(560px, 100%);
             border-radius: 18px;
             overflow: hidden;
-            background: rgba(8, 8, 8, 0.96);
+            background: rgba(15, 15, 15, 0.98);
             border: 1px solid rgba(255, 140, 0, 0.18);
             box-shadow: 0 20px 70px rgba(0, 0, 0, 0.65);
             backdrop-filter: blur(18px);
@@ -4688,12 +4688,12 @@
         .review-form textarea {
             width: 100%;
             padding: 12px 15px;
-            border: 1px solid rgba(255, 255, 255, 0.16);
+            border: 1px solid rgba(255, 255, 255, 0.14);
             border-radius: 10px;
             font-size: 1rem;
             font-family: inherit;
-            transition: all var(--hover-duration) var(--hover-ease);
-            background: rgba(7, 7, 7, 0.85);
+            transition: border-color var(--hover-duration) var(--hover-ease), box-shadow var(--hover-duration) var(--hover-ease), background-color var(--hover-duration) var(--hover-ease);
+            background: rgba(6, 6, 6, 0.62);
             color: rgba(255, 255, 255, 0.92);
         }
 
@@ -4718,7 +4718,7 @@
         .review-form textarea:focus {
             outline: none;
             border-color: var(--orange);
-            box-shadow: 0 0 0 2px rgba(255, 140, 0, 0.2);
+            box-shadow: 0 0 0 2px rgba(255, 140, 0, 0.2), 0 0 18px rgba(255, 140, 0, 0.35);
         }
 
         .form-success {
@@ -5070,12 +5070,12 @@
       .review-form-container .form-group textarea {
            width: 100%;
            padding: 12px 15px;
-           border: 1px solid rgba(255, 255, 255, 0.2);
+           border: 1px solid rgba(255, 255, 255, 0.14);
            border-radius: 10px;
            font-size: 1rem;
            font-family: inherit;
-           transition: all var(--hover-duration) var(--hover-ease);
-           background: rgba(255, 255, 255, 0.06);
+           transition: border-color var(--hover-duration) var(--hover-ease), box-shadow var(--hover-duration) var(--hover-ease), background-color var(--hover-duration) var(--hover-ease);
+           background: rgba(6, 6, 6, 0.62);
            color: var(--text-primary);
       }
 
@@ -5094,8 +5094,8 @@
       .review-form-container .form-group textarea:focus {
            outline: none;
            border-color: var(--orange);
-           box-shadow: 0 0 0 2px rgba(255, 140, 0, 0.2);
-       }
+           box-shadow: 0 0 0 2px rgba(255, 140, 0, 0.2), 0 0 18px rgba(255, 140, 0, 0.35);
+      }
  
       .review-form-container .form-group textarea {
            resize: vertical;
@@ -5867,7 +5867,7 @@
         .popup-form {
             width: min(400px, 100%);
             max-height: calc(100vh - 48px);
-            background: rgba(15, 15, 15, 0.92);
+            background: rgba(15, 15, 15, 0.98);
             border: 1px solid rgba(255, 140, 0, 0.25);
             border-radius: 18px;
             overflow: hidden;
