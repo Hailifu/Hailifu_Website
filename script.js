@@ -4807,6 +4807,19 @@
             }
         }
 
+        const quoteOpenTriggers = document.querySelectorAll('[data-quote-open]');
+        if (quoteOpenTriggers.length && popupOverlay) {
+            quoteOpenTriggers.forEach((trigger) => {
+                trigger.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    popupOverlay.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    window.setTimeout(() => {
+                        openQuotePopup();
+                    }, 280);
+                });
+            });
+        }
+
         if (popupClose) {
             popupClose.addEventListener('click', closeQuotePopup);
         }
