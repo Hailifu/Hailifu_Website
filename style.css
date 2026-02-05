@@ -2548,6 +2548,13 @@
             border-color: var(--orange);
         }
 
+        .active-highlight {
+            border-color: var(--orange) !important;
+            box-shadow: 0 0 32px rgba(255, 140, 0, 0.35);
+            transform: translateY(-6px) scale(1.02) !important;
+            z-index: 2;
+        }
+
         .showcase-item img,
         .showcase-item video {
             width: 100%;

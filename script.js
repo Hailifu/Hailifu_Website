@@ -1109,6 +1109,29 @@
         ];
 
         let reviewTerminalIndex = 0;
+        let reviewTerminalTimer = null;
+        let reviewTerminalIsPaused = false;
+        let reviewTerminalAdvance = null;
+        let reviewTerminalVisibilityBound = false;
+        const REVIEW_TERMINAL_INTERVAL = 3000;
+
+        function stopReviewTerminalLoop() {
+            if (reviewTerminalTimer) {
+                clearInterval(reviewTerminalTimer);
+                reviewTerminalTimer = null;
+            }
+        }
+
+        function startReviewTerminalLoop() {
+            stopReviewTerminalLoop();
+            if (reviewTerminalIsPaused) return;
+            if (!reviewTerminalReviews.length) return;
+            if (document.hidden) return;
+            if (typeof reviewTerminalAdvance !== 'function') return;
+            reviewTerminalTimer = setInterval(() => {
+                reviewTerminalAdvance(1);
+            }, REVIEW_TERMINAL_INTERVAL);
+        }
 
         function renderPublicReviews() {
             const publicGrid = document.getElementById('publicReviewsGrid');
@@ -1229,11 +1252,40 @@
                 }, 220);
             };
 
-            prevBtn?.addEventListener('click', () => renderReview(reviewTerminalIndex - 1));
-            nextBtn?.addEventListener('click', () => renderReview(reviewTerminalIndex + 1));
+            reviewTerminalAdvance = (delta = 1) => renderReview(reviewTerminalIndex + delta);
+
+            prevBtn?.addEventListener('click', () => {
+                stopReviewTerminalLoop();
+                renderReview(reviewTerminalIndex - 1);
+                startReviewTerminalLoop();
+            });
+            nextBtn?.addEventListener('click', () => {
+                stopReviewTerminalLoop();
+                renderReview(reviewTerminalIndex + 1);
+                startReviewTerminalLoop();
+            });
+
+            terminal.addEventListener('pointerenter', () => {
+                reviewTerminalIsPaused = true;
+                stopReviewTerminalLoop();
+            });
+
+            terminal.addEventListener('pointerleave', () => {
+                reviewTerminalIsPaused = false;
+                startReviewTerminalLoop();
+            });
+
+            if (!reviewTerminalVisibilityBound) {
+                reviewTerminalVisibilityBound = true;
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden) stopReviewTerminalLoop();
+                    else startReviewTerminalLoop();
+                });
+            }
 
             renderReview(reviewTerminalIndex, false);
             updateReviewCommandStats(reviewTerminalReviews);
+            startReviewTerminalLoop();
         }
 
         function renderAdminReviews() {
@@ -3192,6 +3244,7 @@
             featuredLoopSlides.forEach((slide, idx) => {
                 const isActive = idx === featuredLoopIndex;
                 slide.classList.toggle('is-active', isActive);
+                slide.classList.toggle('active-highlight', isActive);
                 const videos = Array.from(slide.querySelectorAll('video'));
                 videos.forEach((video) => {
                     if (isActive) {
@@ -3231,7 +3284,7 @@
             if (!featuredLoopObserver && !featuredLoopIsProbablyVisible()) return;
             featuredLoopTimer = setInterval(() => {
                 advanceFeaturedLoop(1);
-            }, 5000);
+            }, 3000);
         }
 
         function advanceFeaturedLoop(delta) {
@@ -4781,6 +4834,56 @@
             });
         });
 
+        const showcaseGrid = document.querySelector('.showcase-grid');
+        const SHOWCASE_HIGHLIGHT_INTERVAL = 3000;
+        let showcaseHighlightTimer = null;
+        let showcaseHighlightIndex = 0;
+        let showcaseHighlightPaused = false;
+        let showcaseHighlightVisibilityBound = false;
+
+        function getVisibleShowcaseItems() {
+            if (!showcaseGrid) return [];
+            const items = Array.from(showcaseGrid.querySelectorAll('.showcase-item'));
+            const visible = items.filter((item) => {
+                if (item.hidden) return false;
+                if (item.classList.contains('is-hidden')) return false;
+                if (item.style.display === 'none') return false;
+                return true;
+            });
+            items.forEach((item) => item.classList.remove('active-highlight'));
+            return visible;
+        }
+
+        function setShowcaseHighlight(nextIndex) {
+            const items = getVisibleShowcaseItems();
+            if (!items.length) return;
+            const normalized = ((Number(nextIndex) || 0) % items.length + items.length) % items.length;
+            items.forEach((item, idx) => item.classList.toggle('active-highlight', idx === normalized));
+            showcaseHighlightIndex = normalized;
+        }
+
+        function stopShowcaseHighlightLoop() {
+            if (showcaseHighlightTimer) {
+                clearInterval(showcaseHighlightTimer);
+                showcaseHighlightTimer = null;
+            }
+        }
+
+        function startShowcaseHighlightLoop() {
+            stopShowcaseHighlightLoop();
+            if (showcaseHighlightPaused) return;
+            if (document.hidden) return;
+            const items = getVisibleShowcaseItems();
+            if (!items.length) return;
+            if (items.length === 1) {
+                setShowcaseHighlight(0);
+                return;
+            }
+            showcaseHighlightTimer = setInterval(() => {
+                setShowcaseHighlight(showcaseHighlightIndex + 1);
+            }, SHOWCASE_HIGHLIGHT_INTERVAL);
+        }
+
         function filterProjects(filterValue) {
             const normalizedFilter = String(filterValue || 'all').toLowerCase().trim();
             const showcaseItems = document.querySelectorAll('.showcase-grid .showcase-item');
@@ -4804,6 +4907,9 @@
                 }
             });
             updateShowcaseEmptyState(normalizedFilter);
+            showcaseHighlightIndex = 0;
+            setShowcaseHighlight(0);
+            startShowcaseHighlightLoop();
         }
 
         function updateShowcaseEmptyState(normalizedFilter) {
@@ -4843,6 +4949,30 @@
             if (active) {
                 filterProjects(active.dataset.filter || 'all');
             }
+        }
+
+        if (showcaseGrid) {
+            showcaseGrid.addEventListener('pointerenter', () => {
+                showcaseHighlightPaused = true;
+                stopShowcaseHighlightLoop();
+            });
+            showcaseGrid.addEventListener('pointerleave', () => {
+                showcaseHighlightPaused = false;
+                startShowcaseHighlightLoop();
+            });
+        }
+
+        if (!showcaseHighlightVisibilityBound) {
+            showcaseHighlightVisibilityBound = true;
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) stopShowcaseHighlightLoop();
+                else startShowcaseHighlightLoop();
+            });
+        }
+
+        if (showcaseGrid) {
+            setShowcaseHighlight(0);
+            startShowcaseHighlightLoop();
         }
 
         const updateHeaderScrolled = () => {
