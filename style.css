@@ -786,25 +786,42 @@
         }
 
         .theme-toggle {
-            width: 40px;
-            height: 40px;
+            min-height: 40px;
+            padding: 8px 14px;
             border-radius: 999px;
-            border: 1px solid var(--orange);
-            background: transparent;
+            border: 1px solid rgba(255, 140, 0, 0.4);
+            background: rgba(8, 8, 8, 0.55);
             color: var(--orange);
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            gap: 10px;
             cursor: pointer;
             margin-left: 0;
             flex: 0 0 auto;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.08em;
             -webkit-tap-highlight-color: transparent;
-            transition: transform var(--hover-duration) var(--hover-ease), box-shadow var(--hover-duration) var(--hover-ease), background-color var(--hover-duration) var(--hover-ease);
+            backdrop-filter: blur(10px);
+            transition: transform var(--hover-duration) var(--hover-ease), box-shadow var(--hover-duration) var(--hover-ease), background-color var(--hover-duration) var(--hover-ease), border-color var(--hover-duration) var(--hover-ease);
+        }
+
+        [data-theme='light'] .theme-toggle {
+            background: rgba(255, 255, 255, 0.7);
+            border-color: rgba(255, 140, 0, 0.35);
+            color: var(--text-color);
         }
 
         .theme-toggle:hover {
             transform: translateY(-1px);
-            box-shadow: 0 0 0 4px rgba(255, 140, 0, 0.18), 0 0 18px rgba(255, 140, 0, 0.22);
+            background: rgba(12, 12, 12, 0.75);
+            border-color: rgba(255, 140, 0, 0.6);
+            box-shadow: 0 0 0 1px rgba(255, 140, 0, 0.35), 0 0 18px rgba(255, 140, 0, 0.35), 0 0 32px rgba(255, 140, 0, 0.25);
+        }
+
+        .theme-toggle:hover .theme-toggle-icon {
+            transform: rotate(-10deg);
         }
 
         .theme-toggle:active {
@@ -820,7 +837,19 @@
             position: relative;
             width: 18px;
             height: 18px;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform var(--hover-duration) var(--hover-ease);
+        }
+
+        .theme-toggle-label {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.1em;
+            color: var(--orange);
+            opacity: 0.9;
+            white-space: nowrap;
         }
 
         .theme-icon {
@@ -988,6 +1017,22 @@
             flex-direction: column;
             cursor: pointer;
             gap: 5px;
+            padding: 8px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 140, 0, 0.35);
+            background: rgba(8, 8, 8, 0.55);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
+            transition: transform var(--hover-duration) var(--hover-ease), box-shadow var(--hover-duration) var(--hover-ease), background-color var(--hover-duration) var(--hover-ease);
+        }
+
+        .mobile-menu-toggle:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 0 0 1px rgba(255, 140, 0, 0.35), 0 0 18px rgba(255, 140, 0, 0.35);
+        }
+
+        .mobile-menu-toggle:hover span {
+            background: var(--orange);
+            box-shadow: 0 0 12px rgba(255, 140, 0, 0.6);
         }
 
         .mobile-menu-toggle span {
@@ -1036,8 +1081,9 @@
             }
 
             .theme-toggle {
-                width: 40px;
-                height: 40px;
+                min-height: 38px;
+                padding: 8px 12px;
+                font-size: 0.65rem;
             }
 
             .header-actions {
@@ -1112,8 +1158,9 @@
             }
 
             .theme-toggle {
-                width: 36px;
-                height: 36px;
+                min-height: 34px;
+                padding: 6px 10px;
+                font-size: 0.6rem;
             }
 
             .mobile-menu-toggle {
