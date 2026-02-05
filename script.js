@@ -977,22 +977,63 @@
             const publicGrid = document.getElementById('publicReviewsGrid');
             if (!publicGrid) return;
             const reviews = getReviews().filter((review) => review.status === 'approved');
-            if (!reviews.length) return;
+            if (!reviews.length) {
+                updateReviewCommandStats();
+                return;
+            }
             publicGrid.innerHTML = reviews.slice(0, 12).map((review) => {
                 const name = String(review.name || 'Customer').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 const comment = String(review.comment || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 const rating = Math.max(1, Math.min(5, Number(review.rating) || 5));
                 const stars = 'â˜…â˜…â˜…â˜…â˜…'.slice(0, rating).padEnd(5, 'â˜…');
                 return `
-                    <article class="hailifu-review-card">
+                    <article class="hailifu-review-card review-card" data-rating="${rating}">
                         <div class="hailifu-review-card-header">
-                            <span class="hailifu-reviewer">${name}</span>
+                            <div class="hailifu-review-meta">
+                                <span class="field-report-label">Field Report</span>
+                                <span class="hailifu-reviewer">${name}</span>
+                                <span class="review-verified">Verified</span>
+                            </div>
                             <span class="hailifu-review-score">${stars}</span>
                         </div>
                         <p>"${comment}"</p>
                     </article>
                 `;
             }).join('');
+            updateReviewCommandStats();
+        }
+
+        function updateReviewCommandStats() {
+            const avgEl = document.getElementById('reviewAvgRating');
+            const totalEl = document.getElementById('reviewTotalReports');
+            if (!avgEl || !totalEl) return;
+
+            const cards = Array.from(document.querySelectorAll('.review-card'));
+            if (!cards.length) {
+                avgEl.textContent = '0.0';
+                totalEl.textContent = '0';
+                return;
+            }
+
+            let total = 0;
+            let sum = 0;
+
+            cards.forEach((card) => {
+                let rating = Number(card.dataset.rating);
+                if (!Number.isFinite(rating) || rating <= 0) {
+                    const scoreText = card.querySelector('.hailifu-review-score')?.textContent || '';
+                    const starCount = (scoreText.match(/★/g) || []).length;
+                    rating = starCount || Number(scoreText) || 0;
+                }
+                if (Number.isFinite(rating) && rating > 0) {
+                    total += 1;
+                    sum += rating;
+                }
+            });
+
+            const average = total ? sum / total : 0;
+            avgEl.textContent = average.toFixed(1);
+            totalEl.textContent = String(total);
         }
 
         function renderAdminReviews() {
@@ -1166,6 +1207,8 @@
                 if (e.target === reviewModal) closeReviewModal();
             });
         }
+
+        updateReviewCommandStats();
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
