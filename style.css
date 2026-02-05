@@ -6271,6 +6271,41 @@
             }
         }
 
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: clamp(1.8rem, 6.5vw, 2.2rem);
+            }
+
+            header,
+            header.scrolled {
+                width: calc(100% - 20px);
+                margin-left: auto;
+                margin-right: auto;
+                left: 0;
+                right: 0;
+            }
+
+            .admin-panel {
+                border-radius: 0;
+            }
+
+            .admin-panel.active {
+                width: 100vw;
+            }
+
+            .card:hover,
+            #services .services-grid .card:hover,
+            .showcase-item:hover,
+            .featured-card:hover,
+            .metrics-card:hover {
+                transform: none;
+            }
+
+            .action-tile {
+                padding: 16px 18px;
+            }
+        }
+
         /* Global UI Enhancements */
         [class*="subtitle"] {
             text-transform: uppercase;
