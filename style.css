@@ -4531,6 +4531,183 @@
             text-shadow: 0 0 12px color-mix(in srgb, var(--orange) 60%, transparent);
         }
 
+        .google-business-placeholder {
+            margin: 0 0 32px;
+            padding: 18px 22px;
+            border-radius: 18px;
+            background: color-mix(in srgb, var(--bg-secondary) 88%, transparent);
+            border: 1px dashed color-mix(in srgb, var(--orange) 35%, transparent);
+            color: var(--text-dim);
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 0.08em;
+        }
+
+        .google-business-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 8px;
+        }
+
+        .google-business-label {
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            color: var(--text-main);
+        }
+
+        .google-business-status {
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid color-mix(in srgb, var(--orange) 45%, transparent);
+            color: var(--orange);
+            font-size: 0.68rem;
+        }
+
+        .featured-reviews-feed {
+            margin: 36px 0 40px;
+            padding: 22px;
+            border-radius: 20px;
+            background: linear-gradient(160deg, color-mix(in srgb, var(--bg-primary) 88%, transparent), color-mix(in srgb, var(--bg-secondary) 92%, transparent));
+            border: 1px solid color-mix(in srgb, var(--orange) 28%, transparent);
+            box-shadow: 0 18px 40px color-mix(in srgb, var(--bg-primary) 55%, transparent);
+        }
+
+        .featured-reviews-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-main);
+        }
+
+        .featured-reviews-label {
+            display: block;
+            font-size: 0.8rem;
+        }
+
+        .featured-reviews-subtitle {
+            display: block;
+            font-size: 0.65rem;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+
+        .featured-reviews-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.68rem;
+            color: var(--orange);
+        }
+
+        .feed-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--orange);
+            box-shadow: 0 0 10px color-mix(in srgb, var(--orange) 70%, transparent);
+            animation: pulse 2s infinite;
+        }
+
+        .featured-reviews-window {
+            position: relative;
+            margin-top: 18px;
+            overflow: hidden;
+            border-radius: 16px;
+            border: 1px solid color-mix(in srgb, var(--orange) 20%, transparent);
+            background: color-mix(in srgb, var(--bg-primary) 90%, transparent);
+        }
+
+        .featured-reviews-window::before,
+        .featured-reviews-window::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 70px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .featured-reviews-window::before {
+            left: 0;
+            background: linear-gradient(90deg, color-mix(in srgb, var(--bg-primary) 92%, transparent), transparent);
+        }
+
+        .featured-reviews-window::after {
+            right: 0;
+            background: linear-gradient(270deg, color-mix(in srgb, var(--bg-primary) 92%, transparent), transparent);
+        }
+
+        .featured-reviews-track {
+            display: flex;
+            gap: 18px;
+            padding: 18px;
+            width: max-content;
+            animation: featuredFeedScroll 26s linear infinite;
+        }
+
+        .featured-reviews-window:hover .featured-reviews-track {
+            animation-play-state: paused;
+        }
+
+        .featured-review-card {
+            min-width: 260px;
+            max-width: 320px;
+            padding: 16px;
+            border-radius: 16px;
+            background: linear-gradient(145deg, color-mix(in srgb, var(--bg-secondary) 86%, transparent), color-mix(in srgb, var(--bg-primary) 95%, transparent));
+            border: 1px solid color-mix(in srgb, var(--orange) 25%, transparent);
+            color: var(--text-main);
+            box-shadow: 0 12px 26px color-mix(in srgb, var(--bg-primary) 45%, transparent);
+        }
+
+        .featured-review-meta {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+        }
+
+        .featured-review-stars {
+            color: var(--orange);
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px color-mix(in srgb, var(--orange) 55%, transparent);
+            margin-bottom: 10px;
+        }
+
+        @keyframes featuredFeedScroll {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-40%);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .review-command-bar {
+                gap: 12px;
+            }
+
+            .featured-reviews-feed {
+                padding: 18px;
+            }
+
+            .featured-review-card {
+                min-width: 220px;
+            }
+        }
+
         .modern-review-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -4724,6 +4901,35 @@
             backdrop-filter: blur(10px);
             position: relative;
             overflow: hidden;
+        }
+
+        .hailifu-review-card .owner-reply {
+            margin-top: 14px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px dashed color-mix(in srgb, var(--orange) 45%, transparent);
+            background: linear-gradient(150deg, color-mix(in srgb, var(--bg-primary) 92%, transparent), color-mix(in srgb, var(--bg-secondary) 85%, transparent));
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            box-shadow: inset 0 0 16px color-mix(in srgb, var(--orange) 12%, transparent);
+        }
+
+        .owner-reply-label {
+            display: block;
+            font-size: 0.65rem;
+            letter-spacing: 0.18em;
+            color: var(--orange);
+            margin-bottom: 6px;
+        }
+
+        .owner-reply p {
+            margin: 0;
+            text-transform: none;
+            letter-spacing: 0.02em;
+            color: var(--text-main);
         }
 
         .hailifu-review-card::before {

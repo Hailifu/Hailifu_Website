@@ -261,6 +261,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="about-details">
                 <h2 class="section-title">Precision in Every Connection</h2>
                 <div class="about-details-grid">
@@ -467,6 +468,14 @@
                     <span class="review-command-value" id="reviewTotalReports">0</span>
                 </div>
             </div>
+
+            <div class="google-business-placeholder">
+                <div class="google-business-header">
+                    <span class="google-business-label">Google Business Reviews</span>
+                    <span class="google-business-status">SYNC PENDING</span>
+                </div>
+                <p>Connect the Google Business feed to stream verified reviews here.</p>
+            </div>
             
             <div class="modern-review-grid">
                 <!-- Review Stats Card -->
@@ -584,7 +593,51 @@
                     </a>
                 </div>
             </div>
- 
+
+            <div class="featured-reviews-feed">
+                <div class="featured-reviews-header">
+                    <div>
+                        <span class="featured-reviews-label">Featured Reviews</span>
+                        <span class="featured-reviews-subtitle">Live System Feed</span>
+                    </div>
+                    <div class="featured-reviews-status">
+                        <span class="feed-status-dot"></span>
+                        LIVE
+                    </div>
+                </div>
+                <div class="featured-reviews-window">
+                    <div class="featured-reviews-track">
+                        <article class="featured-review-card" data-rating="5">
+                            <div class="featured-review-meta">
+                                <span class="review-source">Google</span>
+                                <span class="reviewer-name">Shaibu</span>
+                                <span class="review-time">Just now</span>
+                            </div>
+                            <div class="featured-review-stars">★★★★★</div>
+                            <p>Outstanding team execution. Fast response, clean install, and professional finish.</p>
+                        </article>
+                        <article class="featured-review-card" data-rating="5">
+                            <div class="featured-review-meta">
+                                <span class="review-source">Google</span>
+                                <span class="reviewer-name">Salifu</span>
+                                <span class="review-time">Today</span>
+                            </div>
+                            <div class="featured-review-stars">★★★★★</div>
+                            <p>High-quality service and a smooth handover. Systems performing perfectly.</p>
+                        </article>
+                        <article class="featured-review-card" data-rating="5">
+                            <div class="featured-review-meta">
+                                <span class="review-source">Google</span>
+                                <span class="reviewer-name">Amina</span>
+                                <span class="review-time">Live</span>
+                            </div>
+                            <div class="featured-review-stars">★★★★★</div>
+                            <p>Prompt installation with clear explanations. The team exceeded expectations.</p>
+                        </article>
+                    </div>
+                </div>
+            </div>
+
             <!-- Call to Action -->
             <div class="review-cta-section animate-on-scroll">
                 <h3>Join Our Happy Customers</h3>
@@ -619,6 +672,11 @@
                     <div class="form-group">
                         <label for="reviewerName">Your Name</label>
                         <input type="text" id="reviewerName" name="name" required placeholder="Enter your full name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reviewerEmail">CLIENT EMAIL (INTERNAL ONLY)</label>
+                        <input type="email" id="reviewerEmail" name="email" required placeholder="client@email.com" autocomplete="email">
                     </div>
                     
                     <div class="form-group">

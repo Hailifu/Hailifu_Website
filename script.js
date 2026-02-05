@@ -1111,8 +1111,29 @@
             writeJsonStorage('hailifu_page_reach', count + 1);
         }
 
+        function sendOwnerReviewNotification(review) {
+            if (!review || typeof review !== 'object') return;
+            const ownerEmail = '01hailifu@gmail.com';
+            const subject = `New Client Review Intake - ${review.name || 'Client'}`;
+            const body = [
+                'New client intake review submitted.',
+                '',
+                `Name: ${review.name || ''}`,
+                `Email: ${review.email || ''}`,
+                `Stars: ${review.rating || ''}`,
+                `Review: ${review.comment || ''}`,
+                `Submitted: ${review.createdAt || new Date().toISOString()}`
+            ].join('\n');
+            const mailto = `mailto:${ownerEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            try {
+                window.open(mailto, '_blank');
+            } catch {
+                window.location.href = mailto;
+            }
+        }
+
         function notifyAdminReviewSubmitted(review) {
-            // Placeholder for future notifications
+            sendOwnerReviewNotification(review);
         }
 
         // Review Form Submission
@@ -1128,11 +1149,12 @@
                 const formData = new FormData(reviewForm);
 
                 const name = String(formData.get('name') || '').trim();
+                const email = String(formData.get('email') || '').trim();
                 const rating = Number(formData.get('rating') || 0);
                 const comment = String(formData.get('comment') || '').trim();
 
-                if (!name || !rating || !comment) {
-                    alert('Please fill in your Name, Rating, and Review.');
+                if (!name || !email || !rating || !comment) {
+                    alert('Please fill in your Name, Email, Rating, and Review.');
                     return;
                 }
 
@@ -1144,6 +1166,7 @@
                     id: `r_${Date.now()}`,
                     createdAt: new Date().toISOString(),
                     name,
+                    email,
                     rating,
                     comment,
                     status: settings.requireApproval ? 'pending' : 'approved'
