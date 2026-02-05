@@ -1111,6 +1111,7 @@
         let reviewTerminalIndex = 0;
         let reviewTerminalTimer = null;
         let reviewTerminalIsPaused = false;
+        let reviewTerminalHoverEnabled = false;
         let reviewTerminalAdvance = null;
         let reviewTerminalVisibilityBound = false;
         const REVIEW_TERMINAL_INTERVAL = 3000;
@@ -1124,7 +1125,7 @@
 
         function startReviewTerminalLoop() {
             stopReviewTerminalLoop();
-            if (reviewTerminalIsPaused) return;
+            if (reviewTerminalIsPaused && reviewTerminalHoverEnabled) return;
             if (!reviewTerminalReviews.length) return;
             if (document.hidden) return;
             if (typeof reviewTerminalAdvance !== 'function') return;
@@ -1265,15 +1266,19 @@
                 startReviewTerminalLoop();
             });
 
-            terminal.addEventListener('pointerenter', () => {
-                reviewTerminalIsPaused = true;
-                stopReviewTerminalLoop();
-            });
+            reviewTerminalHoverEnabled = !!window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
-            terminal.addEventListener('pointerleave', () => {
-                reviewTerminalIsPaused = false;
-                startReviewTerminalLoop();
-            });
+            if (reviewTerminalHoverEnabled) {
+                terminal.addEventListener('pointerenter', () => {
+                    reviewTerminalIsPaused = true;
+                    stopReviewTerminalLoop();
+                });
+
+                terminal.addEventListener('pointerleave', () => {
+                    reviewTerminalIsPaused = false;
+                    startReviewTerminalLoop();
+                });
+            }
 
             if (!reviewTerminalVisibilityBound) {
                 reviewTerminalVisibilityBound = true;
