@@ -1,44 +1,47 @@
-﻿﻿console.log("SYSTEM_ACTIVE");
+﻿// --- Firebase Configuration (Compatible Version) ---
+const firebaseConfig = {
+  apiKey: "AIzaSyBf0-nHMqu_ojZ1Ls-CEIHCXyiCnkNbRCY",
+  authDomain: "hailifu-website.firebaseapp.com",
+  databaseURL: "https://hailifu-website-default-rtdb.firebaseio.com",
+  projectId: "hailifu-website",
+  storageBucket: "hailifu-website.firebasestorage.app",
+  messagingSenderId: "209696316971",
+  appId: "1:209696316971:web:4074db68735ba09221d46e"
+};
 
-﻿// 1. Secret Door Logic
+// Initialize Firebase if not already initialized
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+const db = firebase.firestore();
+console.log("FIREBASE_READY: Connected to hailifu-website");
+
+console.log("SYSTEM_STATUS: Connecting to Hailifu Cloud...");
 let knockCount = 0;
-const footer = document.querySelector('footer');
 
+// 1. SECRET DOOR
+const footer = document.querySelector('footer');
 if (footer) {
     footer.addEventListener('click', () => {
         knockCount++;
-        console.log("Knock detected:", knockCount); // This helps us debug!
-        
         if (knockCount === 5) {
-            const pin = prompt("ENTER ACCESS CODE:");
-            if (pin === "1234") {
-                document.getElementById('admin-gate').style.display = 'block';
-                knockCount = 0;
-            } else {
-                alert("ACCESS DENIED");
-                knockCount = 0;
-            }
+            document.getElementById('admin-gate').style.display = 'block';
+            knockCount = 0;
         }
     });
-} else {
-    console.error("FOOTER NOT FOUND: Make sure your HTML has a <footer> tag.");
 }
 
-// 2. Cloudinary Upload Logic
-// Function to close the gate
+// 2. EXIT FUNCTION
 function closeAdminGate() {
     document.getElementById('admin-gate').style.display = 'none';
-    // Clear the click count so they have to knock 5 times again
-    knockCount = 0;
 }
 
-// Function to handle the upload (Make sure this matches your Cloudinary setup)
+// 3. SYNC FUNCTION (Cloudinary)
 async function saveSystemChanges() {
     const fileInput = document.getElementById('admin-file-upload');
     const file = fileInput.files[0];
     const syncBtn = document.getElementById('sync-btn');
-
-    if (!file) return alert("CRITICAL: No file selected.");
+    if (!file) return alert("Select a file.");
 
     syncBtn.innerText = "UPLOADING...";
     syncBtn.disabled = true;
@@ -54,7 +57,6 @@ async function saveSystemChanges() {
         });
         const data = await response.json();
 
-        // Save to Firebase (The text database)
         await firebase.firestore().collection("installations").add({
             url: data.secure_url,
             type: file.type.startsWith('video/') ? 'video' : 'image',
@@ -65,7 +67,7 @@ async function saveSystemChanges() {
         location.reload();
     } catch (error) {
         console.error(error);
-        alert("Sync Failed. Check console.");
+        alert("Sync Failed.");
         syncBtn.disabled = false;
         syncBtn.innerText = "[ INITIATE_SYNC ]";
     }
