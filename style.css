@@ -3322,17 +3322,21 @@
         }
 
         /* Admin Gate Modal */
-        .admin-gate-modal {
+        #admin-gate {
             position: fixed;
             inset: 0;
             z-index: 10000;
             display: none;
             font-family: 'JetBrains Mono', 'Courier New', monospace;
             letter-spacing: 0.02em;
+            padding: 16px;
+            box-sizing: border-box;
         }
 
-        .admin-gate-modal[aria-hidden="false"] {
+        #admin-gate[aria-hidden="false"] {
             display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .admin-gate-overlay {
@@ -3347,12 +3351,15 @@
             margin: auto;
             width: 90%;
             max-width: 600px;
+            max-height: 85vh;
+            overflow-y: auto;
             background: radial-gradient(140% 140% at 10% 0%, rgba(255, 140, 0, 0.08), rgba(0, 0, 0, 0.98) 60%), #040404;
             border: 1px solid rgba(255, 140, 0, 0.85);
             border-radius: 10px;
             box-shadow: 0 0 0 1px rgba(255, 140, 0, 0.25), 0 18px 55px rgba(0, 0, 0, 0.7), 0 0 40px rgba(255, 140, 0, 0.35);
-            overflow: hidden;
+            overflow-x: hidden;
             isolation: isolate;
+            -webkit-overflow-scrolling: touch;
         }
 
         .admin-gate-content::before {
@@ -3482,6 +3489,12 @@
             width: 100%;
             font-family: 'JetBrains Mono', 'Courier New', monospace;
             box-shadow: inset 0 0 10px rgba(255, 140, 0, 0.2);
+        }
+
+        #admin-gate .terminal-screen button,
+        #admin-gate .initiate-sync-btn,
+        #admin-gate #initiateSync {
+            margin-bottom: 18px;
         }
 
         .admin-image-preview {
@@ -3988,6 +4001,42 @@
 
             .admin-tab {
                 flex: 1 1 calc(50% - 6px);
+            }
+
+            .admin-header,
+            .admin-content {
+                min-width: 0;
+            }
+
+            .admin-header {
+                padding: 14px 16px;
+            }
+
+            .admin-content {
+                padding: 14px 16px 20px;
+                gap: 14px;
+            }
+
+            .admin-section {
+                padding: 14px;
+                margin-bottom: 20px;
+            }
+
+            .admin-title {
+                font-size: 0.9rem;
+            }
+
+            .admin-subtitle {
+                font-size: 0.6rem;
+            }
+
+            .admin-tab {
+                font-size: 0.75rem;
+                padding: 8px 6px;
+            }
+
+            .admin-section-heading h3 {
+                font-size: 0.95rem;
             }
         }
 
