@@ -1,14 +1,19 @@
 ﻿async function saveSystemChanges() {
-    const file = document.getElementById('admin-file-upload').files[0];
-    const statusText = document.querySelector('#admin-gate p');
+    const fileInput = document.getElementById('admin-file-upload')
+        || document.getElementById('adminGateImageInput')
+        || document.getElementById('adminImageInput');
+    const file = fileInput?.files?.[0];
+    const statusText = document.querySelector('#admin-gate p') || document.getElementById('adminImageStatus');
 
     if (!file) {
         alert("ERROR: No media detected in buffer.");
         return;
     }
 
-    statusText.innerText = "UPLOADING_DATA... PLEASE WAIT.";
-    statusText.style.color = "var(--orange)";
+    if (statusText) {
+        statusText.innerText = "UPLOADING_DATA... PLEASE WAIT.";
+        statusText.style.color = "var(--orange)";
+    }
 
     try {
         // Create a unique name for the image
@@ -21,8 +26,10 @@
         const downloadURL = await storageRef.getDownloadURL();
         
         alert("SUCCESS: System synchronized. Image is now live at: " + downloadURL);
-        statusText.innerText = "SYSTEM_READY: DATA_SYNCED";
-        statusText.style.color = "green";
+        if (statusText) {
+            statusText.innerText = "SYSTEM_READY: DATA_SYNCED";
+            statusText.style.color = "green";
+        }
         
     } catch (error) {
         console.error(error);

@@ -970,9 +970,6 @@
         <div class="admin-gate-content">
             <div class="admin-gate-header">
                 <h2><i class="fas fa-shield-alt"></i> SECURITY TERMINAL</h2>
-                <button class="admin-gate-close" id="adminGateClose">
-                    <i class="fas fa-times"></i>
-                </button>
             </div>
             <div class="admin-gate-body">
                 <div class="terminal-screen">
@@ -992,6 +989,10 @@
                         </div>
                     </div>
                 </div>
+            </div>
+            <div class="admin-gate-actions">
+                <button id="sync-btn" class="admin-gate-sync" type="button" onclick="saveSystemChanges()">INITIATE_SYNC</button>
+                <button class="admin-gate-close admin-gate-exit" id="adminGateClose" type="button">EXIT TERMINAL</button>
             </div>
         </div>
     </div>

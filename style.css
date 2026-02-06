@@ -3237,7 +3237,7 @@
             border: 2px solid #00ff00;
             border-radius: 8px;
             box-shadow: 0 0 30px rgba(0, 255, 0, 0.5);
-            overflow: hidden;
+            overflow: visible;
         }
 
         .admin-modal-header {
@@ -3329,14 +3329,12 @@
             display: none;
             font-family: 'JetBrains Mono', 'Courier New', monospace;
             letter-spacing: 0.02em;
-            padding: 16px;
+            padding: 0;
             box-sizing: border-box;
         }
 
         #admin-gate[aria-hidden="false"] {
             display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
         .admin-gate-overlay {
@@ -3347,17 +3345,20 @@
         }
 
         .admin-gate-content {
-            position: relative;
-            margin: auto;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            margin: 0;
             width: 90%;
             max-width: 600px;
             max-height: 85vh;
             overflow-y: auto;
+            overflow-x: visible;
             background: radial-gradient(140% 140% at 10% 0%, rgba(255, 140, 0, 0.08), rgba(0, 0, 0, 0.98) 60%), #040404;
             border: 1px solid rgba(255, 140, 0, 0.85);
             border-radius: 10px;
             box-shadow: 0 0 0 1px rgba(255, 140, 0, 0.25), 0 18px 55px rgba(0, 0, 0, 0.7), 0 0 40px rgba(255, 140, 0, 0.35);
-            overflow-x: hidden;
             isolation: isolate;
             -webkit-overflow-scrolling: touch;
         }
@@ -3431,6 +3432,13 @@
             padding: 20px;
         }
 
+        .admin-gate-actions {
+            padding: 0 20px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
         .admin-gate-modal .terminal-screen {
             background: rgba(0, 0, 0, 0.88);
             border: 1px solid rgba(255, 140, 0, 0.7);
@@ -3495,6 +3503,34 @@
         #admin-gate .initiate-sync-btn,
         #admin-gate #initiateSync {
             margin-bottom: 18px;
+        }
+
+        #sync-btn {
+            display: block !important;
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 140, 0, 0.8);
+            background: linear-gradient(135deg, #ffb84d, #ff6a00);
+            color: #0b0b0b;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            box-shadow: 0 0 20px rgba(255, 140, 0, 0.75), 0 0 35px rgba(255, 106, 0, 0.6);
+            margin-bottom: 6px;
+            cursor: pointer;
+        }
+
+        .admin-gate-exit {
+            width: 100%;
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 140, 0, 0.6);
+            background: rgba(0, 0, 0, 0.6);
+            color: #ffb14a;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
         }
 
         .admin-image-preview {
