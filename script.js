@@ -1,39 +1,60 @@
-﻿async function saveSystemChanges() {
-    const fileInput = document.getElementById('admin-file-upload')
-        || document.getElementById('adminGateImageInput')
-        || document.getElementById('adminImageInput');
-    const file = fileInput?.files?.[0];
-    const statusText = document.querySelector('#admin-gate p') || document.getElementById('adminImageStatus');
+﻿// HAILIFU SYSTEM CORE - FIREBASE CONFIG
+const firebaseConfig = {
+  apiKey: "AIzaSyBf0-nHMqu_ojZ1Ls-CEIHCXyiCnkNbRCY",
+  authDomain: "hailifu-website.firebaseapp.com",
+  databaseURL: "https://hailifu-website-default-rtdb.firebaseio.com",
+  projectId: "hailifu-website",
+  storageBucket: "hailifu-website.firebasestorage.app",
+  messagingSenderId: "209696316971",
+  appId: "1:209696316971:web:4074db68735ba09221d46e"
+};
+
+// Initialize Firebase
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+
+const storage = firebase.storage();
+const db = firebase.firestore();
+
+// THE SYNC FUNCTION
+async function saveSystemChanges() {
+    const fileInput = document.getElementById('admin-file-upload');
+    const file = fileInput.files[0];
+    const statusText = document.querySelector('#admin-gate p');
+    const syncBtn = document.getElementById('sync-btn');
 
     if (!file) {
-        alert("ERROR: No media detected in buffer.");
+        alert("CRITICAL_ERROR: No media detected in buffer.");
         return;
     }
 
-    if (statusText) {
-        statusText.innerText = "UPLOADING_DATA... PLEASE WAIT.";
-        statusText.style.color = "var(--orange)";
-    }
+    // UI Feedback
+    syncBtn.innerText = "SYNCING_DATA...";
+    syncBtn.style.opacity = "0.5";
+    statusText.innerText = "UPLOADING TO HAILIFU_CLOUD...";
 
     try {
-        // Create a unique name for the image
-        const storageRef = firebase.storage().ref('uploads/' + file.name);
-        
-        // Push to Cloud
-        await storageRef.put(file);
-        
-        // Get the Live Link
-        const downloadURL = await storageRef.getDownloadURL();
-        
-        alert("SUCCESS: System synchronized. Image is now live at: " + downloadURL);
-        if (statusText) {
-            statusText.innerText = "SYSTEM_READY: DATA_SYNCED";
-            statusText.style.color = "green";
-        }
+        // 1. Upload to your specific firebasestorage.app bucket
+        const storageRef = storage.ref(`gallery/${Date.now()}_${file.name}`);
+        const snapshot = await storageRef.put(file);
+        const downloadURL = await snapshot.ref.getDownloadURL();
+
+        // 2. Log the entry in Firestore so the website knows to show it
+        await db.collection("installations").add({
+            image_url: downloadURL,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            status: "live"
+        });
+
+        alert("SYSTEM_SYNC_COMPLETE: Media is now live on the grid.");
+        location.reload(); // Refresh to show new image
         
     } catch (error) {
-        console.error(error);
-        alert("CRITICAL_FAILURE: Connection to Firebase failed.");
+        console.error("SYNC_ERROR:", error);
+        alert("CONNECTION_FAILURE: Check Firebase Storage Rules.");
+        syncBtn.innerText = "[ INITIATE_SYNC ]";
+        syncBtn.style.opacity = "1";
     }
 }
 const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
@@ -5398,4 +5419,3 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         }
 
         });
-
