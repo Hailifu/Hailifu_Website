@@ -964,37 +964,10 @@
         </div>
     </div>
 
-    <!-- Admin Gate Modal -->
-    <div class="admin-gate-modal" id="admin-gate" aria-hidden="true">
-        <div class="admin-gate-overlay"></div>
-        <div class="admin-gate-content">
-            <div class="admin-gate-header">
-                <h2><i class="fas fa-shield-alt"></i> SECURITY TERMINAL</h2>
-            </div>
-            <div class="admin-gate-body">
-                <div class="terminal-screen">
-                    <div class="terminal-output">
-                        <p class="terminal-line">ACCESS GRANTED - SYSTEM STATUS: OPERATIONAL</p>
-                        <p class="terminal-line">ADMINISTRATOR OVERRIDE ENABLED</p>
-                    </div>
-                    <div class="terminal-input-section">
-                        <div class="terminal-field">
-                            <label for="uptimeInput" class="terminal-label">UPTIME %:</label>
-                            <input type="number" id="uptimeInput" class="terminal-number-input" min="0" max="100" placeholder="Enter uptime percentage">
-                        </div>
-                        <div class="terminal-field">
-                            <label for="adminGateImageInput" class="terminal-label">IMAGE UPLOAD:</label>
-                            <input type="file" id="adminGateImageInput" class="terminal-file-input" accept="image/*">
-                            <div id="admin-image-preview" class="admin-image-preview"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="admin-gate-actions">
-                <button id="sync-btn" class="admin-gate-sync" type="button" onclick="saveSystemChanges()">INITIATE_SYNC</button>
-                <button class="admin-gate-close admin-gate-exit" id="adminGateClose" type="button">EXIT TERMINAL</button>
-            </div>
-        </div>
+    <div id="admin-gate" style="display:none;">
+        <input type="file" id="admin-file-upload" accept="image/*,video/*">
+        <button id="sync-btn" onclick="saveSystemChanges()">[ INITIATE_SYNC ]</button>
+        <button id="exit-btn" onclick="closeAdminGate()">[ EXIT_SYSTEM ]</button>
     </div>
 
     <!-- JavaScript for Interactivity -->

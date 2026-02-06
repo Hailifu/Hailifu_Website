@@ -1,3 +1,5 @@
+﻿﻿console.log("SYSTEM_ACTIVE");
+
 ﻿// 1. Secret Door Logic
 let knockCount = 0;
 const footer = document.querySelector('footer');
@@ -23,14 +25,22 @@ if (footer) {
 }
 
 // 2. Cloudinary Upload Logic
+// Function to close the gate
+function closeAdminGate() {
+    document.getElementById('admin-gate').style.display = 'none';
+    // Clear the click count so they have to knock 5 times again
+    knockCount = 0;
+}
+
+// Function to handle the upload (Make sure this matches your Cloudinary setup)
 async function saveSystemChanges() {
     const fileInput = document.getElementById('admin-file-upload');
     const file = fileInput.files[0];
     const syncBtn = document.getElementById('sync-btn');
 
-    if (!file) return alert("Please select a file.");
+    if (!file) return alert("CRITICAL: No file selected.");
 
-    syncBtn.innerText = "SYNCING...";
+    syncBtn.innerText = "UPLOADING...";
     syncBtn.disabled = true;
 
     const formData = new FormData();
@@ -42,9 +52,9 @@ async function saveSystemChanges() {
             method: 'POST',
             body: formData
         });
-        
         const data = await response.json();
 
+        // Save to Firebase (The text database)
         await firebase.firestore().collection("installations").add({
             url: data.secure_url,
             type: file.type.startsWith('video/') ? 'video' : 'image',
@@ -53,11 +63,10 @@ async function saveSystemChanges() {
 
         alert("SYNC SUCCESSFUL!");
         location.reload();
-
     } catch (error) {
-        console.error("Upload Error:", error);
-        alert("Upload Failed. Check console for details.");
+        console.error(error);
+        alert("Sync Failed. Check console.");
         syncBtn.disabled = false;
-        syncBtn.innerText = "INITIATE_SYNC";
+        syncBtn.innerText = "[ INITIATE_SYNC ]";
     }
 }
