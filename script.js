@@ -1,4 +1,35 @@
-﻿const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
+﻿async function saveSystemChanges() {
+    const file = document.getElementById('admin-file-upload').files[0];
+    const statusText = document.querySelector('#admin-gate p');
+
+    if (!file) {
+        alert("ERROR: No media detected in buffer.");
+        return;
+    }
+
+    statusText.innerText = "UPLOADING_DATA... PLEASE WAIT.";
+    statusText.style.color = "var(--orange)";
+
+    try {
+        // Create a unique name for the image
+        const storageRef = firebase.storage().ref('uploads/' + file.name);
+        
+        // Push to Cloud
+        await storageRef.put(file);
+        
+        // Get the Live Link
+        const downloadURL = await storageRef.getDownloadURL();
+        
+        alert("SUCCESS: System synchronized. Image is now live at: " + downloadURL);
+        statusText.innerText = "SYSTEM_READY: DATA_SYNCED";
+        statusText.style.color = "green";
+        
+    } catch (error) {
+        console.error(error);
+        alert("CRITICAL_FAILURE: Connection to Firebase failed.");
+    }
+}
+const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         const adminUnlockStorageKey = 'hailifu_admin_unlocked';
 
         document.addEventListener('DOMContentLoaded', () => {
