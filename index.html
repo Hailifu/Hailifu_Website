@@ -715,8 +715,33 @@
                 </div>
             </div>
         </div>
+    <!-- Admin Modal -->
+    <div class="admin-modal" id="adminModal" aria-hidden="true">
+        <div class="admin-modal-overlay"></div>
+        <div class="admin-modal-content">
+            <div class="admin-modal-header">
+                <h2>SECURE TERMINAL ACCESS</h2>
+                <button class="admin-modal-close" id="adminModalClose" type="button" aria-label="Close admin modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="admin-modal-body">
+                <div class="terminal-screen">
+                    <div class="terminal-output">
+                        <p class="terminal-line">> System Access Granted</p>
+                        <p class="terminal-line">> Loading Admin Interface...</p>
+                        <p class="terminal-line">> Ready for Image Upload</p>
+                    </div>
+                    <div class="terminal-input-section">
+                        <label for="adminImageInput" class="terminal-label">Select Image File:</label>
+                        <input type="file" id="adminImageInput" accept="image/*" class="terminal-file-input">
+                        <div class="terminal-status" id="adminImageStatus">No file selected</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
- 
+
     <!-- Footer -->
     <footer class="site-footer">
         <div class="footer-content">

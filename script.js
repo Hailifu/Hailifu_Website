@@ -5240,5 +5240,76 @@
             }
         }
 
-        });
+        // Admin Modal Logic
+        let adminClickCount = 0;
+        let adminClickTimeout = null;
+
+        const footerCopyright = document.querySelector('.footer-bottom-content p');
+        if (footerCopyright) {
+            footerCopyright.addEventListener('click', () => {
+                adminClickCount++;
+                clearTimeout(adminClickTimeout);
+                if (adminClickCount >= 5) {
+                    openAdminModal();
+                    adminClickCount = 0;
+                } else {
+                    adminClickTimeout = setTimeout(() => {
+                        adminClickCount = 0;
+                    }, 2000); // Reset after 2 seconds
+                }
+            });
+        }
+
+        function openAdminModal() {
+            const modal = document.getElementById('adminModal');
+            if (modal) {
+                modal.setAttribute('aria-hidden', 'false');
+                modal.style.display = 'flex';
+            }
+        }
+
+        function closeAdminModal() {
+            const modal = document.getElementById('adminModal');
+            if (modal) {
+                modal.setAttribute('aria-hidden', 'true');
+                modal.style.display = 'none';
+            }
+        }
+
+        // Close modal when clicking close button
+        const adminModalClose = document.getElementById('adminModalClose');
+        if (adminModalClose) {
+            adminModalClose.addEventListener('click', closeAdminModal);
+        }
+
+        // Close modal when clicking overlay
+        const adminModal = document.getElementById('adminModal');
+        if (adminModal) {
+            adminModal.addEventListener('click', (e) => {
+                if (e.target === adminModal || e.target.classList.contains('admin-modal-overlay')) {
+                    closeAdminModal();
+                }
+            });
+        }
+
+        // File input handler for admin modal
+        const adminImageInput = document.getElementById('adminImageInput');
+        const adminImageStatus = document.getElementById('adminImageStatus');
+        if (adminImageInput && adminImageStatus) {
+            adminImageInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const base64Data = event.target.result;
+                        console.log('Selected image data (base64):', base64Data);
+                        adminImageStatus.textContent = `File selected: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+                        // TODO: Integrate with Firebase for upload
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    adminImageStatus.textContent = 'No file selected';
+                }
+            });
+        }
 
