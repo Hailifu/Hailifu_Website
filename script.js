@@ -17,7 +17,7 @@ if (!firebase.apps.length) {
 const storage = firebase.storage();
 const db = firebase.firestore();
 
-// THE SYNC FUNCTION
+// UNIVERSAL SYNC FUNCTION (Images & Videos)
 async function saveSystemChanges() {
     const fileInput = document.getElementById('admin-file-upload');
     const file = fileInput.files[0];
@@ -25,36 +25,44 @@ async function saveSystemChanges() {
     const syncBtn = document.getElementById('sync-btn');
 
     if (!file) {
-        alert("CRITICAL_ERROR: No media detected in buffer.");
+        alert("CRITICAL_ERROR: No data in buffer.");
         return;
     }
 
-    // UI Feedback
-    syncBtn.innerText = "SYNCING_DATA...";
-    syncBtn.style.opacity = "0.5";
-    statusText.innerText = "UPLOADING TO HAILIFU_CLOUD...";
+    // UI Feedback: Show the user something is happening
+    syncBtn.innerText = "UPLOADING_TO_HAILIFU_CLOUD...";
+    syncBtn.style.background = "#555";
+    syncBtn.disabled = true;
 
     try {
-        // 1. Upload to your specific firebasestorage.app bucket
-        const storageRef = storage.ref(`gallery/${Date.now()}_${file.name}`);
+        // 1. Determine folder based on file type
+        const isVideo = file.type.startsWith('video/');
+        const folder = isVideo ? 'videos' : 'images';
+        const fileName = `${Date.now()}_${file.name}`;
+        
+        const storageRef = firebase.storage().ref(`${folder}/${fileName}`);
+        
+        // 2. Start the Upload
         const snapshot = await storageRef.put(file);
         const downloadURL = await snapshot.ref.getDownloadURL();
 
-        // 2. Log the entry in Firestore so the website knows to show it
-        await db.collection("installations").add({
-            image_url: downloadURL,
+        // 3. Save the link to your Database so the site can display it
+        await firebase.firestore().collection("installations").add({
+            url: downloadURL,
+            type: isVideo ? 'video' : 'image',
             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            status: "live"
+            name: file.name
         });
 
-        alert("SYSTEM_SYNC_COMPLETE: Media is now live on the grid.");
-        location.reload(); // Refresh to show new image
-        
+        alert("SYSTEM_SYNC_COMPLETE: The grid has been updated.");
+        location.reload(); // Refresh to show your new media!
+
     } catch (error) {
-        console.error("SYNC_ERROR:", error);
-        alert("CONNECTION_FAILURE: Check Firebase Storage Rules.");
+        console.error("UPLOAD_ERROR:", error);
+        alert("SYNC_FAILED: Check your Firebase Storage Rules.");
         syncBtn.innerText = "[ INITIATE_SYNC ]";
-        syncBtn.style.opacity = "1";
+        syncBtn.disabled = false;
+        syncBtn.style.background = "var(--orange)";
     }
 }
 const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
