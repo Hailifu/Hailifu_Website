@@ -13,8 +13,6 @@
         const mobileToggle = document.getElementById('mobileToggle');
         const navMenu = document.getElementById('nav');
         const servicesTitleCta = document.getElementById('servicesTitleCta');
-        const shortcutSidebar = document.getElementById('shortcutSidebar');
-        const shortcutSidebarTab = document.getElementById('shortcutSidebarTab');
         const themeToggle = document.getElementById('themeToggle');
 
         function shouldSkipHeroVideo() {
@@ -5091,11 +5089,6 @@
                     if (!target) return;
                     e.preventDefault();
 
-                    if (shortcutSidebar?.classList?.contains('is-open')) {
-                        shortcutSidebar.classList.remove('is-open');
-                        shortcutSidebarTab?.setAttribute('aria-expanded', 'false');
-                    }
-
                     target.scrollIntoView({ behavior: 'smooth' });
                     closeMobileNav();
                 });
@@ -5125,180 +5118,6 @@
                 }
             } catch {}
         }, { passive: true });
-
-        if (shortcutSidebar && shortcutSidebarTab) {
-            let autoHideTimer = null;
-            let suppressTabClickUntil = 0;
-            const sidebarTopStorageKey = 'hailifu_shortcut_sidebar_top_px';
-
-            const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
-
-            const applySavedSidebarTop = () => {
-                try {
-                    const saved = localStorage.getItem(sidebarTopStorageKey);
-                    if (!saved) return;
-                    const topPx = Number(saved);
-                    if (!Number.isFinite(topPx)) return;
-                    shortcutSidebar.classList.add('is-dragged');
-                    shortcutSidebar.style.top = `${topPx}px`;
-                    shortcutSidebar.style.bottom = 'auto';
-                } catch {}
-            };
-
-            applySavedSidebarTop();
-
-            const initSidebarDrag = () => {
-                let dragging = false;
-                let startPointerY = 0;
-                let startTop = 0;
-                let moved = false;
-
-                const ensurePxTopMode = () => {
-                    const rect = shortcutSidebar.getBoundingClientRect();
-                    shortcutSidebar.classList.add('is-dragged');
-                    shortcutSidebar.style.top = `${rect.top}px`;
-                    shortcutSidebar.style.bottom = 'auto';
-                    startTop = rect.top;
-                };
-
-                const onMove = (e) => {
-                    if (!dragging) return;
-                    const clientY = e.clientY;
-                    const deltaY = clientY - startPointerY;
-                    if (Math.abs(deltaY) > 6) moved = true;
-
-                    const rect = shortcutSidebar.getBoundingClientRect();
-                    const h = rect.height || 0;
-                    const maxTop = Math.max(0, (window.innerHeight || document.documentElement.clientHeight || 0) - h);
-                    const nextTop = clamp(startTop + deltaY, 0, maxTop);
-                    shortcutSidebar.style.top = `${nextTop}px`;
-                };
-
-                const onUp = () => {
-                    if (!dragging) return;
-                    dragging = false;
-                    shortcutSidebar.classList.remove('is-dragging');
-                    try { shortcutSidebarTab.releasePointerCapture?.(pointerId); } catch {}
-
-                    if (moved) {
-                        suppressTabClickUntil = Date.now() + 450;
-                        try {
-                            const topPx = parseFloat(shortcutSidebar.style.top);
-                            if (Number.isFinite(topPx)) {
-                                localStorage.setItem(sidebarTopStorageKey, String(Math.round(topPx)));
-                            }
-                        } catch {}
-                    }
-                };
-
-                let pointerId = null;
-
-                shortcutSidebarTab.addEventListener('pointerdown', (e) => {
-                    if (e.button !== undefined && e.button !== 0) return;
-                    pointerId = e.pointerId;
-                    dragging = true;
-                    moved = false;
-                    startPointerY = e.clientY;
-                    ensurePxTopMode();
-                    shortcutSidebar.classList.add('is-dragging');
-                    clearAutoHide();
-                    try { shortcutSidebarTab.setPointerCapture(pointerId); } catch {}
-                });
-
-                shortcutSidebarTab.addEventListener('pointermove', onMove);
-                shortcutSidebarTab.addEventListener('pointerup', onUp);
-                shortcutSidebarTab.addEventListener('pointercancel', onUp);
-                shortcutSidebarTab.addEventListener('lostpointercapture', onUp);
-            };
-
-            initSidebarDrag();
-            const isOpen = () => shortcutSidebar.classList.contains('is-open');
-            const clearAutoHide = () => {
-                if (autoHideTimer) {
-                    clearTimeout(autoHideTimer);
-                    autoHideTimer = null;
-                }
-            };
-            const scheduleAutoHide = () => {
-                clearAutoHide();
-                autoHideTimer = setTimeout(() => {
-                    closeSidebar();
-                }, 3000);
-            };
-
-            function openSidebar() {
-                if (isOpen()) {
-                    scheduleAutoHide();
-                    return;
-                }
-                shortcutSidebar.classList.add('is-open');
-                shortcutSidebarTab.setAttribute('aria-expanded', 'true');
-                scheduleAutoHide();
-            }
-
-            function closeSidebar() {
-                clearAutoHide();
-                shortcutSidebar.classList.remove('is-open');
-                shortcutSidebarTab.setAttribute('aria-expanded', 'false');
-            }
-
-            const markInteraction = () => {
-                if (!isOpen()) return;
-                scheduleAutoHide();
-            };
-
-            shortcutSidebarTab.addEventListener('click', (e) => {
-                if (Date.now() < suppressTabClickUntil) {
-                    e.preventDefault();
-                    return;
-                }
-                e.preventDefault();
-                if (isOpen()) {
-                    closeSidebar();
-                } else {
-                    openSidebar();
-                }
-            });
-
-            shortcutSidebar.addEventListener('mouseenter', openSidebar);
-            shortcutSidebar.addEventListener('mousemove', markInteraction);
-            shortcutSidebar.addEventListener('mouseleave', scheduleAutoHide);
-            shortcutSidebar.addEventListener('touchstart', () => {
-                openSidebar();
-            }, { passive: true });
-
-            document.addEventListener('click', (e) => {
-                if (!isOpen()) return;
-                if (shortcutSidebar.contains(e.target)) return;
-                closeSidebar();
-            });
-
-            shortcutSidebar.addEventListener('click', (e) => {
-                const link = e.target.closest('.shortcut-sidebar-link');
-                if (!link) return;
-                closeSidebar();
-            });
-
-            shortcutSidebar.querySelectorAll('[data-shortcut-scroll]').forEach((a) => {
-                a.addEventListener('click', (e) => {
-                    const href = a.getAttribute('href') || '';
-                    if (!href.startsWith('#')) return;
-                    const target = document.querySelector(href);
-                    if (!target) return;
-                    e.preventDefault();
-
-                    closeSidebar();
-                    target.scrollIntoView({ behavior: 'smooth' });
-
-                    if (a.hasAttribute('data-review-modal-open')) {
-                        e.stopPropagation();
-                        setTimeout(() => {
-                            try { openReviewModal(); } catch {}
-                        }, 450);
-                    }
-                });
-            });
-        }
 
         // Scroll Animation Observer
         const scrollElements = document.querySelectorAll('.animate-on-scroll');
