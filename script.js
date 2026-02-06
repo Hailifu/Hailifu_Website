@@ -17,52 +17,50 @@ if (!firebase.apps.length) {
 const storage = firebase.storage();
 const db = firebase.firestore();
 
-// UNIVERSAL SYNC FUNCTION (Images & Videos)
-async function saveSystemChanges() {
+async function saveSystemChanges() { 
     const fileInput = document.getElementById('admin-file-upload');
     const file = fileInput.files[0];
-    const statusText = document.querySelector('#admin-gate p');
     const syncBtn = document.getElementById('sync-btn');
 
-    if (!file) {
-        alert("CRITICAL_ERROR: No data in buffer.");
-        return;
-    }
+    if (!file) return alert("CRITICAL: No file selected.");
 
-    // UI Feedback: Show the user something is happening
-    syncBtn.innerText = "UPLOADING_TO_HAILIFU_CLOUD...";
-    syncBtn.style.background = "#555";
+    syncBtn.innerText = "UPLOADING TO CLOUDINARY...";
     syncBtn.disabled = true;
 
-    try {
-        // 1. Determine folder based on file type
-        const isVideo = file.type.startsWith('video/');
-        const folder = isVideo ? 'videos' : 'images';
-        const fileName = `${Date.now()}_${file.name}`;
-        
-        const storageRef = firebase.storage().ref(`${folder}/${fileName}`);
-        
-        // 2. Start the Upload
-        const snapshot = await storageRef.put(file);
-        const downloadURL = await snapshot.ref.getDownloadURL();
+    // 1. Prepare for Cloudinary using your specific preset
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'daovfi3i5'); // Your new preset key
 
-        // 3. Save the link to your Database so the site can display it
+    try {
+        // 2. Send to Cloudinary (Using your cloud name: dclv77vgs)
+        const response = await fetch('https://api.cloudinary.com/v1_1/dclv77vgs/upload', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+
+        if (!data.secure_url) {
+            console.error("Cloudinary Response:", data);
+            throw new Error("Upload failed - Check if preset is 'Unsigned'");
+        }
+
+        // 3. Save the link to Firebase Firestore (Free Database)
         await firebase.firestore().collection("installations").add({
-            url: downloadURL,
-            type: isVideo ? 'video' : 'image',
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            name: file.name
+            url: data.secure_url,
+            type: file.type.startsWith('video/') ? 'video' : 'image',
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        alert("SYSTEM_SYNC_COMPLETE: The grid has been updated.");
-        location.reload(); // Refresh to show your new media!
+        alert("SYNC_SUCCESSFUL: Hailifu Grid Updated!");
+        location.reload();
 
     } catch (error) {
-        console.error("UPLOAD_ERROR:", error);
-        alert("SYNC_FAILED: Check your Firebase Storage Rules.");
+        console.error("SYNC_ERROR:", error);
+        alert("SYNC_FAILED: Make sure your Cloudinary preset is set to 'Unsigned'.");
         syncBtn.innerText = "[ INITIATE_SYNC ]";
         syncBtn.disabled = false;
-        syncBtn.style.background = "var(--orange)";
     }
 }
 const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
