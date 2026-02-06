@@ -5308,6 +5308,36 @@
             });
         }
 
+        const adminGateImageInput = document.getElementById('adminGateImageInput');
+        const adminImagePreview = document.getElementById('admin-image-preview');
+        if (adminGateImageInput && adminImagePreview) {
+            const renderAdminImagePreview = (src) => {
+                adminImagePreview.innerHTML = '';
+                if (!src) return;
+                const img = new Image();
+                img.alt = 'Admin upload preview';
+                img.src = src;
+                adminImagePreview.appendChild(img);
+            };
+
+            adminGateImageInput.addEventListener('change', (e) => {
+                const file = e.target.files && e.target.files[0];
+                if (!file) {
+                    renderAdminImagePreview('');
+                    return;
+                }
+                if (!String(file.type || '').startsWith('image/')) {
+                    adminImagePreview.textContent = 'Unsupported file type';
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    renderAdminImagePreview(event.target.result);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
         // File input handler for admin modal
         const adminImageInput = document.getElementById('adminImageInput');
         const adminImageStatus = document.getElementById('adminImageStatus');
