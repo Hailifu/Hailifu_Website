@@ -2652,8 +2652,8 @@
             return false;
         }
 
-        if (adminTrigger) {
-            adminTrigger.addEventListener('click', async (e) => {
+        if (adminLogoLink) {
+            adminLogoLink.addEventListener('click', async (e) => {
                 e.preventDefault();
 
                 const now = Date.now();
@@ -5243,14 +5243,30 @@
         // Admin Gate Modal Logic
         let adminClickCount = 0;
         let adminClickTimeout = null;
+        const adminGateKey = '1234';
+        const adminGatePromptLabel = 'Enter access key';
+        const adminGatePromptDefault = '1234';
 
-        const footerCopyright = document.getElementById('secretAccess');
-        if (footerCopyright) {
-            footerCopyright.addEventListener('click', () => {
+        function requestAdminGateAccess() {
+            const entered = prompt(adminGatePromptLabel, adminGatePromptDefault);
+            if (entered === null) return false;
+            const ok = String(entered).trim() === adminGateKey;
+            if (ok) {
+                openAdminGate();
+                return true;
+            }
+            alert('Access denied');
+            return false;
+        }
+
+        const adminGateTrigger = adminTrigger;
+        if (adminGateTrigger) {
+            adminGateTrigger.addEventListener('click', (e) => {
+                e.preventDefault();
                 adminClickCount++;
                 clearTimeout(adminClickTimeout);
                 if (adminClickCount >= 5) {
-                    openAdminGate();
+                    requestAdminGateAccess();
                     adminClickCount = 0;
                 } else {
                     adminClickTimeout = setTimeout(() => {
