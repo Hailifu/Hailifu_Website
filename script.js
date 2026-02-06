@@ -5240,36 +5240,36 @@
             }
         }
 
-        // Admin Modal Logic
+        // Admin Gate Modal Logic
         let adminClickCount = 0;
         let adminClickTimeout = null;
 
-        const footerCopyright = document.querySelector('.footer-bottom-content p');
+        const footerCopyright = document.getElementById('secretAccess');
         if (footerCopyright) {
             footerCopyright.addEventListener('click', () => {
                 adminClickCount++;
                 clearTimeout(adminClickTimeout);
                 if (adminClickCount >= 5) {
-                    openAdminModal();
+                    openAdminGate();
                     adminClickCount = 0;
                 } else {
                     adminClickTimeout = setTimeout(() => {
                         adminClickCount = 0;
-                    }, 2000); // Reset after 2 seconds
+                    }, 3000); // Reset after 3 seconds
                 }
             });
         }
 
-        function openAdminModal() {
-            const modal = document.getElementById('adminModal');
+        function openAdminGate() {
+            const modal = document.getElementById('admin-gate');
             if (modal) {
                 modal.setAttribute('aria-hidden', 'false');
                 modal.style.display = 'flex';
             }
         }
 
-        function closeAdminModal() {
-            const modal = document.getElementById('adminModal');
+        function closeAdminGate() {
+            const modal = document.getElementById('admin-gate');
             if (modal) {
                 modal.setAttribute('aria-hidden', 'true');
                 modal.style.display = 'none';
@@ -5277,17 +5277,17 @@
         }
 
         // Close modal when clicking close button
-        const adminModalClose = document.getElementById('adminModalClose');
-        if (adminModalClose) {
-            adminModalClose.addEventListener('click', closeAdminModal);
+        const adminGateClose = document.getElementById('adminGateClose');
+        if (adminGateClose) {
+            adminGateClose.addEventListener('click', closeAdminGate);
         }
 
         // Close modal when clicking overlay
-        const adminModal = document.getElementById('adminModal');
-        if (adminModal) {
-            adminModal.addEventListener('click', (e) => {
-                if (e.target === adminModal || e.target.classList.contains('admin-modal-overlay')) {
-                    closeAdminModal();
+        const adminGate = document.getElementById('admin-gate');
+        if (adminGate) {
+            adminGate.addEventListener('click', (e) => {
+                if (e.target === adminGate || e.target.classList.contains('admin-gate-overlay')) {
+                    closeAdminGate();
                 }
             });
         }

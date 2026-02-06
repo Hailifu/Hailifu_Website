@@ -742,68 +742,77 @@
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="site-footer">
-        <div class="footer-content">
-            <div class="footer-brand">
-                <div class="footer-logo">
-                    <img src="./logo.webp" alt="Hailifu Logo" class="footer-logo-img">
+    <!-- Command Center Footer -->
+    <footer class="command-center-footer">
+        <div class="command-center-content">
+            <div class="command-center-section">
+                <div class="command-center-header">
+                    <h4><i class="fas fa-server"></i> Command Center Status</h4>
                 </div>
-                <h3>Hailifu Brilliant Installation</h3>
-                <p>Trusted installation specialists delivering secure, reliable infrastructure for modern homes and enterprises.</p>
-                <div class="footer-status" role="status" aria-live="polite">
-                    <span class="status-dot" aria-hidden="true"></span>
-                    <div>
-                        <span class="status-label">Live Status</span>
-                        <strong>Accepting New Projects</strong>
+                <div class="command-center-brand">
+                    <div class="footer-logo">
+                        <img src="./logo.webp" alt="Hailifu Logo" class="footer-logo-img">
+                    </div>
+                    <h3>Hailifu Brilliant Installation</h3>
+                    <p>Elite infrastructure deployment specialists. Operational excellence since 2024.</p>
+                    <div class="command-status" role="status" aria-live="polite">
+                        <span class="status-pulse" aria-hidden="true"></span>
+                        <div class="status-text">
+                            <span class="status-label">SYSTEM STATUS</span>
+                            <span class="status-value">OPERATIONAL</span>
+                        </div>
                     </div>
                 </div>
             </div>
-            
-            <div class="footer-section">
-                <h4>Quick Links</h4>
-                <div class="footer-links">
-                    <a href="#home">Home</a>
-                    <a href="#about">Why Choose Us</a>
-                    <a href="#services">Services</a>
-                    <a href="#showcase">Work Showcase</a>
-                    <a href="#testimonials">Reviews</a>
+
+            <div class="command-center-section">
+                <div class="command-center-header">
+                    <h4><i class="fas fa-route"></i> Navigation Protocols</h4>
+                </div>
+                <div class="command-links">
+                    <a href="#home" class="command-link">> Home</a>
+                    <a href="#about" class="command-link">> System Integrity</a>
+                    <a href="#services" class="command-link">> Service Matrix</a>
+                    <a href="#showcase" class="command-link">> Deployment Showcase</a>
+                    <a href="#testimonials" class="command-link">> User Feedback</a>
                 </div>
             </div>
-            
-            <div class="footer-section">
-                <h4>Contact</h4>
-                <div class="footer-contact">
-                    <div class="contact-item">
+
+            <div class="command-center-section">
+                <div class="command-center-header">
+                    <h4><i class="fas fa-satellite-dish"></i> Communications</h4>
+                </div>
+                <div class="command-contacts">
+                    <div class="contact-protocol">
                         <i class="fas fa-phone"></i>
                         <div>
-                            <span class="footer-contact-label">Phone</span>
-                            <a class="footer-contact-value" href="tel:+233550997270">0550997270</a>
+                            <span class="protocol-label">VOICE CHANNEL</span>
+                            <a class="protocol-value" href="tel:+233550997270">055-099-7270</a>
                         </div>
                     </div>
-                    <div class="contact-item">
+                    <div class="contact-protocol">
                         <i class="fas fa-envelope"></i>
                         <div>
-                            <span class="footer-contact-label">Email</span>
-                            <a class="footer-contact-value" href="mailto:01hailifu@gmail.com">01hailifu@gmail.com</a>
+                            <span class="protocol-label">DATA LINK</span>
+                            <a class="protocol-value" href="mailto:01hailifu@gmail.com">01hailifu@gmail.com</a>
                         </div>
                     </div>
-                    <div class="contact-item">
+                    <div class="contact-protocol">
                         <i class="fas fa-map-marker-alt"></i>
                         <div>
-                            <span class="footer-contact-label">Location</span>
-                            <span class="footer-contact-value">Accra, Ghana</span>
+                            <span class="protocol-label">BASE LOCATION</span>
+                            <span class="protocol-value">Accra, Ghana</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- Footer Bottom -->
-        <div class="footer-bottom">
-            <div class="footer-bottom-content">
-                <p>&copy; 2024 Hailifu Brilliant Installation. Where Safety Meets Innovation.</p>
-                <p class="footer-bottom-tagline">Professional Installation & Security Solutions</p>
+
+        <!-- Command Center Base -->
+        <div class="command-center-base">
+            <div class="command-center-base-content">
+                <p>&copy; 2024 Hailifu Brilliant Installation. <span class="secret-access-link" id="secretAccess">Secret Access</span></p>
+                <p class="base-tagline">Where Safety Meets Innovation | Professional Infrastructure Solutions</p>
             </div>
         </div>
     </footer>
@@ -950,6 +959,37 @@
                         Thank you! Your quote request has been sent. We'll contact you within 24 hours.
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Gate Modal -->
+    <div class="admin-gate-modal" id="admin-gate" aria-hidden="true">
+        <div class="admin-gate-overlay"></div>
+        <div class="admin-gate-content">
+            <div class="admin-gate-header">
+                <h2><i class="fas fa-shield-alt"></i> SECURITY TERMINAL</h2>
+                <button class="admin-gate-close" id="adminGateClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="admin-gate-body">
+                <div class="terminal-screen">
+                    <div class="terminal-output">
+                        <p class="terminal-line">ACCESS GRANTED - SYSTEM STATUS: OPERATIONAL</p>
+                        <p class="terminal-line">ADMINISTRATOR OVERRIDE ENABLED</p>
+                    </div>
+                    <div class="terminal-input-section">
+                        <div class="terminal-field">
+                            <label for="uptimeInput" class="terminal-label">UPTIME %:</label>
+                            <input type="number" id="uptimeInput" class="terminal-number-input" min="0" max="100" placeholder="Enter uptime percentage">
+                        </div>
+                        <div class="terminal-field">
+                            <label for="adminGateImageInput" class="terminal-label">IMAGE UPLOAD:</label>
+                            <input type="file" id="adminGateImageInput" class="terminal-file-input" accept="image/*">
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
