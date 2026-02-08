@@ -4250,8 +4250,8 @@
         
         @media (max-width: 768px) {
             .projects-grid {
-                max-height: 400px;
-                overflow-y: auto;
+                max-height: none;
+                overflow-y: visible;
             }
         }
 .projects-grid::-webkit-scrollbar {

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
         <link rel="stylesheet" href="style.css?v=20260203">
+    <link rel="stylesheet" href="css/modern.css?v=20260208">
         <style>
             #chatbotToggle.chatbot-toggle,
             #brilliantChatBtn.brilliant-chat-btn {
@@ -197,7 +198,7 @@
     </header>
  
     <!-- Hero Section -->
-    <section class="hero" id="home">
+    <section class="hero animate-on-scroll" id="home">
         <div class="hero-video-container" aria-hidden="true">
             <video
                 id="heroVideo"
@@ -222,41 +223,20 @@
         </div>
     </section>
 
-    <!-- About / Why Choose Us Section -->
-    <section class="section about-section" id="about">
+    <!-- Featured Work Section (directly below Hero) -->
+    <section class="section featured-work glass-panel animate-on-scroll" id="featured-work">
+        <h2 class="section-title">Featured Work</h2>
+        <p class="section-subtitle">A bento showcase of standout installations we're proud of.</p>
+        <div class="featured-bento" id="featuredBento" aria-live="polite"></div>
+    </section>
+
+    <!-- Why Choose Us Section (below Featured Work) -->
+    <section class="section about-section glass-panel animate-on-scroll" id="about">
         <div class="about-grid">
             <div class="about-visual">
-                <div class="about-visual-panel">
-                    <div class="about-visual-header">
-                        <div class="about-visual-label">
-                            <span class="about-visual-eyebrow">System Integrity</span>
-                            <strong class="about-visual-title">Integrated Security Core</strong>
-                        </div>
-                        <span class="about-visual-badge">99.9% Uptime</span>
-                    </div>
-                    <div class="about-visual-core">
-                        <div class="about-visual-ring">
-                            <span class="about-visual-ring-core"></span>
-                        </div>
-                        <div class="about-visual-lines">
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                        </div>
-                    </div>
-                    <div class="about-visual-stats">
-                        <div class="about-visual-stat">
-                            <span>Monitoring</span>
-                            <strong>24/7</strong>
-                        </div>
-                        <div class="about-visual-stat">
-                            <span>Latency</span>
-                            <strong>&lt; 15 min</strong>
-                        </div>
-                        <div class="about-visual-stat">
-                            <span>Coverage</span>
-                            <strong>360</strong>
-                        </div>
+                <div class="about-visual-panel" id="integrityPanel">
+                    <div class="about-visual-image-wrap integrity-empty" id="integrityContainer">
+                        <img class="about-visual-image" id="integrityImage" src="" alt="System integrity graphic" style="display:none;">
                     </div>
                 </div>
             </div>
@@ -303,16 +283,9 @@
             </div>
         </div>
     </section>
-
-    <!-- Featured Work Section -->
-    <section class="section featured-work" id="featured-work">
-        <h2 class="section-title">Featured Work</h2>
-        <p class="section-subtitle">A bento showcase of standout installations we're proud of.</p>
-        <div class="featured-bento" id="featuredBento" aria-live="polite"></div>
-    </section>
  
     <!-- Services Section -->
-    <section class="section" id="services">
+    <section class="section glass-panel animate-on-scroll" id="services">
         <h2 class="section-title"><a href="#" id="servicesTitleCta">Specialized Engineering Services</a></h2>
         <p class="section-subtitle">Precision solutions for modern security and infrastructure.</p>
         <div class="services-grid">
@@ -350,7 +323,7 @@
     </section>
  
     <!-- Work Showcase Section -->
-    <section class="showcase" id="showcase">
+    <section class="showcase glass-panel animate-on-scroll" id="showcase">
         <div class="showcase-content">
             <h2 class="section-title">Work Showcase</h2>
             <p class="section-subtitle">Explore our portfolio of expertly delivered security, automation, and electrical installations</p>

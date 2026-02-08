@@ -1,4 +1,4 @@
-﻿const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
+const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         const adminUnlockStorageKey = 'hailifu_admin_unlocked';
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -311,6 +311,7 @@
         const defaultFirebaseProjectsPath = 'projects';
         const firebaseSettingsPathStorageKey = 'hailifu_firebase_settings_path';
         const defaultFirebaseSettingsPath = 'hailifu/settings';
+        const integrityImageStorageKey = 'hailifu_integrity_image_url';
         const remoteConfigPublicIdStorageKey = 'hailifu_remote_config_public_id';
         const remoteConfigUrlStorageKey = 'hailifu_remote_config_url';
         const defaultRemoteConfigPublicId = 'hailifu_site_config';
@@ -546,6 +547,10 @@
                     if (heroUrl) {
                         try { initHeroVideo(heroUrl); } catch {}
                     }
+                    const integrityUrl = String(settings?.integrityImageUrl || '').trim();
+                    if (integrityUrl) {
+                        try { loadIntegrityImage(integrityUrl); } catch {}
+                    }
                 } catch {}
             });
             return true;
@@ -564,6 +569,50 @@
             const path = getFirebaseSettingsPath();
             const next = String(url || '').trim();
             return db.ref(`${path}/heroVideoUrl`).set(next);
+        }
+
+        function setFirebaseIntegrityImageUrl(url) {
+            const db = ensureFirebaseDb();
+            if (!db) return Promise.reject(new Error('Firebase not configured'));
+            const path = getFirebaseSettingsPath();
+            const next = String(url || '').trim();
+            return db.ref(`${path}/integrityImageUrl`).set(next);
+        }
+
+        function getIntegrityImageUrl() {
+            return String(localStorage.getItem(integrityImageStorageKey) || '').trim();
+        }
+
+        function setIntegrityImageUrlLocal(url) {
+            const next = String(url || '').trim();
+            if (next) localStorage.setItem(integrityImageStorageKey, next);
+            else try { localStorage.removeItem(integrityImageStorageKey); } catch {}
+        }
+
+        function loadIntegrityImage(url) {
+            const panel = document.getElementById('integrityPanel');
+            const container = document.getElementById('integrityContainer');
+            const img = document.getElementById('integrityImage');
+            if (!container || !img) return;
+            const raw = String(url || '').trim();
+            if (!raw) {
+                img.removeAttribute('src');
+                img.style.display = 'none';
+                if (panel) panel.classList.remove('is-loading');
+                if (container) container.classList.add('integrity-empty');
+                return;
+            }
+            if (container) container.classList.remove('integrity-empty');
+            if (panel) panel.classList.add('is-loading');
+            img.style.display = 'none';
+            img.onload = function() {
+                img.style.display = 'block';
+                if (panel) panel.classList.remove('is-loading');
+            };
+            img.onerror = function() {
+                if (panel) panel.classList.remove('is-loading');
+            };
+            img.src = raw;
         }
 
         function upsertProjectInFirebase(project) {
@@ -1386,6 +1435,18 @@
                                         </button>
                                     </div>
                                 </div>
+                                <div class="admin-section full-span">
+                                    <div class="admin-section-heading">
+                                        <h3><i class="fas fa-image"></i> Integrity Graphic</h3>
+                                        <span class="admin-section-tag">Site Asset</span>
+                                    </div>
+                                    <p style="margin-bottom:12px; font-size:0.85rem; color: rgba(255,255,255,0.7);">Image shown in the &quot;Why Choose Us&quot; area. Upload to replace.</p>
+                                    <input type="file" id="integrityImageInput" accept="image/*" style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;">
+                                    <button class="upload-btn integrity-graphic-btn" id="integrityGraphicBtn" type="button"><i class="fas fa-upload"></i> Change Integrity Graphic</button>
+                                    <div class="integrity-upload-progress" id="integrityUploadProgress" aria-hidden="true" style="display:none; margin-top:10px;">
+                                        <div class="upload-progress-bar"><div class="upload-progress-fill" id="integrityUploadProgressFill" style="width:0%"></div></div>
+                                    </div>
+                                </div>
                                 <div class="admin-section admin-section--interest">
                                     <h3><i class="fas fa-signal"></i> Client Interest</h3>
                                     <div class="interest-grid">
@@ -1481,7 +1542,8 @@
                         </div>
                         <div class="admin-tab-panel" data-admin-panel="projects">
                             <div class="admin-section">
-                                <h3><i class="fas fa-photo-video"></i> Upload Project</h3>
+                                <h3><i class="fas fa-images"></i> Gallery Manager</h3>
+                                <p style="margin-bottom:14px; font-size:0.85rem; color: rgba(255,255,255,0.7);">Add Featured Work: upload images/videos, set title and description, delete or reorder. Changes persist after refresh.</p>
                                 <form class="upload-form">
                                     <div class="form-group">
                                         <label for="cloudinaryPreset">Cloudinary Unsigned Upload Preset</label>
@@ -1536,10 +1598,10 @@
                                     </div>
                                     <div class="form-group">
                                         <label>Upload Media</label>
-                                        <div class="file-upload-area" id="fileUploadArea">
+                                        <div class="file-upload-area gallery-manager-dropzone" id="fileUploadArea">
                                             <div class="upload-content">
                                                 <i class="fas fa-cloud-upload-alt"></i>
-                                                <p>Click or drop a file here</p>
+                                                <p>Drag and drop or click to upload</p>
                                                 <span class="file-types">PNG, JPG, MP4 (max 4MB)</span>
                                             </div>
                                             <input id="projectFile" type="file" accept="image/*,video/*" style="display:none;">
@@ -1566,7 +1628,7 @@
                                 </form>
                             </div>
                             <div class="admin-section">
-                                <h3><i class="fas fa-layer-group"></i> Stored Projects</h3>
+                                <h3><i class="fas fa-layer-group"></i> All Featured Work</h3>
                                 <div id="projectsGrid" class="projects-grid"></div>
                             </div>
                         </div>
@@ -2240,6 +2302,58 @@
                         </div>
                     `;
                     openProjectModalFromItem(temp);
+                });
+            }
+
+            const integrityGraphicBtn = document.getElementById('integrityGraphicBtn');
+            const integrityImageInput = document.getElementById('integrityImageInput');
+            const integrityUploadProgress = document.getElementById('integrityUploadProgress');
+            const integrityUploadProgressFill = document.getElementById('integrityUploadProgressFill');
+            if (integrityGraphicBtn && integrityImageInput) {
+                integrityGraphicBtn.addEventListener('click', () => { integrityImageInput.click(); });
+                integrityImageInput.addEventListener('change', function() {
+                    const file = this.files?.[0];
+                    if (!file || !file.type.startsWith('image/')) {
+                        this.value = '';
+                        return;
+                    }
+                    const preset = getCloudinaryPresetValue();
+                    if (!preset) {
+                        alert('Enter Cloudinary preset in Projects tab first.');
+                        this.value = '';
+                        return;
+                    }
+                    if (integrityUploadProgress) {
+                        integrityUploadProgress.style.display = 'block';
+                        integrityUploadProgress.setAttribute('aria-hidden', 'false');
+                    }
+                    if (integrityUploadProgressFill) integrityUploadProgressFill.style.width = '0%';
+                    cloudinaryUnsignedUpload(file, {
+                        preset,
+                        resourceType: 'image',
+                        folder: 'hailifu',
+                        onProgress: (pct) => {
+                            if (integrityUploadProgressFill) integrityUploadProgressFill.style.width = pct + '%';
+                        }
+                    }).then((payload) => {
+                        const url = String(payload?.secure_url || '').trim();
+                        if (!url) throw new Error('Upload failed');
+                        setIntegrityImageUrlLocal(url);
+                        loadIntegrityImage(url);
+                        if (firebaseIsReady()) {
+                            return setFirebaseIntegrityImageUrl(url);
+                        }
+                    }).then(() => {
+                        if (integrityImageInput) integrityImageInput.value = '';
+                    }).catch((err) => {
+                        alert(String(err?.message || err || 'Upload failed'));
+                    }).finally(() => {
+                        if (integrityUploadProgress) {
+                            integrityUploadProgress.style.display = 'none';
+                            integrityUploadProgress.setAttribute('aria-hidden', 'true');
+                        }
+                        if (integrityUploadProgressFill) integrityUploadProgressFill.style.width = '0%';
+                    });
                 });
             }
 
@@ -3743,6 +3857,8 @@
         }
 
         startServerlessProjectsSync();
+
+        loadIntegrityImage(getIntegrityImageUrl());
 
         renderLeads();
         renderProjects();
