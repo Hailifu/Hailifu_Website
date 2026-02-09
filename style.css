@@ -6296,3 +6296,11 @@
             }
         }
 
+        @media (min-width: 769px) {
+            .glass-panel,
+            .animate-on-scroll {
+                opacity: 1;
+                pointer-events: auto;
+            }
+        }
+

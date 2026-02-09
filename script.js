@@ -1053,6 +1053,34 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             return normalizeLocalMediaPath(raw);
         }
 
+        function appendCacheBuster(urlString, stamp) {
+            const raw = String(urlString || '').trim();
+            if (!raw) return '';
+            if (/^(data:|blob:)/i.test(raw)) return raw;
+            const token = Number.isFinite(stamp) ? stamp : Date.now();
+            const joiner = raw.includes('?') ? '&' : '?';
+            return `${raw}${joiner}v=${token}`;
+        }
+
+        function getFirebaseCrossoriginAttr(urlString) {
+            const raw = String(urlString || '').trim().toLowerCase();
+            if (!raw) return '';
+            if (raw.includes('firebasestorage.googleapis.com') || raw.includes('firebase')) {
+                return 'crossorigin="anonymous"';
+            }
+            return '';
+        }
+
+        function buildAdminMediaPath(rawPath) {
+            const raw = String(rawPath || '').trim();
+            if (!raw) return '';
+            if (/^https?:\/\//i.test(raw) || /^(data:|blob:|gs:)/i.test(raw)) return raw;
+            const filename = raw.replace(/^.*[\\/]/, '').trim();
+            if (!filename) return '';
+            const cleanName = filename.replace(/\s+/g, '_').toLowerCase();
+            return `./media/${cleanName}`;
+        }
+
         function resolveProjectMediaFromUrl(urlString, requestedType) {
             const raw = String(urlString || '').trim();
             if (!raw) return null;
@@ -1803,6 +1831,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
             const projects = getProjects();
             const maxSlides = 4;
+            const cacheStamp = Date.now();
             const featured = projects
                 .map((p) => {
                     if (!p || typeof p !== 'object') return null;
@@ -1857,16 +1886,21 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     const fallbackThumb = youtubeId ? getYoutubeThumbUrl(youtubeId) : '';
                     const thumb = normalize(thumbRaw) || normalize(fallbackThumb);
                     if (!thumb) return '';
-                    return `<img src="${thumb}" alt="" loading="lazy" onerror="this.onerror=null; this.src=getHailifuPlaceholderDataUri('HAILIFU')">`;
+                    const finalThumb = appendCacheBuster(buildAdminMediaPath(thumb) || thumb, cacheStamp);
+                    const crossorigin = getFirebaseCrossoriginAttr(finalThumb);
+                    return `<img src="${finalThumb}" alt="" ${crossorigin} onerror="this.onerror=null; this.src=getHailifuPlaceholderDataUri('HAILIFU')">`;
                 }
                 if (type === 'video') {
                     const src = normalize(srcRaw);
                     if (!src) return '';
-                    return `<video src="${src}" muted playsinline webkit-playsinline loop autoplay preload="metadata"></video>`;
+                    const finalSrc = appendCacheBuster(buildAdminMediaPath(src) || src, cacheStamp);
+                    return `<video src="${finalSrc}" muted playsinline webkit-playsinline loop autoplay preload="metadata"></video>`;
                 }
                 const src = normalize(srcRaw);
                 if (!src) return '';
-                return `<img src="${src}" alt="" loading="lazy" onerror="this.onerror=null; this.src=getHailifuPlaceholderDataUri('HAILIFU')">`;
+                const finalSrc = appendCacheBuster(buildAdminMediaPath(src) || src, cacheStamp);
+                const crossorigin = getFirebaseCrossoriginAttr(finalSrc);
+                return `<img src="${finalSrc}" alt="" ${crossorigin} onerror="this.onerror=null; this.src=getHailifuPlaceholderDataUri('HAILIFU')">`;
             };
 
             adminLazyLoopTrack.innerHTML = featured.map((p) => {
@@ -2810,17 +2844,13 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 projectsGrid.innerHTML = '';
                 return;
             }
+            const cacheStamp = Date.now();
 
             const resolveAdminAssetPath = (rawPath) => {
                 const raw = String(rawPath || '').trim();
                 if (!raw) return '';
-                const lower = raw.toLowerCase();
-                if (lower.includes('c:/') || lower.includes('/users/') || lower.includes('users/')) {
-                    const filename = raw.replace(/^.*[\\/]/, '').trim();
-                    const cleanName = filename.replace(/\s+/g, '_').toLowerCase();
-                    const folder = getPreferredMediaFolderName().toLowerCase();
-                    return `./${folder}/${cleanName}`;
-                }
+                const hardcoded = buildAdminMediaPath(raw);
+                if (hardcoded) return hardcoded;
                 return normalizeProjectMediaPath(raw);
             };
 
@@ -2834,10 +2864,15 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const resolvedMediaSrc = resolveAdminAssetPath(p.mediaSrc);
                 const resolvedThumbSrc = resolveAdminAssetPath(p.thumbSrc || p.mediaSrc);
                 const finalPath = p.mediaType === 'video' ? resolvedMediaSrc : (resolvedThumbSrc || resolvedMediaSrc);
-                if (finalPath) console.log('Admin Displaying URL:', finalPath);
+                const finalPathWithBuster = appendCacheBuster(finalPath, cacheStamp);
+                const thumbWithBuster = appendCacheBuster(resolvedThumbSrc || resolvedMediaSrc, cacheStamp);
+                const videoWithBuster = appendCacheBuster(resolvedMediaSrc, cacheStamp);
+                const assetForLog = p.mediaType === 'video' ? videoWithBuster : thumbWithBuster;
+                if (assetForLog) console.log('Admin Displaying URL:', assetForLog);
+                const crossorigin = getFirebaseCrossoriginAttr(assetForLog);
                 const thumb = p.mediaType === 'video'
-                    ? `<video src="${resolvedMediaSrc}" muted playsinline webkit-playsinline loop autoplay preload="metadata"></video>`
-                    : `<img src="${resolvedThumbSrc || resolvedMediaSrc}" alt="${safeTitle}" loading="lazy" onerror="this.onerror=null; this.src=getHailifuPlaceholderDataUri('HAILIFU')">`;
+                    ? `<video src="${videoWithBuster}" muted playsinline webkit-playsinline loop autoplay preload="metadata"></video>`
+                    : `<img src="${thumbWithBuster}" alt="${safeTitle}" ${crossorigin} onerror="this.onerror=null; this.src=getHailifuPlaceholderDataUri('HAILIFU')">`;
 
                 return `<div class="project-thumb" data-admin-project-id="${p.id}">${thumb}<button class="${starClass}" type="button" data-star-project-id="${p.id}" aria-label="${starLabel}"><i class="fas fa-star"></i></button><button class="project-delete" type="button" data-delete-project-id="${p.id}" aria-label="Delete project"><i class="fas fa-trash"></i></button><label class="project-feature-toggle"><input type="checkbox" ${featureChecked} data-feature-project-id="${p.id}"><span>Feature in Lazy Loop</span></label><div style="position:absolute; left:8px; bottom:8px; right:8px; font-size:0.8rem; background: rgba(0,0,0,0.55); padding:6px 8px; border-radius:10px;">${safeTitle}</div></div>`;
             }).join('');
