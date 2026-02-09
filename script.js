@@ -1018,8 +1018,9 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             if (isLegacyLocal) {
                 const filenameOnly = raw.replace(/^.*\//, '').trim();
                 if (filenameOnly) {
-                    const folder = getPreferredMediaFolderName();
-                    return `./${folder}/${filenameOnly}${suffix}`;
+                    const folder = getPreferredMediaFolderName().toLowerCase();
+                    const cleanName = filenameOnly.replace(/\s+/g, '_').toLowerCase();
+                    return `./${folder}/${cleanName}${suffix}`;
                 }
             }
             const marker = '/media/';
@@ -1031,8 +1032,9 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             }
 
             if (!raw) return '';
-            const folder = getPreferredMediaFolderName();
-            return `./${folder}/${raw}${suffix}`;
+            const folder = getPreferredMediaFolderName().toLowerCase();
+            const cleaned = raw.replace(/\s+/g, '_').toLowerCase();
+            return `./${folder}/${cleaned}${suffix}`;
         }
 
         function normalizeProjectMediaPath(rawPath) {
@@ -2206,9 +2208,63 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                         return;
                     }
 
+                    const cleanName = file.name.replace(/\s+/g, '_');
+                    const cleanLowerName = cleanName.toLowerCase();
+                    const localMediaPath = `media/${cleanLowerName}`;
+
                     const preset = getCloudinaryPresetValue();
                     if (!preset) {
-                        alert('Enter your Cloudinary unsigned upload preset first.');
+                        const setAsHero = !!setAsHeroToggle?.checked;
+                        const normalizedLocalPath = normalizeProjectMediaPath(localMediaPath);
+                        if (setAsHero && selectedMediaType === 'video') {
+                            try { initHeroVideo(normalizedLocalPath); } catch {}
+                            if (firebaseIsReady()) {
+                                setFirebaseHeroVideoUrl(localMediaPath).catch(() => {});
+                            } else {
+                                remoteConfigState = remoteConfigState && typeof remoteConfigState === 'object' ? remoteConfigState : {};
+                                remoteConfigState.heroVideoUrl = localMediaPath;
+                            }
+                        }
+
+                        const project = {
+                            createdAt: new Date().toISOString(),
+                            title: projectTitle?.value || 'Project',
+                            category: projectCategory?.value || 'cctv',
+                            description: projectDescription?.value || '',
+                            mediaType: selectedMediaType,
+                            mediaSrc: localMediaPath,
+                            thumbSrc: '',
+                            isStarred: false,
+                            isFeatured: false
+                        };
+
+                        if (firebaseIsReady()) {
+                            setUploadUiState({ active: true, pct: 100, text: 'Saving...' });
+                            addProjectInFirebase(project)
+                                .then(() => {
+                                    console.log('Data saved to Firebase!');
+                                    alert('Project Saved Successfully!');
+                                })
+                                .catch((err) => {
+                                    console.error('Firebase save failed:', err);
+                                    alert(`Firebase save failed: ${String(err?.message || err || 'Unknown error')}`);
+                                })
+                                .finally(() => setUploadUiState({ active: false, pct: 0, text: '' }));
+                        } else {
+                            project.id = `p_${Date.now()}`;
+                            const projects = getProjects();
+                            projects.unshift(project);
+                            saveProjects(projects);
+                            renderProjects();
+                            hydrateShowcaseFromStoredProjects();
+                            renderFeaturedWork();
+                        }
+
+                        if (setAsHeroToggle) setAsHeroToggle.checked = false;
+                        if (projectTitle) projectTitle.value = '';
+                        if (projectDescription) projectDescription.value = '';
+                        if (projectFile) projectFile.value = '';
+                        if (projectMediaUrl) projectMediaUrl.value = '';
                         return;
                     }
 
@@ -2754,6 +2810,20 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 projectsGrid.innerHTML = '';
                 return;
             }
+
+            const resolveAdminAssetPath = (rawPath) => {
+                const raw = String(rawPath || '').trim();
+                if (!raw) return '';
+                const lower = raw.toLowerCase();
+                if (lower.includes('c:/') || lower.includes('/users/') || lower.includes('users/')) {
+                    const filename = raw.replace(/^.*[\\/]/, '').trim();
+                    const cleanName = filename.replace(/\s+/g, '_').toLowerCase();
+                    const folder = getPreferredMediaFolderName().toLowerCase();
+                    return `./${folder}/${cleanName}`;
+                }
+                return normalizeProjectMediaPath(raw);
+            };
+
             projectsGrid.innerHTML = projects.slice(0, 50).map((p) => {
                 const safeTitle = (p.title || 'Project').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 const starred = Boolean(p.isStarred);
@@ -2761,10 +2831,10 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const starClass = starred ? 'project-star active' : 'project-star';
                 const starLabel = starred ? 'Unstar project' : 'Star project';
                 const featureChecked = featured ? 'checked' : '';
-                const resolvedMediaSrc = normalizeProjectMediaPath(p.mediaSrc);
-                const resolvedThumbSrc = normalizeProjectMediaPath(p.thumbSrc || p.mediaSrc);
-                const assetPath = p.mediaType === 'video' ? resolvedMediaSrc : (resolvedThumbSrc || resolvedMediaSrc);
-                if (assetPath) console.log('Loading Asset:', assetPath);
+                const resolvedMediaSrc = resolveAdminAssetPath(p.mediaSrc);
+                const resolvedThumbSrc = resolveAdminAssetPath(p.thumbSrc || p.mediaSrc);
+                const finalPath = p.mediaType === 'video' ? resolvedMediaSrc : (resolvedThumbSrc || resolvedMediaSrc);
+                if (finalPath) console.log('Admin Displaying URL:', finalPath);
                 const thumb = p.mediaType === 'video'
                     ? `<video src="${resolvedMediaSrc}" muted playsinline webkit-playsinline loop autoplay preload="metadata"></video>`
                     : `<img src="${resolvedThumbSrc || resolvedMediaSrc}" alt="${safeTitle}" loading="lazy" onerror="this.onerror=null; this.src=getHailifuPlaceholderDataUri('HAILIFU')">`;
