@@ -2692,6 +2692,11 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             }).join('');
         }
 
+        function loadProjects() {
+            if (!projectsGrid) projectsGrid = document.getElementById('projectsGrid');
+            renderProjects();
+        }
+
         function hydrateShowcaseFromStoredProjects() {
             const showcaseGrid = document.querySelector('.showcase-grid');
             if (!showcaseGrid) return;
@@ -3861,7 +3866,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         loadIntegrityImage(getIntegrityImageUrl());
 
         renderLeads();
-        renderProjects();
+        loadProjects();
         hydrateShowcaseFromStoredProjects();
         if (!firebaseIsReady()) {
             renderFeaturedWork();
