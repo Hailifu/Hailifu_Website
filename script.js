@@ -4065,6 +4065,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         const projectModalCategory = document.getElementById('projectModalCategory');
         const projectModalDescription = document.getElementById('projectModalDescription');
         const projectModalMedia = document.getElementById('projectModalMedia');
+        let projectModalLastFocus = null;
 
         let projectLightbox = null;
         let projectLightboxPlaylist = null;
@@ -4380,15 +4381,26 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
         function closeProjectModal() {
             if (projectModal) {
+                try {
+                    const active = document.activeElement;
+                    if (active && projectModal.contains(active)) {
+                        active.blur();
+                    }
+                } catch {}
                 projectModal.classList.remove('active');
                 projectModal.classList.remove('is-compact');
                 projectModal.classList.remove('has-gallery');
                 projectModal.setAttribute('aria-hidden', 'true');
+                projectModal.setAttribute('inert', '');
             }
             if (projectModalMedia) {
                 projectModalMedia.innerHTML = '';
             }
             closeProjectLightbox();
+            if (projectModalLastFocus && typeof projectModalLastFocus.focus === 'function') {
+                try { projectModalLastFocus.focus(); } catch {}
+            }
+            projectModalLastFocus = null;
         }
 
         function openProjectModalFromItem(item) {
@@ -4412,8 +4424,13 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             if (projectModalCategory) projectModalCategory.textContent = category;
             if (projectModalDescription) projectModalDescription.textContent = description;
 
+            projectModalLastFocus = document.activeElement;
+            projectModal.removeAttribute('inert');
             projectModal.setAttribute('aria-hidden', 'false');
             projectModal.classList.add('active');
+            if (projectModalClose) {
+                try { projectModalClose.focus(); } catch {}
+            }
 
             if (projectModalMedia) {
                 projectModalMedia.innerHTML = '';
