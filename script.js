@@ -1008,11 +1008,20 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
             raw = raw.replace(/\\/g, '/');
             raw = raw.replace(/^file:\/*/i, '');
+            const hadDrivePrefix = /^[a-z]:\//i.test(raw);
             raw = raw.replace(/^[a-z]:\//i, '');
             raw = raw.replace(/^(\.\/)+/, '');
             raw = raw.replace(/^\/+/, '');
 
             const lower = raw.toLowerCase();
+            const isLegacyLocal = hadDrivePrefix || lower.includes('c:/') || lower.includes('/users/') || lower.includes('users/');
+            if (isLegacyLocal) {
+                const filenameOnly = raw.replace(/^.*\//, '').trim();
+                if (filenameOnly) {
+                    const folder = getPreferredMediaFolderName();
+                    return `./${folder}/${filenameOnly}${suffix}`;
+                }
+            }
             const marker = '/media/';
             let idx = lower.lastIndexOf(marker);
             if (idx >= 0) {
@@ -1846,7 +1855,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     const fallbackThumb = youtubeId ? getYoutubeThumbUrl(youtubeId) : '';
                     const thumb = normalize(thumbRaw) || normalize(fallbackThumb);
                     if (!thumb) return '';
-                    return `<img src="${thumb}" alt="" loading="lazy">`;
+                    return `<img src="${thumb}" alt="" loading="lazy" onerror="this.onerror=null; this.src=getHailifuPlaceholderDataUri('HAILIFU')">`;
                 }
                 if (type === 'video') {
                     const src = normalize(srcRaw);
@@ -1855,7 +1864,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 }
                 const src = normalize(srcRaw);
                 if (!src) return '';
-                return `<img src="${src}" alt="" loading="lazy">`;
+                return `<img src="${src}" alt="" loading="lazy" onerror="this.onerror=null; this.src=getHailifuPlaceholderDataUri('HAILIFU')">`;
             };
 
             adminLazyLoopTrack.innerHTML = featured.map((p) => {
@@ -2754,9 +2763,11 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const featureChecked = featured ? 'checked' : '';
                 const resolvedMediaSrc = normalizeProjectMediaPath(p.mediaSrc);
                 const resolvedThumbSrc = normalizeProjectMediaPath(p.thumbSrc || p.mediaSrc);
+                const assetPath = p.mediaType === 'video' ? resolvedMediaSrc : (resolvedThumbSrc || resolvedMediaSrc);
+                if (assetPath) console.log('Loading Asset:', assetPath);
                 const thumb = p.mediaType === 'video'
                     ? `<video src="${resolvedMediaSrc}" muted playsinline webkit-playsinline loop autoplay preload="metadata"></video>`
-                    : `<img src="${resolvedThumbSrc || resolvedMediaSrc}" alt="${safeTitle}" loading="lazy">`;
+                    : `<img src="${resolvedThumbSrc || resolvedMediaSrc}" alt="${safeTitle}" loading="lazy" onerror="this.onerror=null; this.src=getHailifuPlaceholderDataUri('HAILIFU')">`;
 
                 return `<div class="project-thumb" data-admin-project-id="${p.id}">${thumb}<button class="${starClass}" type="button" data-star-project-id="${p.id}" aria-label="${starLabel}"><i class="fas fa-star"></i></button><button class="project-delete" type="button" data-delete-project-id="${p.id}" aria-label="Delete project"><i class="fas fa-trash"></i></button><label class="project-feature-toggle"><input type="checkbox" ${featureChecked} data-feature-project-id="${p.id}"><span>Feature in Lazy Loop</span></label><div style="position:absolute; left:8px; bottom:8px; right:8px; font-size:0.8rem; background: rgba(0,0,0,0.55); padding:6px 8px; border-radius:10px;">${safeTitle}</div></div>`;
             }).join('');
