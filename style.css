@@ -6031,6 +6031,18 @@
         .project-modal.active {
             display: flex;
         }
+
+        .project-modal[aria-hidden="true"] {
+            display: none !important;
+            pointer-events: none;
+        }
+
+        .project-modal[aria-hidden="false"] {
+            display: flex !important;
+            pointer-events: all;
+            opacity: 1;
+            visibility: visible;
+        }
  
         .project-modal-dialog {
             width: min(920px, 100%);

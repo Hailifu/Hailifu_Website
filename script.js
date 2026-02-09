@@ -4391,7 +4391,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 projectModal.classList.remove('is-compact');
                 projectModal.classList.remove('has-gallery');
                 projectModal.setAttribute('aria-hidden', 'true');
-                projectModal.setAttribute('inert', '');
+                document.querySelector('main').removeAttribute('inert');
             }
             if (projectModalMedia) {
                 projectModalMedia.innerHTML = '';
@@ -4425,12 +4425,13 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             if (projectModalDescription) projectModalDescription.textContent = description;
 
             projectModalLastFocus = document.activeElement;
+            document.querySelector('main').setAttribute('inert', '');
+
+            const modal = document.getElementById('projectModal');
+            modal.setAttribute('aria-hidden', 'false');
+            modal.classList.add('active');
+            setTimeout(() => { document.getElementById('projectModalClose').focus(); }, 100);
             projectModal.removeAttribute('inert');
-            projectModal.setAttribute('aria-hidden', 'false');
-            projectModal.classList.add('active');
-            if (projectModalClose) {
-                try { projectModalClose.focus(); } catch {}
-            }
 
             if (projectModalMedia) {
                 projectModalMedia.innerHTML = '';
@@ -4486,7 +4487,9 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                                 projectModalMedia.appendChild(video);
                             } else {
                                 const img = document.createElement('img');
-                                img.src = item.dataset.mediaSrc;
+                                const imagePath = item.dataset.mediaSrc;
+                                console.log("Setting Modal Image to:", imagePath);
+                                img.src = imagePath;
                                 img.alt = title;
                                 projectModalMedia.appendChild(img);
                             }
