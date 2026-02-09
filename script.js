@@ -9,12 +9,12 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         const heroVideo = document.getElementById('heroVideo');
         const heroFallbackImage = document.getElementById('heroFallbackImage');
         const header = document.getElementById('header');
-        const navLinks = document.querySelectorAll('.global-nav-links a[href^="#"]');
-        const globalNavToggle = document.getElementById('globalNavToggle');
-        const globalNav = document.getElementById('globalNav');
-        const globalNavSearch = document.getElementById('globalNavSearch');
-        const keywordWelcome = document.getElementById('keywordWelcome');
+        const navLinks = document.querySelectorAll('#nav a[href^="#"]');
+        const mobileToggle = document.getElementById('mobileToggle');
+        const navMenu = document.getElementById('nav');
         const servicesTitleCta = document.getElementById('servicesTitleCta');
+        const shortcutSidebar = document.getElementById('shortcutSidebar');
+        const shortcutSidebarTab = document.getElementById('shortcutSidebarTab');
         const themeToggle = document.getElementById('themeToggle');
 
         function shouldSkipHeroVideo() {
@@ -119,24 +119,6 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 featuredCategory: 'gates',
                 showcaseCategory: 'gates'
             },
-            fencing: {
-                scrollSectionId: 'services',
-                cardId: 'service-fencing',
-                featuredCategory: 'fencing',
-                showcaseCategory: 'fencing'
-            },
-            fence: {
-                scrollSectionId: 'services',
-                cardId: 'service-fencing',
-                featuredCategory: 'fencing',
-                showcaseCategory: 'fencing'
-            },
-            electricfence: {
-                scrollSectionId: 'services',
-                cardId: 'service-fencing',
-                featuredCategory: 'fencing',
-                showcaseCategory: 'fencing'
-            },
             ac: {
                 scrollSectionId: 'services',
                 cardId: 'service-airconditioning',
@@ -155,29 +137,17 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 featuredCategory: 'airconditioning',
                 showcaseCategory: 'airconditioning'
             },
-            airconditioner: {
-                scrollSectionId: 'services',
-                cardId: 'service-airconditioning',
-                featuredCategory: 'airconditioning',
-                showcaseCategory: 'airconditioning'
-            },
             blinds: {
                 scrollSectionId: 'services',
                 cardId: 'service-blindcurtain',
                 featuredCategory: 'blindcurtain',
-                showcaseCategory: 'blindcurtain'
-            },
-            windowblinds: {
-                scrollSectionId: 'services',
-                cardId: 'service-blindcurtain',
-                featuredCategory: 'blindcurtain',
-                showcaseCategory: 'blindcurtain'
+                showcaseCategory: 'smartwindows'
             },
             blindcurtain: {
                 scrollSectionId: 'services',
                 cardId: 'service-blindcurtain',
                 featuredCategory: 'blindcurtain',
-                showcaseCategory: 'blindcurtain'
+                showcaseCategory: 'smartwindows'
             }
         };
 
@@ -371,75 +341,36 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         let adminLazyLoopSlides = [];
 
         const themeStorageKey = 'hailifu_theme';
-        const themeOptions = ['system', 'light', 'dark'];
-        const themeMedia = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
 
-        function resolveSystemTheme() {
-            if (!themeMedia) return 'dark';
-            return themeMedia.matches ? 'dark' : 'light';
-        }
-
-        function updateThemeToggleUI(preference, resolved) {
-            const label = preference === 'system' ? 'System' : (preference === 'light' ? 'Light' : 'Dark');
-            if (themeToggle) {
-                themeToggle.setAttribute('data-theme-mode', preference);
-                themeToggle.setAttribute('aria-label', `Theme: ${label}`);
-                themeToggle.setAttribute('aria-pressed', String(resolved === 'light'));
-                const labelEl = themeToggle.querySelector('.theme-toggle-label');
-                if (labelEl) labelEl.textContent = label;
-                const icon = themeToggle.querySelector('i');
-                if (icon) {
-                    icon.className = preference === 'system'
-                        ? 'fas fa-desktop'
-                        : (resolved === 'light' ? 'fas fa-sun' : 'fas fa-moon');
-                }
-            }
-
-            document.querySelectorAll('[data-theme-select]').forEach((btn) => {
-                btn.classList.toggle('active', btn.dataset.themeSelect === preference);
-            });
+        function applyTheme(theme) {
+            const normalized = theme === 'light' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', normalized === 'light' ? 'light' : 'dark');
+            if (themeToggle) themeToggle.setAttribute('aria-pressed', String(normalized === 'light'));
 
             const hubThemeBtn = document.getElementById('actionHubTheme');
             if (hubThemeBtn) {
                 const icon = hubThemeBtn.querySelector('i');
                 if (icon) {
-                    icon.className = preference === 'system'
-                        ? 'fas fa-desktop'
-                        : (resolved === 'light' ? 'fas fa-sun' : 'fas fa-moon');
+                    icon.classList.toggle('fa-moon', normalized !== 'light');
+                    icon.classList.toggle('fa-sun', normalized === 'light');
                 }
             }
         }
 
-        function applyTheme(preference) {
-            const normalized = themeOptions.includes(preference) ? preference : 'system';
-            const resolved = normalized === 'system' ? resolveSystemTheme() : normalized;
-            document.documentElement.setAttribute('data-theme', resolved);
-            document.documentElement.setAttribute('data-theme-pref', normalized);
-            localStorage.setItem(themeStorageKey, normalized);
-            updateThemeToggleUI(normalized, resolved);
-        }
-
         function getInitialTheme() {
             const stored = String(localStorage.getItem(themeStorageKey) || '').trim().toLowerCase();
-            if (themeOptions.includes(stored)) return stored;
-            return 'system';
+            if (stored === 'light' || stored === 'dark') return stored;
+            return 'dark';
         }
 
-        function cycleTheme() {
-            const current = String(document.documentElement.getAttribute('data-theme-pref') || '').toLowerCase() || 'system';
-            const idx = Math.max(0, themeOptions.indexOf(current));
-            const next = themeOptions[(idx + 1) % themeOptions.length];
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+            const next = current === 'light' ? 'dark' : 'light';
             applyTheme(next);
+            localStorage.setItem(themeStorageKey, next);
         }
 
         applyTheme(getInitialTheme());
-
-        if (themeMedia) {
-            themeMedia.addEventListener('change', () => {
-                const pref = String(document.documentElement.getAttribute('data-theme-pref') || '').toLowerCase();
-                if (pref === 'system') applyTheme('system');
-            });
-        }
 
         if (themeToggle) {
             themeToggle.addEventListener('click', () => {
@@ -447,18 +378,12 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 requestAnimationFrame(() => {
                     themeToggle.classList.add('is-rotating');
                 });
-                cycleTheme();
+                toggleTheme();
             });
             themeToggle.addEventListener('animationend', () => {
                 themeToggle.classList.remove('is-rotating');
             });
         }
-
-        document.querySelectorAll('[data-theme-select]').forEach((btn) => {
-            btn.addEventListener('click', () => {
-                applyTheme(btn.dataset.themeSelect || 'system');
-            });
-        });
 
         function readJsonStorage(key, fallback) {
             try {
@@ -1089,80 +1014,24 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             writeJsonStorage('hailifu_review_settings', { ...current, ...settings });
         }
 
-        const defaultReviewsSeed = [
-            { id: 'seed-01', name: 'Daouda', rating: 5, comment: 'Clean CCTV install and neat cabling. The team was professional from start to finish.', ownerReply: 'Thank you, Daouda. We appreciate the trust and the kind words.', status: 'approved', date: '2025-10-12' },
-            { id: 'seed-02', name: 'Shaibu Salifu', rating: 5, comment: 'Electrical installation was handled safely and on time. Great communication.', ownerReply: 'We are grateful for the feedback, Shaibu. Thank you for choosing Hailifu.', status: 'approved', date: '2025-10-20' },
-            { id: 'seed-03', name: 'Salifu', rating: 5, comment: 'Automated gate is smooth and secure. The setup looks premium.', ownerReply: 'Thanks, Salifu. We are glad the gate system is performing well.', status: 'approved', date: '2025-11-02' },
-            { id: 'seed-04', name: 'Amina S.', rating: 5, comment: 'Fast response and clear explanations. The AC install was spotless.', ownerReply: 'Thank you, Amina. Happy to support your comfort upgrade.', status: 'approved', date: '2025-11-05' },
-            { id: 'seed-05', name: 'Kofi Mensah', rating: 5, comment: 'Electric fence system feels solid and reliable. Great workmanship.', ownerReply: 'We appreciate the review, Kofi. Your security is our priority.', status: 'approved', date: '2025-11-09' },
-            { id: 'seed-06', name: 'Nana Boateng', rating: 5, comment: 'CCTV layout was well planned and coverage is excellent.', ownerReply: 'Thanks, Nana. We are glad the coverage meets your expectations.', status: 'approved', date: '2025-11-12' },
-            { id: 'seed-07', name: 'Abena K.', rating: 5, comment: 'Window blinds were fitted perfectly with a clean finish.', ownerReply: 'Thank you, Abena. We are happy you love the finish.', status: 'approved', date: '2025-11-18' },
-            { id: 'seed-08', name: 'Abdul Razak', rating: 5, comment: 'Excellent electrical installation and tidy wiring. Highly recommended.', ownerReply: 'Appreciate it, Abdul. Thank you for trusting our team.', status: 'approved', date: '2025-11-21' },
-            { id: 'seed-09', name: 'Lydia A.', rating: 5, comment: 'Gate automation works smoothly and the safety sensors are responsive.', ownerReply: 'Thanks, Lydia. We are glad the system is working flawlessly.', status: 'approved', date: '2025-11-24' },
-            { id: 'seed-10', name: 'Josephine B.', rating: 5, comment: 'AC installation was efficient and the space cools quickly now.', ownerReply: 'Thank you, Josephine. Enjoy the new AC setup.', status: 'approved', date: '2025-11-28' },
-            { id: 'seed-11', name: 'Emmanuel T.', rating: 5, comment: 'CCTV installation was precise with no mess left behind.', ownerReply: 'Thanks, Emmanuel. We pride ourselves on clean installs.', status: 'approved', date: '2025-12-01' },
-            { id: 'seed-12', name: 'Rita P.', rating: 5, comment: 'Electric fence and gate integration feels very secure.', ownerReply: 'We appreciate the review, Rita. Security comes first.', status: 'approved', date: '2025-12-04' },
-            { id: 'seed-13', name: 'Kwame A.', rating: 5, comment: 'Professional team, clear pricing, and quality electrical work.', ownerReply: 'Thank you, Kwame. We are happy to help.', status: 'approved', date: '2025-12-07' },
-            { id: 'seed-14', name: 'Hafsa M.', rating: 5, comment: 'Window blinds installation was fast and the alignment is perfect.', ownerReply: 'Thanks, Hafsa. We appreciate the feedback.', status: 'approved', date: '2025-12-10' },
-            { id: 'seed-15', name: 'Ibrahim K.', rating: 5, comment: 'AC install was smooth and the unit runs quietly.', ownerReply: 'Thank you, Ibrahim. Enjoy the comfort.', status: 'approved', date: '2025-12-14' },
-            { id: 'seed-16', name: 'Esther D.', rating: 5, comment: 'CCTV coverage is excellent and the app setup was easy.', ownerReply: 'Glad to hear it, Esther. Thank you for the review.', status: 'approved', date: '2025-12-18' },
-            { id: 'seed-17', name: 'Kojo A.', rating: 5, comment: 'Gate automation feels premium and secure.', ownerReply: 'Thanks, Kojo. We appreciate your trust.', status: 'approved', date: '2025-12-21' },
-            { id: 'seed-18', name: 'Fatima S.', rating: 5, comment: 'Electrical installation was done neatly and quickly.', ownerReply: 'Thank you, Fatima. We are glad you are satisfied.', status: 'approved', date: '2025-12-24' },
-            { id: 'seed-19', name: 'Mohammed A.', rating: 5, comment: 'Electric fence setup was secure and cleanly installed.', ownerReply: 'Thanks, Mohammed. We value your feedback.', status: 'approved', date: '2025-12-27' },
-            { id: 'seed-20', name: 'Sheila N.', rating: 5, comment: 'CCTV installation was quick with clear training provided.', ownerReply: 'Thank you, Sheila. Happy to support.', status: 'approved', date: '2025-12-30' },
-            { id: 'seed-21', name: 'John A.', rating: 5, comment: 'Window blinds look great and operate smoothly.', ownerReply: 'Thanks, John. We appreciate the review.', status: 'approved', date: '2026-01-03' },
-            { id: 'seed-22', name: 'Angela K.', rating: 5, comment: 'Reliable team with high quality electrical installation.', ownerReply: 'Thank you, Angela. We are grateful.', status: 'approved', date: '2026-01-06' }
-        ];
-
         function getReviews() {
-            const stored = readJsonStorage('hailifu_reviews', []);
-            const list = Array.isArray(stored) ? stored : [];
-            if (list.length) return list;
-            const seeded = defaultReviewsSeed.map((review) => ({ ...review }));
-            saveReviews(seeded);
-            return seeded;
+            return readJsonStorage('hailifu_reviews', []);
         }
 
         function saveReviews(reviews) {
             writeJsonStorage('hailifu_reviews', reviews);
         }
 
-        function updateReviewCountLabels(reviews) {
-            const approved = Array.isArray(reviews)
-                ? reviews.filter((review) => review.status === 'approved')
-                : [];
-            const count = approved.length || (Array.isArray(reviews) ? reviews.length : 0);
-            const countEls = [
-                document.getElementById('reviewCountLarge'),
-                document.getElementById('reviewCountHeader'),
-                document.getElementById('reviewCountCta')
-            ];
-            countEls.filter(Boolean).forEach((el) => {
-                el.textContent = String(count);
-            });
-        }
-
         function renderPublicReviews() {
             const publicGrid = document.getElementById('publicReviewsGrid');
             if (!publicGrid) return;
-            const emptyState = document.getElementById('publicReviewsEmpty');
             const reviews = getReviews().filter((review) => review.status === 'approved');
-            updateReviewCountLabels(getReviews());
-            if (!reviews.length) {
-                if (emptyState) emptyState.style.display = 'block';
-                publicGrid.innerHTML = '';
-                return;
-            }
-            if (emptyState) emptyState.style.display = 'none';
+            if (!reviews.length) return;
             publicGrid.innerHTML = reviews.slice(0, 12).map((review) => {
                 const name = String(review.name || 'Customer').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 const comment = String(review.comment || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                const reply = String(review.ownerReply || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').trim();
                 const rating = Math.max(1, Math.min(5, Number(review.rating) || 5));
-                const stars = '&#9733;'.repeat(rating) + '&#9734;'.repeat(Math.max(0, 5 - rating));
-                const replyMarkup = reply
-                    ? `<div class="review-owner-reply"><span>Owner Reply</span><p>${reply}</p></div>`
-                    : '';
+                const stars = 'â˜…â˜…â˜…â˜…â˜…'.slice(0, rating).padEnd(5, 'â˜…');
                 return `
                     <article class="hailifu-review-card">
                         <div class="hailifu-review-card-header">
@@ -1170,14 +1039,12 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                             <span class="hailifu-review-score">${stars}</span>
                         </div>
                         <p>"${comment}"</p>
-                        ${replyMarkup}
                     </article>
                 `;
             }).join('');
         }
 
         function renderAdminReviews() {
-) {
             if (!pendingReviewsGrid || !approvedReviewsGrid) return;
             const reviews = getReviews();
             const pending = reviews.filter((review) => review.status === 'pending');
@@ -1186,7 +1053,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const name = String(review.name || 'Customer').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 const comment = String(review.comment || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 const rating = Math.max(1, Math.min(5, Number(review.rating) || 5));
-                const stars = '&#9733;'.repeat(rating) + '&#9734;'.repeat(Math.max(0, 5 - rating));
+                const stars = 'â˜…â˜…â˜…â˜…â˜…'.slice(0, rating).padEnd(5, 'â˜…');
                 const actions = statusLabel === 'pending'
                     ? `<button type="button" data-review-approve="${review.id}">Approve</button>`
                     : '';
@@ -1210,7 +1077,6 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             approvedReviewsGrid.innerHTML = approved.length
                 ? approved.map((review) => renderCard(review, 'approved')).join('')
                 : '<div class="admin-empty">No approved reviews.</div>';
-            updateReviewCountLabels(reviews);
         }
 
         function refreshOverview() {
@@ -1602,7 +1468,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
                                         <div class="interest-row">
                                             <div class="interest-label">
-                                                <span>Air Conditioner</span>
+                                                <span>Air Conditioning</span>
                                                 <strong id="interestAirconditioningCount">0</strong>
                                             </div>
                                             <div class="interest-bar"><div class="interest-fill" id="interestAirconditioning"></div></div>
@@ -1610,7 +1476,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
                                         <div class="interest-row">
                                             <div class="interest-label">
-                                                <span>Window Blinds</span>
+                                                <span>Smart Window Solutions</span>
                                                 <strong id="interestBlindcurtainCount">0</strong>
                                             </div>
                                             <div class="interest-bar"><div class="interest-fill" id="interestBlindcurtain"></div></div>
@@ -1712,10 +1578,11 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                                         <select id="projectCategory">
                                             <option value="cctv">CCTV</option>
                                             <option value="electrical">Electrical</option>
-                                            <option value="airconditioning">Air Conditioner</option>
-                                            <option value="blindcurtain">Window Blinds</option>
+                                            <option value="airconditioning">Air Conditioning</option>
+                                            <option value="blindcurtain">Smart Window Solutions</option>
                                             <option value="gates">Automated Gates</option>
                                             <option value="fencing">Electric Fencing</option>
+                                            <option value="smarthome">Smart Home</option>
                                         </select>
                                     </div>
                                     <div class="form-group">
@@ -2838,14 +2705,14 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 smartwindows: 'blindcurtain'
             };
             const categoryLabelMap = {
-                cctv: 'CCTV Installation',
-                electrical: 'Electrical Installation',
-                airconditioning: 'Air Conditioner',
+                cctv: 'CCTV',
+                electrical: 'Electrical',
+                airconditioning: 'Air Conditioning',
                 gates: 'Automated Gates',
-                fencing: 'Electric Fence',
+                fencing: 'Electric Fencing',
                 smarthome: 'Smart Home',
-                smartwindows: 'Window Blinds',
-                blindcurtain: 'Window Blinds'
+                smartwindows: 'Smart Window Solutions',
+                blindcurtain: 'Smart Window Solutions'
             };
 
             const pickProjectForSlot = (slotCategory) => {
@@ -3391,13 +3258,13 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             if (!featuredBento) return;
 
             const categoryLabelMap = {
-                cctv: 'CCTV Installation',
-                electrical: 'Electrical Installation',
-                airconditioning: 'Air Conditioner',
+                cctv: 'CCTV',
+                electrical: 'Electrical',
+                airconditioning: 'Air Conditioning',
                 gates: 'Automated Gates',
-                fencing: 'Electric Fence',
+                fencing: 'Electric Fencing',
                 smarthome: 'Smart Home',
-                blindcurtain: 'Window Blinds'
+                blindcurtain: 'Smart Window Solutions'
             };
 
             const projects = getProjects();
@@ -3747,8 +3614,8 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 question: 'For Air Conditioning, is it installation, servicing, or repairs?'
             },
             blindcurtain: {
-                label: 'Window Blinds',
-                question: 'For Window Blinds, do you want manual blinds, motorized blinds, or a full automation setup?'
+                label: 'Smart Window Solutions',
+                question: 'For Smart Window Solutions, do you want motorized blinds, automated curtains, or a full smart window setup?'
             }
         };
 
@@ -3795,7 +3662,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             clearChatMessages();
 
             const serviceGreeting = getServiceGreeting(deepLinkServiceKey);
-            const greetingText = serviceGreeting || 'Welcome to Hailifu! I can help you with a quick quote. Are you interested in CCTV Installation, Electrical Installation, Electric Fence, Air Conditioner, Window Blinds, or Automated Gates?';
+            const greetingText = serviceGreeting || 'Welcome to Hailifu! I can help you with a quick quote. Are you interested in CCTV, Gate Automation, Electrical Wiring, Air Conditioning, or Smart Window Solutions?';
 
             addMessage('bot', `${greetingText}
                 <div class="brilliant-quick-actions">
@@ -3803,7 +3670,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     <button class="brilliant-quick-btn" type="button" data-assistant-service="gates">Gate Automation</button>
                     <button class="brilliant-quick-btn" type="button" data-assistant-service="electrical">Electrical Wiring</button>
                     <button class="brilliant-quick-btn" type="button" data-assistant-service="airconditioning">Air Conditioning</button>
-                    <button class="brilliant-quick-btn" type="button" data-assistant-service="blindcurtain">Window Blinds</button>
+                    <button class="brilliant-quick-btn" type="button" data-assistant-service="blindcurtain">Smart Window Solutions</button>
                 </div>`);
         }
 
@@ -3849,7 +3716,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const key = normalizeService(value) || value.toLowerCase();
                 const serviceKey = assistantCatalog[key] ? key : normalizeService(value);
                 if (!serviceKey || !assistantCatalog[serviceKey]) {
-                    addMessage('bot', 'Please choose: CCTV Installation, Electrical Installation, Electric Fence, Air Conditioner, Window Blinds, or Automated Gates.');
+                    addMessage('bot', 'Please choose: CCTV, Gate Automation, Electrical Wiring, Air Conditioning, or Smart Window Solutions.');
                     return;
                 }
                 assistantState.serviceKey = serviceKey;
@@ -3970,7 +3837,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             actionHubTheme.addEventListener('click', (e) => {
                 e.preventDefault();
                 setActionHubOpen(false);
-                cycleTheme();
+                toggleTheme();
             });
         }
 
@@ -4468,12 +4335,13 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
             const projects = getProjects();
             const categoryLabelMap = {
-                cctv: 'CCTV Installation',
-                electrical: 'Electrical Installation',
-                airconditioning: 'Air Conditioner',
+                cctv: 'CCTV',
+                electrical: 'Electrical',
+                airconditioning: 'Air Conditioning',
                 gates: 'Automated Gates',
-                fencing: 'Electric Fence',
-                blindcurtain: 'Window Blinds'
+                fencing: 'Electric Fencing',
+                smarthome: 'Smart Home',
+                blindcurtain: 'Smart Window Solutions'
             };
 
             const serviceIdToCategory = {
@@ -4481,6 +4349,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 'service-electrical': 'electrical',
                 'service-gates': 'gates',
                 'service-fencing': 'fencing',
+                'service-smarthome': 'smarthome',
                 'service-airconditioning': 'airconditioning',
                 'service-blindcurtain': 'blindcurtain'
             };
@@ -4647,11 +4516,12 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         function setQuoteService(serviceKey) {
             const labelMap = {
                 cctv: 'CCTV Installation',
-                electrical: 'Electrical Installation',
-                airconditioning: 'Air Conditioner',
+                electrical: 'Electrical Wiring',
+                airconditioning: 'Air Conditioning',
                 gates: 'Automated Gates',
-                fencing: 'Electric Fence',
-                blindcurtain: 'Window Blinds'
+                fencing: 'Electric Fencing',
+                smarthome: 'Smart Home System',
+                blindcurtain: 'Smart Window Solutions'
             };
             const iconMap = {
                 cctv: 'fa-video',
@@ -4659,6 +4529,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 airconditioning: 'fa-snowflake',
                 gates: 'fa-door-open',
                 fencing: 'fa-shield-alt',
+                smarthome: 'fa-house',
                 blindcurtain: 'fa-grip-lines-vertical'
             };
 
@@ -4712,14 +4583,14 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             });
         }
 
-        document.querySelectorAll('#service-cctv, #service-electrical, #service-airconditioning, #service-gates, #service-fencing, #service-blindcurtain').forEach((card) => {
+        document.querySelectorAll('#service-cctv, #service-electrical, #service-airconditioning, #service-gates, #service-fencing, #service-smarthome, #service-blindcurtain').forEach((card) => {
             card.setAttribute('role', 'button');
             card.tabIndex = 0;
 
             card.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    const category = card.getAttribute('data-category') || card.dataset?.serviceCategory || card.dataset?.category || '';
+                    const category = card.getAttribute('data-category') || card.dataset?.category || '';
                     if (typeof window.openMediaRoom === 'function') window.openMediaRoom(category);
                 }
             });
@@ -4798,166 +4669,242 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         updateHeaderScrolled();
         window.addEventListener('scroll', updateHeaderScrolled, { passive: true });
 
-                const closeGlobalNav = () => {
-            if (!globalNav) return;
-            globalNav.classList.remove('active');
-            globalNav.setAttribute('aria-hidden', 'true');
-            document.body.classList.remove('global-nav-open');
-            if (globalNavToggle) globalNavToggle.setAttribute('aria-expanded', 'false');
-        };
-
-        const openGlobalNav = () => {
-            if (!globalNav) return;
-            globalNav.classList.add('active');
-            globalNav.setAttribute('aria-hidden', 'false');
-            document.body.classList.add('global-nav-open');
-            if (globalNavToggle) globalNavToggle.setAttribute('aria-expanded', 'true');
-            if (globalNavSearch) {
-                try { globalNavSearch.focus(); } catch {}
+        const closeMobileNav = () => {
+            if (navMenu) navMenu.classList.remove('active');
+            if (mobileToggle) {
+                mobileToggle.classList.remove('active');
+                mobileToggle.setAttribute('aria-expanded', 'false');
             }
         };
 
-        const toggleGlobalNav = () => {
-            if (!globalNav) return;
-            if (globalNav.classList.contains('active')) closeGlobalNav();
-            else openGlobalNav();
+        const toggleMobileNav = () => {
+            if (!navMenu || !mobileToggle) return;
+            const nextOpen = !navMenu.classList.contains('active');
+            navMenu.classList.toggle('active', nextOpen);
+            mobileToggle.classList.toggle('active', nextOpen);
+            mobileToggle.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
         };
-
-        if (globalNavToggle && globalNav) {
-            globalNavToggle.setAttribute('aria-expanded', 'false');
-            globalNavToggle.addEventListener('click', (e) => {
-                e.preventDefault();
-                toggleGlobalNav();
-            });
-        }
-
-        document.querySelectorAll('[data-global-nav-close]').forEach((btn) => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                closeGlobalNav();
-            });
-        });
 
         if (navLinks.length) {
             navLinks.forEach((link) => {
                 link.addEventListener('click', (e) => {
                     const href = link.getAttribute('href') || '';
+
                     if (!href.startsWith('#')) return;
                     const target = document.querySelector(href);
                     if (!target) return;
                     e.preventDefault();
+
+                    if (shortcutSidebar?.classList?.contains('is-open')) {
+                        shortcutSidebar.classList.remove('is-open');
+                        shortcutSidebarTab?.setAttribute('aria-expanded', 'false');
+                    }
+
                     target.scrollIntoView({ behavior: 'smooth' });
-                    closeGlobalNav();
+                    closeMobileNav();
                 });
             });
         }
 
-        document.addEventListener('keydown', (e) => {
-            if (e.key !== 'Escape') return;
-            if (globalNav && globalNav.classList.contains('active')) closeGlobalNav();
-        });
-
-        document.querySelectorAll('[data-quote-service]').forEach((btn) => {
-            btn.addEventListener('click', (e) => {
+        if (mobileToggle && navMenu) {
+            mobileToggle.setAttribute('aria-expanded', 'false');
+            mobileToggle.addEventListener('click', (e) => {
                 e.preventDefault();
-                setQuoteService(btn.dataset.quoteService || '');
-                openQuotePopup();
-                closeGlobalNav();
-            });
-        });
-
-        document.querySelectorAll('[data-quote-open]').forEach((btn) => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                setQuoteService(btn.dataset.quoteService || popupService?.value || '');
-                openQuotePopup();
-                closeGlobalNav();
-            });
-        });
-
-        const keywordWelcomeMessage = document.getElementById('keywordWelcomeMessage');
-        const keywordTerms = ['installation', 'cctv', 'electrician', 'service', 'installer', 'technician', 'accra', 'ghana'];
-        const keywordServiceMap = {
-            cctv: ['service-cctv'],
-            electrician: ['service-electrical'],
-            installation: ['service-cctv', 'service-electrical', 'service-fencing', 'service-airconditioning', 'service-blindcurtain', 'service-gates'],
-            service: ['service-cctv', 'service-electrical', 'service-fencing', 'service-airconditioning', 'service-blindcurtain', 'service-gates'],
-            installer: ['service-cctv', 'service-electrical', 'service-fencing', 'service-airconditioning', 'service-blindcurtain', 'service-gates'],
-            technician: ['service-electrical', 'service-airconditioning'],
-            accra: ['service-cctv', 'service-electrical', 'service-fencing', 'service-airconditioning', 'service-blindcurtain', 'service-gates'],
-            ghana: ['service-cctv', 'service-electrical', 'service-fencing', 'service-airconditioning', 'service-blindcurtain', 'service-gates']
-        };
-
-        const clearServiceHighlights = () => {
-            document.querySelectorAll('#services .services-grid .card').forEach((card) => {
-                card.classList.remove('is-keyword-highlight');
-            });
-        };
-
-        const highlightServicesForTerm = (term) => {
-            clearServiceHighlights();
-            const keys = keywordServiceMap[term] || [];
-            keys.forEach((id) => {
-                const card = document.getElementById(id);
-                if (card) card.classList.add('is-keyword-highlight');
-            });
-        };
-
-        let keywordWelcomeShown = false;
-        const showKeywordWelcome = (term) => {
-            if (!keywordWelcome || keywordWelcomeShown) return;
-            keywordWelcomeShown = true;
-            const message = term
-                ? `We noticed "${term}". A specialist can help right away.`
-                : 'We have specialists ready for your request.';
-            if (keywordWelcomeMessage) keywordWelcomeMessage.textContent = message;
-            keywordWelcome.classList.add('active');
-            keywordWelcome.setAttribute('aria-hidden', 'false');
-        };
-
-        const closeKeywordWelcome = () => {
-            if (!keywordWelcome) return;
-            keywordWelcome.classList.remove('active');
-            keywordWelcome.setAttribute('aria-hidden', 'true');
-        };
-
-        document.querySelectorAll('[data-keyword-close]').forEach((btn) => {
-            btn.addEventListener('click', closeKeywordWelcome);
-        });
-
-        const detectKeywordInText = (value) => {
-            const text = String(value || '').toLowerCase();
-            return keywordTerms.find((term) => text.includes(term));
-        };
-
-        let keywordInputTimer = null;
-        if (globalNavSearch) {
-            globalNavSearch.addEventListener('input', (e) => {
-                const value = e.target.value || '';
-                if (keywordInputTimer) clearTimeout(keywordInputTimer);
-                keywordInputTimer = setTimeout(() => {
-                    const match = detectKeywordInText(value);
-                    if (match) {
-                        highlightServicesForTerm(match);
-                        showKeywordWelcome(match);
-                    }
-                }, 220);
+                toggleMobileNav();
             });
         }
 
-        try {
-            const params = new URLSearchParams(window.location.search || '');
-            const query = String(params.get('q') || params.get('search') || params.get('utm_term') || '').toLowerCase();
-            const referrer = String(document.referrer || '').toLowerCase();
-            const match = detectKeywordInText(query) || detectKeywordInText(referrer);
-            if (match) {
-                highlightServicesForTerm(match);
-                showKeywordWelcome(match);
+        document.addEventListener('click', (e) => {
+            if (!navMenu || !mobileToggle) return;
+            if (!navMenu.classList.contains('active')) return;
+            if (e.target.closest('#nav')) return;
+            if (e.target.closest('#mobileToggle')) return;
+            closeMobileNav();
+        });
+
+        window.addEventListener('resize', () => {
+            try {
+                if (window.matchMedia && window.matchMedia('(min-width: 901px)').matches) {
+                    closeMobileNav();
+                }
+            } catch {}
+        }, { passive: true });
+
+        if (shortcutSidebar && shortcutSidebarTab) {
+            let autoHideTimer = null;
+            let suppressTabClickUntil = 0;
+            const sidebarTopStorageKey = 'hailifu_shortcut_sidebar_top_px';
+
+            const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+            const applySavedSidebarTop = () => {
+                try {
+                    const saved = localStorage.getItem(sidebarTopStorageKey);
+                    if (!saved) return;
+                    const topPx = Number(saved);
+                    if (!Number.isFinite(topPx)) return;
+                    shortcutSidebar.classList.add('is-dragged');
+                    shortcutSidebar.style.top = `${topPx}px`;
+                    shortcutSidebar.style.bottom = 'auto';
+                } catch {}
+            };
+
+            applySavedSidebarTop();
+
+            const initSidebarDrag = () => {
+                let dragging = false;
+                let startPointerY = 0;
+                let startTop = 0;
+                let moved = false;
+
+                const ensurePxTopMode = () => {
+                    const rect = shortcutSidebar.getBoundingClientRect();
+                    shortcutSidebar.classList.add('is-dragged');
+                    shortcutSidebar.style.top = `${rect.top}px`;
+                    shortcutSidebar.style.bottom = 'auto';
+                    startTop = rect.top;
+                };
+
+                const onMove = (e) => {
+                    if (!dragging) return;
+                    const clientY = e.clientY;
+                    const deltaY = clientY - startPointerY;
+                    if (Math.abs(deltaY) > 6) moved = true;
+
+                    const rect = shortcutSidebar.getBoundingClientRect();
+                    const h = rect.height || 0;
+                    const maxTop = Math.max(0, (window.innerHeight || document.documentElement.clientHeight || 0) - h);
+                    const nextTop = clamp(startTop + deltaY, 0, maxTop);
+                    shortcutSidebar.style.top = `${nextTop}px`;
+                };
+
+                const onUp = () => {
+                    if (!dragging) return;
+                    dragging = false;
+                    shortcutSidebar.classList.remove('is-dragging');
+                    try { shortcutSidebarTab.releasePointerCapture?.(pointerId); } catch {}
+
+                    if (moved) {
+                        suppressTabClickUntil = Date.now() + 450;
+                        try {
+                            const topPx = parseFloat(shortcutSidebar.style.top);
+                            if (Number.isFinite(topPx)) {
+                                localStorage.setItem(sidebarTopStorageKey, String(Math.round(topPx)));
+                            }
+                        } catch {}
+                    }
+                };
+
+                let pointerId = null;
+
+                shortcutSidebarTab.addEventListener('pointerdown', (e) => {
+                    if (e.button !== undefined && e.button !== 0) return;
+                    pointerId = e.pointerId;
+                    dragging = true;
+                    moved = false;
+                    startPointerY = e.clientY;
+                    ensurePxTopMode();
+                    shortcutSidebar.classList.add('is-dragging');
+                    clearAutoHide();
+                    try { shortcutSidebarTab.setPointerCapture(pointerId); } catch {}
+                });
+
+                shortcutSidebarTab.addEventListener('pointermove', onMove);
+                shortcutSidebarTab.addEventListener('pointerup', onUp);
+                shortcutSidebarTab.addEventListener('pointercancel', onUp);
+                shortcutSidebarTab.addEventListener('lostpointercapture', onUp);
+            };
+
+            initSidebarDrag();
+            const isOpen = () => shortcutSidebar.classList.contains('is-open');
+            const clearAutoHide = () => {
+                if (autoHideTimer) {
+                    clearTimeout(autoHideTimer);
+                    autoHideTimer = null;
+                }
+            };
+            const scheduleAutoHide = () => {
+                clearAutoHide();
+                autoHideTimer = setTimeout(() => {
+                    closeSidebar();
+                }, 3000);
+            };
+
+            function openSidebar() {
+                if (isOpen()) {
+                    scheduleAutoHide();
+                    return;
+                }
+                shortcutSidebar.classList.add('is-open');
+                shortcutSidebarTab.setAttribute('aria-expanded', 'true');
+                scheduleAutoHide();
             }
-        } catch {}
+
+            function closeSidebar() {
+                clearAutoHide();
+                shortcutSidebar.classList.remove('is-open');
+                shortcutSidebarTab.setAttribute('aria-expanded', 'false');
+            }
+
+            const markInteraction = () => {
+                if (!isOpen()) return;
+                scheduleAutoHide();
+            };
+
+            shortcutSidebarTab.addEventListener('click', (e) => {
+                if (Date.now() < suppressTabClickUntil) {
+                    e.preventDefault();
+                    return;
+                }
+                e.preventDefault();
+                if (isOpen()) {
+                    closeSidebar();
+                } else {
+                    openSidebar();
+                }
+            });
+
+            shortcutSidebar.addEventListener('mouseenter', openSidebar);
+            shortcutSidebar.addEventListener('mousemove', markInteraction);
+            shortcutSidebar.addEventListener('mouseleave', scheduleAutoHide);
+            shortcutSidebar.addEventListener('touchstart', () => {
+                openSidebar();
+            }, { passive: true });
+
+            document.addEventListener('click', (e) => {
+                if (!isOpen()) return;
+                if (shortcutSidebar.contains(e.target)) return;
+                closeSidebar();
+            });
+
+            shortcutSidebar.addEventListener('click', (e) => {
+                const link = e.target.closest('.shortcut-sidebar-link');
+                if (!link) return;
+                closeSidebar();
+            });
+
+            shortcutSidebar.querySelectorAll('[data-shortcut-scroll]').forEach((a) => {
+                a.addEventListener('click', (e) => {
+                    const href = a.getAttribute('href') || '';
+                    if (!href.startsWith('#')) return;
+                    const target = document.querySelector(href);
+                    if (!target) return;
+                    e.preventDefault();
+
+                    closeSidebar();
+                    target.scrollIntoView({ behavior: 'smooth' });
+
+                    if (a.hasAttribute('data-review-modal-open')) {
+                        e.stopPropagation();
+                        setTimeout(() => {
+                            try { openReviewModal(); } catch {}
+                        }, 450);
+                    }
+                });
+            });
+        }
 
         // Scroll Animation Observer
-
         const scrollElements = document.querySelectorAll('.animate-on-scroll');
 
         if (scrollElements.length > 0) {
