@@ -5,7 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hailifu Brilliant Installation | Electrical & CCTV Experts</title>
     <meta name="description" content="Hailifu Brilliant Installation provides professional CCTV installation, electrician services, electric fencing, auto gate service, AC installer and air condition technician support, plus curtain/window blinds and smart window solutions for homes and businesses.">
-    <meta name="keywords" content="CCTV, Electrician, Electric Fencing, Curtain/Window Blinds, AC Installer, Air Condition Technician, Auto Gate Service, CCTV Installation, Electrical Wiring, Automated Gates, Gate Automation, Air Conditioning, Smart Home Setup, Security Systems">
+    <meta name="keywords" content="installation, cctv, electrician, service, installer, technician, Accra Ghana, CCTV Installation, Electrical Installation, Electric Fence, Air Conditioner, Window Blinds, Automated Gates, Gate Automation, Air Conditioning, Security Systems">
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "LocalBusiness",
+            "name": "Hailifu Brilliant Installation",
+            "description": "Professional installation services for CCTV, electrical systems, electric fencing, air conditioning, automated gates, and window blinds.",
+            "areaServed": "Accra, Ghana",
+            "telephone": "+233550997270",
+            "url": "https://hailifu.github.io/Hailifu_Website/",
+            "keywords": [
+                "installation",
+                "cctv",
+                "electrician",
+                "service",
+                "installer",
+                "technician",
+                "Accra Ghana"
+            ]
+        }
+    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -137,34 +157,6 @@
 </head>
  <body>
 
-    <aside class="shortcut-sidebar" id="shortcutSidebar" aria-label="Shortcut Menu">
-        <button class="shortcut-sidebar-tab" id="shortcutSidebarTab" type="button" aria-label="Open shortcut menu" aria-expanded="false">
-            <i class="fas fa-ellipsis-v" aria-hidden="true"></i>
-        </button>
-        <nav class="shortcut-sidebar-panel" aria-label="Shortcut links">
-            <a class="shortcut-sidebar-link" href="#home" data-shortcut-scroll>
-                <i class="fas fa-home" aria-hidden="true"></i>
-                <span>Home</span>
-            </a>
-            <a class="shortcut-sidebar-link" href="#services" data-shortcut-scroll>
-                <i class="fas fa-layer-group" aria-hidden="true"></i>
-                <span>Services</span>
-            </a>
-            <a class="shortcut-sidebar-link" href="#showcase" data-shortcut-scroll>
-                <i class="fas fa-briefcase" aria-hidden="true"></i>
-                <span>Work Showcase</span>
-            </a>
-            <a class="shortcut-sidebar-link" href="#testimonials" data-shortcut-scroll>
-                <i class="fas fa-star" aria-hidden="true"></i>
-                <span>Reviews</span>
-            </a>
-            <a class="shortcut-sidebar-link" href="#testimonials" data-review-modal-open data-shortcut-scroll>
-                <i class="fas fa-pen-nib" aria-hidden="true"></i>
-                <span>Leave 5-Star Review</span>
-            </a>
-        </nav>
-    </aside>
-
     <!-- Sticky Navigation Bar -->
     <header id="header">
         <a href="#home" class="logo" id="headerLogo">
@@ -175,30 +167,74 @@
         </a>
  
         <div class="header-right">
-            <nav id="nav">
-                <a href="#home">Home</a>
-                <a href="#services">Services</a>
-                <a href="#showcase">Work Showcase</a>
-                <a href="#testimonials">Reviews</a>
-            </nav>
             <div class="header-actions">
-                <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme" aria-pressed="false" title="Theme">
-                    <span class="theme-toggle-icon" aria-hidden="true">
-                        <span class="theme-icon theme-icon--moon"><i class="fas fa-moon"></i></span>
-                        <span class="theme-icon theme-icon--sun"><i class="fas fa-sun"></i></span>
-                    </span>
+                <button class="theme-toggle theme-toggle--triple" id="themeToggle" type="button" aria-label="Theme: System" aria-pressed="false" data-theme-mode="system" title="Theme">
+                    <span class="theme-toggle-icon" aria-hidden="true"><i class="fas fa-desktop"></i></span>
+                    <span class="theme-toggle-label">System</span>
                 </button>
             </div>
-            <div class="mobile-menu-toggle" id="mobileToggle">
+            <button class="mobile-menu-toggle global-nav-toggle" id="globalNavToggle" type="button" aria-label="Open menu" aria-expanded="false">
                 <span></span>
                 <span></span>
                 <span></span>
-            </div>
+            </button>
         </div>
     </header>
+
+    <!-- Global Navigation Modal -->
+    <div class="global-nav-modal" id="globalNav" aria-hidden="true">
+        <div class="global-nav-backdrop" data-global-nav-close></div>
+        <div class="global-nav-panel glass-panel" role="dialog" aria-modal="true" aria-label="Global navigation">
+            <div class="global-nav-header">
+                <div class="global-nav-brand">
+                    <span class="global-nav-logo">
+                        <img src="./logo.webp" alt="Hailifu Logo">
+                    </span>
+                    <div>
+                        <div class="global-nav-title">Hailifu Brilliant</div>
+                        <div class="global-nav-subtitle">Premium Installation Studio</div>
+                    </div>
+                </div>
+                <button class="global-nav-close" type="button" data-global-nav-close aria-label="Close menu">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="global-nav-search">
+                <label for="globalNavSearch">Search Services</label>
+                <div class="global-nav-search-field">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="globalNavSearch" placeholder="Search: installation, CCTV, electrician, Accra..." autocomplete="off">
+                </div>
+                <small>Type a service keyword to get a specialist welcome.</small>
+            </div>
+            <div class="global-nav-links" role="navigation" aria-label="Primary">
+                <a href="#home">Home</a>
+                <a href="#services">Services</a>
+                <a href="#showcase">Why Choose Hailifu</a>
+                <a href="#featured-work">Featured Work</a>
+                <a href="#testimonials">Reviews</a>
+            </div>
+            <div class="global-nav-theme">
+                <div class="global-nav-theme-label">Theme</div>
+                <div class="theme-toggle-group" role="radiogroup" aria-label="Theme preference">
+                    <button type="button" class="theme-option" data-theme-select="system">System</button>
+                    <button type="button" class="theme-option" data-theme-select="light">Light</button>
+                    <button type="button" class="theme-option" data-theme-select="dark">Dark</button>
+                </div>
+            </div>
+            <div class="global-nav-cta">
+                <a class="contact-btn" href="#popupOverlay" data-quote-open>
+                    <i class="fas fa-quote-right"></i> Request a Quote
+                </a>
+                <a class="ghost-cta-btn" href="https://wa.me/233550997270" target="_blank" rel="noopener">
+                    <i class="fab fa-whatsapp"></i> WhatsApp Now
+                </a>
+            </div>
+        </div>
+    </div>
  
     <!-- Hero Section -->
-    <section class="hero animate-on-scroll" id="home">
+    <section class="hero animate-on-scroll glass-panel" id="home">
         <div class="hero-video-container" aria-hidden="true">
             <video
                 id="heroVideo"
@@ -216,7 +252,7 @@
             <div class="hero-tag">Certified Security Engineering</div>
             <h1>Hailifu Brilliant Installation</h1>
             <div class="hero-slogan">Where <span class="hero-security">Security</span> Meets <span class="hero-slogan-accent">Innovation</span></div>
-            <p>Professional CCTV, Electrical Wiring, Air Conditioning, Automated Gates, Electric Fencing & Smart Home Setup</p>
+            <p>Professional CCTV Installation, Electrical Installation, Electric Fence, Air Conditioner, Window Blinds, and Automated Gates</p>
             <a href="#" class="btn" id="heroQuoteBtn">
                 <i class="fas fa-quote-right"></i> Request a Quote
             </a>
@@ -241,7 +277,7 @@
                 </div>
             </div>
             <div class="about-details">
-                <h2 class="section-title">Why Choose Hailifu</h2>
+                <h2 class="section-title">Engineering Standards</h2>
                 <p class="section-subtitle">Precision engineering for security, power, and automation projects that demand total reliability.</p>
                 <ul class="about-benefits">
                     <li>
@@ -287,222 +323,204 @@
     <!-- Services Section -->
     <section class="section glass-panel animate-on-scroll" id="services">
         <h2 class="section-title"><a href="#" id="servicesTitleCta">Specialized Engineering Services</a></h2>
-        <p class="section-subtitle">Precision solutions for modern security and infrastructure.</p>
+        <p class="section-subtitle">Six core installation services engineered for modern homes and commercial sites.</p>
         <div class="services-grid">
-            <div class="card animate-on-scroll" id="service-cctv" data-service-category="cctv" onclick="openMediaRoom('cctv')" role="button" tabindex="0" style="animation-delay: 0.1s;">
+            <div class="card animate-on-scroll glass-panel" id="service-cctv" data-service-category="cctv" onclick="openMediaRoom('cctv')" role="button" tabindex="0" style="animation-delay: 0.1s;">
                 <div class="card-glow"></div>
-                <i class="fas fa-shield-alt"></i>
-                <h3>CCTV &amp; Intelligence</h3>
-                <p>Advanced AI-integrated surveillance with encrypted remote access and 24/7 high-fidelity monitoring.</p>
+                <i class="fas fa-video"></i>
+                <h3>CCTV Installation</h3>
+                <p>AI-ready surveillance layouts, clean cabling, and secure remote visibility across every zone.</p>
+                <a class="service-quote-btn" href="#popupOverlay" data-quote-service="cctv">Request Quote</a>
             </div>
-            <div class="card animate-on-scroll" id="service-electrical" data-service-category="electrical" onclick="openMediaRoom('electrical')" role="button" tabindex="0" style="animation-delay: 0.2s;">
+            <div class="card animate-on-scroll glass-panel" id="service-electrical" data-service-category="electrical" onclick="openMediaRoom('electrical')" role="button" tabindex="0" style="animation-delay: 0.2s;">
                 <div class="card-glow"></div>
                 <i class="fas fa-bolt"></i>
-                <h3>Electrical Systems</h3>
-                <p>Expert industrial and residential engineering focusing on safety, efficiency, and smart-grid integration.</p>
+                <h3>Electrical Installation</h3>
+                <p>Code-compliant wiring, load balancing, and protection systems for safe, stable power.</p>
+                <a class="service-quote-btn" href="#popupOverlay" data-quote-service="electrical">Request Quote</a>
             </div>
-            <div class="card animate-on-scroll" id="service-gates" data-service-category="gates" onclick="openMediaRoom('gates')" role="button" tabindex="0" style="animation-delay: 0.3s;">
+            <div class="card animate-on-scroll glass-panel" id="service-fencing" data-service-category="fencing" onclick="openMediaRoom('fencing')" role="button" tabindex="0" style="animation-delay: 0.3s;">
                 <div class="card-glow"></div>
-                <i class="fas fa-sync-alt"></i>
-                <h3>Automation &amp; Gates</h3>
-                <p>Seamless entry solutions combining heavy-duty mechanical reliability with modern smart-home controls.</p>
+                <i class="fas fa-shield-alt"></i>
+                <h3>Electric Fence</h3>
+                <p>High-voltage perimeter security with smart alerts and anti-tamper protection.</p>
+                <a class="service-quote-btn" href="#popupOverlay" data-quote-service="fencing">Request Quote</a>
             </div>
-            <div class="card animate-on-scroll" id="service-networking" data-service-category="networking" onclick="openMediaRoom('networking')" role="button" tabindex="0" style="animation-delay: 0.4s;">
+            <div class="card animate-on-scroll glass-panel" id="service-airconditioning" data-service-category="airconditioning" onclick="openMediaRoom('airconditioning')" role="button" tabindex="0" style="animation-delay: 0.4s;">
                 <div class="card-glow"></div>
-                <i class="fas fa-microchip"></i>
-                <h3>Data Infrastructure</h3>
-                <p>Structured cabling and enterprise-grade networking to power your digital-first environment.</p>
+                <i class="fas fa-snowflake"></i>
+                <h3>Air Conditioner</h3>
+                <p>Precision AC installs, energy-efficient ducting, and performance tuning for comfort.</p>
+                <a class="service-quote-btn" href="#popupOverlay" data-quote-service="airconditioning">Request Quote</a>
             </div>
-            <div class="card animate-on-scroll" id="service-maintenance" data-service-category="maintenance" onclick="openMediaRoom('maintenance')" role="button" tabindex="0" style="animation-delay: 0.5s;">
+            <div class="card animate-on-scroll glass-panel" id="service-blindcurtain" data-service-category="blindcurtain" onclick="openMediaRoom('blindcurtain')" role="button" tabindex="0" style="animation-delay: 0.5s;">
                 <div class="card-glow"></div>
-                <i class="fas fa-award"></i>
-                <h3>Priority Maintenance</h3>
-                <p>Bespoke service contracts ensuring your critical systems remain operational with zero downtime.</p>
+                <i class="fas fa-grip-lines-vertical"></i>
+                <h3>Window Blinds</h3>
+                <p>Custom-fit blinds with smooth automation options and premium finishing.</p>
+                <a class="service-quote-btn" href="#popupOverlay" data-quote-service="blindcurtain">Request Quote</a>
+            </div>
+            <div class="card animate-on-scroll glass-panel" id="service-gates" data-service-category="gates" onclick="openMediaRoom('gates')" role="button" tabindex="0" style="animation-delay: 0.6s;">
+                <div class="card-glow"></div>
+                <i class="fas fa-door-open"></i>
+                <h3>Automated Gates</h3>
+                <p>Heavy-duty gate motors, access control, and safety sensors for seamless entry.</p>
+                <a class="service-quote-btn" href="#popupOverlay" data-quote-service="gates">Request Quote</a>
             </div>
         </div>
     </section>
  
-    <!-- Work Showcase Section -->
+    <!-- Why Choose Hailifu Section -->
     <section class="showcase glass-panel animate-on-scroll" id="showcase">
         <div class="showcase-content">
-            <h2 class="section-title">Work Showcase</h2>
-            <p class="section-subtitle">Explore our portfolio of expertly delivered security, automation, and electrical installations</p>
-            
-            <!-- Filter Buttons -->
-            <div class="showcase-filters">
-                <button class="filter-btn active" data-filter="all">All Projects</button>
-                <button class="filter-btn" data-filter="cctv">CCTV</button>
-                <button class="filter-btn" data-filter="electrical">Electrical</button>
-                <button class="filter-btn" data-filter="gates">Automated Gates</button>
-            </div>
-            
+            <h2 class="section-title">Why Choose Hailifu</h2>
+            <p class="section-subtitle">Precision engineering, rapid response, and trusted technicians across Accra.</p>
+
             <div class="showcase-grid">
-                <div class="showcase-item animate-on-scroll" data-category="cctv">
-                    <div class="project-category">CCTV</div>
+                <div class="showcase-item animate-on-scroll glass-panel" data-category="certified">
+                    <div class="project-category">Certified</div>
                     <div class="showcase-placeholder">
-                        <i class="fas fa-video"></i>
-                        <span>Enterprise CCTV System</span>
+                        <i class="fas fa-user-shield"></i>
+                        <span>Certified Specialists</span>
                     </div>
                     <div class="showcase-overlay">
-                        <h3 class="showcase-title">Enterprise CCTV System</h3>
-                        <p class="showcase-description">Large-scale, AI-assisted monitoring with secure remote visibility across critical zones.</p>
+                        <h3 class="showcase-title">Certified Specialists</h3>
+                        <p class="showcase-description">Licensed technicians delivering code-compliant installations with clean finish.</p>
                     </div>
-                    <!-- Replace with: <img src="projects/enterprise-cctv.jpg" alt="Enterprise CCTV System"> -->
                 </div>
-                
-                <div class="showcase-item animate-on-scroll" data-category="electrical">
-                    <div class="project-category">Electrical</div>
+
+                <div class="showcase-item animate-on-scroll glass-panel" data-category="precision">
+                    <div class="project-category">Precision</div>
                     <div class="showcase-placeholder">
-                        <i class="fas fa-bolt"></i>
-                        <span>Industrial Power Grid</span>
+                        <i class="fas fa-crosshairs"></i>
+                        <span>Precision Planning</span>
                     </div>
                     <div class="showcase-overlay">
-                        <h3 class="showcase-title">Industrial Power Grid</h3>
-                        <p class="showcase-description">Heavy-duty distribution upgrade with optimized load balancing and safety controls.</p>
+                        <h3 class="showcase-title">Precision Planning</h3>
+                        <p class="showcase-description">Site surveys, load calculations, and risk mapping before install.</p>
                     </div>
-                    <!-- Replace with: <img src="projects/industrial-power-grid.jpg" alt="Industrial Power Grid"> -->
                 </div>
-                
-                <div class="showcase-item animate-on-scroll" data-category="gates">
-                    <div class="project-category">Automated Gates</div>
+
+                <div class="showcase-item animate-on-scroll glass-panel" data-category="response">
+                    <div class="project-category">Response</div>
                     <div class="showcase-placeholder">
-                        <i class="fas fa-door-open"></i>
-                        <span>Biometric Entry Gate</span>
+                        <i class="fas fa-stopwatch"></i>
+                        <span>Rapid Response</span>
                     </div>
                     <div class="showcase-overlay">
-                        <h3 class="showcase-title">Biometric Entry Gate</h3>
-                        <p class="showcase-description">Secure access control with biometric verification and smart gate automation.</p>
+                        <h3 class="showcase-title">Rapid Response</h3>
+                        <p class="showcase-description">Fast mobilization for urgent installs, repairs, and upgrades.</p>
                     </div>
-                    <!-- Replace with: <img src="projects/biometric-entry-gate.jpg" alt="Biometric Entry Gate"> -->
+                </div>
+
+                <div class="showcase-item animate-on-scroll glass-panel" data-category="warranty">
+                    <div class="project-category">Warranty</div>
+                    <div class="showcase-placeholder">
+                        <i class="fas fa-award"></i>
+                        <span>Warranty & Support</span>
+                    </div>
+                    <div class="showcase-overlay">
+                        <h3 class="showcase-title">Warranty & Support</h3>
+                        <p class="showcase-description">Structured handover, documentation, and responsive aftercare.</p>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
  
-    <!-- Modern Leave Review Section -->
-    <section class="modern-review-section" id="testimonials">
+        <!-- Modern Leave Review Section -->
+    <section class="modern-review-section glass-panel animate-on-scroll" id="testimonials">
         <div class="modern-review-container">
             <div class="modern-review-header">
-                <h2 class="section-title">Share Your Experience</h2>
-                <p class="section-subtitle">Your feedback helps us serve you better</p>
-                <div class="header-star-rating" style="font-size: 2.5rem; color: var(--orange); margin: 20px 0; text-align: center; animation: pulse 2s infinite;">
-                    ★★★★★
+                <h2 class="section-title">Trusted Reviews</h2>
+                <p class="section-subtitle">Real feedback from clients across Accra and beyond</p>
+                <div class="header-star-rating" style="font-size: 2.5rem; color: var(--rating-star); margin: 20px 0; text-align: center; animation: pulse 2s infinite;">
+                    &#9733;&#9733;&#9733;&#9733;&#9733;
                 </div>
             </div>
-            
+
             <div class="modern-review-grid">
                 <!-- Review Stats Card -->
-                <div class="review-stats-card animate-on-scroll">
+                <div class="review-stats-card animate-on-scroll glass-panel">
                     <div class="review-stats-header">
                         <div class="google-logo-large">
                             <i class="fab fa-google"></i>
                         </div>
                         <div class="rating-info">
                             <div class="rating-number-large">5.0</div>
-                            <div class="rating-stars-large">★★★★★</div>
-                            <div class="review-count-large">21 Google Reviews</div>
+                            <div class="rating-stars-large">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+                            <div class="review-count-large"><span id="reviewCountLarge">22</span> Reviews</div>
                         </div>
                     </div>
-                    
+
                     <div class="review-metrics">
                         <div class="metric-row">
                             <span class="metric-label">5</span>
                             <div class="metric-bar">
                                 <div class="metric-fill" style="width: 100%"></div>
                             </div>
-                            <span class="metric-value">★★★★★</span>
+                            <span class="metric-value">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
                         </div>
                         <div class="metric-row">
                             <span class="metric-label">4</span>
                             <div class="metric-bar">
                                 <div class="metric-fill" style="width: 0%"></div>
                             </div>
-                            <span class="metric-value">★★★★</span>
+                            <span class="metric-value">&#9733;&#9733;&#9733;&#9733;</span>
                         </div>
                         <div class="metric-row">
                             <span class="metric-label">3</span>
                             <div class="metric-bar">
                                 <div class="metric-fill" style="width: 0%"></div>
                             </div>
-                            <span class="metric-value">★★★</span>
+                            <span class="metric-value">&#9733;&#9733;&#9733;</span>
                         </div>
                         <div class="metric-row">
                             <span class="metric-label">2</span>
                             <div class="metric-bar">
                                 <div class="metric-fill" style="width: 0%"></div>
                             </div>
-                            <span class="metric-value">★★</span>
+                            <span class="metric-value">&#9733;&#9733;</span>
                         </div>
                         <div class="metric-row">
                             <span class="metric-label">1</span>
                             <div class="metric-bar">
                                 <div class="metric-fill" style="width: 0%"></div>
                             </div>
-                            <span class="metric-value">★</span>
+                            <span class="metric-value">&#9733;</span>
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Customer Reviews Panel -->
-                <div class="hailifu-review-panel animate-on-scroll">
+                <div class="hailifu-review-panel animate-on-scroll glass-panel">
                     <div class="hailifu-review-header">
-                        <h3>21+ Five-Star Reviews on Google</h3>
-                        <div class="hailifu-review-stars">★★★★★</div>
+                        <h3><span id="reviewCountHeader">22</span> Five-Star Reviews on Google</h3>
+                        <div class="hailifu-review-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
                     </div>
- 
-                    <div class="hailifu-review-grid" id="publicReviewsGrid">
-                        <article class="hailifu-review-card">
-                            <div class="hailifu-review-card-header">
-                                <span class="hailifu-reviewer">Google Reviewer</span>
-                                <span class="hailifu-review-score">★★★★★</span>
-                            </div>
-                            <p>"Excellent electrical installation service! Very professional and quality is outstanding."</p>
-                        </article>
- 
-                        <article class="hailifu-review-card">
-                            <div class="hailifu-review-card-header">
-                                <span class="hailifu-reviewer">Google Reviewer</span>
-                                <span class="hailifu-review-score">★★★★★</span>
-                            </div>
-                            <p>"Great CCTV installation! The team was punctual, knowledgeable, and finished on schedule."</p>
-                        </article>
- 
-                        <article class="hailifu-review-card">
-                            <div class="hailifu-review-card-header">
-                                <span class="hailifu-reviewer">Google Reviewer</span>
-                                <span class="hailifu-review-score">★★★★★</span>
-                            </div>
-                            <p>"Outstanding service from start to finish. The team explained everything clearly and delivered clean, safe wiring."</p>
-                        </article>
- 
-                        <article class="hailifu-review-card">
-                            <div class="hailifu-review-card-header">
-                                <span class="hailifu-reviewer">Google Reviewer</span>
-                                <span class="hailifu-review-score">★★★★★</span>
-                            </div>
-                            <p>"Reliable, courteous, and very tidy installation. Our gate automation works perfectly and looks great."</p>
-                        </article>
-                    </div>
- 
+
+                    <div class="hailifu-review-grid" id="publicReviewsGrid"></div>
+                    <div class="hailifu-review-empty" id="publicReviewsEmpty">Loading reviews...</div>
+
                     <a class="hailifu-review-link" href="https://g.page/r/CdsiXmzUDUmjEAE/review" target="_blank" rel="noopener">
                         <i class="fab fa-google"></i>
                         View All Reviews on Google
                     </a>
                 </div>
             </div>
- 
+
             <!-- Call to Action -->
-            <div class="review-cta-section animate-on-scroll">
+            <div class="review-cta-section animate-on-scroll glass-panel">
                 <h3>Join Our Happy Customers</h3>
-                <p>Over 100+ satisfied customers have shared their experience</p>
+                <p>Over <span id="reviewCountCta">22</span> verified clients have shared their experience.</p>
                 <div class="cta-buttons">
                     <button type="button" class="primary-cta-btn" data-review-modal-open>
                         <i class="fas fa-star"></i>
-                        <span>Leave 5-Star Review</span>
+                        Leave a Review
                     </button>
-                    <a href="https://wa.me/233550997270" class="secondary-cta-btn" target="_blank">
-                        <i class="fab fa-whatsapp"></i>
-                        <span>Contact Us</span>
+                    <a href="tel:+233550997270" class="secondary-cta-btn">
+                        <i class="fas fa-phone"></i>
+                        Call Us Now
                     </a>
                 </div>
             </div>
@@ -605,7 +623,7 @@
                     <a href="#home">Home</a>
                     <a href="#about">Why Choose Us</a>
                     <a href="#services">Services</a>
-                    <a href="#showcase">Work Showcase</a>
+                    <a href="#showcase">Why Choose Hailifu</a>
                     <a href="#testimonials">Reviews</a>
                 </div>
             </div>
@@ -696,7 +714,7 @@
         
         <div class="chatbot-messages" id="chatbotMessages">
             <div class="message bot">
-                Welcome to Hailifu! I can help you with a quick quote. Are you interested in CCTV, Gate Automation, Electrical Wiring, Air Conditioning, or Smart Window Solutions?
+                Welcome to Hailifu! I can help you with a quick quote. Are you interested in CCTV Installation, Electrical Installation, Electric Fence, Air Conditioner, Window Blinds, or Automated Gates?
             </div>
             <div class="typing-indicator" id="typingIndicator">
                 <div class="typing-dot"></div>
@@ -719,6 +737,27 @@
     <button class="chatbot-toggle" id="chatbotToggle" type="button" aria-label="Chat with Hailifu" title="Chat with Hailifu">
         <i class="fas fa-comments"></i>
     </button>
+
+    <!-- Welcome Specialist Pop-up -->
+    <div class="keyword-welcome" id="keywordWelcome" aria-hidden="true">
+        <div class="keyword-welcome-card glass-panel" role="dialog" aria-modal="true" aria-label="Welcome specialist">
+            <div class="keyword-welcome-header">
+                <div>
+                    <h3>Welcome Specialist</h3>
+                    <p id="keywordWelcomeMessage">We have specialists ready for your request.</p>
+                </div>
+                <button class="keyword-welcome-close" type="button" data-keyword-close aria-label="Close welcome">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="keyword-welcome-actions">
+                <a class="contact-btn" href="#popupOverlay" data-quote-open>
+                    <i class="fas fa-quote-right"></i> Request a Quote
+                </a>
+                <button class="ghost-cta-btn" type="button" data-keyword-close>Continue Browsing</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Pop-up Contact Form -->
     <div class="popup-overlay" id="popupOverlay">
@@ -767,12 +806,11 @@
                         <select id="popupService" required>
                             <option value="">Select a service</option>
                             <option value="cctv">CCTV Installation</option>
-                            <option value="electrical">Electrical Wiring</option>
-                            <option value="airconditioning">Air Conditioning</option>
+                            <option value="electrical">Electrical Installation</option>
+                            <option value="fencing">Electric Fence</option>
+                            <option value="airconditioning">Air Conditioner</option>
+                            <option value="blindcurtain">Window Blinds</option>
                             <option value="gates">Automated Gates</option>
-                            <option value="fencing">Electric Fencing</option>
-                            <option value="smarthome">Smart Home System</option>
-                            <option value="blindcurtain">Smart Window Solutions</option>
                         </select>
                     </div>
                     
