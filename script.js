@@ -983,6 +983,65 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             return `${prefix}f_auto,q_auto/${after}`;
         }
 
+        function getPreferredMediaFolderName() {
+            let override = '';
+            try {
+                override = String(window?.HAILIFU_MEDIA_FOLDER || '').trim();
+            } catch {}
+            if (!override) {
+                try {
+                    override = String(remoteConfigState?.mediaFolder || '').trim();
+                } catch {}
+            }
+            const fallback = 'media';
+            const cleaned = String(override || fallback).trim();
+            return cleaned.replace(/^\.?\/*/, '').replace(/\/+$/, '') || fallback;
+        }
+
+        function normalizeLocalMediaPath(rawPath) {
+            let raw = String(rawPath || '').trim();
+            if (!raw) return '';
+
+            const suffixMatch = raw.match(/([?#].*)$/);
+            const suffix = suffixMatch ? suffixMatch[1] : '';
+            if (suffix) raw = raw.slice(0, -suffix.length);
+
+            raw = raw.replace(/\\/g, '/');
+            raw = raw.replace(/^file:\/*/i, '');
+            raw = raw.replace(/^[a-z]:\//i, '');
+            raw = raw.replace(/^(\.\/)+/, '');
+            raw = raw.replace(/^\/+/, '');
+
+            const lower = raw.toLowerCase();
+            const marker = '/media/';
+            let idx = lower.lastIndexOf(marker);
+            if (idx >= 0) {
+                raw = raw.slice(idx + marker.length);
+            } else if (lower.startsWith('media/')) {
+                raw = raw.slice('media/'.length);
+            }
+
+            if (!raw) return '';
+            const folder = getPreferredMediaFolderName();
+            return `./${folder}/${raw}${suffix}`;
+        }
+
+        function normalizeProjectMediaPath(rawPath) {
+            const raw = String(rawPath || '').trim();
+            if (!raw) return '';
+            if (/^https?:\/\//i.test(raw)) return normalizeCloudinaryUrl(raw);
+            if (/^(data:|blob:)/i.test(raw)) return raw;
+            if (/^\/\/.*/.test(raw)) {
+                try {
+                    return normalizeCloudinaryUrl(`${window.location.protocol}${raw}`);
+                } catch {
+                    return raw;
+                }
+            }
+            if (/^gs:\/\//i.test(raw)) return raw;
+            return normalizeLocalMediaPath(raw);
+        }
+
         function resolveProjectMediaFromUrl(urlString, requestedType) {
             const raw = String(urlString || '').trim();
             if (!raw) return null;
@@ -1777,20 +1836,25 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
                 const normalize = (url) => {
                     try {
-                        if (typeof normalizeCloudinaryUrl === 'function') return normalizeCloudinaryUrl(url);
+                        if (typeof normalizeProjectMediaPath === 'function') return normalizeProjectMediaPath(url);
                     } catch {}
                     return url;
                 };
 
                 if (type === 'youtube') {
-                    const thumb = normalize(thumbRaw) || normalize(srcRaw);
+                    const youtubeId = getYoutubeVideoId(srcRaw);
+                    const fallbackThumb = youtubeId ? getYoutubeThumbUrl(youtubeId) : '';
+                    const thumb = normalize(thumbRaw) || normalize(fallbackThumb);
+                    if (!thumb) return '';
                     return `<img src="${thumb}" alt="" loading="lazy">`;
                 }
                 if (type === 'video') {
                     const src = normalize(srcRaw);
-                    return `<video src="${src}" muted playsinline webkit-playsinline loop preload="metadata"></video>`;
+                    if (!src) return '';
+                    return `<video src="${src}" muted playsinline webkit-playsinline loop autoplay preload="metadata"></video>`;
                 }
                 const src = normalize(srcRaw);
+                if (!src) return '';
                 return `<img src="${src}" alt="" loading="lazy">`;
             };
 
@@ -2292,7 +2356,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     if (!project) return;
 
                     const temp = document.createElement('div');
-                    temp.dataset.mediaSrc = project.mediaSrc;
+                    temp.dataset.mediaSrc = normalizeProjectMediaPath(project.mediaSrc);
                     temp.dataset.mediaType = project.mediaType;
                     temp.innerHTML = `
                         <div class="project-category">${project.category || ''}</div>
@@ -2598,8 +2662,10 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const list = Array.isArray(firebaseProjects) ? firebaseProjects : [];
                 return list.map((project) => {
                     const base = stripProjectQuoteFields(project);
-                    const mediaSrc = String(base?.mediaSrc || base?.imageUrl || base?.mediaUrl || '').trim();
-                    const thumbSrc = String(base?.thumbSrc || base?.thumbnailUrl || base?.thumbUrl || '').trim();
+                    const rawMediaSrc = String(base?.mediaSrc || base?.imageUrl || base?.mediaUrl || '').trim();
+                    const rawThumbSrc = String(base?.thumbSrc || base?.thumbnailUrl || base?.thumbUrl || '').trim();
+                    const mediaSrc = normalizeProjectMediaPath(rawMediaSrc);
+                    const thumbSrc = normalizeProjectMediaPath(rawThumbSrc);
                     const mediaType = String(base?.mediaType || (mediaSrc && /\.(mp4|webm|mov)(\?|#|$)/i.test(mediaSrc) ? 'video' : 'image') || 'image').trim().toLowerCase() || 'image';
                     return {
                         ...base,
@@ -2642,8 +2708,10 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
             return sanitized.map((project) => {
                 const base = stripProjectQuoteFields(project);
-                const mediaSrc = String(base?.mediaSrc || base?.imageUrl || base?.mediaUrl || '').trim();
-                const thumbSrc = String(base?.thumbSrc || base?.thumbnailUrl || base?.thumbUrl || '').trim();
+                const rawMediaSrc = String(base?.mediaSrc || base?.imageUrl || base?.mediaUrl || '').trim();
+                const rawThumbSrc = String(base?.thumbSrc || base?.thumbnailUrl || base?.thumbUrl || '').trim();
+                const mediaSrc = normalizeProjectMediaPath(rawMediaSrc);
+                const thumbSrc = normalizeProjectMediaPath(rawThumbSrc);
                 const mediaType = String(base?.mediaType || (mediaSrc && /\.(mp4|webm|mov)(\?|#|$)/i.test(mediaSrc) ? 'video' : 'image') || 'image').trim().toLowerCase() || 'image';
                 return {
                     ...base,
@@ -2684,9 +2752,11 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const starClass = starred ? 'project-star active' : 'project-star';
                 const starLabel = starred ? 'Unstar project' : 'Star project';
                 const featureChecked = featured ? 'checked' : '';
+                const resolvedMediaSrc = normalizeProjectMediaPath(p.mediaSrc);
+                const resolvedThumbSrc = normalizeProjectMediaPath(p.thumbSrc || p.mediaSrc);
                 const thumb = p.mediaType === 'video'
-                    ? `<video src="${p.mediaSrc}" muted playsinline webkit-playsinline></video>`
-                    : `<img src="${p.thumbSrc || p.mediaSrc}" alt="${safeTitle}">`;
+                    ? `<video src="${resolvedMediaSrc}" muted playsinline webkit-playsinline loop autoplay preload="metadata"></video>`
+                    : `<img src="${resolvedThumbSrc || resolvedMediaSrc}" alt="${safeTitle}" loading="lazy">`;
 
                 return `<div class="project-thumb" data-admin-project-id="${p.id}">${thumb}<button class="${starClass}" type="button" data-star-project-id="${p.id}" aria-label="${starLabel}"><i class="fas fa-star"></i></button><button class="project-delete" type="button" data-delete-project-id="${p.id}" aria-label="Delete project"><i class="fas fa-trash"></i></button><label class="project-feature-toggle"><input type="checkbox" ${featureChecked} data-feature-project-id="${p.id}"><span>Feature in Lazy Loop</span></label><div style="position:absolute; left:8px; bottom:8px; right:8px; font-size:0.8rem; background: rgba(0,0,0,0.55); padding:6px 8px; border-radius:10px;">${safeTitle}</div></div>`;
             }).join('');
@@ -3992,10 +4062,12 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         }
 
         function normalizeMediaItem(m) {
-            const mediaSrc = String(m?.mediaSrc || m?.src || '').trim();
+            const rawMediaSrc = String(m?.mediaSrc || m?.src || '').trim();
+            const mediaSrc = normalizeProjectMediaPath(rawMediaSrc);
             if (!mediaSrc) return null;
             const mediaType = String(m?.mediaType || m?.type || '').trim().toLowerCase() || 'image';
-            const thumbSrc = String(m?.thumbSrc || m?.thumb || '').trim();
+            const rawThumbSrc = String(m?.thumbSrc || m?.thumb || '').trim();
+            const thumbSrc = normalizeProjectMediaPath(rawThumbSrc);
             return { mediaSrc, mediaType, thumbSrc };
         }
 
