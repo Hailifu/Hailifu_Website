@@ -4412,6 +4412,9 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             if (projectModalCategory) projectModalCategory.textContent = category;
             if (projectModalDescription) projectModalDescription.textContent = description;
 
+            projectModal.setAttribute('aria-hidden', 'false');
+            projectModal.classList.add('active');
+
             if (projectModalMedia) {
                 projectModalMedia.innerHTML = '';
                 projectModal.classList.remove('has-gallery');
@@ -4481,9 +4484,6 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     }
                 }
             }
-
-            projectModal.classList.add('active');
-            projectModal.setAttribute('aria-hidden', 'false');
         }
 
         if (projectModalClose) {
