@@ -1662,7 +1662,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                         <div class="admin-tab-panel" data-admin-panel="projects">
                             <div class="admin-section">
                                 <h3><i class="fas fa-images"></i> Gallery Manager</h3>
-                                <p style="margin-bottom:14px; font-size:0.85rem; color: rgba(255,255,255,0.7);">Add Featured Work: upload images/videos, set title and description, delete or reorder. Changes persist after refresh.</p>
+                                <p style="margin-bottom:14px; font-size:0.85rem; color: rgba(255,255,255,0.7);">Add Media: upload images/videos, set title and description, delete or reorder. Changes persist after refresh.</p>
                                 <form class="upload-form">
                                     <div class="form-group">
                                         <label for="cloudinaryPreset">Cloudinary Unsigned Upload Preset</label>
@@ -1747,7 +1747,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                                 </form>
                             </div>
                             <div class="admin-section">
-                                <h3><i class="fas fa-layer-group"></i> All Featured Work</h3>
+                                <h3><i class="fas fa-layer-group"></i> All Media</h3>
                                 <div id="projectsGrid" class="projects-grid"></div>
                             </div>
                         </div>
@@ -1854,7 +1854,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             const maxSlides = 4;
             const cacheStamp = Date.now();
             const featured = projects
-                .filter((p) => p && p.showInFeatured)
+                .filter((p) => p && p.featured)
                 .map((p) => {
                     if (!p || typeof p !== 'object') return null;
                     const mediaSrc = String(p.mediaSrc || p.imageUrl || '').trim();
@@ -2205,9 +2205,9 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                             mediaType: resolved.mediaType,
                             mediaSrc: resolved.mediaSrc,
                             thumbSrc: resolved.thumbSrc,
-                            showInFeatured: true,
-                            showInShowcase: true,
-                            showInServices: true,
+                            featured: true,
+                            showcase: true,
+                            services: true,
                             isStarred: false,
                             isFeatured: false
                         };
@@ -2291,9 +2291,9 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                             mediaType: selectedMediaType,
                             mediaSrc: localMediaPath,
                             thumbSrc: '',
-                            showInFeatured: true,
-                            showInShowcase: true,
-                            showInServices: true,
+                            featured: true,
+                            showcase: true,
+                            services: true,
                             isStarred: false,
                             isFeatured: false
                         };
@@ -2358,9 +2358,9 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                             mediaType: selectedMediaType,
                             mediaSrc: url,
                             thumbSrc: '',
-                            showInFeatured: true,
-                            showInShowcase: true,
-                            showInServices: true,
+                            featured: true,
+                            showcase: true,
+                            services: true,
                             isStarred: false,
                             isFeatured: false
                         };
@@ -2425,9 +2425,9 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                         const showcaseInput = card.querySelector('input[data-visibility-flag="showcase"]');
                         const servicesInput = card.querySelector('input[data-visibility-flag="services"]');
                         const nextVisibility = {
-                            showInFeatured: Boolean(featuredInput?.checked),
-                            showInShowcase: Boolean(showcaseInput?.checked),
-                            showInServices: Boolean(servicesInput?.checked)
+                            featured: Boolean(featuredInput?.checked),
+                            showcase: Boolean(showcaseInput?.checked),
+                            services: Boolean(servicesInput?.checked)
                         };
 
                         const projects = getProjects();
@@ -2440,29 +2440,29 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                         };
 
                         const resetControls = () => {
-                            if (featuredInput) featuredInput.checked = previousVisibility.showInFeatured;
-                            if (showcaseInput) showcaseInput.checked = previousVisibility.showInShowcase;
-                            if (servicesInput) servicesInput.checked = previousVisibility.showInServices;
+                            if (featuredInput) featuredInput.checked = previousVisibility.featured;
+                            if (showcaseInput) showcaseInput.checked = previousVisibility.showcase;
+                            if (servicesInput) servicesInput.checked = previousVisibility.services;
                             updateProjectLiveStatus(card, previousVisibility);
                         };
 
                         const finalizeButton = (label) => {
                             if (!saveBtn.isConnected) return;
                             saveBtn.textContent = label;
-                            if (label === 'Saved') {
+                            if (label === 'Updated') {
                                 setTimeout(() => {
-                                    if (saveBtn.isConnected) saveBtn.textContent = 'Save Changes';
+                                    if (saveBtn.isConnected) saveBtn.textContent = 'Update';
                                 }, 1400);
                             }
                         };
 
                         if (firebaseIsReady()) {
                             saveBtn.disabled = true;
-                            finalizeButton('Saving...');
+                            finalizeButton('Updating...');
                             upsertProjectInFirebase(projects[idx])
                                 .then(() => {
                                     updateProjectLiveStatus(card, nextVisibility);
-                                    finalizeButton('Saved');
+                                    finalizeButton('Updated');
                                 })
                                 .catch((err) => {
                                     console.error('Firebase save failed:', err);
@@ -2814,16 +2814,21 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         function normalizeVisibilityFlags(project) {
             if (!project || typeof project !== 'object') {
                 return {
-                    showInFeatured: true,
-                    showInShowcase: true,
-                    showInServices: true
+                    featured: true,
+                    showcase: true,
+                    services: true
                 };
             }
-            return {
-                showInFeatured: typeof project.showInFeatured === 'boolean' ? project.showInFeatured : true,
-                showInShowcase: typeof project.showInShowcase === 'boolean' ? project.showInShowcase : true,
-                showInServices: typeof project.showInServices === 'boolean' ? project.showInServices : true
-            };
+            const featured = typeof project.featured === 'boolean'
+                ? project.featured
+                : (typeof project.showInFeatured === 'boolean' ? project.showInFeatured : true);
+            const showcase = typeof project.showcase === 'boolean'
+                ? project.showcase
+                : (typeof project.showInShowcase === 'boolean' ? project.showInShowcase : true);
+            const services = typeof project.services === 'boolean'
+                ? project.services
+                : (typeof project.showInServices === 'boolean' ? project.showInServices : true);
+            return { featured, showcase, services };
         }
 
         function getHailifuPlaceholderDataUri(label = 'HAILIFU') {
@@ -2975,9 +2980,9 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const starClass = starred ? 'project-star active' : 'project-star';
                 const starLabel = starred ? 'Unstar project' : 'Star project';
                 const featureChecked = featured ? 'checked' : '';
-                const featuredChecked = visibility.showInFeatured ? 'checked' : '';
-                const showcaseChecked = visibility.showInShowcase ? 'checked' : '';
-                const servicesChecked = visibility.showInServices ? 'checked' : '';
+                const featuredChecked = visibility.featured ? 'checked' : '';
+                const showcaseChecked = visibility.showcase ? 'checked' : '';
+                const servicesChecked = visibility.services ? 'checked' : '';
                 const resolvedMediaSrc = resolveAdminAssetPath(p.mediaSrc);
                 const resolvedThumbSrc = resolveAdminAssetPath(p.thumbSrc || p.mediaSrc);
                 const finalPath = p.mediaType === 'video' ? resolvedMediaSrc : (resolvedThumbSrc || resolvedMediaSrc);
@@ -3008,11 +3013,12 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                             <div class="project-live-status">
                                 <span class="project-live-label">Live Status</span>
                                 <div class="project-live-pills">
-                                    <span class="status-pill${visibility.showInFeatured ? ' is-on' : ''}" data-status-pill="featured">Featured</span>
-                                    <span class="status-pill${visibility.showInShowcase ? ' is-on' : ''}" data-status-pill="showcase">Showcase</span>
-                                    <span class="status-pill${visibility.showInServices ? ' is-on' : ''}" data-status-pill="services">Services</span>
+                                    <span class="status-pill${visibility.featured ? ' is-on' : ''}" data-status-pill="featured">Featured</span>
+                                    <span class="status-pill${visibility.showcase ? ' is-on' : ''}" data-status-pill="showcase">Showcase</span>
+                                    <span class="status-pill${visibility.services ? ' is-on' : ''}" data-status-pill="services">Services</span>
                                 </div>
                             </div>
+                            <div class="project-visibility-title">Placement Control</div>
                             <div class="project-visibility-controls">
                                 <label class="visibility-toggle">
                                     <input type="checkbox" ${featuredChecked} data-visibility-flag="featured">
@@ -3026,7 +3032,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                                     <input type="checkbox" ${servicesChecked} data-visibility-flag="services">
                                     <span>Services</span>
                                 </label>
-                                <button class="project-visibility-save" type="button" data-visibility-save-id="${p.id}">Save Changes</button>
+                                <button class="project-visibility-save" type="button" data-visibility-save-id="${p.id}">Update</button>
                             </div>
                             <div class="project-title">${safeTitle}</div>
                         </div>
@@ -3039,9 +3045,9 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             if (!card) return;
             const state = visibility || {};
             const pillMap = {
-                featured: Boolean(state.showInFeatured),
-                showcase: Boolean(state.showInShowcase),
-                services: Boolean(state.showInServices)
+                featured: Boolean(state.featured),
+                showcase: Boolean(state.showcase),
+                services: Boolean(state.services)
             };
             Object.keys(pillMap).forEach((key) => {
                 const pill = card.querySelector(`[data-status-pill="${key}"]`);
@@ -3123,12 +3129,17 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             if (!projectsGrid) projectsGrid = document.getElementById('projectsGrid');
             renderProjects();
             const projects = getProjects();
-            const featuredProjects = projects.filter((p) => p && p.showInFeatured);
-            const showcaseProjects = projects.filter((p) => p && p.showInShowcase);
-            const serviceProjects = projects.filter((p) => p && p.showInServices);
+            const featuredProjects = projects.filter((p) => p && p.featured);
+            const showcaseProjects = projects.filter((p) => p && p.showcase);
+            const serviceProjects = projects.filter((p) => p && p.services);
             renderFeaturedWork(featuredProjects);
             hydrateShowcaseFromStoredProjects(showcaseProjects);
             bindServiceCardsToMedia(serviceProjects);
+            const activeFilter = document.querySelector('.showcase-filters .filter-btn.active');
+            if (typeof filterProjects === 'function') {
+                if (activeFilter) filterProjects(activeFilter.dataset.filter || 'all');
+                else updateShowcaseEmptyState('all');
+            }
         }
 
         function hydrateShowcaseFromStoredProjects(projectsOverride) {
@@ -3140,7 +3151,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             });
 
             const projects = Array.isArray(projectsOverride) ? projectsOverride : getProjects();
-            const showcaseProjects = projects.filter((p) => p && p.showInShowcase);
+            const showcaseProjects = projects.filter((p) => p && p.showcase);
             const slotToProjectCategory = {
                 smartwindows: 'blindcurtain'
             };
@@ -3165,6 +3176,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             };
 
             const slots = Array.from(showcaseGrid.querySelectorAll('.showcase-item'));
+            let assignedCount = 0;
             slots.forEach((slot) => {
                 if (slot.hasAttribute('data-generated-project-id')) return;
 
@@ -3172,6 +3184,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const project = pickProjectForSlot(slotCategory);
 
                 if (project) {
+                    if (project.mediaSrc) assignedCount += 1;
                     const label = categoryLabelMap[slotCategory] || categoryLabelMap[String(project.category || '').toLowerCase().trim()] || (project.category || 'Project');
                     const title = String(project.title || '').trim();
                     const description = String(project.description || '').trim();
@@ -3344,7 +3357,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             const serviceLabel = labelMap[normalized] || labelMap[resolved] || 'Service';
             const projects = getProjects();
             const matches = projects
-                .filter((p) => p && p.showInServices && String(p.category || '').toLowerCase().trim() === resolved)
+                .filter((p) => p && p.services && String(p.category || '').toLowerCase().trim() === resolved)
                 .filter((p) => p.mediaSrc || (Array.isArray(p.mediaItems) && p.mediaItems.length));
 
             const playlist = [];
@@ -3710,7 +3723,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             const projects = Array.isArray(projectsOverride) ? projectsOverride : getProjects();
             const maxSlides = 4;
             const featured = projects
-                .filter((p) => p && p.showInFeatured)
+                .filter((p) => p && p.featured)
                 .map((p) => {
                     if (!p || typeof p !== 'object') return null;
                     const mediaSrc = String(p.mediaSrc || p.imageUrl || '').trim();
@@ -3743,8 +3756,8 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                                 <article class="featured-card featured-loop-slide is-empty is-active">
                                     <div class="featured-card-content">
                                         <div class="featured-card-category"><i class="fas fa-star"></i> Featured</div>
-                                        <div class="featured-card-title">No projects yet</div>
-                                        <div class="featured-card-description">Add a project in the Admin Panel to see it here instantly.</div>
+                                        <div class="featured-card-title">More work coming soon</div>
+                                        <div class="featured-card-description">Fresh installs are on the way. Check back shortly.</div>
                                     </div>
                                 </article>
                             </div>
@@ -4793,7 +4806,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             if (!cards.length) return;
 
             const projects = Array.isArray(projectsOverride) ? projectsOverride : getProjects();
-            const serviceProjects = projects.filter((p) => p && p.showInServices);
+            const serviceProjects = projects.filter((p) => p && p.services);
             const categoryLabelMap = {
                 cctv: 'CCTV',
                 electrical: 'Electrical',
@@ -4857,6 +4870,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 bindHailifuMediaFallback(wrap, 'HAILIFU');
             };
 
+            let assignedCount = 0;
             cards.forEach((card) => {
                 const category = serviceIdToCategory[card.id] || card.dataset?.serviceCategory || '';
                 const categoryLabel = categoryLabelMap[category] || '';
@@ -4867,6 +4881,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const previewMarkup = buildPreviewMarkup(project, titleText);
 
                 if (project && project.mediaSrc) {
+                    assignedCount += 1;
                     card.dataset.mediaSrc = normalizeCloudinaryUrl(String(project.mediaSrc || '').trim());
                     card.dataset.mediaType = project.mediaType || 'image';
                     card.classList.add('has-media');
@@ -4874,6 +4889,23 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
                 ensureServicePreview(card, previewMarkup);
             });
+
+            const servicesGrid = servicesSection.querySelector('.services-grid');
+            if (servicesGrid) {
+                const emptyNode = servicesGrid.querySelector('.services-empty');
+                if (assignedCount === 0) {
+                    if (!emptyNode) {
+                        const node = document.createElement('div');
+                        node.className = 'services-empty';
+                        node.textContent = 'More work coming soon';
+                        servicesGrid.appendChild(node);
+                    } else {
+                        emptyNode.textContent = 'More work coming soon';
+                    }
+                } else if (emptyNode) {
+                    emptyNode.remove();
+                }
+            }
         }
 
         bindServiceCardsToMedia();
@@ -5084,6 +5116,26 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         function updateShowcaseEmptyState(normalizedFilter) {
             const showcaseGrid = document.querySelector('.showcase-grid');
             if (!showcaseGrid) return;
+            if (showcaseGrid.dataset.showcaseAssigned === '0') {
+                const items = Array.from(showcaseGrid.querySelectorAll('.showcase-item'));
+                items.forEach((item) => {
+                    item.hidden = true;
+                    item.setAttribute('aria-hidden', 'true');
+                    item.style.display = 'none';
+                    item.classList.add('is-hidden');
+                    item.classList.remove('is-visible');
+                });
+                const emptyState = showcaseGrid.querySelector('.showcase-empty');
+                if (!emptyState) {
+                    const node = document.createElement('div');
+                    node.className = 'showcase-empty';
+                    node.textContent = 'More work coming soon';
+                    showcaseGrid.appendChild(node);
+                } else {
+                    emptyState.textContent = 'More work coming soon';
+                }
+                return;
+            }
             const items = Array.from(showcaseGrid.querySelectorAll('.showcase-item'));
             const matches = items.filter((item) => {
                 const itemCategory = (item.getAttribute('data-category') || item.dataset.category || '').toLowerCase().trim();
@@ -5094,7 +5146,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 if (!emptyState) {
                     const node = document.createElement('div');
                     node.className = 'showcase-empty';
-                    node.textContent = 'No projects in this category yet';
+                    node.textContent = 'More work coming soon';
                     showcaseGrid.appendChild(node);
                 }
             } else if (emptyState) {
@@ -5220,6 +5272,8 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     openSideMenu();
                 }
             });
+
+            showcaseGrid.dataset.showcaseAssigned = assignedCount > 0 ? '1' : '0';
         }
 
         if (sideMenuClose) {
