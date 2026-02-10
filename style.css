@@ -4142,6 +4142,38 @@
             border-color: rgba(255, 140, 0, 1);
         }
 
+        .back-to-top {
+            position: fixed;
+            right: calc(30px + env(safe-area-inset-right, 0px));
+            bottom: calc(110px + env(safe-area-inset-bottom, 0px));
+            width: 44px;
+            height: 44px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(0, 0, 0, 0.45);
+            color: rgba(255, 255, 255, 0.75);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(10px);
+            transition: opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            z-index: 9997;
+        }
+
+        .back-to-top.is-visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .back-to-top:hover {
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+            color: #fff;
+        }
+
         /* Mobile Responsive for WhatsApp Pill */
         @media (max-width: 768px) {
             .whatsapp-fab-pill {
@@ -4169,6 +4201,11 @@
             
             .whatsapp-text i {
                 font-size: 1rem;
+            }
+
+            .back-to-top {
+                right: calc(16px + env(safe-area-inset-right, 0px));
+                bottom: calc(100px + env(safe-area-inset-bottom, 0px));
             }
         }
 

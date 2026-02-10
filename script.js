@@ -39,6 +39,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         const sideMenuClose = document.getElementById('sideMenuClose');
         const sideMenuOverlay = document.getElementById('sideMenuOverlay');
         const navLinks = sideMenu ? sideMenu.querySelectorAll('.side-menu-links a[href^="#"]') : [];
+        const backToTopBtn = document.getElementById('backToTop');
         const servicesTitleCta = document.getElementById('servicesTitleCta');
         const themeToggle = document.getElementById('themeToggle');
 
@@ -2440,20 +2441,20 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                         const finalizeButton = (label) => {
                             if (!saveBtn.isConnected) return;
                             saveBtn.textContent = label;
-                            if (label === 'Updated') {
+                            if (label === 'Saved') {
                                 setTimeout(() => {
-                                    if (saveBtn.isConnected) saveBtn.textContent = 'Update';
+                                    if (saveBtn.isConnected) saveBtn.textContent = 'Save';
                                 }, 1400);
                             }
                         };
 
                         if (firebaseIsReady()) {
                             saveBtn.disabled = true;
-                            finalizeButton('Updating...');
+                            finalizeButton('Saving...');
                             upsertProjectInFirebase(projects[idx])
                                 .then(() => {
                                     updateProjectLiveStatus(card, nextVisibility);
-                                    finalizeButton('Updated');
+                                    finalizeButton('Saved');
                                 })
                                 .catch((err) => {
                                     console.error('Firebase save failed:', err);
@@ -3023,7 +3024,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                                     <input type="checkbox" ${servicesChecked} data-visibility-flag="services">
                                     <span>Services</span>
                                 </label>
-                                <button class="project-visibility-save" type="button" data-visibility-save-id="${p.id}">Update</button>
+                                <button class="project-visibility-save" type="button" data-visibility-save-id="${p.id}">Save</button>
                             </div>
                             <div class="project-title">${safeTitle}</div>
                         </div>
@@ -3080,7 +3081,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const replyBlock = ownerReply
                     ? `
                         <div class="owner-reply">
-                            <span class="owner-reply-label"><i class="fas fa-check-circle"></i> Hailifu Official Reply</span>
+                            <span class="owner-reply-label"><i class="fas fa-check-circle"></i> Official Reply from Hailifu</span>
                             <div>${ownerReply}</div>
                         </div>
                     `
@@ -5116,10 +5117,22 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             if (!mainNav) return;
             const y = window.scrollY || document.documentElement.scrollTop || 0;
             mainNav.classList.toggle('is-scrolled', y > 12);
+            if (backToTopBtn) backToTopBtn.classList.toggle('is-visible', y > 420);
         };
 
         updateHeaderScrolled();
         window.addEventListener('scroll', updateHeaderScrolled, { passive: true });
+
+        if (backToTopBtn) {
+            backToTopBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                try {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } catch {
+                    window.scrollTo(0, 0);
+                }
+            });
+        }
 
         const openSideMenu = () => {
             if (!sideMenu) return;
@@ -5212,8 +5225,6 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     openSideMenu();
                 }
             });
-
-            showcaseGrid.dataset.showcaseAssigned = assignedCount > 0 ? '1' : '0';
         }
 
         if (sideMenuClose) {
