@@ -1560,8 +1560,8 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                                         <span class="admin-section-tag">Site Asset</span>
                                     </div>
                                     <p style="margin-bottom:12px; font-size:0.85rem; color: rgba(255,255,255,0.7);">Image shown in the &quot;Why Choose Us&quot; area. Upload to replace.</p>
-                                    <input type="file" id="integrityImageInput" accept="image/*" style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;">
-                                    <button class="upload-btn integrity-graphic-btn" id="integrityGraphicBtn" type="button"><i class="fas fa-upload"></i> Change Integrity Graphic</button>
+                                    <input type="file" id="integrityImageInput" class="admin-file-input" accept="image/*" style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;">
+                                    <button class="upload-btn admin-action-btn integrity-graphic-btn" id="integrityGraphicBtn" type="button"><i class="fas fa-upload"></i> Change Integrity Graphic</button>
                                     <div class="integrity-upload-progress" id="integrityUploadProgress" aria-hidden="true" style="display:none; margin-top:10px;">
                                         <div class="upload-progress-bar"><div class="upload-progress-fill" id="integrityUploadProgressFill" style="width:0%"></div></div>
                                     </div>
@@ -1715,33 +1715,35 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                                             <button class="media-btn" type="button" data-type="video"><i class="fas fa-video"></i> Video</button>
                                         </div>
                                     </div>
-                                    <div class="form-group">
-                                        <label>Upload Media</label>
-                                        <div class="file-upload-area gallery-manager-dropzone" id="fileUploadArea">
-                                            <div class="upload-content">
-                                                <i class="fas fa-cloud-upload-alt"></i>
-                                                <p>Drag and drop or click to upload</p>
-                                                <span class="file-types">PNG, JPG, MP4 (max 4MB)</span>
+                                    <div class="upload-controls">
+                                        <div class="form-group">
+                                            <label>Upload Media</label>
+                                            <div class="file-upload-area gallery-manager-dropzone" id="fileUploadArea">
+                                                <div class="upload-content">
+                                                    <i class="fas fa-cloud-upload-alt"></i>
+                                                    <p>Drag and drop or click to upload</p>
+                                                    <span class="file-types">PNG, JPG, MP4 (max 4MB)</span>
+                                                </div>
+                                                <input id="projectFile" class="admin-file-input" type="file" accept="image/*,video/*" style="display:none;">
                                             </div>
-                                            <input id="projectFile" type="file" accept="image/*,video/*" style="display:none;">
                                         </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="projectMediaUrl">Or Media URL (YouTube / direct link)</label>
-                                        <input id="projectMediaUrl" type="url" placeholder="https://youtube.com/shorts/...">
-                                    </div>
-                                    <div class="form-group" style="display:flex; align-items:center; gap:10px;">
-                                        <input type="checkbox" id="setAsHeroToggle" style="width:auto;">
-                                        <label for="setAsHeroToggle" style="margin:0; text-transform:none; letter-spacing:0; font-weight:700;">Set as Hero Background Video</label>
-                                    </div>
-                                    <button class="upload-btn" id="uploadBtn" type="button"><i class="fas fa-upload"></i> Save Project</button>
-                                    <div class="upload-progress" id="uploadProgress" aria-hidden="true">
-                                        <div class="upload-progress-row">
-                                            <span class="upload-spinner" aria-hidden="true"></span>
-                                            <span class="upload-progress-text" id="uploadProgressText">Uploading...</span>
+                                        <div class="form-group">
+                                            <label for="projectMediaUrl">Or Media URL (YouTube / direct link)</label>
+                                            <input id="projectMediaUrl" type="url" placeholder="https://youtube.com/shorts/...">
                                         </div>
-                                        <div class="upload-progress-bar">
-                                            <div class="upload-progress-fill" id="uploadProgressFill" style="width:0%"></div>
+                                        <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+                                            <input type="checkbox" id="setAsHeroToggle" style="width:auto;">
+                                            <label for="setAsHeroToggle" style="margin:0; text-transform:none; letter-spacing:0; font-weight:700;">Set as Hero Background Video</label>
+                                        </div>
+                                        <button class="upload-btn admin-action-btn" id="uploadBtn" type="button"><i class="fas fa-upload"></i> Save Project</button>
+                                        <div class="upload-progress" id="uploadProgress" aria-hidden="true">
+                                            <div class="upload-progress-row">
+                                                <span class="upload-spinner" aria-hidden="true"></span>
+                                                <span class="upload-progress-text" id="uploadProgressText">Uploading...</span>
+                                            </div>
+                                            <div class="upload-progress-bar">
+                                                <div class="upload-progress-fill" id="uploadProgressFill" style="width:0%"></div>
+                                            </div>
                                         </div>
                                     </div>
                                 </form>

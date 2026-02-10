@@ -3824,6 +3824,12 @@
             min-height: 80px;
         }
 
+        .upload-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
         .media-type-toggle {
             display: flex;
             gap: 10px;
@@ -3859,6 +3865,7 @@
             cursor: pointer;
             transition: all 0.3s ease;
             background: var(--glass-bg);
+            min-height: 48px;
         }
 
         .file-upload-area:hover,
@@ -3902,6 +3909,48 @@
             text-transform: uppercase;
             letter-spacing: 0.08em;
             box-shadow: 0 14px 30px rgba(255, 140, 0, 0.25);
+            min-height: 48px;
+        }
+
+        @media (max-width: 768px) {
+            .upload-form {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .admin-panel button {
+                width: 100%;
+                min-height: 55px;
+            }
+
+            .admin-panel input,
+            .admin-panel textarea,
+            .admin-panel select {
+                font-size: 16px;
+            }
+
+            .project-visibility-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .visibility-toggle {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .upload-progress-row {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            .upload-progress-text {
+                font-size: 1.05rem;
+                text-align: center;
+                width: 100%;
+            }
         }
 
         .upload-btn:hover {
