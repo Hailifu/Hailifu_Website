@@ -3279,40 +3279,11 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     slot.removeAttribute('onclick');
                 }
 
-                if (!slot.dataset.modalBound) {
-                    slot.dataset.modalBound = '1';
-                    slot.setAttribute('role', 'button');
-                    slot.tabIndex = 0;
-
-                    const openMediaRoom = () => {
-                        const initialId = String(slot.dataset.generatedProjectId || '').trim();
-                        let projectId = initialId;
-                        if (!projectId) {
-                            const slotCategory = String(slot.getAttribute('data-category') || slot.dataset.category || '').toLowerCase().trim();
-                            const projects = getProjects();
-                            const match = projects.find((p) => {
-                                const category = String(p?.category || '').toLowerCase().trim();
-                                return p && isVisibilityEnabled(p, 'showInShowcase', 'showcase') && category && category === slotCategory && p.id;
-                            });
-                            if (match?.id) projectId = String(match.id);
-                        }
-                        if (!projectId || typeof window.openGallery !== 'function') return;
-                        window.openGallery(projectId);
-                    };
-
-                    slot.addEventListener('click', (e) => {
-                        if (e?.target?.closest?.('a,button,input,textarea,select,label')) return;
-                        e.preventDefault();
-                        openMediaRoom();
-                    });
-
-                    slot.addEventListener('keydown', (e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            openMediaRoom();
-                        }
-                    });
+                if (slot.dataset.modalBound) {
+                    delete slot.dataset.modalBound;
                 }
+                slot.removeAttribute('role');
+                slot.removeAttribute('tabindex');
             });
         }
 
@@ -4801,6 +4772,9 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             const project = projects.find((p) => String(p?.id || '') === id);
             if (!project) return false;
             if (!projectModal) return false;
+            if (projectModalMedia) {
+                projectModalMedia.innerHTML = '';
+            }
             const temp = document.createElement('div');
             temp.className = 'showcase-item';
             temp.dataset.generatedProjectId = id;
@@ -4814,9 +4788,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         }
 
         window.openModal = openModal;
-        window.openGallery = function openGallery(projectId) {
-            return openModal(projectId);
-        };
+        window.openGallery = openModal;
 
         if (projectModalClose) {
             projectModalClose.addEventListener('click', closeProjectModal);
