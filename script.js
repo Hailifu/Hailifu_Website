@@ -9,8 +9,11 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         const heroVideo = document.getElementById('heroVideo');
         const heroFallbackImage = document.getElementById('heroFallbackImage');
         const mainNav = document.getElementById('main-nav');
-        const navLinks = mainNav ? mainNav.querySelectorAll('.nav-links a[href^="#"]') : [];
-        const mobileToggle = mainNav ? mainNav.querySelector('.mobile-menu-toggle') : null;
+        const sideMenu = document.getElementById('side-menu');
+        const sideMenuToggle = document.getElementById('sideMenuToggle');
+        const sideMenuClose = document.getElementById('sideMenuClose');
+        const sideMenuOverlay = document.getElementById('sideMenuOverlay');
+        const navLinks = sideMenu ? sideMenu.querySelectorAll('.side-menu-links a[href^="#"]') : [];
         const servicesTitleCta = document.getElementById('servicesTitleCta');
         const themeToggle = document.getElementById('themeToggle');
 
@@ -4879,6 +4882,24 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         updateHeaderScrolled();
         window.addEventListener('scroll', updateHeaderScrolled, { passive: true });
 
+        const openSideMenu = () => {
+            if (!sideMenu) return;
+            sideMenu.classList.add('open');
+            sideMenu.setAttribute('aria-hidden', 'false');
+            sideMenuOverlay?.classList.add('visible');
+            sideMenuOverlay?.setAttribute('aria-hidden', 'false');
+            sideMenuToggle?.setAttribute('aria-expanded', 'true');
+        };
+
+        const closeSideMenu = () => {
+            if (!sideMenu) return;
+            sideMenu.classList.remove('open');
+            sideMenu.setAttribute('aria-hidden', 'true');
+            sideMenuOverlay?.classList.remove('visible');
+            sideMenuOverlay?.setAttribute('aria-hidden', 'true');
+            sideMenuToggle?.setAttribute('aria-expanded', 'false');
+        };
+
         if (navLinks.length) {
             navLinks.forEach((link) => {
                 link.addEventListener('click', (e) => {
@@ -4890,10 +4911,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     e.preventDefault();
 
                     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    if (mainNav) {
-                        mainNav.classList.remove('nav-open');
-                        if (mobileToggle) mobileToggle.setAttribute('aria-expanded', 'false');
-                    }
+                    closeSideMenu();
                 });
             });
         }
@@ -4947,11 +4965,22 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             window.addEventListener('resize', setActiveByScroll, { passive: true });
         }
 
-        if (mobileToggle && mainNav) {
-            mobileToggle.addEventListener('click', () => {
-                const isOpen = mainNav.classList.toggle('nav-open');
-                mobileToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        if (sideMenuToggle) {
+            sideMenuToggle.addEventListener('click', () => {
+                if (sideMenu?.classList.contains('open')) {
+                    closeSideMenu();
+                } else {
+                    openSideMenu();
+                }
             });
+        }
+
+        if (sideMenuClose) {
+            sideMenuClose.addEventListener('click', closeSideMenu);
+        }
+
+        if (sideMenuOverlay) {
+            sideMenuOverlay.addEventListener('click', closeSideMenu);
         }
 
         // Scroll Animation Observer

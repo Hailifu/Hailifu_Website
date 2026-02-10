@@ -143,18 +143,6 @@
             </span>
             HAILIFU <span>BRILLIANT</span>
         </a>
-        <button class="mobile-menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false">
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
-        <div class="nav-links">
-            <a href="#hero">Home</a>
-            <a href="#featured-work">Projects</a>
-            <a href="#showcase">Showcase</a>
-            <a href="#services">Services</a>
-            <a href="#reviews">Reviews</a>
-        </div>
         <div class="main-nav-actions">
             <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme" aria-pressed="false" title="Theme">
                 <span class="theme-toggle-icon" aria-hidden="true">
@@ -164,6 +152,35 @@
             </button>
         </div>
     </nav>
+
+    <button class="side-menu-toggle" id="sideMenuToggle" type="button" aria-label="Open menu" aria-expanded="false">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <div class="side-menu-overlay" id="sideMenuOverlay" aria-hidden="true"></div>
+
+    <div id="side-menu" class="side-menu" aria-hidden="true">
+        <div class="side-menu-header">
+            <a href="#hero" class="side-menu-logo">
+                <span class="whatsapp-logo" style="width: 40px; height: 40px; border-radius: 12px; border: 1px solid rgba(255, 140, 0, 0.25); background: rgba(255, 255, 255, 0.06); display: inline-flex; align-items: center; justify-content: center;">
+                    <img src="./logo.webp" alt="Hailifu Logo" style="width: 26px; height: 26px; object-fit: cover; border-radius: 6px;">
+                </span>
+                HAILIFU <span>BRILLIANT</span>
+            </a>
+            <button class="side-menu-close" id="sideMenuClose" type="button" aria-label="Close menu">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <nav class="side-menu-links" aria-label="Sidebar Navigation">
+            <a href="#hero">Home</a>
+            <a href="#featured-work">Projects</a>
+            <a href="#showcase">Showcase</a>
+            <a href="#services">Services</a>
+            <a href="#reviews">Reviews</a>
+        </nav>
+    </div>
  
     <!-- Hero Section -->
     <section class="hero" id="hero">
