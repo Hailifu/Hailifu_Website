@@ -1699,10 +1699,9 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                                             <option value="electrical">Electrical</option>
                                             <option value="gates">Automated Gates</option>
                                             <option value="solar">Solar Energy</option>
-                                            <option value="airconditioning">Air Conditioning</option>
-                                            <option value="blindcurtain">Smart Window Solutions</option>
-                                            <option value="fencing">Electric Fencing</option>
-                                            <option value="smarthome">Smart Home</option>
+                                            <option value="airconditioning">Air Conditioner</option>
+                                            <option value="fencing">Electric Fence</option>
+                                            <option value="blindcurtain">Window Blinds</option>
                                         </select>
                                     </div>
                                     <div class="form-group">
@@ -3168,13 +3167,13 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             const categoryLabelMap = {
                 cctv: 'CCTV',
                 electrical: 'Electrical',
-                airconditioning: 'Air Conditioning',
+                airconditioning: 'Air Conditioner',
                 gates: 'Automated Gates',
                 solar: 'Solar Energy',
-                fencing: 'Electric Fencing',
+                fencing: 'Electric Fence',
                 smarthome: 'Smart Home',
                 smartwindows: 'Smart Window Solutions',
-                blindcurtain: 'Smart Window Solutions'
+                blindcurtain: 'Window Blinds'
             };
 
             const usedIds = new Set();
@@ -3743,12 +3742,12 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             const categoryLabelMap = {
                 cctv: 'CCTV',
                 electrical: 'Electrical',
-                airconditioning: 'Air Conditioning',
+                airconditioning: 'Air Conditioner',
                 gates: 'Automated Gates',
                 solar: 'Solar Energy',
-                fencing: 'Electric Fencing',
+                fencing: 'Electric Fence',
                 smarthome: 'Smart Home',
-                blindcurtain: 'Smart Window Solutions'
+                blindcurtain: 'Window Blinds'
             };
 
             const projects = Array.isArray(projectsOverride) ? projectsOverride : getProjects();
@@ -5099,10 +5098,10 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 if (!emptyState) {
                     const node = document.createElement('div');
                     node.className = 'showcase-empty';
-                    node.textContent = 'More work coming soon';
+                    node.textContent = 'Project coming soon';
                     showcaseGrid.appendChild(node);
                 } else {
-                    emptyState.textContent = 'More work coming soon';
+                    emptyState.textContent = 'Project coming soon';
                 }
                 return;
             }
@@ -5116,7 +5115,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 if (!emptyState) {
                     const node = document.createElement('div');
                     node.className = 'showcase-empty';
-                    node.textContent = 'More work coming soon';
+                    node.textContent = 'Project coming soon';
                     showcaseGrid.appendChild(node);
                 }
             } else if (emptyState) {
@@ -5131,6 +5130,11 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 filterButtons.forEach(btn => btn.classList.remove('active'));
                 button.classList.add('active');
                 filterProjects(button.dataset.filter || 'all');
+                const showcaseSection = document.getElementById('showcase');
+                if (showcaseSection) {
+                    const top = Math.max(0, showcaseSection.offsetTop - 100);
+                    window.scrollTo({ top, behavior: 'smooth' });
+                }
             });
         });
 
