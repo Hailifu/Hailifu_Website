@@ -1771,7 +1771,7 @@
         }
 
         #services .services-grid .card {
-            cursor: pointer;
+            cursor: default;
         }
 
         #services .services-grid .card {
@@ -2224,17 +2224,11 @@
             box-shadow: 0 5px 15px rgba(255, 107, 53, 0.4);
         }
 
-        .showcase-grid {
+        #showcase .showcase-grid {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 30px;
             margin-top: 50px;
-        }
-
-        @media (max-width: 1024px) {
-            .showcase-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
         }
 
         .showcase-empty {
@@ -2249,7 +2243,7 @@
         }
 
         @media (max-width: 600px) {
-            .showcase-grid {
+            #showcase .showcase-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -2429,11 +2423,11 @@
             inset: auto;
             width: 100%;
             flex: 0 0 100%;
-            opacity: 1;
+            opacity: 0;
             transform: none;
-            transition: none;
-            will-change: auto;
-            pointer-events: auto;
+            transition: opacity 0.6s ease;
+            will-change: opacity;
+            pointer-events: none;
         }
 
         .featured-loop-slide.is-active {
@@ -2737,6 +2731,9 @@
                 scroll-snap-stop: always;
                 padding: 0 20px;
                 box-sizing: border-box;
+                opacity: 1;
+                transition: none;
+                pointer-events: auto;
             }
 
             .featured-loop .featured-card {
@@ -6324,6 +6321,7 @@
         .project-modal-gallery {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-auto-flow: dense;
             gap: 10px;
         }
 

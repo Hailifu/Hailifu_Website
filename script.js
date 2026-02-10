@@ -3138,12 +3138,10 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             if (!projectsGrid) projectsGrid = document.getElementById('projectsGrid');
             renderProjects();
             const projects = getProjects();
-            const featuredProjects = projects.filter((p) => p && p.featured);
             const showcaseProjects = projects.filter((p) => p && isVisibilityEnabled(p, 'showInShowcase', 'showcase'));
-            const serviceProjects = projects.filter((p) => p && isVisibilityEnabled(p, 'showInServices', 'services'));
-            renderFeaturedWork(featuredProjects);
+            renderFeaturedWork(projects);
             renderShowcase(showcaseProjects);
-            renderServices(serviceProjects);
+            renderServices();
             const activeFilter = document.querySelector('.showcase-filters .filter-btn.active');
             if (typeof filterProjects === 'function') {
                 if (activeFilter) filterProjects(activeFilter.dataset.filter || 'all');
@@ -3274,12 +3272,19 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     slot.tabIndex = 0;
 
                     const openMediaRoom = () => {
-                        const projectId = String(slot.dataset.generatedProjectId || '').trim();
-                        if (projectId && typeof window.openModal === 'function') {
-                            const opened = window.openModal(projectId);
-                            if (opened) return;
+                        const initialId = String(slot.dataset.generatedProjectId || '').trim();
+                        let projectId = initialId;
+                        if (!projectId) {
+                            const slotCategory = String(slot.getAttribute('data-category') || slot.dataset.category || '').toLowerCase().trim();
+                            const projects = getProjects();
+                            const match = projects.find((p) => {
+                                const category = String(p?.category || '').toLowerCase().trim();
+                                return p && isVisibilityEnabled(p, 'showInShowcase', 'showcase') && category && category === slotCategory && p.id;
+                            });
+                            if (match?.id) projectId = String(match.id);
                         }
-                        try { openShowcaseMediaRoom(slot); } catch {}
+                        if (!projectId || typeof window.openModal !== 'function') return;
+                        window.openModal(projectId);
                     };
 
                     slot.addEventListener('click', (e) => {
@@ -3751,34 +3756,44 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             };
 
             const projects = Array.isArray(projectsOverride) ? projectsOverride : getProjects();
-            const maxSlides = 4;
-            const featured = projects
-                .filter((p) => p && p.featured)
-                .map((p) => {
-                    if (!p || typeof p !== 'object') return null;
-                    const mediaSrc = String(p.mediaSrc || p.imageUrl || '').trim();
-                    if (!mediaSrc) return null;
-                    return {
-                        ...p,
-                        mediaSrc,
-                        mediaType: String(p.mediaType || 'image') || 'image'
-                    };
-                })
-                .filter(Boolean)
-                .sort((a, b) => {
-                    const ta = Number(a?.timestamp) || (Date.parse(a?.createdAt || '') || 0);
-                    const tb = Number(b?.timestamp) || (Date.parse(b?.createdAt || '') || 0);
-                    return tb - ta;
-                })
-                .slice(0, maxSlides);
+            const toTimestamp = (project) => Number(project?.timestamp) || (Date.parse(project?.createdAt || '') || 0);
+            const normalizeProject = (project) => {
+                if (!project || typeof project !== 'object') return null;
+                const mediaSrc = String(project.mediaSrc || project.imageUrl || '').trim();
+                if (!mediaSrc) return null;
+                return {
+                    ...project,
+                    mediaSrc,
+                    mediaType: String(project.mediaType || 'image') || 'image'
+                };
+            };
+
+            const normalized = projects.map(normalizeProject).filter(Boolean);
+            const featured = normalized
+                .filter((p) => isVisibilityEnabled(p, 'showInFeatured', 'featured'))
+                .sort((a, b) => toTimestamp(b) - toTimestamp(a));
+
+            let featuredList = [...featured];
+            if (featuredList.length < 5) {
+                const featuredIds = new Set(featuredList.map((p) => String(p?.id || p?.mediaSrc || '').trim()));
+                const fallback = normalized
+                    .filter((p) => isVisibilityEnabled(p, 'showInShowcase', 'showcase'))
+                    .filter((p) => {
+                        const key = String(p?.id || p?.mediaSrc || '').trim();
+                        return key && !featuredIds.has(key);
+                    })
+                    .sort((a, b) => toTimestamp(b) - toTimestamp(a))
+                    .slice(0, Math.max(0, 5 - featuredList.length));
+                featuredList = [...featuredList, ...fallback];
+            }
 
             stopFeaturedLoop();
             featuredLoopHasBindings = false;
             featuredLoopBoundNode = null;
             featuredLoopIndex = 0;
-            featuredLoopCount = featured.length;
+            featuredLoopCount = featuredList.length;
 
-            if (!featured.length) {
+            if (!featuredList.length) {
                 featuredBento.innerHTML = `
                     <div class="featured-loop" id="featuredLoop">
                         <div class="featured-loop-viewport">
@@ -3837,9 +3852,9 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 `;
             };
 
-            const slides = featured.map((project, idx) => buildSlide(project, idx)).join('');
+            const slides = featuredList.map((project, idx) => buildSlide(project, idx)).join('');
             const dotsMarkup = featuredLoopCount > 1
-                ? featured.map((_, idx) => {
+                ? featuredList.map((_, idx) => {
                     const active = idx === 0 ? ' active' : '';
                     return `<span class="featured-loop-dot${active}"></span>`;
                 }).join('')
@@ -3873,7 +3888,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
             let startIndex = 0;
             if (preferredFeaturedCategoryKey) {
-                const matchIdx = featured.findIndex((p) => normalizeCategory(p?.category) === preferredFeaturedCategoryKey);
+                const matchIdx = featuredList.findIndex((p) => normalizeCategory(p?.category) === preferredFeaturedCategoryKey);
                 if (matchIdx >= 0) startIndex = matchIdx;
             }
 
@@ -4819,122 +4834,45 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             }
         });
 
-        function renderServices(projectsOverride) {
+        function renderServices() {
             const servicesGrid = document.querySelector('#services .services-grid');
             if (!servicesGrid) return;
-            bindServiceCardsToMedia(projectsOverride, servicesGrid);
-        }
 
-        function bindServiceCardsToMedia(projectsOverride, servicesGridOverride) {
-            const servicesGrid = servicesGridOverride || document.querySelector('#services .services-grid');
-            if (!servicesGrid) return;
-
-            const servicesSection = servicesGrid.closest('#services') || document.getElementById('services');
-            if (!servicesSection) return;
-
-            const cards = servicesGrid.querySelectorAll('.card');
+            const cards = Array.from(servicesGrid.querySelectorAll('.card'));
             if (!cards.length) return;
 
-            const projects = Array.isArray(projectsOverride) ? projectsOverride : getProjects();
-            const serviceProjects = projects.filter((p) => p && isVisibilityEnabled(p, 'showInServices', 'services'));
-            const categoryLabelMap = {
-                cctv: 'CCTV',
-                electrical: 'Electrical',
-                airconditioning: 'Air Conditioning',
-                gates: 'Automated Gates',
-                fencing: 'Electric Fencing',
-                smarthome: 'Smart Home',
-                blindcurtain: 'Smart Window Solutions'
-            };
+            const mailtoHref = 'mailto:01hailifu@gmail.com?subject=Quote%20Request';
 
-            const serviceIdToCategory = {
-                'service-cctv': 'cctv',
-                'service-electrical': 'electrical',
-                'service-gates': 'gates',
-                'service-fencing': 'fencing',
-                'service-smarthome': 'smarthome',
-                'service-airconditioning': 'airconditioning',
-                'service-blindcurtain': 'blindcurtain'
-            };
-
-            const getProjectForCategory = (category) => {
-                if (!category) return null;
-                const matches = serviceProjects.filter((p) => String(p.category || '').toLowerCase().trim() === category && p.mediaSrc);
-                if (!matches.length) return null;
-                const featured = matches.find((p) => p.isFeatured) || matches.find((p) => p.isStarred);
-                return featured || matches[0];
-            };
-
-            const buildPreviewMarkup = (project, titleText) => {
-                if (!project || !project.mediaSrc) return '';
-                const safeTitle = String(titleText || project.title || 'Service').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-                const normalizedSrc = normalizeCloudinaryUrl(String(project.mediaSrc || '').trim());
-                const normalizedThumb = normalizeCloudinaryUrl(String(project.thumbSrc || '').trim());
-
-                if (project.mediaType === 'video') {
-                    return `<video src="${normalizedSrc}" muted playsinline webkit-playsinline loop autoplay preload="metadata"></video>`;
-                }
-
-                if (project.mediaType === 'youtube') {
-                    const youtubeId = getYoutubeVideoId(normalizedSrc);
-                    const thumb = normalizedThumb || getYoutubeThumbUrl(youtubeId) || '';
-                    return thumb ? `<img src="${thumb}" alt="${safeTitle}" loading="lazy">` : '';
-                }
-
-                return `<img src="${normalizedSrc}" alt="${safeTitle}" loading="lazy">`;
-            };
-
-            const ensureServicePreview = (card, previewMarkup) => {
-                if (!previewMarkup) return;
-                const existing = card.querySelector('.service-media');
-                if (existing) {
-                    existing.innerHTML = previewMarkup;
-                    bindHailifuMediaFallback(existing, 'HAILIFU');
-                    return;
-                }
-                const wrap = document.createElement('div');
-                wrap.className = 'service-media';
-                wrap.innerHTML = previewMarkup;
-                card.insertBefore(wrap, card.firstChild);
-                bindHailifuMediaFallback(wrap, 'HAILIFU');
-            };
-
-            let assignedCount = 0;
             cards.forEach((card) => {
-                const category = serviceIdToCategory[card.id] || card.dataset?.serviceCategory || '';
-                const categoryLabel = categoryLabelMap[category] || '';
-                if (categoryLabel) card.dataset.modalCategory = categoryLabel;
+                card.removeAttribute('role');
+                card.removeAttribute('tabindex');
+                card.removeAttribute('onclick');
+                card.classList.remove('has-media', 'highlight', 'highlight-service');
 
-                const project = getProjectForCategory(category);
-                const titleText = card.querySelector('h3')?.textContent?.trim() || categoryLabel || 'Service';
-                const previewMarkup = buildPreviewMarkup(project, titleText);
+                try {
+                    delete card.dataset.mediaSrc;
+                    delete card.dataset.mediaType;
+                    delete card.dataset.generatedProjectId;
+                    delete card.dataset.modalTitle;
+                    delete card.dataset.modalDescription;
+                    delete card.dataset.modalCategory;
+                } catch {}
 
-                if (project && project.mediaSrc) {
-                    assignedCount += 1;
-                    card.dataset.mediaSrc = normalizeCloudinaryUrl(String(project.mediaSrc || '').trim());
-                    card.dataset.mediaType = project.mediaType || 'image';
-                    card.classList.add('has-media');
+                const preview = card.querySelector('.service-media');
+                if (preview) preview.remove();
+
+                const quoteBtn = card.querySelector('.request-quote-btn');
+                if (quoteBtn) {
+                    quoteBtn.textContent = 'Request a Quote';
+                    quoteBtn.setAttribute('href', mailtoHref);
+                    quoteBtn.setAttribute('target', '_blank');
+                    quoteBtn.setAttribute('rel', 'noopener');
+                    quoteBtn.removeAttribute('onclick');
                 }
-
-                ensureServicePreview(card, previewMarkup);
             });
 
-            if (servicesGrid) {
-                const emptyNode = servicesGrid.querySelector('.services-empty');
-                if (assignedCount === 0) {
-                    if (!emptyNode) {
-                        const node = document.createElement('div');
-                        node.className = 'services-empty';
-                        node.textContent = 'More work coming soon';
-                        servicesGrid.appendChild(node);
-                    } else {
-                        emptyNode.textContent = 'More work coming soon';
-                    }
-                } else if (emptyNode) {
-                    emptyNode.remove();
-                }
-            }
+            const emptyNode = servicesGrid.querySelector('.services-empty');
+            if (emptyNode) emptyNode.remove();
         }
 
         renderServices();
@@ -5085,16 +5023,8 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         }
 
         document.querySelectorAll('#service-cctv, #service-electrical, #service-airconditioning, #service-gates, #service-fencing, #service-smarthome, #service-blindcurtain').forEach((card) => {
-            card.setAttribute('role', 'button');
-            card.tabIndex = 0;
-
-            card.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    const category = card.getAttribute('data-category') || card.dataset?.category || '';
-                    if (typeof window.openMediaRoom === 'function') window.openMediaRoom(category);
-                }
-            });
+            card.removeAttribute('role');
+            card.removeAttribute('tabindex');
         });
 
         function filterProjects(filterValue) {
