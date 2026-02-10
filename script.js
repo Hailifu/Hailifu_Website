@@ -533,11 +533,8 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                         return tb - ta;
                     });
                     firebaseProjectsState = list;
-                    renderProjects();
-                    hydrateShowcaseFromStoredProjects();
-                    renderFeaturedWork();
+                    loadProjects();
                     renderAdminLazyLoop();
-                    bindServiceCardsToMedia();
                 } catch {}
             }, () => {
                 firebaseProjectsState = null;
@@ -659,11 +656,13 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             if (!key) return Promise.reject(new Error('Failed to create project id'));
             const title = String(project?.title || '').trim();
             const imageUrl = String(project?.mediaSrc || project?.imageUrl || '').trim();
+            const visibility = normalizeVisibilityFlags(project);
             const record = stripProjectQuoteFields({
                 title,
                 imageUrl,
                 timestamp: Date.now(),
                 ...(project && typeof project === 'object' ? project : {}),
+                ...visibility,
                 id: key
             });
             return newRef.set(record);
@@ -739,11 +738,8 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 } catch {}
 
                 try {
-                    renderProjects();
-                    hydrateShowcaseFromStoredProjects();
-                    renderFeaturedWork();
+                    loadProjects();
                     renderAdminLazyLoop();
-                    bindServiceCardsToMedia();
                 } catch {}
             } catch {}
         }
@@ -1858,6 +1854,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             const maxSlides = 4;
             const cacheStamp = Date.now();
             const featured = projects
+                .filter((p) => p && p.showInFeatured)
                 .map((p) => {
                     if (!p || typeof p !== 'object') return null;
                     const mediaSrc = String(p.mediaSrc || p.imageUrl || '').trim();
@@ -2208,6 +2205,9 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                             mediaType: resolved.mediaType,
                             mediaSrc: resolved.mediaSrc,
                             thumbSrc: resolved.thumbSrc,
+                            showInFeatured: true,
+                            showInShowcase: true,
+                            showInServices: true,
                             isStarred: false,
                             isFeatured: false
                         };
@@ -2229,9 +2229,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                             const projects = getProjects();
                             projects.unshift(project);
                             saveProjects(projects);
-                            renderProjects();
-                            hydrateShowcaseFromStoredProjects();
-                            renderFeaturedWork();
+                            loadProjects();
                         }
 
                         if (setAsHeroToggle) setAsHeroToggle.checked = false;
@@ -2293,6 +2291,9 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                             mediaType: selectedMediaType,
                             mediaSrc: localMediaPath,
                             thumbSrc: '',
+                            showInFeatured: true,
+                            showInShowcase: true,
+                            showInServices: true,
                             isStarred: false,
                             isFeatured: false
                         };
@@ -2314,9 +2315,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                             const projects = getProjects();
                             projects.unshift(project);
                             saveProjects(projects);
-                            renderProjects();
-                            hydrateShowcaseFromStoredProjects();
-                            renderFeaturedWork();
+                            loadProjects();
                         }
 
                         if (setAsHeroToggle) setAsHeroToggle.checked = false;
@@ -2359,6 +2358,9 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                             mediaType: selectedMediaType,
                             mediaSrc: url,
                             thumbSrc: '',
+                            showInFeatured: true,
+                            showInShowcase: true,
+                            showInServices: true,
                             isStarred: false,
                             isFeatured: false
                         };
@@ -2382,9 +2384,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                         const projects = getProjects();
                         projects.unshift(project);
                         saveProjects(projects);
-                        renderProjects();
-                        hydrateShowcaseFromStoredProjects();
-                        renderFeaturedWork();
+                        loadProjects();
 
                         const nextConfig = {
                             updatedAt: new Date().toISOString(),
@@ -2414,6 +2414,77 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
             if (projectsGrid) {
                 projectsGrid.addEventListener('click', (e) => {
+                    const saveBtn = e.target.closest('[data-visibility-save-id]');
+                    if (saveBtn) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const card = saveBtn.closest('.project-thumb');
+                        const id = saveBtn.getAttribute('data-visibility-save-id') || card?.getAttribute('data-admin-project-id');
+                        if (!card || !id) return;
+                        const featuredInput = card.querySelector('input[data-visibility-flag="featured"]');
+                        const showcaseInput = card.querySelector('input[data-visibility-flag="showcase"]');
+                        const servicesInput = card.querySelector('input[data-visibility-flag="services"]');
+                        const nextVisibility = {
+                            showInFeatured: Boolean(featuredInput?.checked),
+                            showInShowcase: Boolean(showcaseInput?.checked),
+                            showInServices: Boolean(servicesInput?.checked)
+                        };
+
+                        const projects = getProjects();
+                        const idx = projects.findIndex((p) => p.id === id);
+                        if (idx < 0) return;
+                        const previousVisibility = normalizeVisibilityFlags(projects[idx]);
+                        projects[idx] = {
+                            ...projects[idx],
+                            ...nextVisibility
+                        };
+
+                        const resetControls = () => {
+                            if (featuredInput) featuredInput.checked = previousVisibility.showInFeatured;
+                            if (showcaseInput) showcaseInput.checked = previousVisibility.showInShowcase;
+                            if (servicesInput) servicesInput.checked = previousVisibility.showInServices;
+                            updateProjectLiveStatus(card, previousVisibility);
+                        };
+
+                        const finalizeButton = (label) => {
+                            if (!saveBtn.isConnected) return;
+                            saveBtn.textContent = label;
+                            if (label === 'Saved') {
+                                setTimeout(() => {
+                                    if (saveBtn.isConnected) saveBtn.textContent = 'Save Changes';
+                                }, 1400);
+                            }
+                        };
+
+                        if (firebaseIsReady()) {
+                            saveBtn.disabled = true;
+                            finalizeButton('Saving...');
+                            upsertProjectInFirebase(projects[idx])
+                                .then(() => {
+                                    updateProjectLiveStatus(card, nextVisibility);
+                                    finalizeButton('Saved');
+                                })
+                                .catch((err) => {
+                                    console.error('Firebase save failed:', err);
+                                    resetControls();
+                                    finalizeButton('Retry');
+                                })
+                                .finally(() => {
+                                    saveBtn.disabled = false;
+                                });
+                        } else {
+                            saveProjects(projects);
+                            loadProjects();
+                        }
+                        return;
+                    }
+
+                    const visibilityControls = e.target.closest('.project-visibility-controls');
+                    if (visibilityControls) {
+                        e.stopPropagation();
+                        return;
+                    }
+
                     const starBtn = e.target.closest('[data-star-project-id]');
                     if (starBtn) {
                         e.preventDefault();
@@ -2427,8 +2498,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                                 upsertProjectInFirebase(projects[idx]).catch(() => {});
                             } else {
                                 saveProjects(projects);
-                                renderProjects();
-                                renderFeaturedWork();
+                                loadProjects();
                             }
                         }
                         return;
@@ -2447,7 +2517,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                                 upsertProjectInFirebase(projects[idx]).catch(() => {});
                             } else {
                                 saveProjects(projects);
-                                renderFeaturedWork();
+                                loadProjects();
                             }
                         }
                         return;
@@ -2461,11 +2531,10 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                         } else {
                             const projects = getProjects().filter((p) => p.id !== id);
                             saveProjects(projects);
-                            renderProjects();
+                            loadProjects();
                         }
                         const generated = document.querySelector(`[data-generated-project-id="${id}"]`);
                         if (generated) generated.remove();
-                        renderFeaturedWork();
                         const activeFilter = document.querySelector('.showcase-filters .filter-btn.active');
                         if (activeFilter) {
                             filterProjects(activeFilter.dataset.filter || 'all');
@@ -2742,6 +2811,21 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             return rest;
         }
 
+        function normalizeVisibilityFlags(project) {
+            if (!project || typeof project !== 'object') {
+                return {
+                    showInFeatured: true,
+                    showInShowcase: true,
+                    showInServices: true
+                };
+            }
+            return {
+                showInFeatured: typeof project.showInFeatured === 'boolean' ? project.showInFeatured : true,
+                showInShowcase: typeof project.showInShowcase === 'boolean' ? project.showInShowcase : true,
+                showInServices: typeof project.showInServices === 'boolean' ? project.showInServices : true
+            };
+        }
+
         function getHailifuPlaceholderDataUri(label = 'HAILIFU') {
             const safeLabel = String(label || 'HAILIFU').slice(0, 60);
             const svg = `<?xml version="1.0" encoding="UTF-8"?>
@@ -2782,25 +2866,27 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 ? firebaseProjectsState
                 : null;
 
-            if (firebaseProjects && firebaseProjects.length) {
-                const list = Array.isArray(firebaseProjects) ? firebaseProjects : [];
-                return list.map((project) => {
-                    const base = stripProjectQuoteFields(project);
-                    const rawMediaSrc = String(base?.mediaSrc || base?.imageUrl || base?.mediaUrl || '').trim();
-                    const rawThumbSrc = String(base?.thumbSrc || base?.thumbnailUrl || base?.thumbUrl || '').trim();
-                    const mediaSrc = normalizeProjectMediaPath(rawMediaSrc);
-                    const thumbSrc = normalizeProjectMediaPath(rawThumbSrc);
-                    const mediaType = String(base?.mediaType || (mediaSrc && /\.(mp4|webm|mov)(\?|#|$)/i.test(mediaSrc) ? 'video' : 'image') || 'image').trim().toLowerCase() || 'image';
-                    return {
-                        ...base,
-                        mediaSrc,
-                        thumbSrc,
-                        mediaType,
-                        isStarred: Boolean(project?.isStarred),
-                        isFeatured: Boolean(project?.isFeatured)
-                    };
-                });
-            }
+                if (firebaseProjects && firebaseProjects.length) {
+                    const list = Array.isArray(firebaseProjects) ? firebaseProjects : [];
+                    return list.map((project) => {
+                        const base = stripProjectQuoteFields(project);
+                        const visibility = normalizeVisibilityFlags(base);
+                        const rawMediaSrc = String(base?.mediaSrc || base?.imageUrl || base?.mediaUrl || '').trim();
+                        const rawThumbSrc = String(base?.thumbSrc || base?.thumbnailUrl || base?.thumbUrl || '').trim();
+                        const mediaSrc = normalizeProjectMediaPath(rawMediaSrc);
+                        const thumbSrc = normalizeProjectMediaPath(rawThumbSrc);
+                        const mediaType = String(base?.mediaType || (mediaSrc && /\.(mp4|webm|mov)(\?|#|$)/i.test(mediaSrc) ? 'video' : 'image') || 'image').trim().toLowerCase() || 'image';
+                        return {
+                            ...base,
+                            mediaSrc,
+                            thumbSrc,
+                            mediaType,
+                            ...visibility,
+                            isStarred: Boolean(project?.isStarred),
+                            isFeatured: Boolean(project?.isFeatured)
+                        };
+                    });
+                }
 
             const fromRemote = remoteConfigState && Array.isArray(remoteConfigState?.projects)
                 ? remoteConfigState.projects
@@ -2832,6 +2918,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
             return sanitized.map((project) => {
                 const base = stripProjectQuoteFields(project);
+                const visibility = normalizeVisibilityFlags(base);
                 const rawMediaSrc = String(base?.mediaSrc || base?.imageUrl || base?.mediaUrl || '').trim();
                 const rawThumbSrc = String(base?.thumbSrc || base?.thumbnailUrl || base?.thumbUrl || '').trim();
                 const mediaSrc = normalizeProjectMediaPath(rawMediaSrc);
@@ -2842,6 +2929,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     mediaSrc,
                     thumbSrc,
                     mediaType,
+                    ...visibility,
                     isStarred: Boolean(project?.isStarred),
                     isFeatured: Boolean(project?.isFeatured)
                 };
@@ -2883,9 +2971,13 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const safeTitle = (p.title || 'Project').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 const starred = Boolean(p.isStarred);
                 const featured = Boolean(p.isFeatured);
+                const visibility = normalizeVisibilityFlags(p);
                 const starClass = starred ? 'project-star active' : 'project-star';
                 const starLabel = starred ? 'Unstar project' : 'Star project';
                 const featureChecked = featured ? 'checked' : '';
+                const featuredChecked = visibility.showInFeatured ? 'checked' : '';
+                const showcaseChecked = visibility.showInShowcase ? 'checked' : '';
+                const servicesChecked = visibility.showInServices ? 'checked' : '';
                 const resolvedMediaSrc = resolveAdminAssetPath(p.mediaSrc);
                 const resolvedThumbSrc = resolveAdminAssetPath(p.thumbSrc || p.mediaSrc);
                 const finalPath = p.mediaType === 'video' ? resolvedMediaSrc : (resolvedThumbSrc || resolvedMediaSrc);
@@ -2899,8 +2991,62 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     ? `<video src="${videoWithBuster}" muted playsinline webkit-playsinline loop autoplay preload="metadata"></video>`
                     : `<img src="${thumbWithBuster}" alt="${safeTitle}" ${crossorigin} onerror="this.onerror=null; this.src=getHailifuPlaceholderDataUri('HAILIFU')">`;
 
-                return `<div class="project-thumb" data-admin-project-id="${p.id}">${thumb}<button class="${starClass}" type="button" data-star-project-id="${p.id}" aria-label="${starLabel}"><i class="fas fa-star"></i></button><button class="project-delete" type="button" data-delete-project-id="${p.id}" aria-label="Delete project"><i class="fas fa-trash"></i></button><label class="project-feature-toggle"><input type="checkbox" ${featureChecked} data-feature-project-id="${p.id}"><span>Feature in Lazy Loop</span></label><div style="position:absolute; left:8px; bottom:8px; right:8px; font-size:0.8rem; background: rgba(0,0,0,0.55); padding:6px 8px; border-radius:10px;">${safeTitle}</div></div>`;
+                return `
+                    <div class="project-thumb" data-admin-project-id="${p.id}">
+                        ${thumb}
+                        <button class="${starClass}" type="button" data-star-project-id="${p.id}" aria-label="${starLabel}">
+                            <i class="fas fa-star"></i>
+                        </button>
+                        <button class="project-delete" type="button" data-delete-project-id="${p.id}" aria-label="Delete project">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        <label class="project-feature-toggle">
+                            <input type="checkbox" ${featureChecked} data-feature-project-id="${p.id}">
+                            <span>Feature in Lazy Loop</span>
+                        </label>
+                        <div class="project-meta">
+                            <div class="project-live-status">
+                                <span class="project-live-label">Live Status</span>
+                                <div class="project-live-pills">
+                                    <span class="status-pill${visibility.showInFeatured ? ' is-on' : ''}" data-status-pill="featured">Featured</span>
+                                    <span class="status-pill${visibility.showInShowcase ? ' is-on' : ''}" data-status-pill="showcase">Showcase</span>
+                                    <span class="status-pill${visibility.showInServices ? ' is-on' : ''}" data-status-pill="services">Services</span>
+                                </div>
+                            </div>
+                            <div class="project-visibility-controls">
+                                <label class="visibility-toggle">
+                                    <input type="checkbox" ${featuredChecked} data-visibility-flag="featured">
+                                    <span>Featured</span>
+                                </label>
+                                <label class="visibility-toggle">
+                                    <input type="checkbox" ${showcaseChecked} data-visibility-flag="showcase">
+                                    <span>Showcase</span>
+                                </label>
+                                <label class="visibility-toggle">
+                                    <input type="checkbox" ${servicesChecked} data-visibility-flag="services">
+                                    <span>Services</span>
+                                </label>
+                                <button class="project-visibility-save" type="button" data-visibility-save-id="${p.id}">Save Changes</button>
+                            </div>
+                            <div class="project-title">${safeTitle}</div>
+                        </div>
+                    </div>
+                `;
             }).join('');
+        }
+
+        function updateProjectLiveStatus(card, visibility) {
+            if (!card) return;
+            const state = visibility || {};
+            const pillMap = {
+                featured: Boolean(state.showInFeatured),
+                showcase: Boolean(state.showInShowcase),
+                services: Boolean(state.showInServices)
+            };
+            Object.keys(pillMap).forEach((key) => {
+                const pill = card.querySelector(`[data-status-pill="${key}"]`);
+                if (pill) pill.classList.toggle('is-on', pillMap[key]);
+            });
         }
 
         const reviewsInitialCount = 8;
@@ -2976,9 +3122,16 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         function loadProjects() {
             if (!projectsGrid) projectsGrid = document.getElementById('projectsGrid');
             renderProjects();
+            const projects = getProjects();
+            const featuredProjects = projects.filter((p) => p && p.showInFeatured);
+            const showcaseProjects = projects.filter((p) => p && p.showInShowcase);
+            const serviceProjects = projects.filter((p) => p && p.showInServices);
+            renderFeaturedWork(featuredProjects);
+            hydrateShowcaseFromStoredProjects(showcaseProjects);
+            bindServiceCardsToMedia(serviceProjects);
         }
 
-        function hydrateShowcaseFromStoredProjects() {
+        function hydrateShowcaseFromStoredProjects(projectsOverride) {
             const showcaseGrid = document.querySelector('.showcase-grid');
             if (!showcaseGrid) return;
 
@@ -2986,7 +3139,8 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 item.remove();
             });
 
-            const projects = getProjects();
+            const projects = Array.isArray(projectsOverride) ? projectsOverride : getProjects();
+            const showcaseProjects = projects.filter((p) => p && p.showInShowcase);
             const slotToProjectCategory = {
                 smartwindows: 'blindcurtain'
             };
@@ -3004,7 +3158,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             const pickProjectForSlot = (slotCategory) => {
                 const normalized = String(slotCategory || '').toLowerCase().trim();
                 const projectCategory = slotToProjectCategory[normalized] || normalized;
-                const matches = projects.filter((p) => String(p?.category || '').toLowerCase().trim() === projectCategory);
+                const matches = showcaseProjects.filter((p) => String(p?.category || '').toLowerCase().trim() === projectCategory);
                 const withMedia = matches.filter((p) => p && p.mediaSrc);
                 const featured = withMedia.find((p) => p.isFeatured) || withMedia.find((p) => p.isStarred);
                 return featured || withMedia[0] || matches[0] || null;
@@ -3190,7 +3344,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             const serviceLabel = labelMap[normalized] || labelMap[resolved] || 'Service';
             const projects = getProjects();
             const matches = projects
-                .filter((p) => p && String(p.category || '').toLowerCase().trim() === resolved)
+                .filter((p) => p && p.showInServices && String(p.category || '').toLowerCase().trim() === resolved)
                 .filter((p) => p.mediaSrc || (Array.isArray(p.mediaItems) && p.mediaItems.length));
 
             const playlist = [];
@@ -3540,7 +3694,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             }
         }
 
-        function renderFeaturedWork() {
+        function renderFeaturedWork(projectsOverride) {
             if (!featuredBento) return;
 
             const categoryLabelMap = {
@@ -3553,9 +3707,10 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 blindcurtain: 'Smart Window Solutions'
             };
 
-            const projects = getProjects();
+            const projects = Array.isArray(projectsOverride) ? projectsOverride : getProjects();
             const maxSlides = 4;
             const featured = projects
+                .filter((p) => p && p.showInFeatured)
                 .map((p) => {
                     if (!p || typeof p !== 'object') return null;
                     const mediaSrc = String(p.mediaSrc || p.imageUrl || '').trim();
@@ -4148,10 +4303,6 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
         renderLeads();
         loadProjects();
-        hydrateShowcaseFromStoredProjects();
-        if (!firebaseIsReady()) {
-            renderFeaturedWork();
-        }
         applyServiceDeepLink();
 
         const projectModal = document.getElementById('projectModal');
@@ -4634,14 +4785,15 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             }
         });
 
-        function bindServiceCardsToMedia() {
+        function bindServiceCardsToMedia(projectsOverride) {
             const servicesSection = document.getElementById('services');
             if (!servicesSection) return;
 
             const cards = servicesSection.querySelectorAll('.services-grid .card');
             if (!cards.length) return;
 
-            const projects = getProjects();
+            const projects = Array.isArray(projectsOverride) ? projectsOverride : getProjects();
+            const serviceProjects = projects.filter((p) => p && p.showInServices);
             const categoryLabelMap = {
                 cctv: 'CCTV',
                 electrical: 'Electrical',
@@ -4664,7 +4816,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
             const getProjectForCategory = (category) => {
                 if (!category) return null;
-                const matches = projects.filter((p) => String(p.category || '').toLowerCase().trim() === category && p.mediaSrc);
+                const matches = serviceProjects.filter((p) => String(p.category || '').toLowerCase().trim() === category && p.mediaSrc);
                 if (!matches.length) return null;
                 const featured = matches.find((p) => p.isFeatured) || matches.find((p) => p.isStarred);
                 return featured || matches[0];

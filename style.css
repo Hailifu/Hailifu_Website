@@ -4217,6 +4217,138 @@
             box-shadow: 0 0 12px rgba(255, 140, 0, 0.4), 0 8px 16px rgba(0, 0, 0, 0.45);
         }
 
+        .project-feature-toggle {
+            position: absolute;
+            left: 8px;
+            top: 46px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 140, 0, 0.35);
+            background: rgba(0, 0, 0, 0.7);
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.65rem;
+            font-weight: 600;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        .project-feature-toggle input {
+            width: auto;
+            accent-color: var(--orange);
+        }
+
+        .project-meta {
+            position: absolute;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 2;
+        }
+
+        .project-live-status {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            padding: 6px 8px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.55);
+            font-size: 0.7rem;
+        }
+
+        .project-live-label {
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.75);
+        }
+
+        .project-live-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            justify-content: flex-end;
+        }
+
+        .status-pill {
+            padding: 2px 6px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.55);
+            font-size: 0.6rem;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            text-transform: uppercase;
+        }
+
+        .status-pill.is-on {
+            color: #fff;
+            border-color: rgba(255, 140, 0, 0.6);
+            background: rgba(255, 140, 0, 0.2);
+            box-shadow: 0 0 10px rgba(255, 140, 0, 0.25);
+        }
+
+        .project-visibility-controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 8px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        .visibility-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .visibility-toggle input {
+            width: auto;
+            accent-color: var(--orange);
+        }
+
+        .project-visibility-save {
+            margin-left: auto;
+            padding: 4px 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 140, 0, 0.6);
+            background: rgba(255, 140, 0, 0.18);
+            color: #fff;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .project-visibility-save:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
+        }
+
+        .project-visibility-save:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        .project-title {
+            font-size: 0.8rem;
+            background: rgba(0, 0, 0, 0.55);
+            padding: 6px 8px;
+            border-radius: 10px;
+            color: #fff;
+        }
+
         /* Modern Client Reviews Section */
         .modern-review-section {
             padding: 80px 5%;
