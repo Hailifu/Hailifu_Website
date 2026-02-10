@@ -4841,7 +4841,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             const cards = Array.from(servicesGrid.querySelectorAll('.card'));
             if (!cards.length) return;
 
-            const mailtoHref = 'mailto:01hailifu@gmail.com?subject=Quote%20Request';
+            const contactHash = '#contact';
 
             cards.forEach((card) => {
                 card.removeAttribute('role');
@@ -4864,10 +4864,22 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const quoteBtn = card.querySelector('.request-quote-btn');
                 if (quoteBtn) {
                     quoteBtn.textContent = 'Request a Quote';
-                    quoteBtn.setAttribute('href', mailtoHref);
-                    quoteBtn.setAttribute('target', '_blank');
-                    quoteBtn.setAttribute('rel', 'noopener');
+                    quoteBtn.setAttribute('href', contactHash);
+                    quoteBtn.removeAttribute('target');
+                    quoteBtn.removeAttribute('rel');
                     quoteBtn.removeAttribute('onclick');
+
+                    if (!quoteBtn.dataset.quoteScrollBound) {
+                        quoteBtn.dataset.quoteScrollBound = '1';
+                        quoteBtn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            window.location.hash = contactHash;
+                            const target = document.getElementById('contact');
+                            if (target && typeof target.scrollIntoView === 'function') {
+                                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
+                        });
+                    }
                 }
             });
 
