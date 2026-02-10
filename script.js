@@ -3175,13 +3175,21 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 blindcurtain: 'Smart Window Solutions'
             };
 
+            const usedIds = new Set();
             const pickProjectForSlot = (slotCategory) => {
                 const normalized = String(slotCategory || '').toLowerCase().trim();
                 const projectCategory = slotToProjectCategory[normalized] || normalized;
                 const matches = showcaseProjects.filter((p) => String(p?.category || '').toLowerCase().trim() === projectCategory);
                 const withMedia = matches.filter((p) => p && p.mediaSrc);
                 const featured = withMedia.find((p) => p.isFeatured) || withMedia.find((p) => p.isStarred);
-                return featured || withMedia[0] || matches[0] || null;
+                const primary = featured || withMedia[0] || matches[0] || null;
+                if (primary && primary.id && !usedIds.has(String(primary.id))) return primary;
+
+                const fallback = showcaseProjects.find((p) => {
+                    const id = String(p?.id || '').trim();
+                    return id && !usedIds.has(id);
+                });
+                return fallback || primary || null;
             };
 
             const slots = Array.from(showcaseGrid.querySelectorAll('.showcase-item'));
@@ -3193,6 +3201,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const project = pickProjectForSlot(slotCategory);
 
                 if (project) {
+                    if (project.id) usedIds.add(String(project.id));
                     if (project.mediaSrc) assignedCount += 1;
                     console.log('Rendering card for:', project.id);
                     const label = categoryLabelMap[slotCategory] || categoryLabelMap[String(project.category || '').toLowerCase().trim()] || (project.category || 'Project');
