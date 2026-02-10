@@ -845,8 +845,8 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
                 const fd = new FormData();
                 fd.append('upload_preset', preset);
-                fd.append('file', file);
                 fd.append('unsigned', 'true');
+                fd.append('file', file);
                 if (folder) fd.append('folder', folder);
                 if (publicId) fd.append('public_id', publicId);
                 xhr.send(fd);
@@ -3269,8 +3269,8 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     const openMediaRoom = () => {
                         const projectId = String(slot.dataset.generatedProjectId || '').trim();
                         if (projectId && typeof window.openModal === 'function') {
-                            window.openModal(projectId);
-                            return;
+                            const opened = window.openModal(projectId);
+                            if (opened) return;
                         }
                         try { openShowcaseMediaRoom(slot); } catch {}
                     };
@@ -4758,10 +4758,11 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
         function openModal(projectId) {
             const id = String(projectId || '').trim();
-            if (!id) return;
+            if (!id) return false;
             const projects = getProjects();
             const project = projects.find((p) => String(p?.id || '') === id);
-            if (!project) return;
+            if (!project) return false;
+            if (!projectModal) return false;
             const temp = document.createElement('div');
             temp.className = 'showcase-item';
             temp.dataset.generatedProjectId = id;
@@ -4771,6 +4772,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             temp.dataset.modalDescription = String(project.description || '').trim();
             temp.dataset.modalCategory = String(project.category || '').trim();
             openProjectModalFromItem(temp);
+            return true;
         }
 
         window.openModal = openModal;
