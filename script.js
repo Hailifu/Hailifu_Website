@@ -770,11 +770,13 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         }
 
         function getCloudinaryPresetValue() {
-            const fromInput = String(cloudinaryPresetInput?.value || '').trim();
+            const inputRaw = String(cloudinaryPresetInput?.value || '');
+            const fromInput = inputRaw.trim();
             if (fromInput) return fromInput;
-            const stored = String(readJsonStorage(cloudinaryPresetStorageKey, '') || '').trim();
+            const storedRaw = String(readJsonStorage(cloudinaryPresetStorageKey, '') || '');
+            const stored = storedRaw.trim();
             if (stored) return stored;
-            return defaultCloudinaryUnsignedPreset;
+            return String(defaultCloudinaryUnsignedPreset || '').trim();
         }
 
         function persistCloudinaryPreset() {
@@ -839,8 +841,8 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 };
 
                 const fd = new FormData();
-                fd.append('file', file);
                 fd.append('upload_preset', preset);
+                fd.append('file', file);
                 fd.append('unsigned', 'true');
                 if (folder) fd.append('folder', folder);
                 if (publicId) fd.append('public_id', publicId);
