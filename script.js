@@ -372,14 +372,6 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             document.documentElement.setAttribute('data-theme', normalized === 'light' ? 'light' : 'dark');
             if (themeToggle) themeToggle.setAttribute('aria-pressed', String(normalized === 'light'));
 
-            const hubThemeBtn = document.getElementById('actionHubTheme');
-            if (hubThemeBtn) {
-                const icon = hubThemeBtn.querySelector('i');
-                if (icon) {
-                    icon.classList.toggle('fa-moon', normalized !== 'light');
-                    icon.classList.toggle('fa-sun', normalized === 'light');
-                }
-            }
         }
 
         function getInitialTheme() {
@@ -1349,14 +1341,6 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         const chatbotToggle = document.getElementById('chatbotToggle');
         const chatbotContainer = document.getElementById('chatbotContainer');
         const chatbotClose = document.getElementById('chatbotClose');
-
-        const actionHub = document.getElementById('actionHub');
-        const actionHubMain = document.getElementById('actionHubMain');
-        const actionHubItems = actionHub ? actionHub.querySelector('.action-hub-items') : null;
-        const actionHubTheme = document.getElementById('actionHubTheme');
-        const actionHubChat = document.getElementById('actionHubChat');
-        const actionHubShare = document.getElementById('actionHubShare');
-        const actionHubWhatsApp = document.getElementById('actionHubWhatsApp');
 
         const chatbotMessages = document.getElementById('chatbotMessages');
         const chatInput = document.getElementById('chatInput');
@@ -4286,37 +4270,6 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             });
         }
 
-        let actionHubIsOpen = false;
-        function setActionHubOpen(next) {
-            actionHubIsOpen = !!next;
-            if (actionHub) actionHub.classList.toggle('is-open', actionHubIsOpen);
-            if (actionHubMain) actionHubMain.setAttribute('aria-expanded', actionHubIsOpen ? 'true' : 'false');
-            if (actionHubItems) actionHubItems.setAttribute('aria-hidden', actionHubIsOpen ? 'false' : 'true');
-        }
-
-        if (actionHubTheme) {
-            actionHubTheme.addEventListener('click', (e) => {
-                e.preventDefault();
-                setActionHubOpen(false);
-                toggleTheme();
-            });
-        }
-
-        if (actionHubMain) {
-            actionHubMain.addEventListener('click', (e) => {
-                e.preventDefault();
-                setActionHubOpen(!actionHubIsOpen);
-            });
-        }
-
-        if (actionHubChat) {
-            actionHubChat.addEventListener('click', (e) => {
-                e.preventDefault();
-                setActionHubOpen(false);
-                openChatbot();
-            });
-        }
-
         startServerlessProjectsSync();
 
         loadIntegrityImage(getIntegrityImageUrl());
@@ -4971,7 +4924,6 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
         async function handleSharePortfolioClick(e) {
             if (e && typeof e.preventDefault === 'function') e.preventDefault();
-            setActionHubOpen(false);
 
             const canNativeShare = typeof navigator.share === 'function' && isLikelyMobile();
             if (canNativeShare) {
@@ -4989,27 +4941,8 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             showSharePortfolioToast(copied ? 'Link Copied!' : 'Copy failed');
         }
 
-        [sharePortfolioFab, actionHubShare].filter(Boolean).forEach((btn) => {
+        [sharePortfolioFab].filter(Boolean).forEach((btn) => {
             btn.addEventListener('click', handleSharePortfolioClick);
-        });
-
-        if (actionHubWhatsApp) {
-            actionHubWhatsApp.addEventListener('click', (e) => {
-                e.preventDefault();
-                setActionHubOpen(false);
-                window.open('https://wa.me/233550997270', '_blank');
-            });
-        }
-
-        document.addEventListener('click', (e) => {
-            if (!actionHubIsOpen) return;
-            if (e.target.closest('#actionHub')) return;
-            setActionHubOpen(false);
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key !== 'Escape') return;
-            if (actionHubIsOpen) setActionHubOpen(false);
         });
 
         function setQuoteService(serviceKey) {
