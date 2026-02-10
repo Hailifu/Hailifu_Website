@@ -5130,11 +5130,6 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 filterButtons.forEach(btn => btn.classList.remove('active'));
                 button.classList.add('active');
                 filterProjects(button.dataset.filter || 'all');
-                const showcaseSection = document.getElementById('showcase');
-                if (showcaseSection) {
-                    const top = Math.max(0, showcaseSection.offsetTop - 100);
-                    window.scrollTo({ top, behavior: 'smooth' });
-                }
             });
         });
 
