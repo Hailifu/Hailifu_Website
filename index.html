@@ -309,8 +309,39 @@
         <div class="about-grid">
             <div class="about-visual">
                 <div class="about-visual-panel" id="integrityPanel">
-                    <div class="about-visual-image-wrap integrity-empty" id="integrityContainer">
-                        <img class="about-visual-image" id="integrityImage" src="" alt="System integrity graphic" style="display:none;">
+                    <div class="about-visual-header">
+                        <div class="about-visual-label">
+                            <span class="about-visual-eyebrow">System Integrity</span>
+                            <span class="about-visual-title">Monitoring</span>
+                        </div>
+                        <span class="about-visual-badge" id="integrityStatus">SECURE</span>
+                    </div>
+                    <div class="about-visual-core">
+                        <div class="about-visual-ring">
+                            <div class="about-visual-ring-core"></div>
+                        </div>
+                        <div class="about-visual-lines">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <div class="about-visual-image-wrap integrity-empty" id="integrityContainer">
+                            <img class="about-visual-image" id="integrityImage" src="" alt="System integrity graphic" style="display:none;">
+                        </div>
+                    </div>
+                    <div class="about-visual-stats">
+                        <div class="about-visual-stat">
+                            <span>Uptime</span>
+                            <strong id="integrityUptime">99.9%</strong>
+                        </div>
+                        <div class="about-visual-stat">
+                            <span>Latency</span>
+                            <strong id="integrityLatency">&lt; 15 min</strong>
+                        </div>
+                        <div class="about-visual-stat">
+                            <span>Coverage</span>
+                            <strong id="integrityCoverage">360°</strong>
+                        </div>
                     </div>
                 </div>
             </div>

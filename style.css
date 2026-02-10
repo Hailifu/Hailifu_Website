@@ -2942,6 +2942,75 @@
             transform: none !important;
         }
 
+        body.light-mode .admin-panel {
+            background: #f5f5f5;
+            color: #1a1a1a;
+            border-left: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: -12px 0 28px rgba(0, 0, 0, 0.15);
+        }
+
+        body.light-mode .admin-panel::before {
+            background: radial-gradient(circle at 18% 18%, rgba(255, 140, 0, 0.16), transparent 55%),
+                radial-gradient(circle at 78% 30%, rgba(0, 0, 0, 0.05), transparent 60%);
+            opacity: 1;
+        }
+
+        body.light-mode .admin-tabs {
+            background: rgba(0, 0, 0, 0.04);
+            border-color: rgba(0, 0, 0, 0.08);
+            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+        }
+
+        body.light-mode .admin-tab {
+            color: #2a2a2a;
+        }
+
+        body.light-mode .admin-tab.active {
+            background: #ffffff;
+            color: #1a1a1a;
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+
+        body.light-mode .admin-section {
+            background: #ffffff;
+            border-color: rgba(0, 0, 0, 0.08);
+            box-shadow: 0 14px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        body.light-mode .admin-section h3,
+        body.light-mode .admin-section-heading h3,
+        body.light-mode .admin-section-tag,
+        body.light-mode .admin-title,
+        body.light-mode .admin-subtitle,
+        body.light-mode .admin-panel p {
+            color: #1a1a1a;
+        }
+
+        body.light-mode .upload-form input,
+        body.light-mode .upload-form select,
+        body.light-mode .upload-form textarea {
+            background: #ffffff;
+            color: #1a1a1a;
+            border-color: rgba(0, 0, 0, 0.15);
+        }
+
+        body.light-mode .upload-form input::placeholder,
+        body.light-mode .upload-form textarea::placeholder {
+            color: rgba(0, 0, 0, 0.45);
+        }
+
+        body.light-mode .admin-panel button,
+        body.light-mode .admin-panel .project-visibility-save,
+        body.light-mode .admin-panel .project-delete,
+        body.light-mode .admin-panel .project-star {
+            color: #1a1a1a;
+        }
+
+        body.light-mode .admin-panel .upload-btn {
+            background: #ff8c00;
+            color: #ffffff;
+        }
+
         .admin-panel::before {
             content: '';
             position: absolute;

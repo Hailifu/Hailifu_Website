@@ -34,11 +34,6 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         const heroVideo = document.getElementById('heroVideo');
         const heroFallbackImage = document.getElementById('heroFallbackImage');
         const mainNav = document.getElementById('main-nav');
-        const sideMenu = document.getElementById('side-menu');
-        const sideMenuToggle = document.getElementById('sideMenuToggle');
-        const sideMenuClose = document.getElementById('sideMenuClose');
-        const sideMenuOverlay = document.getElementById('sideMenuOverlay');
-        const navLinks = sideMenu ? sideMenu.querySelectorAll('.side-menu-links a[href^="#"]') : [];
         const backToTopBtn = document.getElementById('backToTop');
         const servicesTitleCta = document.getElementById('servicesTitleCta');
         const themeToggle = document.getElementById('themeToggle');
@@ -628,6 +623,21 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 if (panel) panel.classList.remove('is-loading');
             };
             img.src = raw;
+        }
+
+        function setIntegrityDefaults() {
+            const setValue = (id, value) => {
+                const node = document.getElementById(id);
+                if (!node) return;
+                const current = String(node.textContent || '').trim();
+                if (!current || /not\s*found/i.test(current)) {
+                    node.textContent = value;
+                }
+            };
+            setValue('integrityStatus', 'SECURE');
+            setValue('integrityUptime', '99.9%');
+            setValue('integrityLatency', '< 15 min');
+            setValue('integrityCoverage', '360°');
         }
 
         function upsertProjectInFirebase(project) {
@@ -3125,7 +3135,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             const showcaseProjects = projects.filter((p) => p && p.showcase);
             const serviceProjects = projects.filter((p) => p && p.services);
             renderFeaturedWork(featuredProjects);
-            hydrateShowcaseFromStoredProjects(showcaseProjects);
+            renderShowcase(showcaseProjects);
             bindServiceCardsToMedia(serviceProjects);
             const activeFilter = document.querySelector('.showcase-filters .filter-btn.active');
             if (typeof filterProjects === 'function') {
@@ -3183,6 +3193,10 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
                     slot.dataset.mediaSrc = project.mediaSrc || '';
                     slot.dataset.mediaType = project.mediaType || 'image';
+                    if (project.id) slot.dataset.generatedProjectId = String(project.id);
+                    slot.dataset.modalTitle = title || 'Project';
+                    slot.dataset.modalDescription = description || '';
+                    slot.dataset.modalCategory = label || String(project.category || '').trim();
 
                     const ensureShowcaseMedia = () => {
                         const existing = slot.querySelector('.showcase-bg');
@@ -3239,6 +3253,12 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     const existingBg = slot.querySelector('.showcase-bg');
                     if (existingBg) existingBg.remove();
                     slot.classList.remove('has-media');
+                    delete slot.dataset.generatedProjectId;
+                    delete slot.dataset.modalTitle;
+                    delete slot.dataset.modalDescription;
+                    delete slot.dataset.modalCategory;
+                    slot.dataset.mediaSrc = '';
+                    slot.dataset.mediaType = 'image';
                 }
 
                 if (!slot.dataset.modalBound) {
@@ -3247,6 +3267,11 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     slot.tabIndex = 0;
 
                     const openMediaRoom = () => {
+                        const projectId = String(slot.dataset.generatedProjectId || '').trim();
+                        if (projectId && typeof window.openModal === 'function') {
+                            window.openModal(projectId);
+                            return;
+                        }
                         try { openShowcaseMediaRoom(slot); } catch {}
                     };
 
@@ -3264,6 +3289,10 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     });
                 }
             });
+        }
+
+        function renderShowcase(projectsOverride) {
+            hydrateShowcaseFromStoredProjects(projectsOverride);
         }
 
         function getProjectIsolatedMediaItems(item) {
@@ -3489,7 +3518,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             if (!featuredLoopObserver && !featuredLoopIsProbablyVisible()) return;
             featuredLoopTimer = setInterval(() => {
                 advanceFeaturedLoop(1);
-            }, 5000);
+            }, 2000);
         }
 
         function advanceFeaturedLoop(delta) {
@@ -4274,6 +4303,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         startServerlessProjectsSync();
 
         loadIntegrityImage(getIntegrityImageUrl());
+        setIntegrityDefaults();
 
         renderLeads();
         loadProjects();
@@ -4726,6 +4756,25 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             }
         }
 
+        function openModal(projectId) {
+            const id = String(projectId || '').trim();
+            if (!id) return;
+            const projects = getProjects();
+            const project = projects.find((p) => String(p?.id || '') === id);
+            if (!project) return;
+            const temp = document.createElement('div');
+            temp.className = 'showcase-item';
+            temp.dataset.generatedProjectId = id;
+            temp.dataset.mediaSrc = String(project.mediaSrc || '').trim();
+            temp.dataset.mediaType = String(project.mediaType || 'image').trim().toLowerCase() || 'image';
+            temp.dataset.modalTitle = String(project.title || 'Project').trim();
+            temp.dataset.modalDescription = String(project.description || '').trim();
+            temp.dataset.modalCategory = String(project.category || '').trim();
+            openProjectModalFromItem(temp);
+        }
+
+        window.openModal = openModal;
+
         if (projectModalClose) {
             projectModalClose.addEventListener('click', closeProjectModal);
         }
@@ -5132,107 +5181,6 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     window.scrollTo(0, 0);
                 }
             });
-        }
-
-        const openSideMenu = () => {
-            if (!sideMenu) return;
-            sideMenu.classList.add('open');
-            sideMenu.setAttribute('aria-hidden', 'false');
-            sideMenuOverlay?.classList.add('visible');
-            sideMenuOverlay?.setAttribute('aria-hidden', 'false');
-            sideMenuToggle?.setAttribute('aria-expanded', 'true');
-        };
-
-        const closeSideMenu = () => {
-            if (!sideMenu) return;
-            sideMenu.classList.remove('open');
-            sideMenu.setAttribute('aria-hidden', 'true');
-            sideMenuOverlay?.classList.remove('visible');
-            sideMenuOverlay?.setAttribute('aria-hidden', 'true');
-            sideMenuToggle?.setAttribute('aria-expanded', 'false');
-        };
-
-        if (navLinks.length) {
-            navLinks.forEach((link) => {
-                link.addEventListener('click', (e) => {
-                    const href = link.getAttribute('href') || '';
-
-                    if (!href.startsWith('#')) return;
-                    const target = document.querySelector(href);
-                    if (!target) return;
-                    e.preventDefault();
-
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    closeSideMenu();
-                });
-            });
-        }
-
-        const navSections = Array.from(navLinks)
-            .map((link) => {
-                const href = link.getAttribute('href') || '';
-                if (!href.startsWith('#')) return null;
-                const section = document.querySelector(href);
-                if (!section) return null;
-                return { link, section };
-            })
-            .filter(Boolean);
-
-        const setActiveNavLink = (activeLink) => {
-            if (!navSections.length) return;
-            navSections.forEach((item) => {
-                item.link.classList.toggle('active', item.link === activeLink);
-            });
-        };
-
-        if ('IntersectionObserver' in window && navSections.length) {
-            const navOffset = (mainNav?.offsetHeight || 0) + 18;
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach((entry) => {
-                    if (!entry.isIntersecting) return;
-                    const active = navSections.find((item) => item.section === entry.target);
-                    if (active) setActiveNavLink(active.link);
-                });
-            }, { rootMargin: `-${navOffset}px 0px -50% 0px`, threshold: 0.15 });
-
-            navSections.forEach((item) => observer.observe(item.section));
-        } else {
-            const setActiveByScroll = () => {
-                if (!navSections.length) return;
-                const offset = (mainNav?.offsetHeight || 0) + 18;
-                const scrollPos = (window.scrollY || document.documentElement.scrollTop || 0) + offset;
-                let current = navSections[0];
-
-                navSections.forEach((item) => {
-                    if (item.section.offsetTop <= scrollPos) {
-                        current = item;
-                    }
-                });
-
-                setActiveNavLink(current.link);
-            };
-
-            setActiveByScroll();
-            window.addEventListener('scroll', setActiveByScroll, { passive: true });
-            window.addEventListener('resize', setActiveByScroll, { passive: true });
-        }
-
-        if (sideMenuToggle) {
-            sideMenuToggle.addEventListener('click', () => {
-                if (sideMenu?.classList.contains('open')) {
-                    closeSideMenu();
-                } else {
-                    openSideMenu();
-                }
-            });
-        }
-
-        if (sideMenuClose) {
-            sideMenuClose.addEventListener('click', closeSideMenu);
-        }
-
-        if (sideMenuOverlay) {
-            sideMenuOverlay.addEventListener('click', closeSideMenu);
         }
 
         // Scroll Animation Observer
