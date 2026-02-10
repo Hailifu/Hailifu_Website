@@ -320,7 +320,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         let selectedMediaType = 'image';
 
         const cloudinaryCloudName = 'daovfi3i5';
-        const defaultCloudinaryUnsignedPreset = 'hailifu_presset';
+        const defaultCloudinaryUnsignedPreset = 'ml_default';
         const cloudinaryPresetStorageKey = 'hailifu_cloudinary_upload_preset';
         const firebaseConfigStorageKey = 'hailifu_firebase_config';
         const hardcodedFirebaseConfig = {
@@ -802,6 +802,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             const onProgress = typeof opts.onProgress === 'function' ? opts.onProgress : null;
             const folder = String(opts.folder || '').trim();
             const publicId = String(opts.publicId || '').trim();
+            console.log('Using Preset:', preset);
 
             return new Promise((resolve, reject) => {
                 if (!preset) {
@@ -814,7 +815,8 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 }
 
                 const xhr = new XMLHttpRequest();
-                xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudinaryCloudName}/${resourceType}/upload`);
+                const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudinaryCloudName}/${resourceType}/upload`;
+                xhr.open('POST', uploadUrl);
                 xhr.responseType = 'json';
 
                 if (xhr.upload && onProgress) {
@@ -839,6 +841,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const fd = new FormData();
                 fd.append('file', file);
                 fd.append('upload_preset', preset);
+                fd.append('unsigned', 'true');
                 if (folder) fd.append('folder', folder);
                 if (publicId) fd.append('public_id', publicId);
                 xhr.send(fd);
