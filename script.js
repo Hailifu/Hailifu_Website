@@ -9,7 +9,8 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         const heroVideo = document.getElementById('heroVideo');
         const heroFallbackImage = document.getElementById('heroFallbackImage');
         const mainNav = document.getElementById('main-nav');
-        const navLinks = mainNav ? mainNav.querySelectorAll('.main-nav-links a[href^="#"]') : [];
+        const navLinks = mainNav ? mainNav.querySelectorAll('.nav-links a[href^="#"]') : [];
+        const mobileToggle = mainNav ? mainNav.querySelector('.mobile-menu-toggle') : null;
         const servicesTitleCta = document.getElementById('servicesTitleCta');
         const themeToggle = document.getElementById('themeToggle');
 
@@ -4889,6 +4890,10 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     e.preventDefault();
 
                     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    if (mainNav) {
+                        mainNav.classList.remove('nav-open');
+                        if (mobileToggle) mobileToggle.setAttribute('aria-expanded', 'false');
+                    }
                 });
             });
         }
@@ -4940,6 +4945,13 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             setActiveByScroll();
             window.addEventListener('scroll', setActiveByScroll, { passive: true });
             window.addEventListener('resize', setActiveByScroll, { passive: true });
+        }
+
+        if (mobileToggle && mainNav) {
+            mobileToggle.addEventListener('click', () => {
+                const isOpen = mainNav.classList.toggle('nav-open');
+                mobileToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            });
         }
 
         // Scroll Animation Observer

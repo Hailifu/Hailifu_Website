@@ -87,8 +87,27 @@
             color: var(--white) !important;
         }
 
-        [data-theme='light'] .main-nav-links a {
+        [data-theme='light'] .nav-links a {
             color: var(--text-color);
+        }
+
+        @media (max-width: 768px) {
+            [data-theme='light'] .mobile-menu-toggle {
+                border-color: rgba(0, 0, 0, 0.12);
+                background: rgba(255, 255, 255, 0.7);
+                color: rgba(29, 29, 31, 0.9);
+            }
+
+            [data-theme='light'] .nav-links {
+                background: rgba(255, 255, 255, 0.88);
+                border-bottom-color: rgba(0, 0, 0, 0.08);
+                box-shadow: 0 16px 28px rgba(0, 0, 0, 0.12);
+            }
+
+            [data-theme='light'] .nav-links a {
+                background: rgba(255, 255, 255, 0.9);
+                border-color: rgba(0, 0, 0, 0.08);
+            }
         }
 
         [data-theme='light'] .logo span {
@@ -598,7 +617,7 @@
             transition: background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
         }
 
-        .main-nav-links {
+        .nav-links {
             display: flex;
             align-items: center;
             justify-content: flex-end;
@@ -617,6 +636,43 @@
             align-items: center;
             gap: 12px;
             justify-content: flex-end;
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--white);
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            flex-direction: column;
+            cursor: pointer;
+            margin-left: auto;
+            transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+        }
+
+        .mobile-menu-toggle span {
+            width: 20px;
+            height: 2px;
+            background: currentColor;
+            border-radius: 999px;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+
+        .main-nav.nav-open .mobile-menu-toggle span:nth-child(1) {
+            transform: translateY(6px) rotate(45deg);
+        }
+
+        .main-nav.nav-open .mobile-menu-toggle span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .main-nav.nav-open .mobile-menu-toggle span:nth-child(3) {
+            transform: translateY(-6px) rotate(-45deg);
         }
 
         .theme-toggle {
@@ -741,12 +797,12 @@
         }
 
         @media (max-width: 1360px) {
-            .main-nav-links {
+            .nav-links {
                 gap: 1.25rem;
             }
         }
 
-        .main-nav-links a {
+        .nav-links a {
             color: var(--white);
             text-decoration: none;
             font-weight: 500;
@@ -754,16 +810,16 @@
             position: relative;
         }
 
-        [data-theme='light'] .main-nav-links a {
+        [data-theme='light'] .nav-links a {
             color: rgba(29, 29, 31, 0.9);
         }
 
-        .main-nav-links a:hover,
-        .main-nav-links a.active {
+        .nav-links a:hover,
+        .nav-links a.active {
             color: var(--orange);
         }
 
-        .main-nav-links a::after {
+        .nav-links a::after {
             content: '';
             position: absolute;
             bottom: -6px;
@@ -776,8 +832,8 @@
             transition: width 0.3s ease;
         }
 
-        .main-nav-links a:hover::after,
-        .main-nav-links a.active::after {
+        .nav-links a:hover::after,
+        .nav-links a.active::after {
             width: 100%;
         }
 
@@ -824,25 +880,50 @@
                 gap: 12px;
             }
 
-            .main-nav-links {
-                gap: 1rem;
-                overflow-x: auto;
-                white-space: nowrap;
-                scrollbar-width: thin;
-                scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+            .main-nav .logo {
+                font-size: 1.15rem;
             }
 
-            .main-nav-links::-webkit-scrollbar {
-                height: 6px;
+            .mobile-menu-toggle {
+                display: inline-flex;
             }
 
-            .main-nav-links::-webkit-scrollbar-thumb {
-                background: rgba(255, 255, 255, 0.25);
-                border-radius: 999px;
+            .nav-links {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                padding: 16px 20px 20px;
+                display: flex;
+                flex-direction: column;
+                gap: 14px;
+                background: rgba(255, 255, 255, 0.08);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                box-shadow: 0 16px 30px rgba(0, 0, 0, 0.35);
+                transform: translateY(-100%);
+                opacity: 0;
+                pointer-events: none;
+                transition: transform 0.25s ease, opacity 0.25s ease;
             }
 
-            .main-nav-links a {
-                flex: 0 0 auto;
+            .main-nav.nav-open .nav-links {
+                transform: translateY(0);
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            .nav-links a {
+                width: 100%;
+                padding: 12px 10px;
+                border-radius: 12px;
+                background: rgba(255, 255, 255, 0.06);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+            }
+
+            .main-nav-actions {
+                margin-left: auto;
             }
 
             .theme-toggle {
@@ -855,10 +936,6 @@
             .main-nav {
                 padding: 10px 14px;
                 gap: 10px;
-            }
-
-            .main-nav-links {
-                gap: 0.8rem;
             }
 
             .logo {
@@ -879,8 +956,8 @@
             }
 
             .theme-toggle {
-                width: 36px;
-                height: 36px;
+                width: 34px;
+                height: 34px;
             }
         }
 
