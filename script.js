@@ -2923,7 +2923,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 writeJsonStorage('hailifu_projects', sanitized);
             }
 
-            return sanitized.map((project) => {
+            return sanitized.map((project, idx) => {
                 const base = stripProjectQuoteFields(project);
                 const visibility = normalizeVisibilityFlags(base);
                 const rawMediaSrc = String(base?.mediaSrc || base?.imageUrl || base?.mediaUrl || '').trim();
@@ -2931,8 +2931,10 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const mediaSrc = normalizeProjectMediaPath(rawMediaSrc);
                 const thumbSrc = normalizeProjectMediaPath(rawThumbSrc);
                 const mediaType = String(base?.mediaType || (mediaSrc && /\.(mp4|webm|mov)(\?|#|$)/i.test(mediaSrc) ? 'video' : 'image') || 'image').trim().toLowerCase() || 'image';
+                const fallbackId = String(base?.id || project?.id || mediaSrc || rawMediaSrc || base?.title || `local-${idx}`).trim();
                 return {
                     ...base,
+                    id: fallbackId,
                     mediaSrc,
                     thumbSrc,
                     mediaType,
@@ -3192,6 +3194,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
                 if (project) {
                     if (project.mediaSrc) assignedCount += 1;
+                    console.log('Rendering card for:', project.id);
                     const label = categoryLabelMap[slotCategory] || categoryLabelMap[String(project.category || '').toLowerCase().trim()] || (project.category || 'Project');
                     const title = String(project.title || '').trim();
                     const description = String(project.description || '').trim();
@@ -3254,16 +3257,26 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                         const overlayDesc = slot.querySelector('.showcase-description');
                         if (overlayDesc) overlayDesc.textContent = description;
                     }
+
+                    const idValue = String(project.id || '').trim();
+                    slot.classList.add('showcase-card');
+                    if (idValue) {
+                        slot.setAttribute('onclick', `openGallery(${JSON.stringify(idValue)})`);
+                    } else {
+                        slot.removeAttribute('onclick');
+                    }
                 } else {
                     const existingBg = slot.querySelector('.showcase-bg');
                     if (existingBg) existingBg.remove();
                     slot.classList.remove('has-media');
+                    slot.classList.remove('showcase-card');
                     delete slot.dataset.generatedProjectId;
                     delete slot.dataset.modalTitle;
                     delete slot.dataset.modalDescription;
                     delete slot.dataset.modalCategory;
                     slot.dataset.mediaSrc = '';
                     slot.dataset.mediaType = 'image';
+                    slot.removeAttribute('onclick');
                 }
 
                 if (!slot.dataset.modalBound) {
@@ -3283,8 +3296,8 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                             });
                             if (match?.id) projectId = String(match.id);
                         }
-                        if (!projectId || typeof window.openModal !== 'function') return;
-                        window.openModal(projectId);
+                        if (!projectId || typeof window.openGallery !== 'function') return;
+                        window.openGallery(projectId);
                     };
 
                     slot.addEventListener('click', (e) => {
@@ -4782,6 +4795,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
         function openModal(projectId) {
             const id = String(projectId || '').trim();
+            console.log('Attempting to open gallery for:', id);
             if (!id) return false;
             const projects = getProjects();
             const project = projects.find((p) => String(p?.id || '') === id);
@@ -4800,6 +4814,9 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         }
 
         window.openModal = openModal;
+        window.openGallery = function openGallery(projectId) {
+            return openModal(projectId);
+        };
 
         if (projectModalClose) {
             projectModalClose.addEventListener('click', closeProjectModal);

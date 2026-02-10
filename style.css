@@ -2276,6 +2276,10 @@
             border: 1px solid rgba(255, 140, 0, 0.1);
         }
 
+        .showcase-card {
+            cursor: pointer;
+        }
+
         .showcase-media {
             display: none;
         }
