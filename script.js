@@ -1693,13 +1693,14 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                                         <input id="projectTitle" type="text" placeholder="Project name">
                                     </div>
                                     <div class="form-group">
-                                        <label for="projectCategory">Category</label>
+                                        <label for="projectCategory">Showcase Project Category</label>
                                         <select id="projectCategory">
                                             <option value="cctv">CCTV</option>
                                             <option value="electrical">Electrical</option>
+                                            <option value="gates">Automated Gates</option>
+                                            <option value="solar">Solar Energy</option>
                                             <option value="airconditioning">Air Conditioning</option>
                                             <option value="blindcurtain">Smart Window Solutions</option>
-                                            <option value="gates">Automated Gates</option>
                                             <option value="fencing">Electric Fencing</option>
                                             <option value="smarthome">Smart Home</option>
                                         </select>
@@ -3169,6 +3170,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 electrical: 'Electrical',
                 airconditioning: 'Air Conditioning',
                 gates: 'Automated Gates',
+                solar: 'Solar Energy',
                 fencing: 'Electric Fencing',
                 smarthome: 'Smart Home',
                 smartwindows: 'Smart Window Solutions',
@@ -3743,6 +3745,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 electrical: 'Electrical',
                 airconditioning: 'Air Conditioning',
                 gates: 'Automated Gates',
+                solar: 'Solar Energy',
                 fencing: 'Electric Fencing',
                 smarthome: 'Smart Home',
                 blindcurtain: 'Smart Window Solutions'
@@ -5045,22 +5048,36 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             const normalizedFilter = String(filterValue || 'all').toLowerCase().trim();
             const showcaseItems = document.querySelectorAll('#showcase .showcase-grid .showcase-item');
             if (!showcaseItems.length) return;
+            const fadeMs = 260;
 
             showcaseItems.forEach(item => {
                 const itemCategory = (item.getAttribute('data-category') || item.dataset.category || '').toLowerCase().trim();
                 const shouldShow = normalizedFilter === 'all' || itemCategory === normalizedFilter;
 
-                item.hidden = !shouldShow;
-                item.setAttribute('aria-hidden', String(!shouldShow));
+                if (item._hideTimer) {
+                    clearTimeout(item._hideTimer);
+                    item._hideTimer = null;
+                }
 
                 if (shouldShow) {
                     item.style.display = '';
-                    item.classList.remove('is-hidden');
-                    item.classList.add('is-visible');
+                    item.hidden = false;
+                    item.setAttribute('aria-hidden', 'false');
+                    requestAnimationFrame(() => {
+                        item.classList.remove('is-hidden');
+                        item.classList.add('is-visible');
+                    });
                 } else {
-                    item.style.display = 'none';
-                    item.classList.add('is-hidden');
+                    item.setAttribute('aria-hidden', 'true');
                     item.classList.remove('is-visible');
+                    item.classList.add('is-hidden');
+                    item.hidden = false;
+                    item._hideTimer = setTimeout(() => {
+                        if (item.classList.contains('is-hidden')) {
+                            item.style.display = 'none';
+                            item.hidden = true;
+                        }
+                    }, fadeMs);
                 }
             });
             updateShowcaseEmptyState(normalizedFilter);

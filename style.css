@@ -2267,7 +2267,7 @@
             box-shadow: 0 8px 30px rgba(0,0,0,0.6);
             aspect-ratio: 4 / 3;
             cursor: pointer;
-            transition: all 0.4s ease;
+            transition: opacity 0.35s ease, transform 0.35s ease, box-shadow 0.4s ease, border-color 0.4s ease;
             opacity: 0;
             animation: fadeInUp 0.6s ease-out forwards;
             background: var(--black);
@@ -2303,7 +2303,20 @@
 
         .showcase-item .project-category {
             position: absolute;
-            z-index: 3;
+            z-index: 5;
+            top: 14px;
+            left: 14px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.55);
+            border: 1px solid rgba(255, 140, 0, 0.45);
+            backdrop-filter: blur(6px);
+            pointer-events: none;
         }
 
         .showcase-item .showcase-overlay {
@@ -2337,11 +2350,14 @@
         }
 
         .showcase-item.is-hidden {
-            display: none;
+            opacity: 0;
+            transform: scale(0.96);
+            pointer-events: none;
         }
 
         .showcase-item.is-visible {
             opacity: 1;
+            transform: scale(1);
         }
 
         .showcase-item:nth-child(1) { animation-delay: 0.1s; }
