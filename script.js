@@ -3127,16 +3127,23 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
         renderReviews();
 
+        function isVisibilityEnabled(project, primaryKey, fallbackKey) {
+            if (!project || typeof project !== 'object') return false;
+            if (typeof project[primaryKey] === 'boolean') return project[primaryKey];
+            if (typeof project[fallbackKey] === 'boolean') return project[fallbackKey];
+            return false;
+        }
+
         function loadProjects() {
             if (!projectsGrid) projectsGrid = document.getElementById('projectsGrid');
             renderProjects();
             const projects = getProjects();
             const featuredProjects = projects.filter((p) => p && p.featured);
-            const showcaseProjects = projects.filter((p) => p && p.showcase);
-            const serviceProjects = projects.filter((p) => p && p.services);
+            const showcaseProjects = projects.filter((p) => p && isVisibilityEnabled(p, 'showInShowcase', 'showcase'));
+            const serviceProjects = projects.filter((p) => p && isVisibilityEnabled(p, 'showInServices', 'services'));
             renderFeaturedWork(featuredProjects);
             renderShowcase(showcaseProjects);
-            bindServiceCardsToMedia(serviceProjects);
+            renderServices(serviceProjects);
             const activeFilter = document.querySelector('.showcase-filters .filter-btn.active');
             if (typeof filterProjects === 'function') {
                 if (activeFilter) filterProjects(activeFilter.dataset.filter || 'all');
@@ -3144,8 +3151,8 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             }
         }
 
-        function hydrateShowcaseFromStoredProjects(projectsOverride) {
-            const showcaseGrid = document.querySelector('.showcase-grid');
+        function hydrateShowcaseFromStoredProjects(projectsOverride, gridOverride) {
+            const showcaseGrid = gridOverride || document.querySelector('#showcase .showcase-grid');
             if (!showcaseGrid) return;
 
             Array.from(showcaseGrid.querySelectorAll('.showcase-item[data-generated-project-id]')).forEach((item) => {
@@ -3153,7 +3160,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             });
 
             const projects = Array.isArray(projectsOverride) ? projectsOverride : getProjects();
-            const showcaseProjects = projects.filter((p) => p && p.showcase);
+            const showcaseProjects = projects.filter((p) => p && isVisibilityEnabled(p, 'showInShowcase', 'showcase'));
             const slotToProjectCategory = {
                 smartwindows: 'blindcurtain'
             };
@@ -3292,7 +3299,9 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         }
 
         function renderShowcase(projectsOverride) {
-            hydrateShowcaseFromStoredProjects(projectsOverride);
+            const showcaseGrid = document.querySelector('#showcase .showcase-grid');
+            if (!showcaseGrid) return;
+            hydrateShowcaseFromStoredProjects(projectsOverride, showcaseGrid);
         }
 
         function getProjectIsolatedMediaItems(item) {
@@ -4810,15 +4819,24 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             }
         });
 
-        function bindServiceCardsToMedia(projectsOverride) {
-            const servicesSection = document.getElementById('services');
+        function renderServices(projectsOverride) {
+            const servicesGrid = document.querySelector('#services .services-grid');
+            if (!servicesGrid) return;
+            bindServiceCardsToMedia(projectsOverride, servicesGrid);
+        }
+
+        function bindServiceCardsToMedia(projectsOverride, servicesGridOverride) {
+            const servicesGrid = servicesGridOverride || document.querySelector('#services .services-grid');
+            if (!servicesGrid) return;
+
+            const servicesSection = servicesGrid.closest('#services') || document.getElementById('services');
             if (!servicesSection) return;
 
-            const cards = servicesSection.querySelectorAll('.services-grid .card');
+            const cards = servicesGrid.querySelectorAll('.card');
             if (!cards.length) return;
 
             const projects = Array.isArray(projectsOverride) ? projectsOverride : getProjects();
-            const serviceProjects = projects.filter((p) => p && p.services);
+            const serviceProjects = projects.filter((p) => p && isVisibilityEnabled(p, 'showInServices', 'services'));
             const categoryLabelMap = {
                 cctv: 'CCTV',
                 electrical: 'Electrical',
@@ -4902,7 +4920,6 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 ensureServicePreview(card, previewMarkup);
             });
 
-            const servicesGrid = servicesSection.querySelector('.services-grid');
             if (servicesGrid) {
                 const emptyNode = servicesGrid.querySelector('.services-empty');
                 if (assignedCount === 0) {
@@ -4920,7 +4937,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             }
         }
 
-        bindServiceCardsToMedia();
+        renderServices();
 
         const popupOverlay = document.getElementById('popupOverlay');
         const popupClose = document.getElementById('popupClose');
@@ -5082,7 +5099,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
         function filterProjects(filterValue) {
             const normalizedFilter = String(filterValue || 'all').toLowerCase().trim();
-            const showcaseItems = document.querySelectorAll('.showcase-grid .showcase-item');
+            const showcaseItems = document.querySelectorAll('#showcase .showcase-grid .showcase-item');
             if (!showcaseItems.length) return;
 
             showcaseItems.forEach(item => {
@@ -5106,7 +5123,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         }
 
         function updateShowcaseEmptyState(normalizedFilter) {
-            const showcaseGrid = document.querySelector('.showcase-grid');
+            const showcaseGrid = document.querySelector('#showcase .showcase-grid');
             if (!showcaseGrid) return;
             if (showcaseGrid.dataset.showcaseAssigned === '0') {
                 const items = Array.from(showcaseGrid.querySelectorAll('.showcase-item'));
@@ -5156,7 +5173,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             });
         });
 
-        document.querySelectorAll('.showcase-grid .showcase-item').forEach(item => item.classList.add('is-visible'));
+        document.querySelectorAll('#showcase .showcase-grid .showcase-item').forEach(item => item.classList.add('is-visible'));
         if (filterButtons.length) {
             const active = document.querySelector('.showcase-filters .filter-btn.active') || filterButtons[0];
             if (active) {

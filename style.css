@@ -108,17 +108,17 @@
             color: var(--text-muted);
         }
 
-        [data-theme='light'] .card {
+        [data-theme='light'] #services .card {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
             box-shadow: var(--card-shadow);
         }
 
-        [data-theme='light'] .card h3 {
+        [data-theme='light'] #services .card h3 {
             color: var(--text-color);
         }
 
-        [data-theme='light'] .card p {
+        [data-theme='light'] #services .card p {
             color: var(--text-muted);
         }
 
@@ -1723,7 +1723,7 @@
             font-weight: 600;
         }
 
-        .card {
+        #services .card {
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
@@ -1741,21 +1741,21 @@
             overflow: hidden;
         }
 
-        .card::before {
+        #services .card::before {
             content: none;
         }
 
-        .card:hover::before {
+        #services .card:hover::before {
             left: 0;
         }
 
-        .card:hover {
+        #services .card:hover {
             transform: translateY(-10px);
             border-color: var(--orange);
             box-shadow: 0 15px 35px -5px var(--orange-glow), 0 0 15px rgba(255, 140, 0, 0.1);
         }
 
-        .card-glow {
+        #services .card-glow {
             position: absolute;
             inset: 0;
             border-radius: inherit;
@@ -1766,7 +1766,7 @@
             pointer-events: none;
         }
 
-        .card:hover .card-glow {
+        #services .card:hover .card-glow {
             opacity: 1;
         }
 
@@ -1887,12 +1887,12 @@
             z-index: 1;
         }
 
-        .card:nth-child(1) { animation-delay: 0.1s; }
-        .card:nth-child(2) { animation-delay: 0.2s; }
-        .card:nth-child(3) { animation-delay: 0.3s; }
-        .card:nth-child(4) { animation-delay: 0.4s; }
-        .card:nth-child(5) { animation-delay: 0.5s; }
-        .card:nth-child(6) { animation-delay: 0.6s; }
+        #services .services-grid .card:nth-child(1) { animation-delay: 0.1s; }
+        #services .services-grid .card:nth-child(2) { animation-delay: 0.2s; }
+        #services .services-grid .card:nth-child(3) { animation-delay: 0.3s; }
+        #services .services-grid .card:nth-child(4) { animation-delay: 0.4s; }
+        #services .services-grid .card:nth-child(5) { animation-delay: 0.5s; }
+        #services .services-grid .card:nth-child(6) { animation-delay: 0.6s; }
 
         @keyframes fadeInUp {
             from {
@@ -1905,7 +1905,7 @@
             }
         }
 
-        .card i {
+        #services .card i {
             font-size: 2rem;
             margin-bottom: 20px;
             background: var(--gradient-primary);
@@ -1916,7 +1916,7 @@
             transition: transform 0.3s ease;
         }
 
-        .card:hover i {
+        #services .card:hover i {
             transform: scale(1.1) rotate(5deg);
         }
 
@@ -1947,7 +1947,7 @@
             filter: drop-shadow(0 0 10px rgba(255, 140, 0, 0.45));
         }
 
-        .card h3 {
+        #services .card h3 {
             font-size: 1.5rem;
             color: var(--text-primary);
             margin-bottom: 15px;
@@ -1960,7 +1960,7 @@
             font-weight: 700;
         }
 
-        .card p {
+        #services .card p {
             color: rgba(255, 255, 255, 0.7);
             line-height: 1.8;
         }
@@ -2255,6 +2255,20 @@
         }
 
         .showcase-item {
+            position: relative;
+            overflow: hidden;
+            border-radius: 15px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+            aspect-ratio: 16/10;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease-out forwards;
+            background: var(--black);
+            border: 1px solid rgba(255, 140, 0, 0.1);
+        }
+
+        #showcase .card {
             position: relative;
             overflow: hidden;
             border-radius: 15px;
