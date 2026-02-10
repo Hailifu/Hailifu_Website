@@ -8,8 +8,8 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         const heroQuoteBtn = document.getElementById('heroQuoteBtn');
         const heroVideo = document.getElementById('heroVideo');
         const heroFallbackImage = document.getElementById('heroFallbackImage');
-        const topNav = document.getElementById('topNav');
-        const navLinks = topNav ? topNav.querySelectorAll('a[href^="#"]') : [];
+        const mainNav = document.getElementById('main-nav');
+        const navLinks = mainNav ? mainNav.querySelectorAll('.main-nav-links a[href^="#"]') : [];
         const servicesTitleCta = document.getElementById('servicesTitleCta');
         const themeToggle = document.getElementById('themeToggle');
 
@@ -2624,7 +2624,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
                 adminKnockTimer = window.setTimeout(() => {
                     if (adminKnocks.length === 1 && adminLogoLink) {
-                        const href = adminLogoLink.getAttribute('href') || '#home';
+                        const href = adminLogoLink.getAttribute('href') || '#hero';
                         if (href.startsWith('#')) {
                             const target = document.querySelector(href);
                             if (target) {
@@ -4870,9 +4870,9 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         }
 
         const updateHeaderScrolled = () => {
-            if (!topNav) return;
+            if (!mainNav) return;
             const y = window.scrollY || document.documentElement.scrollTop || 0;
-            topNav.classList.toggle('is-scrolled', y > 12);
+            mainNav.classList.toggle('is-scrolled', y > 12);
         };
 
         updateHeaderScrolled();
@@ -4903,26 +4903,44 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             })
             .filter(Boolean);
 
-        const setActiveNavLink = () => {
+        const setActiveNavLink = (activeLink) => {
             if (!navSections.length) return;
-            const offset = (topNav?.offsetHeight || 0) + 18;
-            const scrollPos = (window.scrollY || document.documentElement.scrollTop || 0) + offset;
-            let current = navSections[0];
-
             navSections.forEach((item) => {
-                if (item.section.offsetTop <= scrollPos) {
-                    current = item;
-                }
-            });
-
-            navSections.forEach((item) => {
-                item.link.classList.toggle('is-active', item === current);
+                item.link.classList.toggle('active', item.link === activeLink);
             });
         };
 
-        setActiveNavLink();
-        window.addEventListener('scroll', setActiveNavLink, { passive: true });
-        window.addEventListener('resize', setActiveNavLink, { passive: true });
+        if ('IntersectionObserver' in window && navSections.length) {
+            const navOffset = (mainNav?.offsetHeight || 0) + 18;
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (!entry.isIntersecting) return;
+                    const active = navSections.find((item) => item.section === entry.target);
+                    if (active) setActiveNavLink(active.link);
+                });
+            }, { rootMargin: `-${navOffset}px 0px -50% 0px`, threshold: 0.15 });
+
+            navSections.forEach((item) => observer.observe(item.section));
+        } else {
+            const setActiveByScroll = () => {
+                if (!navSections.length) return;
+                const offset = (mainNav?.offsetHeight || 0) + 18;
+                const scrollPos = (window.scrollY || document.documentElement.scrollTop || 0) + offset;
+                let current = navSections[0];
+
+                navSections.forEach((item) => {
+                    if (item.section.offsetTop <= scrollPos) {
+                        current = item;
+                    }
+                });
+
+                setActiveNavLink(current.link);
+            };
+
+            setActiveByScroll();
+            window.addEventListener('scroll', setActiveByScroll, { passive: true });
+            window.addEventListener('resize', setActiveByScroll, { passive: true });
+        }
 
         // Scroll Animation Observer
         const scrollElements = document.querySelectorAll('.animate-on-scroll');
