@@ -1,6 +1,31 @@
 const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         const adminUnlockStorageKey = 'hailifu_admin_unlocked';
 
+        const REVIEWS_DATA = [
+            { name: 'Kwame A.', rating: 5, comment: 'Fast and clean CCTV install. Cameras are crystal clear.', date: '2025-11-12', ownerReply: 'Thank you, Kwame. We are glad you love the clarity and finish.' },
+            { name: 'Ama O.', rating: 5, comment: 'Professional wiring and neat finish throughout the building.', date: '2025-11-02', ownerReply: 'We appreciate your trust and kind words, Ama.' },
+            { name: 'Yaw K.', rating: 4, comment: 'Gate automation works great and setup was smooth.', date: '2025-10-18', ownerReply: 'Happy to hear it is working well. Thanks, Yaw.' },
+            { name: 'Esi D.', rating: 5, comment: 'AC installation was on time and the unit is quiet.', date: '2025-10-05', ownerReply: 'Thanks, Esi. Enjoy the comfort.' },
+            { name: 'Kojo M.', rating: 5, comment: 'Team explained everything clearly and delivered on time.', date: '2025-09-22', ownerReply: 'We are glad the process was clear and smooth.' },
+            { name: 'Nana B.', rating: 5, comment: 'Electric fence upgrade looks solid and secure.', date: '2025-09-10', ownerReply: 'Thank you, Nana. Safety is always our priority.' },
+            { name: 'Akua P.', rating: 4, comment: 'Great service and tidy work area after completion.', date: '2025-08-29', ownerReply: 'Thanks, Akua. We always aim to leave things spotless.' },
+            { name: 'Kofi T.', rating: 5, comment: 'Smart home setup exceeded expectations.', date: '2025-08-14', ownerReply: 'That is great to hear. Enjoy the smart upgrade.' },
+            { name: 'Abena S.', rating: 5, comment: 'Curtain and blinds fit perfectly and look premium.', date: '2025-07-30', ownerReply: 'Thank you, Abena. We are happy you love the finish.' },
+            { name: 'Sam L.', rating: 5, comment: 'Quick response and fair pricing. Highly recommended.', date: '2025-07-12', ownerReply: 'We appreciate the recommendation, Sam.' },
+            { name: 'Kojo N.', rating: 4, comment: 'Good communication throughout the project.', date: '2025-06-25', ownerReply: 'Thanks, Kojo. Clear communication is important to us.' },
+            { name: 'Evelyn R.', rating: 5, comment: 'Neat panel upgrade and thorough safety checks.', date: '2025-06-08', ownerReply: 'Glad you felt safe and informed, Evelyn.' },
+            { name: 'Prince A.', rating: 5, comment: 'CCTV remote access set up perfectly.', date: '2025-05-21', ownerReply: 'Thanks, Prince. Happy to help with remote access.' },
+            { name: 'Irene G.', rating: 5, comment: 'Punctual team and quality materials used.', date: '2025-05-03', ownerReply: 'Thank you, Irene. Quality is non-negotiable for us.' },
+            { name: 'Michael C.', rating: 4, comment: 'Minor delay but the final result is solid.', date: '2025-04-18', ownerReply: 'Thanks for your patience, Michael. Glad you are satisfied.' },
+            { name: 'Sarah J.', rating: 5, comment: 'Clean wiring with clearly labeled circuits.', date: '2025-04-02', ownerReply: 'We appreciate the feedback, Sarah.' },
+            { name: 'Daniel F.', rating: 5, comment: 'Gate motor is smooth and quiet.', date: '2025-03-20', ownerReply: 'Great to hear, Daniel. Enjoy the upgrade.' },
+            { name: 'Grace H.', rating: 5, comment: 'Installed quickly and tested everything before handover.', date: '2025-03-05', ownerReply: 'Thanks, Grace. Testing is part of our standard.' },
+            { name: 'Felix Q.', rating: 4, comment: 'Very professional and stayed on budget.', date: '2025-02-16', ownerReply: 'We appreciate the trust, Felix.' },
+            { name: 'Linda W.', rating: 5, comment: 'Helpful after-service support and follow-up.', date: '2025-02-02', ownerReply: 'Always here to support you, Linda.' },
+            { name: 'Peter Y.', rating: 5, comment: 'Security system now feels robust and reliable.', date: '2025-01-18', ownerReply: 'Thank you, Peter. Security is our core.' },
+            { name: 'Rita Z.', rating: 5, comment: 'Great experience from quote to finish.', date: '2025-01-04', ownerReply: 'We appreciate your kind words, Rita.' }
+        ];
+
         document.addEventListener('DOMContentLoaded', () => {
         const featuredBento = document.getElementById('featuredBento');
         const adminTrigger = document.getElementById('admin-trigger');
@@ -2877,6 +2902,76 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 return `<div class="project-thumb" data-admin-project-id="${p.id}">${thumb}<button class="${starClass}" type="button" data-star-project-id="${p.id}" aria-label="${starLabel}"><i class="fas fa-star"></i></button><button class="project-delete" type="button" data-delete-project-id="${p.id}" aria-label="Delete project"><i class="fas fa-trash"></i></button><label class="project-feature-toggle"><input type="checkbox" ${featureChecked} data-feature-project-id="${p.id}"><span>Feature in Lazy Loop</span></label><div style="position:absolute; left:8px; bottom:8px; right:8px; font-size:0.8rem; background: rgba(0,0,0,0.55); padding:6px 8px; border-radius:10px;">${safeTitle}</div></div>`;
             }).join('');
         }
+
+        const reviewsInitialCount = 8;
+        let reviewsExpanded = false;
+
+        const escapeHTML = (value) => String(value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+
+        const buildStarIcons = (rating) => {
+            const safeRating = Math.max(1, Math.min(5, Number(rating) || 5));
+            return Array.from({ length: 5 }, (_, i) => {
+                const muted = i >= safeRating ? ' star-muted' : '';
+                return `<i class="fas fa-star${muted}"></i>`;
+            }).join('');
+        };
+
+        function renderReviews() {
+            const container = document.getElementById('reviewsContainer');
+            const showMoreBtn = document.getElementById('reviewsShowMore');
+            if (!container) return;
+
+            const visibleCount = reviewsExpanded
+                ? REVIEWS_DATA.length
+                : Math.min(reviewsInitialCount, REVIEWS_DATA.length);
+
+            container.innerHTML = REVIEWS_DATA.slice(0, visibleCount).map((review) => {
+                const name = escapeHTML(review.name);
+                const comment = escapeHTML(review.comment);
+                const date = escapeHTML(review.date);
+                const ownerReply = escapeHTML(review.ownerReply);
+                const stars = buildStarIcons(review.rating);
+                const replyBlock = ownerReply
+                    ? `
+                        <div class="owner-reply">
+                            <span class="owner-reply-label"><i class="fas fa-check-circle"></i> Hailifu Official Reply</span>
+                            <div>${ownerReply}</div>
+                        </div>
+                    `
+                    : '';
+
+                return `
+                    <article class="review-card">
+                        <div class="review-card-header">
+                            <div class="review-meta">
+                                <span class="review-name">${name}</span>
+                                <span class="review-date">${date}</span>
+                            </div>
+                            <div class="review-stars">${stars}</div>
+                        </div>
+                        <p class="review-comment">"${comment}"</p>
+                        ${replyBlock}
+                    </article>
+                `;
+            }).join('');
+
+            if (showMoreBtn) {
+                showMoreBtn.style.display = REVIEWS_DATA.length > visibleCount ? 'inline-flex' : 'none';
+            }
+        }
+
+        const reviewsShowMore = document.getElementById('reviewsShowMore');
+        if (reviewsShowMore) {
+            reviewsShowMore.addEventListener('click', () => {
+                reviewsExpanded = true;
+                renderReviews();
+            });
+        }
+
+        renderReviews();
 
         function loadProjects() {
             if (!projectsGrid) projectsGrid = document.getElementById('projectsGrid');

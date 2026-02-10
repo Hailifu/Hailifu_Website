@@ -4435,6 +4435,121 @@
             text-shadow: 0 0 12px rgba(255, 209, 102, 0.5), 0 0 24px rgba(255, 140, 0, 0.6);
         }
 
+        .reviews-container {
+            columns: 3 240px;
+            column-gap: 20px;
+        }
+
+        .review-card {
+            break-inside: avoid;
+            margin-bottom: 20px;
+            padding: 18px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            box-shadow: 0 16px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            display: inline-block;
+            width: 100%;
+            color: var(--text-secondary);
+        }
+
+        .review-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .review-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .review-name {
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        .review-date {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .review-stars {
+            display: inline-flex;
+            gap: 4px;
+            color: #f5c451;
+            font-size: 0.95rem;
+        }
+
+        .review-stars .star-muted {
+            color: rgba(245, 196, 81, 0.25);
+        }
+
+        .review-comment {
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .owner-reply {
+            margin-top: 14px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            margin-left: 12px;
+        }
+
+        .owner-reply-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--orange);
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .owner-reply-label i {
+            color: #4cd97a;
+        }
+
+        .reviews-show-more {
+            display: block;
+            width: fit-content;
+            margin: 8px auto 0;
+            padding: 12px 22px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-primary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+
+        .reviews-show-more:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 26px rgba(0, 0, 0, 0.25);
+        }
+
+        @media (max-width: 1024px) {
+            .reviews-container {
+                columns: 2 220px;
+            }
+        }
+
+        @media (max-width: 680px) {
+            .reviews-container {
+                columns: 1 100%;
+            }
+        }
+
         .hailifu-review-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -4479,6 +4594,24 @@
             background: rgba(255, 140, 0, 0.08);
             border-color: rgba(255, 140, 0, 0.25);
             color: rgba(29, 29, 31, 0.82);
+        }
+
+        [data-theme='light'] .review-card {
+            background: rgba(255, 255, 255, 0.8);
+            border-color: rgba(0, 0, 0, 0.08);
+            color: rgba(29, 29, 31, 0.85);
+        }
+
+        [data-theme='light'] .owner-reply {
+            background: rgba(0, 0, 0, 0.04);
+            border-color: rgba(0, 0, 0, 0.08);
+            color: rgba(29, 29, 31, 0.8);
+        }
+
+        [data-theme='light'] .reviews-show-more {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: rgba(0, 0, 0, 0.1);
+            color: rgba(29, 29, 31, 0.9);
         }
 
         .review-cta-section {
