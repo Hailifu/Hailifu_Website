@@ -4658,7 +4658,8 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 projectModal.classList.remove('is-compact');
                 projectModal.classList.remove('has-gallery');
                 projectModal.setAttribute('aria-hidden', 'true');
-                document.querySelector('main').removeAttribute('inert');
+                const mainEl = document.querySelector('main');
+                if (mainEl) mainEl.removeAttribute('inert');
             }
             if (projectModalMedia) {
                 projectModalMedia.innerHTML = '';
@@ -4692,11 +4693,14 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             if (projectModalDescription) projectModalDescription.textContent = description;
 
             projectModalLastFocus = document.activeElement;
-            document.querySelector('main').setAttribute('inert', '');
+            const mainEl = document.querySelector('main');
+            if (mainEl) mainEl.setAttribute('inert', '');
 
             const modal = document.getElementById('projectModal');
-            modal.setAttribute('aria-hidden', 'false');
-            modal.classList.add('active');
+            if (modal) {
+                modal.setAttribute('aria-hidden', 'false');
+                modal.classList.add('active');
+            }
             setTimeout(() => { document.getElementById('projectModalClose').focus(); }, 100);
             projectModal.removeAttribute('inert');
 
