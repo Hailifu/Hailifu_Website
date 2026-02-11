@@ -2359,9 +2359,9 @@
             font-weight: 700;
             letter-spacing: 1px;
             text-transform: uppercase;
-            color: #000000;
-            background: #FF8C00;
-            border: 1px solid rgba(0, 0, 0, 0.2);
+            color: #FF8C00;
+            background: rgba(0, 0, 0, 0.55);
+            border: 1px solid rgba(255, 140, 0, 0.45);
             box-shadow: 0 10px 18px rgba(0, 0, 0, 0.2);
             backdrop-filter: blur(4px);
             pointer-events: none;

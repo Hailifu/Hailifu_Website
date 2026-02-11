@@ -331,6 +331,90 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         const firebaseProjectsPathStorageKey = 'hailifu_firebase_projects_path';
         const defaultFirebaseProjectsPath = 'projects';
         const firebaseSettingsPathStorageKey = 'hailifu_firebase_settings_path';
+
+        const DEFAULT_SHOWCASE_PROJECTS = [
+            {
+                id: 'demo-cctv-ai',
+                title: 'AI-Assisted Monitoring',
+                name: 'AI-Assisted Monitoring',
+                category: 'cctv',
+                description: 'Large-scale, AI-assisted monitoring with intelligent alerts and threat detection.',
+                showInShowcase: true,
+                showcase: true
+            },
+            {
+                id: 'demo-electrical-grid',
+                title: 'Industrial Power Grid',
+                name: 'Industrial Power Grid',
+                category: 'electrical',
+                description: 'Heavy-duty distribution upgrade with smart load balancing and redundant protection.',
+                showInShowcase: true,
+                showcase: true
+            },
+            {
+                id: 'demo-gates-biometric',
+                title: 'Biometric Entry Gate',
+                name: 'Biometric Entry Gate',
+                category: 'gates',
+                description: 'Secure biometric access with real-time logging and fail-safe control.',
+                showInShowcase: true,
+                showcase: true
+            },
+            {
+                id: 'demo-solar-hub',
+                title: 'Solar Command Hub',
+                name: 'Solar Command Hub',
+                category: 'solar',
+                description: 'Centralized solar command with live performance analytics and smart switching.',
+                showInShowcase: true,
+                showcase: true
+            },
+            {
+                id: 'demo-solar-perimeter',
+                title: 'Solar Security Perimeter',
+                name: 'Solar Security Perimeter',
+                category: 'solar',
+                description: 'Solar-powered perimeter lighting and security coverage with resilient backup.',
+                showInShowcase: true,
+                showcase: true
+            },
+            {
+                id: 'demo-electrical-residence',
+                title: 'Electrical Smart Residence',
+                name: 'Electrical Smart Residence',
+                category: 'electrical',
+                description: 'Smart home distribution with intelligent load scheduling and monitoring.',
+                showInShowcase: true,
+                showcase: true
+            },
+            {
+                id: 'demo-hvac',
+                title: 'Smart HVAC Control',
+                name: 'Smart HVAC Control',
+                category: 'airconditioning',
+                description: 'Precision cooling systems with energy-efficient smart thermostats.',
+                showInShowcase: true,
+                showcase: true
+            },
+            {
+                id: 'demo-fence',
+                title: 'High-Tension Security',
+                name: 'High-Tension Security',
+                category: 'fencing',
+                description: 'Advanced intrusion detection with localized alarm zones.',
+                showInShowcase: true,
+                showcase: true
+            },
+            {
+                id: 'demo-blinds',
+                title: 'Automated Shading',
+                name: 'Automated Shading',
+                category: 'blindcurtain',
+                description: 'Smart motorized blinds integrated with light sensors for climate control.',
+                showInShowcase: true,
+                showcase: true
+            }
+        ];
         const defaultFirebaseSettingsPath = 'hailifu/settings';
         const integrityImageStorageKey = 'hailifu_integrity_image_url';
         const remoteConfigPublicIdStorageKey = 'hailifu_remote_config_public_id';
@@ -2897,9 +2981,10 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 ? remoteConfigState.projects
                 : null;
             const fromStorage = readJsonStorage('hailifu_projects', []);
-            const list = (Array.isArray(fromRemote) && fromRemote.length)
+            let list = (Array.isArray(fromRemote) && fromRemote.length)
                 ? fromRemote
                 : (Array.isArray(fromStorage) ? fromStorage : []);
+            if (!list.length) list = DEFAULT_SHOWCASE_PROJECTS;
 
             let changed = false;
             const sanitized = list.map((project) => {
@@ -3204,7 +3289,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     if (project.mediaSrc) assignedCount += 1;
                     console.log('Rendering card for:', project.id);
                     const label = categoryLabelMap[slotCategory] || categoryLabelMap[String(project.category || '').toLowerCase().trim()] || (project.category || 'Project');
-                    const title = String(project.title || '').trim();
+                    const title = String(project.title || project.name || '').trim();
                     const description = String(project.description || '').trim();
 
                     slot.dataset.mediaSrc = project.mediaSrc || '';
@@ -4793,7 +4878,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             temp.dataset.generatedProjectId = id;
             temp.dataset.mediaSrc = String(project.mediaSrc || '').trim();
             temp.dataset.mediaType = String(project.mediaType || 'image').trim().toLowerCase() || 'image';
-            temp.dataset.modalTitle = String(project.title || 'Project').trim();
+            temp.dataset.modalTitle = String(project.title || project.name || 'Project').trim();
             temp.dataset.modalDescription = String(project.description || '').trim();
             temp.dataset.modalCategory = String(project.category || '').trim();
             openProjectModalFromItem(temp);
