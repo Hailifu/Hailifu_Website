@@ -1411,6 +1411,18 @@
             max-width: 640px;
         }
 
+        [data-theme='light'] .section-title,
+        [data-theme='light'] .section-title a {
+            color: #1a1a1a;
+            background: none;
+            -webkit-text-fill-color: #1a1a1a;
+            text-shadow: none;
+        }
+
+        [data-theme='light'] .section-subtitle {
+            color: rgba(27, 27, 27, 0.68);
+        }
+
         /* About / Why Choose Us Section */
         .about-section {
             position: relative;
@@ -2222,6 +2234,12 @@
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+        }
+
+        [data-theme='light'] .showcase-heading h2 {
+            color: #1a1a1a;
+            background: none;
+            -webkit-text-fill-color: #1a1a1a;
         }
 
         .showcase-heading .section-description {
@@ -4867,6 +4885,12 @@
         .modern-review-header .section-title {
             color: #ffffff;
             margin-bottom: 15px;
+        }
+
+        [data-theme='light'] .modern-review-header .section-title {
+            color: #1a1a1a;
+            background: none;
+            -webkit-text-fill-color: #1a1a1a;
         }
 
         .modern-review-header .section-subtitle {
