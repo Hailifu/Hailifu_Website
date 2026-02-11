@@ -1695,13 +1695,11 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                                     <div class="form-group">
                                         <label for="projectCategory">Showcase Project Category</label>
                                         <select id="projectCategory">
+                                            <option value="all">All Projects</option>
                                             <option value="cctv">CCTV</option>
                                             <option value="electrical">Electrical</option>
                                             <option value="gates">Automated Gates</option>
                                             <option value="solar">Solar Energy</option>
-                                            <option value="airconditioning">Air Conditioner</option>
-                                            <option value="fencing">Electric Fence</option>
-                                            <option value="blindcurtain">Window Blinds</option>
                                         </select>
                                     </div>
                                     <div class="form-group">
