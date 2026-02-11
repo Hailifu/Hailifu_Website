@@ -2183,10 +2183,7 @@
         }
 
         .showcase-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            gap: 24px;
+            display: block;
             margin-bottom: 28px;
         }
 
@@ -2194,36 +2191,39 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            text-align: left;
+            text-align: center;
+            align-items: center;
         }
 
-        .showcase-content .section-title {
+        .showcase-heading h2 {
             color: var(--white);
-            text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
-            text-transform: uppercase;
-            letter-spacing: 0.14em;
+            font-size: 2.3rem;
             font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
             font-family: 'Montserrat', 'Inter', 'Segoe UI', sans-serif;
+            margin: 0;
         }
 
-        .showcase-content .section-subtitle {
+        .showcase-heading .section-description {
             color: #888;
-            margin: 0;
+            margin: 0 0 20px;
             font-weight: 400;
-            max-width: 560px;
+            font-size: 1.1rem;
+            max-width: 640px;
         }
 
         .showcase-filters {
             display: flex;
-            justify-content: flex-end;
-            gap: 12px;
+            justify-content: center;
+            gap: 10px;
             flex-wrap: wrap;
         }
 
         .filter-btn {
-            background: rgba(255, 255, 255, 0.04);
+            background: transparent;
             color: rgba(255, 255, 255, 0.78);
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.22);
             padding: 8px 16px;
             border-radius: 999px;
             font-size: 0.82rem;
@@ -2236,17 +2236,17 @@
 
         .filter-btn:hover,
         .filter-btn.active {
-            background: rgba(255, 140, 0, 0.18);
+            background: rgba(255, 255, 255, 0.08);
             color: var(--white);
-            border-color: rgba(255, 140, 0, 0.65);
-            box-shadow: 0 10px 24px rgba(255, 140, 0, 0.18);
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: none;
         }
 
         /* More specific active state */
         .showcase-filters .filter-btn.active {
-            background: rgba(255, 140, 0, 0.22) !important;
+            background: rgba(255, 255, 255, 0.12) !important;
             color: var(--white) !important;
-            border-color: rgba(255, 140, 0, 0.7);
+            border-color: rgba(255, 255, 255, 0.6);
         }
 
         #showcase .showcase-grid {
@@ -2897,13 +2897,8 @@
         }
 
         @media (max-width: 960px) {
-            .showcase-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .showcase-filters {
-                justify-content: flex-start;
+            .showcase-heading {
+                text-align: center;
             }
         }
 
