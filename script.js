@@ -2,29 +2,169 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         const adminUnlockStorageKey = 'hailifu_admin_unlocked';
 
         const REVIEWS_DATA = [
-            { name: 'Kwame A.', rating: 5, comment: 'Fast and clean CCTV install. Cameras are crystal clear.', date: '2025-11-12', ownerReply: 'Thank you, Kwame. We are glad you love the clarity and finish.' },
-            { name: 'Ama O.', rating: 5, comment: 'Professional wiring and neat finish throughout the building.', date: '2025-11-02', ownerReply: 'We appreciate your trust and kind words, Ama.' },
-            { name: 'Yaw K.', rating: 4, comment: 'Gate automation works great and setup was smooth.', date: '2025-10-18', ownerReply: 'Happy to hear it is working well. Thanks, Yaw.' },
-            { name: 'Esi D.', rating: 5, comment: 'AC installation was on time and the unit is quiet.', date: '2025-10-05', ownerReply: 'Thanks, Esi. Enjoy the comfort.' },
-            { name: 'Kojo M.', rating: 5, comment: 'Team explained everything clearly and delivered on time.', date: '2025-09-22', ownerReply: 'We are glad the process was clear and smooth.' },
-            { name: 'Nana B.', rating: 5, comment: 'Electric fence upgrade looks solid and secure.', date: '2025-09-10', ownerReply: 'Thank you, Nana. Safety is always our priority.' },
-            { name: 'Akua P.', rating: 4, comment: 'Great service and tidy work area after completion.', date: '2025-08-29', ownerReply: 'Thanks, Akua. We always aim to leave things spotless.' },
-            { name: 'Kofi T.', rating: 5, comment: 'Smart home setup exceeded expectations.', date: '2025-08-14', ownerReply: 'That is great to hear. Enjoy the smart upgrade.' },
-            { name: 'Abena S.', rating: 5, comment: 'Curtain and blinds fit perfectly and look premium.', date: '2025-07-30', ownerReply: 'Thank you, Abena. We are happy you love the finish.' },
-            { name: 'Sam L.', rating: 5, comment: 'Quick response and fair pricing. Highly recommended.', date: '2025-07-12', ownerReply: 'We appreciate the recommendation, Sam.' },
-            { name: 'Kojo N.', rating: 4, comment: 'Good communication throughout the project.', date: '2025-06-25', ownerReply: 'Thanks, Kojo. Clear communication is important to us.' },
-            { name: 'Evelyn R.', rating: 5, comment: 'Neat panel upgrade and thorough safety checks.', date: '2025-06-08', ownerReply: 'Glad you felt safe and informed, Evelyn.' },
-            { name: 'Prince A.', rating: 5, comment: 'CCTV remote access set up perfectly.', date: '2025-05-21', ownerReply: 'Thanks, Prince. Happy to help with remote access.' },
-            { name: 'Irene G.', rating: 5, comment: 'Punctual team and quality materials used.', date: '2025-05-03', ownerReply: 'Thank you, Irene. Quality is non-negotiable for us.' },
-            { name: 'Michael C.', rating: 4, comment: 'Minor delay but the final result is solid.', date: '2025-04-18', ownerReply: 'Thanks for your patience, Michael. Glad you are satisfied.' },
-            { name: 'Sarah J.', rating: 5, comment: 'Clean wiring with clearly labeled circuits.', date: '2025-04-02', ownerReply: 'We appreciate the feedback, Sarah.' },
-            { name: 'Daniel F.', rating: 5, comment: 'Gate motor is smooth and quiet.', date: '2025-03-20', ownerReply: 'Great to hear, Daniel. Enjoy the upgrade.' },
-            { name: 'Grace H.', rating: 5, comment: 'Installed quickly and tested everything before handover.', date: '2025-03-05', ownerReply: 'Thanks, Grace. Testing is part of our standard.' },
-            { name: 'Felix Q.', rating: 4, comment: 'Very professional and stayed on budget.', date: '2025-02-16', ownerReply: 'We appreciate the trust, Felix.' },
-            { name: 'Linda W.', rating: 5, comment: 'Helpful after-service support and follow-up.', date: '2025-02-02', ownerReply: 'Always here to support you, Linda.' },
-            { name: 'Peter Y.', rating: 5, comment: 'Security system now feels robust and reliable.', date: '2025-01-18', ownerReply: 'Thank you, Peter. Security is our core.' },
-            { name: 'Rita Z.', rating: 5, comment: 'Great experience from quote to finish.', date: '2025-01-04', ownerReply: 'We appreciate your kind words, Rita.' }
+            {
+                name: 'Daouda',
+                meta: '1 review | 0 photos',
+                date: '2 weeks ago',
+                rating: 5,
+                comment: 'Best CCTV technician. He is good in everything.',
+                ownerReply: 'We are really grateful and always available for your service.'
+            },
+            {
+                name: 'Rakiba Mohammed',
+                meta: '0 reviews | 0 photos',
+                date: '19 weeks ago',
+                rating: 5,
+                comment: 'Excellent service and professional execution.',
+                ownerReply: 'Thank you so much for your time and your appreciation.'
+            },
+            {
+                name: 'Dennis Somuah',
+                meta: '2 reviews | 2 photos',
+                date: '22 weeks ago',
+                rating: 5,
+                comment: 'Best installation company you can trust.',
+                ownerReply: 'Really appreciate it.'
+            },
+            {
+                name: 'Arafat Fatawu',
+                meta: '1 review | 2 photos',
+                date: '30 weeks ago',
+                rating: 5,
+                comment: 'Best installer I have seen so far because he is kind.',
+                ownerReply: 'Thank you. We appreciate your trust.'
+            },
+            {
+                name: 'Alidu Salifu',
+                meta: '1 review | 1 photo',
+                date: '30 weeks ago',
+                rating: 5,
+                comment: 'They are reliable and professional, always on time, with great communication.',
+                ownerReply: 'Thank you. Reliability is our priority.'
+            },
+            {
+                name: 'Abu Bawie',
+                meta: '1 review | 0 photos',
+                date: '34 weeks ago',
+                rating: 5,
+                comment: 'Great service offered. Hassle-free.',
+                ownerReply: 'Great working with you, sir.'
+            },
+            {
+                name: 'Arafat Yankine',
+                meta: '2 reviews | 0 photos',
+                date: '20 Jan 2025',
+                rating: 5,
+                comment: 'They are good and reliable.',
+                ownerReply: 'You are always welcome.'
+            },
+            {
+                name: 'Abdullah Yusuf',
+                meta: 'Local Guide | 15 reviews | 11 photos',
+                date: '29 Aug 2023',
+                rating: 5,
+                comment: 'As the company name suggests, all services were brilliant.',
+                ownerReply: 'We appreciate it a lot.'
+            },
+            {
+                name: 'admin admin',
+                meta: '1 review | 0 photos',
+                date: '15 Feb 2023',
+                rating: 5,
+                comment: 'I have been using their services for 4 years. Best value, on time, and very responsive.',
+                ownerReply: 'Thank you. We appreciate it.'
+            },
+            {
+                name: 'Mohammed Drame',
+                meta: '0 reviews | 0 photos',
+                date: '19 Oct 2022',
+                rating: 5,
+                comment: 'Full review available on Google.',
+                ownerReply: 'Thank you for your appreciation. Hailifu is always here for you.'
+            },
+            {
+                name: 'Yussif Nuhu',
+                meta: '0 reviews | 0 photos',
+                date: '1 Aug 2022',
+                rating: 5,
+                comment: 'Full review available on Google.',
+                ownerReply: 'Thank you so much for your review.'
+            },
+            {
+                name: 'Ali Yoro',
+                meta: '0 reviews | 0 photos',
+                date: '13 May 2022',
+                rating: 5,
+                comment: 'Full review available on Google.',
+                ownerReply: 'Thank you. Together we are strong, and we appreciate you too.'
+            },
+            {
+                name: 'Abdul-Wahab Abubakar',
+                meta: '0 reviews | 0 photos',
+                date: '26 Apr 2022',
+                rating: 5,
+                comment: 'Full review available on Google.',
+                ownerReply: 'Thank you so much.'
+            },
+            {
+                name: 'Ghana',
+                meta: '8 reviews | 0 photos',
+                date: '19 Apr 2022',
+                rating: 5,
+                comment: 'Full review available on Google.',
+                ownerReply: 'Thank you. Together we are strong, and we appreciate you too.'
+            },
+            {
+                name: 'Fuseini Adam',
+                meta: '0 reviews | 0 photos',
+                date: '4 Oct 2020',
+                rating: 5,
+                comment: 'Full review available on Google.',
+                ownerReply: 'Thank you for your appreciation.'
+            },
+            {
+                name: 'Sam Yeboah',
+                meta: '1 review | 0 photos',
+                date: '25 Jul 2020',
+                rating: 5,
+                comment: 'Awesome. Bravo.',
+                ownerReply: 'Thank you for your appreciation.'
+            },
+            {
+                name: 'bright senoo',
+                meta: '0 reviews | 0 photos',
+                date: '12 Jul 2020',
+                rating: 5,
+                comment: 'Full review available on Google.',
+                ownerReply: 'Thank you for your appreciation.'
+            },
+            {
+                name: 'Michael Obeng',
+                meta: '1 review | 0 photos',
+                date: '7 Jul 2020',
+                rating: 5,
+                comment: 'Full review available on Google.',
+                ownerReply: 'Thank you for your appreciation.'
+            },
+            {
+                name: 'LAWER JOSEPH',
+                meta: 'Local Guide | 3 reviews | 114 photos',
+                date: '4 Jul 2020',
+                rating: 5,
+                comment: 'Full review available on Google.',
+                ownerReply: 'Thank you for your appreciation.'
+            },
+            {
+                name: 'Wendy Bibio',
+                meta: '0 reviews | 0 photos',
+                date: '3 Jul 2020',
+                rating: 5,
+                comment: 'Full review available on Google.',
+                ownerReply: 'Thank you for your appreciation. We love you too.'
+            }
         ];
+
+
 
         document.addEventListener('DOMContentLoaded', () => {
         const featuredBento = document.getElementById('featuredBento');
@@ -1249,6 +1389,38 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             return { mediaSrc, mediaType, thumbSrc };
         }
 
+        function normalizeCategoryKey(raw) {
+            const base = String(raw || '').trim().toLowerCase();
+            if (!base) return '';
+            const cleaned = base.replace(/[\s_-]+/g, '');
+            const map = {
+                cctv: 'cctv',
+                camera: 'cctv',
+                electrical: 'electrical',
+                electricals: 'electrical',
+                electric: 'electrical',
+                gates: 'gates',
+                gate: 'gates',
+                autogate: 'gates',
+                automatedgates: 'gates',
+                solar: 'solar',
+                solarenergy: 'solar',
+                solars: 'solar',
+                airconditioning: 'airconditioning',
+                airconditioner: 'airconditioning',
+                aircondition: 'airconditioning',
+                ac: 'airconditioning',
+                fencing: 'fencing',
+                electricfence: 'fencing',
+                fence: 'fencing',
+                blindcurtain: 'blindcurtain',
+                blinds: 'blindcurtain',
+                windowblinds: 'blindcurtain',
+                smartwindows: 'blindcurtain'
+            };
+            return map[cleaned] || cleaned;
+        }
+
         function renderGalleryQueue() {
             if (!galleryQueue) return;
             if (!Array.isArray(galleryQueueItems) || !galleryQueueItems.length) {
@@ -2037,6 +2209,10 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                                             <option value="electrical">Electrical</option>
                                             <option value="gates">Automated Gates</option>
                                             <option value="solar">Solar Energy</option>
+                                            <option value="fencing">Electric Fence</option>
+                                            <option value="airconditioning">Air Conditioner</option>
+                                            <option value="blindcurtain">Window Blinds</option>
+                                            <option value="smarthome">Smart Home</option>
                                         </select>
                                     </div>
                                     <div class="form-group">
@@ -2489,10 +2665,6 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 };
 
                 fileUploadArea.addEventListener('click', openPicker);
-                fileUploadArea.addEventListener('pointerup', (e) => {
-                    try { e.preventDefault(); } catch {}
-                    openPicker();
-                });
 
                 projectFile.addEventListener('change', () => {
                     try {
@@ -3139,9 +3311,36 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const assetForLog = p.mediaType === 'video' ? videoWithBuster : thumbWithBuster;
                 if (assetForLog) console.log('Admin Displaying URL:', assetForLog);
                 const crossorigin = getFirebaseCrossoriginAttr(assetForLog);
-                const thumb = p.mediaType === 'video'
-                    ? `<video src="${videoWithBuster}" muted playsinline webkit-playsinline loop autoplay preload="metadata"></video>`
-                    : `<img src="${thumbWithBuster}" alt="${safeTitle}" ${crossorigin} onerror="this.onerror=null; this.src=getHailifuPlaceholderDataUri('HAILIFU')">`;
+
+                const mediaItems = coerceProjectMediaItems(p);
+                const maxTiles = 4;
+                const buildTile = (item) => {
+                    const type = String(item?.mediaType || '').toLowerCase();
+                    const rawSrc = type === 'youtube'
+                        ? (item?.thumbSrc || getYoutubeThumbUrl(getYoutubeVideoId(item?.mediaSrc || '')) || '')
+                        : (type === 'video' ? item?.mediaSrc : (item?.thumbSrc || item?.mediaSrc));
+                    const resolved = resolveAdminAssetPath(rawSrc);
+                    const finalSrc = appendCacheBuster(resolved, cacheStamp);
+                    const cross = getFirebaseCrossoriginAttr(finalSrc);
+                    if (!finalSrc) {
+                        return `<div class="project-thumb-tile is-empty"></div>`;
+                    }
+                    if (type === 'video') {
+                        return `<div class="project-thumb-tile"><video src="${finalSrc}" muted playsinline webkit-playsinline loop autoplay preload="metadata"></video></div>`;
+                    }
+                    return `<div class="project-thumb-tile"><img src="${finalSrc}" alt="${safeTitle}" ${cross} onerror="this.onerror=null; this.src=getHailifuPlaceholderDataUri('HAILIFU')"></div>`;
+                };
+
+                const thumb = mediaItems.length > 1
+                    ? `
+                        <div class="project-thumb-gallery">
+                            ${mediaItems.slice(0, maxTiles).map(buildTile).join('')}
+                            <span class="project-thumb-count">${mediaItems.length}</span>
+                        </div>
+                    `
+                    : (p.mediaType === 'video'
+                        ? `<video src="${videoWithBuster}" muted playsinline webkit-playsinline loop autoplay preload="metadata"></video>`
+                        : `<img src="${thumbWithBuster}" alt="${safeTitle}" ${crossorigin} onerror="this.onerror=null; this.src=getHailifuPlaceholderDataUri('HAILIFU')">`);
 
                 return `
                     <div class="project-thumb" data-admin-project-id="${p.id}">
@@ -3210,12 +3409,8 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;');
 
-        const buildStarIcons = (rating) => {
-            const safeRating = Math.max(1, Math.min(5, Number(rating) || 5));
-            return Array.from({ length: 5 }, (_, i) => {
-                const muted = i >= safeRating ? ' star-muted' : '';
-                return `<i class="fas fa-star${muted}"></i>`;
-            }).join('');
+        const buildStarIcons = () => {
+            return Array.from({ length: 5 }, () => '<i class="fas fa-star"></i>').join('');
         };
 
         function renderReviews() {
@@ -3231,6 +3426,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const name = escapeHTML(review.name);
                 const comment = escapeHTML(review.comment);
                 const date = escapeHTML(review.date);
+                const meta = escapeHTML(review.meta);
                 const ownerReply = escapeHTML(review.ownerReply);
                 const stars = buildStarIcons(review.rating);
                 const replyBlock = ownerReply
@@ -3241,12 +3437,14 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                         </div>
                     `
                     : '';
+                const metaLine = meta ? `<span class="review-meta-line">${meta}</span>` : '';
 
                 return `
                     <article class="review-card">
                         <div class="review-card-header">
                             <div class="review-meta">
                                 <span class="review-name">${name}</span>
+                                ${metaLine}
                                 <span class="review-date">${date}</span>
                             </div>
                             <div class="review-stars">${stars}</div>
@@ -3298,10 +3496,6 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             const showcaseGrid = gridOverride || document.querySelector('#showcase .showcase-grid');
             if (!showcaseGrid) return;
 
-            Array.from(showcaseGrid.querySelectorAll('.showcase-item[data-generated-project-id]')).forEach((item) => {
-                item.remove();
-            });
-
             const projects = Array.isArray(projectsOverride) ? projectsOverride : getProjects();
             const showcaseProjects = projects.filter((p) => p && isVisibilityEnabled(p, 'showInShowcase', 'showcase'));
             const slotToProjectCategory = {
@@ -3327,20 +3521,15 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const withMedia = matches.filter((p) => p && p.mediaSrc);
                 const featured = withMedia.find((p) => p.isFeatured) || withMedia.find((p) => p.isStarred);
                 const primary = featured || withMedia[0] || matches[0] || null;
-                if (primary && primary.id && !usedIds.has(String(primary.id))) return primary;
-
-                const fallback = showcaseProjects.find((p) => {
-                    const id = String(p?.id || '').trim();
-                    return id && !usedIds.has(id);
-                });
-                return fallback || primary || null;
+                if (!primary) return null;
+                const id = String(primary.id || '').trim();
+                if (id && usedIds.has(id)) return null;
+                return primary;
             };
 
             const slots = Array.from(showcaseGrid.querySelectorAll('.showcase-item'));
             let assignedCount = 0;
             slots.forEach((slot) => {
-                if (slot.hasAttribute('data-generated-project-id')) return;
-
                 const slotCategory = (slot.getAttribute('data-category') || slot.dataset.category || '').toLowerCase().trim();
                 const project = pickProjectForSlot(slotCategory);
 
@@ -3358,6 +3547,10 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     slot.dataset.modalTitle = title || 'Project';
                     slot.dataset.modalDescription = description || '';
                     slot.dataset.modalCategory = label || String(project.category || '').trim();
+                    slot.dataset.galleryGroup = 'category';
+                    if (!slot.dataset.category && slotCategory) {
+                        slot.dataset.category = slotCategory;
+                    }
                     const mediaItems = coerceProjectMediaItems(project);
                     if (mediaItems.length > 1) {
                         try { slot.dataset.mediaItems = JSON.stringify(mediaItems); } catch {}
@@ -3420,7 +3613,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     const idValue = String(project.id || '').trim();
                     slot.classList.add('showcase-card');
                     if (idValue) {
-                        slot.setAttribute('onclick', `openGallery(${JSON.stringify(idValue)})`);
+                        slot.setAttribute('onclick', 'openGalleryFromElement(this)');
                     } else {
                         slot.removeAttribute('onclick');
                     }
@@ -3428,14 +3621,16 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     const existingBg = slot.querySelector('.showcase-bg');
                     if (existingBg) existingBg.remove();
                     slot.classList.remove('has-media');
-                    slot.classList.remove('showcase-card');
+                    slot.classList.add('showcase-card');
                     delete slot.dataset.generatedProjectId;
                     delete slot.dataset.modalTitle;
                     delete slot.dataset.modalDescription;
                     delete slot.dataset.modalCategory;
                     slot.dataset.mediaSrc = '';
                     slot.dataset.mediaType = 'image';
-                    slot.removeAttribute('onclick');
+                    slot.dataset.galleryGroup = 'category';
+                    if (slotCategory) slot.dataset.category = slotCategory;
+                    slot.setAttribute('onclick', 'openGalleryFromElement(this)');
                 }
 
                 if (slot.dataset.modalBound) {
@@ -4663,6 +4858,58 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             const fromDataset = parseMediaItemsFromDataset(item);
             if (fromDataset.length) return fromDataset;
 
+            const groupMode = String(item?.dataset?.galleryGroup || '').trim().toLowerCase();
+            if (groupMode === 'category') {
+                const categoryKey = normalizeCategoryKey(item?.dataset?.category || item?.dataset?.modalCategory || '');
+                if (categoryKey) {
+                    const projects = getProjects();
+                    try {
+                        const categories = projects.map((p) => String(p?.category || '').trim()).filter(Boolean);
+                        console.log('Gallery category match:', categoryKey, 'Available categories:', categories);
+                    } catch {}
+                    const matches = projects
+                        .filter((p) => p && normalizeCategoryKey(p.category || '') === categoryKey)
+                        .filter((p) => {
+                            if (!p || typeof p !== 'object') return false;
+                            if (typeof p.showInShowcase === 'boolean') return p.showInShowcase;
+                            if (typeof p.showcase === 'boolean') return p.showcase;
+                            return true;
+                        });
+
+                    const combined = [];
+                    matches.forEach((p) => {
+                        try {
+                            console.log('Gallery match project:', {
+                                id: p?.id,
+                                title: p?.title || p?.name,
+                                category: p?.category,
+                                showInShowcase: p?.showInShowcase,
+                                showcase: p?.showcase,
+                                mediaSrc: p?.mediaSrc,
+                                mediaItemsCount: Array.isArray(p?.mediaItems) ? p.mediaItems.length : 0
+                            });
+                        } catch {}
+                        const items = coerceProjectMediaItems(p);
+                        items.forEach((entry) => {
+                            if (entry) combined.push(entry);
+                        });
+                    });
+                    try {
+                        console.log('Gallery media items combined:', combined.length, combined.map((m) => m.mediaSrc));
+                    } catch {}
+
+                    const seen = new Set();
+                    const unique = combined.filter((m) => {
+                        const key = `${m.mediaType}::${m.mediaSrc}`;
+                        if (!m || !m.mediaSrc) return false;
+                        if (seen.has(key)) return false;
+                        seen.add(key);
+                        return true;
+                    });
+                    if (unique.length) return unique.slice(0, 24);
+                }
+            }
+
             const id = String(item?.dataset?.generatedProjectId || '').trim();
             if (id) {
                 const projects = getProjects();
@@ -4901,72 +5148,25 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 projectModal.classList.remove('has-gallery');
 
                 const mediaItems = getMediaItemsForModal(item);
-                if (mediaItems.length > 1) {
+                if (mediaItems.length) {
                     projectModal.classList.add('has-gallery');
                     projectModalMedia.appendChild(buildProjectModalGallery(mediaItems, title));
                 } else {
-                    const datasetType = item.dataset?.mediaType || '';
-                    if (datasetType === 'youtube' && item.dataset?.mediaSrc) {
-                        const youtubeId = getYoutubeVideoId(item.dataset.mediaSrc);
-                        const watchUrl = youtubeId ? getYoutubeWatchUrl(youtubeId) : item.dataset.mediaSrc;
-
-                        if (!canEmbedYoutube()) {
-                            const wrap = document.createElement('div');
-                            wrap.style.padding = '22px';
-                            wrap.style.textAlign = 'center';
-                            wrap.style.color = 'rgba(255, 255, 255, 0.82)';
-                            wrap.innerHTML = `
-                                <div style="font-size:2rem; margin-bottom:10px; color: var(--orange);"><i class="fas fa-play-circle"></i></div>
-                                <div style="margin-bottom:12px;">This video canâ€™t be embedded in file preview mode.</div>
-                                <a href="${watchUrl}" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; justify-content:center; gap:10px; background: var(--orange); color: #fff; padding: 12px 18px; border-radius: 999px; font-weight: 800; text-decoration: none;">Open on YouTube</a>
-                            `;
-                            projectModalMedia.appendChild(wrap);
-                        } else {
-                            const iframe = document.createElement('iframe');
-                            iframe.src = youtubeId ? getYoutubeEmbedUrl(youtubeId) : item.dataset.mediaSrc;
-                            iframe.title = title;
-                            iframe.loading = 'lazy';
-                            iframe.setAttribute('frameborder', '0');
-                            iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
-                            iframe.setAttribute('allowfullscreen', '');
-                            projectModalMedia.appendChild(iframe);
-                        }
-                    } else {
-                        const mediaEl = item.querySelector('img, video, iframe');
-                        if (mediaEl) {
-                            const clone = mediaEl.cloneNode(true);
-                            if (clone.tagName && clone.tagName.toLowerCase() === 'video') {
-                                clone.controls = true;
-                                clone.autoplay = false;
-                                clone.muted = false;
-                            }
-                            projectModalMedia.appendChild(clone);
-                        } else if (item.dataset && item.dataset.mediaSrc) {
-                            const type = item.dataset.mediaType || 'image';
-                            if (type === 'video') {
-                                const video = document.createElement('video');
-                                video.src = item.dataset.mediaSrc;
-                                video.controls = true;
-                                projectModalMedia.appendChild(video);
-                            } else {
-                                const img = document.createElement('img');
-                                const imagePath = item.dataset.mediaSrc;
-                                console.log("Setting Modal Image to:", imagePath);
-                                img.src = imagePath;
-                                img.alt = title;
-                                projectModalMedia.appendChild(img);
-                            }
-                        } else {
-                            const placeholder = document.createElement('div');
-                            placeholder.style.padding = '22px';
-                            placeholder.style.textAlign = 'center';
-                            placeholder.style.color = 'rgba(255, 255, 255, 0.75)';
-                            placeholder.innerHTML = '<div style="font-size:2.2rem; margin-bottom:10px; color: var(--orange);"><i class="fas fa-image"></i></div><div>Project preview will appear here once media is added.</div>';
-                            projectModalMedia.appendChild(placeholder);
-                        }
-                    }
+                    const placeholder = document.createElement('div');
+                    placeholder.style.padding = '22px';
+                    placeholder.style.textAlign = 'center';
+                    placeholder.style.color = 'rgba(255, 255, 255, 0.75)';
+                    placeholder.innerHTML = '<div style="font-size:2.2rem; margin-bottom:10px; color: var(--orange);"><i class="fas fa-image"></i></div><div>Project preview will appear here once media is added.</div>';
+                    projectModalMedia.appendChild(placeholder);
                 }
+
             }
+        }
+
+        function openGalleryFromElement(el) {
+            if (!el) return false;
+            openProjectModalFromItem(el);
+            return true;
         }
 
         function openModal(projectId) {
@@ -4975,7 +5175,17 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             if (!id) return false;
             const projects = getProjects();
             const project = projects.find((p) => String(p?.id || '') === id);
-            if (!project) return false;
+            if (!project) {
+                try {
+                    const selector = `.showcase-item[data-generated-project-id="${CSS.escape(id)}"]`;
+                    const fallbackEl = document.querySelector(selector);
+                    if (fallbackEl) {
+                        openProjectModalFromItem(fallbackEl);
+                        return true;
+                    }
+                } catch {}
+                return false;
+            }
             if (!projectModal) return false;
             if (projectModalMedia) {
                 projectModalMedia.innerHTML = '';
@@ -4998,6 +5208,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
         window.openModal = openModal;
         window.openGallery = openModal;
+        window.openGalleryFromElement = openGalleryFromElement;
 
         if (projectModalClose) {
             projectModalClose.addEventListener('click', closeProjectModal);
