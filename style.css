@@ -22,8 +22,11 @@
             max-width: 100%;
         }
         :root {
-            --brand-primary: #FFD700;
-            --brand-dark: #1b1b1b;
+            --brand-primary: #FF8C00;
+            --brand-secondary: #000000;
+            --text-header: #000000;
+            --text-body: #333333;
+            --brand-dark: #000000;
             --orange: #FF8C00;
             --orange-glow: rgba(255, 140, 0, 0.3);
             --dark-surface: #121212;
@@ -2158,7 +2161,7 @@
         /* Work Showcase Section */
         .showcase {
             padding: 80px 5%;
-            background: var(--dark-grey);
+            background: #0f0f0f;
             position: relative;
         }
 
@@ -2169,7 +2172,8 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(135deg, rgba(26,26,26,0.95), rgba(45,45,45,0.9));
+            background: radial-gradient(circle at 10% 20%, rgba(255, 140, 0, 0.08), transparent 60%),
+                radial-gradient(circle at 80% 10%, rgba(255, 140, 0, 0.06), transparent 55%);
             z-index: 0;
         }
 
@@ -2198,7 +2202,7 @@
         }
 
         .showcase-heading h2 {
-            color: var(--brand-dark);
+            color: #ffffff;
             font-size: clamp(2rem, 3vw, 2.5rem);
             font-weight: 800;
             letter-spacing: 0.08em;
@@ -2207,15 +2211,12 @@
             margin: 0;
             position: relative;
             display: inline-block;
-            padding: 8px 16px 12px;
+            padding: 0 0 12px;
             line-height: 1.1;
-            background: rgba(255, 255, 255, 0.92);
-            border-radius: 12px;
-            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
         }
 
         .showcase-heading .section-description {
-            color: #888;
+            color: rgba(255, 255, 255, 0.7);
             margin: 0 0 20px;
             font-weight: 400;
             font-size: 1.1rem;
@@ -2239,40 +2240,41 @@
             justify-content: center;
             gap: 8px;
             flex-wrap: wrap;
-            padding: 10px 12px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.92);
-            border: 1px solid rgba(0, 0, 0, 0.08);
-            box-shadow: 0 14px 34px rgba(0, 0, 0, 0.25);
         }
 
         .filter-btn {
             background: transparent;
-            color: var(--brand-dark);
-            border: 1px solid rgba(0, 0, 0, 0.2);
-            padding: 8px 14px;
+            color: rgba(255, 255, 255, 0.82);
+            border: 1px solid rgba(255, 140, 0, 0.35);
+            padding: 8px 16px;
             border-radius: 999px;
-            font-size: 0.78rem;
+            font-size: 0.8rem;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             text-transform: uppercase;
-            letter-spacing: 0.08em;
+            letter-spacing: 1px;
         }
 
-        .filter-btn:hover,
+        .filter-btn:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 140, 0, 0.8);
+        }
+
         .filter-btn.active {
-            background: var(--brand-primary);
-            color: var(--brand-dark);
-            border-color: rgba(0, 0, 0, 0.25);
-            box-shadow: none;
+            background: #FF8C00;
+            color: #000000;
+            border-color: rgba(255, 140, 0, 0.9);
+            box-shadow: 0 0 15px rgba(255, 140, 0, 0.4);
+            transform: translateY(-2px);
         }
 
         /* More specific active state */
         .showcase-filters .filter-btn.active {
-            background: var(--brand-primary) !important;
-            color: var(--brand-dark) !important;
-            border-color: rgba(0, 0, 0, 0.25);
+            background: #FF8C00 !important;
+            color: #000000 !important;
+            border-color: rgba(255, 140, 0, 0.9);
+            box-shadow: 0 0 15px rgba(255, 140, 0, 0.4);
         }
 
         #showcase .showcase-grid {
@@ -2309,28 +2311,28 @@
             position: relative;
             overflow: hidden;
             border-radius: 15px;
-            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
+            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45);
             aspect-ratio: 4 / 3;
             cursor: pointer;
             transition: opacity 0.35s ease, transform 0.35s ease, box-shadow 0.4s ease, border-color 0.4s ease;
             opacity: 0;
             animation: fadeInUp 0.6s ease-out forwards;
-            background: var(--black);
-            border: 1px solid #eee;
+            background: #0b0b0b;
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         #showcase .card {
             position: relative;
             overflow: hidden;
             border-radius: 15px;
-            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
+            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45);
             aspect-ratio: 4 / 3;
             cursor: pointer;
             transition: all 0.4s ease;
             opacity: 0;
             animation: fadeInUp 0.6s ease-out forwards;
-            background: var(--black);
-            border: 1px solid #eee;
+            background: #0b0b0b;
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .showcase-card {
@@ -2357,7 +2359,7 @@
             font-weight: 700;
             letter-spacing: 1px;
             text-transform: uppercase;
-            color: var(--brand-dark);
+            color: #ffffff;
             background: var(--brand-primary);
             border: 1px solid rgba(0, 0, 0, 0.2);
             box-shadow: 0 10px 18px rgba(0, 0, 0, 0.2);
@@ -2416,7 +2418,7 @@
 
         .showcase-item:hover {
             transform: translateY(-10px) scale(1.02);
-            box-shadow: 0 18px 38px rgba(0, 0, 0, 0.38);
+            box-shadow: 0 22px 44px rgba(0, 0, 0, 0.55);
             border-color: rgba(255, 140, 0, 0.7);
         }
 
