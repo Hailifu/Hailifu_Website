@@ -312,6 +312,10 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         let projectFile = null;
         let projectMediaUrl = null;
         let fileUploadArea = null;
+        let galleryQueue = null;
+        let galleryQueueItems = [];
+        let addGalleryItemBtn = null;
+        let clearGalleryBtn = null;
         let mediaTypeButtons = [];
         let selectedMediaType = 'image';
 
@@ -883,6 +887,8 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             if (uploadProgressFill) uploadProgressFill.style.width = `${pct}%`;
             if (uploadProgressText) uploadProgressText.textContent = text || (active ? 'Uploading...' : '');
             if (uploadBtn) uploadBtn.disabled = active;
+            if (addGalleryItemBtn) addGalleryItemBtn.disabled = active;
+            if (clearGalleryBtn) clearGalleryBtn.disabled = active;
         }
 
         function cloudinaryUnsignedUpload(file, opts = {}) {
@@ -1214,6 +1220,253 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 mediaSrc: raw,
                 thumbSrc: ''
             };
+        }
+
+        function escapeHtml(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function normalizeQueueItem(item) {
+            if (!item || typeof item !== 'object') return null;
+            const rawSrc = String(item.mediaSrc || item.src || item.url || '').trim();
+            if (!rawSrc) return null;
+            const mediaSrc = normalizeProjectMediaPath(rawSrc);
+            if (!mediaSrc) return null;
+            let mediaType = String(item.mediaType || '').trim().toLowerCase();
+            if (!mediaType) {
+                const youtubeId = getYoutubeVideoId(mediaSrc);
+                if (youtubeId) mediaType = 'youtube';
+                else if (/\.(mp4|webm|mov)(\?|#|$)/i.test(mediaSrc)) mediaType = 'video';
+                else mediaType = 'image';
+            }
+            const rawThumb = String(item.thumbSrc || item.thumb || '').trim();
+            const thumbSrc = normalizeProjectMediaPath(rawThumb);
+            return { mediaSrc, mediaType, thumbSrc };
+        }
+
+        function renderGalleryQueue() {
+            if (!galleryQueue) return;
+            if (!Array.isArray(galleryQueueItems) || !galleryQueueItems.length) {
+                galleryQueue.innerHTML = '<div class="gallery-queue-empty">No media added yet.</div>';
+                return;
+            }
+            const items = galleryQueueItems.map((item, idx) => {
+                const safeType = escapeHtml(String(item.mediaType || 'image'));
+                const typeLabel = safeType.toUpperCase();
+                const rawName = String(item.mediaSrc || '').split('/').pop() || item.mediaSrc || 'Media';
+                const safeName = escapeHtml(rawName);
+                const thumbSrc = item.thumbSrc || (item.mediaType === 'image' ? item.mediaSrc : '');
+                const safeThumb = escapeHtml(thumbSrc);
+                const icon = item.mediaType === 'video'
+                    ? 'video'
+                    : (item.mediaType === 'youtube' ? 'play-circle' : 'image');
+                const thumbMarkup = thumbSrc
+                    ? `<img class="gallery-queue-thumb" src="${safeThumb}" alt="${safeName}">`
+                    : `<div class="gallery-queue-thumb gallery-queue-thumb--icon"><i class="fas fa-${icon}"></i></div>`;
+                return `
+                    <div class="gallery-queue-item" data-gallery-index="${idx}">
+                        ${thumbMarkup}
+                        <div class="gallery-queue-meta">
+                            <strong>${typeLabel}</strong>
+                            <span>${safeName}</span>
+                        </div>
+                        <button class="gallery-queue-remove" type="button" data-gallery-remove="${idx}">Remove</button>
+                    </div>
+                `;
+            }).join('');
+            galleryQueue.innerHTML = items;
+        }
+
+        function addGalleryItems(items) {
+            const list = Array.isArray(items)
+                ? items.map(normalizeQueueItem).filter(Boolean)
+                : [];
+            if (!list.length) return 0;
+            if (!Array.isArray(galleryQueueItems)) galleryQueueItems = [];
+            const seen = new Set(galleryQueueItems.map((item) => `${item.mediaType}::${item.mediaSrc}`));
+            let added = 0;
+            list.forEach((item) => {
+                const key = `${item.mediaType}::${item.mediaSrc}`;
+                if (seen.has(key)) return;
+                seen.add(key);
+                galleryQueueItems.push(item);
+                added += 1;
+            });
+            renderGalleryQueue();
+            return added;
+        }
+
+        function clearGalleryQueueState() {
+            galleryQueueItems = [];
+            renderGalleryQueue();
+        }
+
+        function normalizeMediaTypeFromFile(file, fallbackType) {
+            const type = String(file?.type || '').toLowerCase();
+            if (type.startsWith('video/')) return 'video';
+            if (type.startsWith('image/')) return 'image';
+            const fallback = String(fallbackType || '').trim().toLowerCase();
+            return fallback === 'video' ? 'video' : 'image';
+        }
+
+        function applyHeroVideoForItem(mediaItem) {
+            const setAsHero = !!setAsHeroToggle?.checked;
+            if (!setAsHero) return false;
+            if (!mediaItem || mediaItem.mediaType !== 'video') return false;
+            const src = String(mediaItem.mediaSrc || '').trim();
+            if (!src) return false;
+            try { initHeroVideo(src); } catch {}
+            if (firebaseIsReady()) {
+                setFirebaseHeroVideoUrl(src).catch(() => {});
+            } else {
+                remoteConfigState = remoteConfigState && typeof remoteConfigState === 'object' ? remoteConfigState : {};
+                remoteConfigState.heroVideoUrl = src;
+            }
+            if (setAsHeroToggle) setAsHeroToggle.checked = false;
+            return true;
+        }
+
+        async function buildMediaItemFromFile(file, opts = {}) {
+            if (!file) return null;
+            const preset = String(opts.preset || '').trim();
+            const index = Number.isFinite(opts.index) ? opts.index : 0;
+            const total = Number.isFinite(opts.total) && opts.total > 0 ? opts.total : 1;
+            const mediaType = normalizeMediaTypeFromFile(file, selectedMediaType);
+            if (!preset) {
+                const cleanName = file.name.replace(/\s+/g, '_');
+                const localMediaPath = `media/${cleanName.toLowerCase()}`;
+                return normalizeQueueItem({ mediaSrc: localMediaPath, mediaType, thumbSrc: '' });
+            }
+            setUploadUiState({ active: true, pct: 0, text: `Uploading ${index + 1}/${total}...` });
+            const payload = await cloudinaryUnsignedUpload(file, {
+                preset,
+                resourceType: 'auto',
+                onProgress: (pct) => {
+                    const overall = Math.min(100, Math.round(((index + pct / 100) / total) * 100));
+                    setUploadUiState({ active: true, pct: overall, text: `Uploading ${index + 1}/${total}...` });
+                },
+                folder: 'hailifu'
+            });
+            const url = String(payload?.secure_url || '').trim();
+            if (!url) throw new Error('Upload failed');
+            return normalizeQueueItem({ mediaSrc: url, mediaType, thumbSrc: '' });
+        }
+
+        async function addMediaFromInputs(opts = {}) {
+            const silent = !!opts.silent;
+            const items = [];
+            const urlRaw = String(projectMediaUrl?.value || '').trim();
+            if (urlRaw) {
+                const urls = urlRaw.split(/[\n,]+/).map((u) => u.trim()).filter(Boolean);
+                urls.forEach((url) => {
+                    const resolved = resolveProjectMediaFromUrl(url, selectedMediaType);
+                    if (resolved) items.push(resolved);
+                });
+            }
+
+            const files = Array.from(projectFile?.files || []);
+            const preset = getCloudinaryPresetValue();
+            if (files.length && preset) persistCloudinaryPreset();
+            try {
+                for (let i = 0; i < files.length; i += 1) {
+                    const item = await buildMediaItemFromFile(files[i], { preset, index: i, total: files.length });
+                    if (item) items.push(item);
+                }
+            } catch (err) {
+                setUploadUiState({ active: false, pct: 0, text: '' });
+                if (!silent) alert(String(err?.message || err || 'Upload failed'));
+                return 0;
+            }
+
+            if (!items.length) {
+                if (!silent) alert('Please choose a file or enter a valid Media URL first.');
+                return 0;
+            }
+
+            let heroApplied = false;
+            items.forEach((item) => {
+                if (!heroApplied && applyHeroVideoForItem(item)) heroApplied = true;
+            });
+
+            const count = addGalleryItems(items);
+            if (projectMediaUrl) projectMediaUrl.value = '';
+            if (projectFile) projectFile.value = '';
+            setUploadUiState({ active: false, pct: 0, text: '' });
+            return count;
+        }
+
+        async function saveProjectFromQueue() {
+            setUploadUiState({ active: false, pct: 0, text: '' });
+            if (!Array.isArray(galleryQueueItems) || !galleryQueueItems.length) {
+                await addMediaFromInputs({ silent: true });
+            }
+            if (!Array.isArray(galleryQueueItems) || !galleryQueueItems.length) {
+                alert('Please add at least one media item to the gallery.');
+                return;
+            }
+
+            const mediaItems = galleryQueueItems.slice();
+            const primary = mediaItems[0] || {};
+            const project = {
+                createdAt: new Date().toISOString(),
+                title: projectTitle?.value || 'Project',
+                category: projectCategory?.value || 'cctv',
+                description: projectDescription?.value || '',
+                mediaType: primary.mediaType || 'image',
+                mediaSrc: primary.mediaSrc || '',
+                thumbSrc: primary.thumbSrc || '',
+                mediaItems,
+                featured: true,
+                showcase: true,
+                services: true,
+                isStarred: false,
+                isFeatured: false
+            };
+
+            try {
+                if (firebaseIsReady()) {
+                    setUploadUiState({ active: true, pct: 100, text: 'Saving...' });
+                    await addProjectInFirebase(project);
+                    alert('Project Saved Successfully!');
+                } else {
+                    project.id = `p_${Date.now()}`;
+                    const projects = getProjects();
+                    projects.unshift(project);
+                    saveProjects(projects);
+                    loadProjects();
+                }
+
+                if (!firebaseIsReady()) {
+                    const preset = getCloudinaryPresetValue();
+                    if (preset) {
+                        persistCloudinaryPreset();
+                        const nextConfig = {
+                            updatedAt: new Date().toISOString(),
+                            heroVideoUrl: String(remoteConfigState?.heroVideoUrl || '').trim() || undefined,
+                            projects: getProjects()
+                        };
+                        setUploadUiState({ active: true, pct: 100, text: 'Saving...' });
+                        await uploadRemoteConfig(nextConfig, preset);
+                        remoteConfigFingerprint = '';
+                        syncFromRemoteConfig({ forceRender: true });
+                    }
+                }
+            } catch (err) {
+                alert(String(err?.message || err || 'Save failed'));
+            } finally {
+                setUploadUiState({ active: false, pct: 0, text: '' });
+                if (projectTitle) projectTitle.value = '';
+                if (projectDescription) projectDescription.value = '';
+                if (projectFile) projectFile.value = '';
+                if (projectMediaUrl) projectMediaUrl.value = '';
+                if (setAsHeroToggle) setAsHeroToggle.checked = false;
+                clearGalleryQueueState();
+            }
         }
 
         function getReviewSettings() {
@@ -1806,12 +2059,22 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                                                     <p>Drag and drop or click to upload</p>
                                                     <span class="file-types">PNG, JPG, MP4 (max 4MB)</span>
                                                 </div>
-                                                <input id="projectFile" class="admin-file-input" type="file" accept="image/*,video/*" style="display:none;">
+                                                <input id="projectFile" class="admin-file-input" type="file" accept="image/*,video/*" multiple style="display:none;">
                                             </div>
                                         </div>
                                         <div class="form-group">
                                             <label for="projectMediaUrl">Or Media URL (YouTube / direct link)</label>
                                             <input id="projectMediaUrl" type="url" placeholder="https://youtube.com/shorts/...">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Gallery Items</label>
+                                            <div class="gallery-queue" id="galleryQueue" aria-live="polite">
+                                                <div class="gallery-queue-empty">No media added yet.</div>
+                                            </div>
+                                            <div class="gallery-queue-actions">
+                                                <button class="upload-btn upload-btn--ghost" id="addGalleryItemBtn" type="button"><i class="fas fa-plus"></i> Add to Gallery</button>
+                                                <button class="upload-btn upload-btn--ghost" id="clearGalleryBtn" type="button"><i class="fas fa-trash"></i> Clear</button>
+                                            </div>
                                         </div>
                                         <div class="form-group" style="display:flex; align-items:center; gap:10px;">
                                             <input type="checkbox" id="setAsHeroToggle" style="width:auto;">
@@ -2101,6 +2364,9 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             projectFile = document.getElementById('projectFile');
             projectMediaUrl = document.getElementById('projectMediaUrl');
             fileUploadArea = document.getElementById('fileUploadArea');
+            galleryQueue = document.getElementById('galleryQueue');
+            addGalleryItemBtn = document.getElementById('addGalleryItemBtn');
+            clearGalleryBtn = document.getElementById('clearGalleryBtn');
             mediaTypeButtons = Array.from(document.querySelectorAll('.media-btn'));
 
             adminLazyLoop = document.getElementById('adminLazyLoop');
@@ -2256,243 +2522,37 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 });
             }
 
+            if (galleryQueue) {
+                renderGalleryQueue();
+                galleryQueue.addEventListener('click', (e) => {
+                    const removeBtn = e.target.closest('[data-gallery-remove]');
+                    if (!removeBtn) return;
+                    e.preventDefault();
+                    const idx = Number(removeBtn.getAttribute('data-gallery-remove'));
+                    if (!Number.isFinite(idx)) return;
+                    galleryQueueItems.splice(idx, 1);
+                    renderGalleryQueue();
+                });
+            }
+
+            if (addGalleryItemBtn) {
+                addGalleryItemBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    addMediaFromInputs();
+                });
+            }
+
+            if (clearGalleryBtn) {
+                clearGalleryBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    clearGalleryQueueState();
+                });
+            }
+
             if (uploadBtn) {
                 uploadBtn.addEventListener('click', (e) => {
                     e.preventDefault();
-
-                    setUploadUiState({ active: false, pct: 0, text: '' });
-
-                    const mediaUrl = String(projectMediaUrl?.value || '').trim();
-                    if (mediaUrl) {
-                        const resolved = resolveProjectMediaFromUrl(mediaUrl, selectedMediaType);
-                        if (!resolved) {
-                            alert('Please enter a valid Media URL (must start with http:// or https://).');
-                            return;
-                        }
-
-                        const setAsHero = !!setAsHeroToggle?.checked;
-                        if (setAsHero && resolved.mediaType === 'video') {
-                            try { initHeroVideo(resolved.mediaSrc); } catch {}
-                            if (firebaseIsReady()) {
-                                setFirebaseHeroVideoUrl(resolved.mediaSrc).catch(() => {});
-                            } else {
-                                remoteConfigState = remoteConfigState && typeof remoteConfigState === 'object' ? remoteConfigState : {};
-                                remoteConfigState.heroVideoUrl = resolved.mediaSrc;
-                            }
-                        }
-
-                        const project = {
-                            createdAt: new Date().toISOString(),
-                            title: projectTitle?.value || 'Project',
-                            category: projectCategory?.value || 'cctv',
-                            description: projectDescription?.value || '',
-                            mediaType: resolved.mediaType,
-                            mediaSrc: resolved.mediaSrc,
-                            thumbSrc: resolved.thumbSrc,
-                            featured: true,
-                            showcase: true,
-                            services: true,
-                            isStarred: false,
-                            isFeatured: false
-                        };
-
-                        if (firebaseIsReady()) {
-                            setUploadUiState({ active: true, pct: 100, text: 'Saving...' });
-                            addProjectInFirebase(project)
-                                .then(() => {
-                                    console.log('Data saved to Firebase!');
-                                    alert('Project Saved Successfully!');
-                                })
-                                .catch((err) => {
-                                    console.error('Firebase save failed:', err);
-                                    alert(`Firebase save failed: ${String(err?.message || err || 'Unknown error')}`);
-                                })
-                                .finally(() => setUploadUiState({ active: false, pct: 0, text: '' }));
-                        } else {
-                            project.id = `p_${Date.now()}`;
-                            const projects = getProjects();
-                            projects.unshift(project);
-                            saveProjects(projects);
-                            loadProjects();
-                        }
-
-                        if (setAsHeroToggle) setAsHeroToggle.checked = false;
-
-                        try {
-                            const preset = getCloudinaryPresetValue();
-                            if (preset && !firebaseIsReady()) {
-                                const nextConfig = {
-                                    updatedAt: new Date().toISOString(),
-                                    heroVideoUrl: String(remoteConfigState?.heroVideoUrl || '').trim() || undefined,
-                                    projects: getProjects()
-                                };
-                                setUploadUiState({ active: true, pct: 100, text: 'Saving...' });
-                                uploadRemoteConfig(nextConfig, preset)
-                                    .then(() => {
-                                        remoteConfigFingerprint = '';
-                                        syncFromRemoteConfig({ forceRender: true });
-                                    })
-                                    .finally(() => setUploadUiState({ active: false, pct: 0, text: '' }));
-                            }
-                        } catch {}
-
-                        if (projectTitle) projectTitle.value = '';
-                        if (projectDescription) projectDescription.value = '';
-                        if (projectFile) projectFile.value = '';
-                        if (projectMediaUrl) projectMediaUrl.value = '';
-                        return;
-                    }
-
-                    const file = projectFile?.files?.[0];
-                    if (!file) {
-                        alert('Please choose a file first.');
-                        return;
-                    }
-
-                    const cleanName = file.name.replace(/\s+/g, '_');
-                    const cleanLowerName = cleanName.toLowerCase();
-                    const localMediaPath = `media/${cleanLowerName}`;
-
-                    const preset = getCloudinaryPresetValue();
-                    if (!preset) {
-                        const setAsHero = !!setAsHeroToggle?.checked;
-                        const normalizedLocalPath = normalizeProjectMediaPath(localMediaPath);
-                        if (setAsHero && selectedMediaType === 'video') {
-                            try { initHeroVideo(normalizedLocalPath); } catch {}
-                            if (firebaseIsReady()) {
-                                setFirebaseHeroVideoUrl(localMediaPath).catch(() => {});
-                            } else {
-                                remoteConfigState = remoteConfigState && typeof remoteConfigState === 'object' ? remoteConfigState : {};
-                                remoteConfigState.heroVideoUrl = localMediaPath;
-                            }
-                        }
-
-                        const project = {
-                            createdAt: new Date().toISOString(),
-                            title: projectTitle?.value || 'Project',
-                            category: projectCategory?.value || 'cctv',
-                            description: projectDescription?.value || '',
-                            mediaType: selectedMediaType,
-                            mediaSrc: localMediaPath,
-                            thumbSrc: '',
-                            featured: true,
-                            showcase: true,
-                            services: true,
-                            isStarred: false,
-                            isFeatured: false
-                        };
-
-                        if (firebaseIsReady()) {
-                            setUploadUiState({ active: true, pct: 100, text: 'Saving...' });
-                            addProjectInFirebase(project)
-                                .then(() => {
-                                    console.log('Data saved to Firebase!');
-                                    alert('Project Saved Successfully!');
-                                })
-                                .catch((err) => {
-                                    console.error('Firebase save failed:', err);
-                                    alert(`Firebase save failed: ${String(err?.message || err || 'Unknown error')}`);
-                                })
-                                .finally(() => setUploadUiState({ active: false, pct: 0, text: '' }));
-                        } else {
-                            project.id = `p_${Date.now()}`;
-                            const projects = getProjects();
-                            projects.unshift(project);
-                            saveProjects(projects);
-                            loadProjects();
-                        }
-
-                        if (setAsHeroToggle) setAsHeroToggle.checked = false;
-                        if (projectTitle) projectTitle.value = '';
-                        if (projectDescription) projectDescription.value = '';
-                        if (projectFile) projectFile.value = '';
-                        if (projectMediaUrl) projectMediaUrl.value = '';
-                        return;
-                    }
-
-                    persistCloudinaryPreset();
-
-                    const setAsHero = !!setAsHeroToggle?.checked;
-                    setUploadUiState({ active: true, pct: 0, text: 'Uploading...' });
-
-                    cloudinaryUnsignedUpload(file, {
-                        preset,
-                        resourceType: 'auto',
-                        onProgress: (pct) => setUploadUiState({ active: true, pct, text: 'Uploading...' }),
-                        folder: 'hailifu'
-                    }).then((payload) => {
-                        const url = String(payload?.secure_url || '').trim();
-                        if (!url) throw new Error('Upload failed');
-
-                        if (setAsHero && selectedMediaType === 'video') {
-                            try { initHeroVideo(url); } catch {}
-                            if (firebaseIsReady()) {
-                                setFirebaseHeroVideoUrl(url).catch(() => {});
-                            } else {
-                                remoteConfigState = remoteConfigState && typeof remoteConfigState === 'object' ? remoteConfigState : {};
-                                remoteConfigState.heroVideoUrl = url;
-                            }
-                        }
-
-                        const project = {
-                            createdAt: new Date().toISOString(),
-                            title: projectTitle?.value || 'Project',
-                            category: projectCategory?.value || 'cctv',
-                            description: projectDescription?.value || '',
-                            mediaType: selectedMediaType,
-                            mediaSrc: url,
-                            thumbSrc: '',
-                            featured: true,
-                            showcase: true,
-                            services: true,
-                            isStarred: false,
-                            isFeatured: false
-                        };
-
-                        if (firebaseIsReady()) {
-                            setUploadUiState({ active: true, pct: 100, text: 'Saving...' });
-                            return addProjectInFirebase(project)
-                                .then(() => {
-                                    console.log('Data saved to Firebase!');
-                                    alert('Project Saved Successfully!');
-                                })
-                                .catch((err) => {
-                                    console.error('Firebase save failed:', err);
-                                    alert(`Firebase save failed: ${String(err?.message || err || 'Unknown error')}`);
-                                    throw err;
-                                });
-                        }
-
-                        project.id = `p_${Date.now()}`;
-
-                        const projects = getProjects();
-                        projects.unshift(project);
-                        saveProjects(projects);
-                        loadProjects();
-
-                        const nextConfig = {
-                            updatedAt: new Date().toISOString(),
-                            heroVideoUrl: String(remoteConfigState?.heroVideoUrl || '').trim() || undefined,
-                            projects: getProjects()
-                        };
-
-                        setUploadUiState({ active: true, pct: 100, text: 'Saving...' });
-                        return uploadRemoteConfig(nextConfig, preset);
-                    }).then(() => {
-                        if (setAsHeroToggle) setAsHeroToggle.checked = false;
-                        if (!firebaseIsReady()) {
-                            remoteConfigFingerprint = '';
-                            syncFromRemoteConfig({ forceRender: true });
-                        }
-                    }).catch((err) => {
-                        alert(String(err?.message || err || 'Upload failed'));
-                    }).finally(() => {
-                        setUploadUiState({ active: false, pct: 0, text: '' });
-                        if (projectTitle) projectTitle.value = '';
-                        if (projectDescription) projectDescription.value = '';
-                        if (projectFile) projectFile.value = '';
-                        if (projectMediaUrl) projectMediaUrl.value = '';
-                    });
+                    saveProjectFromQueue();
                 });
             }
 
@@ -3298,6 +3358,12 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     slot.dataset.modalTitle = title || 'Project';
                     slot.dataset.modalDescription = description || '';
                     slot.dataset.modalCategory = label || String(project.category || '').trim();
+                    const mediaItems = coerceProjectMediaItems(project);
+                    if (mediaItems.length > 1) {
+                        try { slot.dataset.mediaItems = JSON.stringify(mediaItems); } catch {}
+                    } else if (slot.dataset.mediaItems) {
+                        delete slot.dataset.mediaItems;
+                    }
 
                     const ensureShowcaseMedia = () => {
                         const existing = slot.querySelector('.showcase-bg');
@@ -4531,13 +4597,54 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         }
 
         function normalizeMediaItem(m) {
-            const rawMediaSrc = String(m?.mediaSrc || m?.src || '').trim();
+            const rawMediaSrc = String(m?.mediaSrc || m?.src || m?.url || '').trim();
             const mediaSrc = normalizeProjectMediaPath(rawMediaSrc);
             if (!mediaSrc) return null;
-            const mediaType = String(m?.mediaType || m?.type || '').trim().toLowerCase() || 'image';
+            const rawType = String(m?.mediaType || m?.type || '').trim().toLowerCase();
+            let mediaType = rawType;
+            if (!mediaType) {
+                const youtubeId = getYoutubeVideoId(mediaSrc);
+                if (youtubeId) mediaType = 'youtube';
+                else if (/\.(mp4|webm|mov)(\?|#|$)/i.test(mediaSrc)) mediaType = 'video';
+                else mediaType = 'image';
+            }
             const rawThumbSrc = String(m?.thumbSrc || m?.thumb || '').trim();
             const thumbSrc = normalizeProjectMediaPath(rawThumbSrc);
             return { mediaSrc, mediaType, thumbSrc };
+        }
+
+        function coerceProjectMediaItems(project) {
+            if (!project || typeof project !== 'object') return [];
+            const rawList = Array.isArray(project.mediaItems)
+                ? project.mediaItems
+                : (Array.isArray(project.media) ? project.media
+                    : (Array.isArray(project.gallery) ? project.gallery
+                        : (Array.isArray(project.mediaGallery) ? project.mediaGallery
+                            : (Array.isArray(project.images) ? project.images : []))));
+            const fromList = rawList
+                .map((entry) => {
+                    if (!entry) return null;
+                    if (typeof entry === 'string') return normalizeMediaItem({ mediaSrc: entry });
+                    if (typeof entry === 'object') {
+                        const mediaSrc = entry.mediaSrc || entry.src || entry.url || '';
+                        return normalizeMediaItem({ ...entry, mediaSrc });
+                    }
+                    return null;
+                })
+                .filter(Boolean);
+
+            const primary = project.mediaSrc
+                ? normalizeMediaItem({ mediaSrc: project.mediaSrc, mediaType: project.mediaType, thumbSrc: project.thumbSrc })
+                : null;
+
+            const combined = [...fromList, ...(primary ? [primary] : [])];
+            const seen = new Set();
+            return combined.filter((item) => {
+                const key = `${item.mediaType}::${item.mediaSrc}`;
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            });
         }
 
         function parseMediaItemsFromDataset(item) {
@@ -4881,6 +4988,10 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             temp.dataset.modalTitle = String(project.title || project.name || 'Project').trim();
             temp.dataset.modalDescription = String(project.description || '').trim();
             temp.dataset.modalCategory = String(project.category || '').trim();
+            const mediaItems = coerceProjectMediaItems(project);
+            if (mediaItems.length > 1) {
+                try { temp.dataset.mediaItems = JSON.stringify(mediaItems); } catch {}
+            }
             openProjectModalFromItem(temp);
             return true;
         }
