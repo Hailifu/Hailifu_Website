@@ -1817,40 +1817,6 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             });
         }
 
-        // Contact Form -> WhatsApp
-        const contactForm = document.getElementById('contactForm');
-        if (contactForm) {
-            contactForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-
-                if (typeof contactForm.reportValidity === 'function' && !contactForm.reportValidity()) {
-                    return;
-                }
-
-                const name = String(document.getElementById('contactName')?.value || '').trim();
-                const phone = String(document.getElementById('contactPhone')?.value || '').trim();
-                const serviceSelect = document.getElementById('contactService');
-                const serviceText = serviceSelect && serviceSelect.selectedIndex > 0
-                    ? serviceSelect.options[serviceSelect.selectedIndex].text
-                    : 'Not specified';
-                const message = String(document.getElementById('contactMessage')?.value || '').trim();
-
-                const whatsappNumber = '233550997270';
-                const lines = [
-                    'New Quote Request',
-                    `Name: ${name || 'Not provided'}`,
-                    `Phone: ${phone || 'Not provided'}`,
-                    `Service: ${serviceText}`,
-                    `Message: ${message || 'No details provided'}`
-                ];
-                const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(lines.join('\n'))}`;
-                const popup = window.open(whatsappUrl, '_blank');
-                if (!popup) {
-                    window.location.href = whatsappUrl;
-                }
-            });
-        }
-
         function openReviewModal() {
             if (!reviewModal) return;
             if (formSuccess) formSuccess.style.display = 'none';
