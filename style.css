@@ -7163,7 +7163,7 @@
             box-shadow: 0 0 20px rgba(255, 140, 0, 0.45);
         }
 
-        .contact-details .contact-card {
+        .contact-quick .contact-card {
             background: #0f0f0f;
             border: 1px solid #1f1f1f;
             border-radius: 16px;
@@ -7171,10 +7171,69 @@
             box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
         }
 
-        .contact-details h3 {
+        .contact-quick h3 {
             margin: 0 0 18px;
             color: #ffffff;
             font-size: 1.4rem;
+        }
+
+        .quick-actions {
+            display: grid;
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .quick-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            min-height: 56px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
+        }
+
+        .quick-btn i {
+            color: #ff8c00;
+            font-size: 1.1rem;
+        }
+
+        .quick-btn--solid {
+            background: #ff8c00;
+            color: #000000;
+            border: none;
+            box-shadow: 0 14px 30px rgba(255, 140, 0, 0.25);
+        }
+
+        .quick-btn--solid i {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            background: #000000;
+        }
+
+        .quick-btn--solid:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 18px 34px rgba(255, 140, 0, 0.35);
+        }
+
+        .quick-btn--ghost {
+            border: 2px solid #ff8c00;
+            color: #ffffff;
+            background: transparent;
+        }
+
+        .quick-btn--ghost:hover {
+            transform: translateY(-1px);
+            background: rgba(255, 140, 0, 0.08);
+            box-shadow: 0 10px 22px rgba(255, 140, 0, 0.2);
         }
 
         .contact-info {
@@ -7215,30 +7274,13 @@
             color: #ff8c00;
         }
 
-        .contact-whatsapp {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-top: 24px;
-            padding: 12px 18px;
-            border: 2px solid #ff8c00;
-            border-radius: 999px;
-            color: #ffffff;
-            text-decoration: none;
-            font-weight: 600;
-            letter-spacing: 0.3px;
-            transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .contact-whatsapp:hover {
-            background: #ff8c00;
-            color: #000000;
-            box-shadow: 0 0 18px rgba(255, 140, 0, 0.35);
-        }
-
         @media (max-width: 900px) {
             .contact-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .contact-quick {
+                order: -1;
             }
         }
 

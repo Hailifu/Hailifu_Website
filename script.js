@@ -1833,15 +1833,12 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const serviceText = serviceSelect && serviceSelect.selectedIndex > 0
                     ? serviceSelect.options[serviceSelect.selectedIndex].text
                     : 'Not specified';
-                const message = String(document.getElementById('contactMessage')?.value || '').trim();
-
                 const whatsappNumber = '233550997270';
                 const lines = [
                     'New Quote Request',
                     `Name: ${name || 'Not provided'}`,
                     `Phone: ${phone || 'Not provided'}`,
-                    `Service: ${serviceText}`,
-                    `Message: ${message || 'No details provided'}`
+                    `Service: ${serviceText}`
                 ];
                 const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(lines.join('\n'))}`;
                 const popup = window.open(whatsappUrl, '_blank');
