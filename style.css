@@ -234,6 +234,16 @@
             border-color: rgba(255, 140, 0, 0.22);
         }
 
+        [data-theme='light'] .project-media-count {
+            background: rgba(255, 255, 255, 0.88);
+            color: #1a1a1a;
+            border-color: rgba(255, 140, 0, 0.3);
+        }
+
+        [data-theme='light'] .project-media-count i {
+            color: #ff8c00;
+        }
+
 
         [data-theme='light'] .admin-panel {
             background: rgba(255, 255, 255, 0.96);
@@ -2423,6 +2433,37 @@
             box-shadow: 0 10px 18px rgba(0, 0, 0, 0.2);
             backdrop-filter: blur(4px);
             pointer-events: none;
+        }
+
+        .showcase-item .project-media-count {
+            position: absolute;
+            z-index: 5;
+            top: 14px;
+            right: 14px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: #ffffff;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 140, 0, 0.5);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 10px 18px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(4px);
+            pointer-events: none;
+        }
+
+        .showcase-item .project-media-count i {
+            color: #ff8c00;
+            font-size: 0.75rem;
+        }
+
+        .showcase-item .project-media-count.is-hidden {
+            display: none;
         }
 
         .showcase-item .showcase-overlay {

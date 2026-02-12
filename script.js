@@ -3529,6 +3529,29 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
             const slots = Array.from(showcaseGrid.querySelectorAll('.showcase-item'));
             let assignedCount = 0;
+
+            const ensureMediaCountBadge = (slot) => {
+                if (!slot) return null;
+                let badge = slot.querySelector('.project-media-count');
+                if (!badge) {
+                    badge = document.createElement('div');
+                    badge.className = 'project-media-count';
+                    badge.innerHTML = '<i class="fas fa-images"></i><span>0</span>';
+                    slot.appendChild(badge);
+                }
+                return badge;
+            };
+
+            const updateMediaCountBadge = (slot, count) => {
+                const badge = ensureMediaCountBadge(slot);
+                if (!badge) return;
+                const safeCount = Number.isFinite(count) ? Math.max(0, Math.floor(count)) : 0;
+                const label = safeCount > 1 ? `${safeCount}+` : String(safeCount);
+                const span = badge.querySelector('span');
+                if (span) span.textContent = label;
+                badge.setAttribute('aria-label', `${safeCount} media item${safeCount === 1 ? '' : 's'}`);
+                badge.classList.toggle('is-hidden', safeCount === 0);
+            };
             slots.forEach((slot) => {
                 const slotCategory = (slot.getAttribute('data-category') || slot.dataset.category || '').toLowerCase().trim();
                 const project = pickProjectForSlot(slotCategory);
@@ -3552,6 +3575,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                         slot.dataset.category = slotCategory;
                     }
                     const mediaItems = coerceProjectMediaItems(project);
+                    updateMediaCountBadge(slot, mediaItems.length);
                     if (mediaItems.length > 1) {
                         try { slot.dataset.mediaItems = JSON.stringify(mediaItems); } catch {}
                     } else if (slot.dataset.mediaItems) {
@@ -3631,6 +3655,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     slot.dataset.galleryGroup = 'category';
                     if (slotCategory) slot.dataset.category = slotCategory;
                     slot.setAttribute('onclick', 'openGalleryFromElement(this)');
+                    updateMediaCountBadge(slot, 0);
                 }
 
                 if (slot.dataset.modalBound) {
