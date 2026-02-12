@@ -6626,6 +6626,13 @@
             box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.35);
         }
 
+        .popup-form-group select:hover,
+        .popup-form-group select:active {
+            outline: none;
+            border-color: #ff8c00 !important;
+            box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.2);
+        }
+
         .popup-form-group select:invalid {
             color: rgba(0, 0, 0, 0.7);
         }
