@@ -7238,6 +7238,16 @@
             box-shadow: 0 20px 45px rgba(0, 0, 0, 0.08);
         }
 
+        /* Light mode services card text */
+        [data-theme='light'] #services .services-grid .card h3 {
+            color: var(--text-color);
+        }
+
+        [data-theme='light'] #services .services-grid .card p,
+        [data-theme='light'] #services .services-grid .card .service-tagline {
+            color: var(--text-muted);
+        }
+
         body.light-mode .upload-form input,
         body.light-mode .upload-form select,
         body.light-mode .upload-form textarea {
