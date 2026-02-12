@@ -5291,6 +5291,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         const popupSuccess = document.getElementById('popupSuccess');
         const popupService = document.getElementById('popupService');
         const serviceContext = document.getElementById('serviceContext');
+        const popupFormShell = popupOverlay ? popupOverlay.querySelector('.popup-form') : null;
 
         const sharePortfolioFab = document.getElementById('sharePortfolioFab');
         const sharePortfolioToast = document.getElementById('sharePortfolioToast');
@@ -5401,12 +5402,14 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         function openQuotePopup() {
             if (popupOverlay) {
                 popupOverlay.classList.add('active');
+                if (popupFormShell) popupFormShell.classList.add('is-active');
             }
         }
 
         function closeQuotePopup() {
             if (popupOverlay) {
                 popupOverlay.classList.remove('active');
+                if (popupFormShell) popupFormShell.classList.remove('is-active');
             }
         }
 

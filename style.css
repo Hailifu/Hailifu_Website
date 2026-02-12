@@ -6448,6 +6448,11 @@
             transform: translateY(0) scale(1);
         }
 
+        .popup-form.is-active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
         .popup-form {
             width: min(400px, 100%);
             max-height: calc(100vh - 48px);
