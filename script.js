@@ -5414,6 +5414,67 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             popupClose.addEventListener('click', closeQuotePopup);
         }
 
+        if (popupQuoteForm) {
+            popupQuoteForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                if (typeof popupQuoteForm.reportValidity === 'function' && !popupQuoteForm.reportValidity()) {
+                    return;
+                }
+
+                const honey = document.getElementById('popupWebsite');
+                if (honey && String(honey.value || '').trim()) {
+                    return;
+                }
+
+                const labelMap = {
+                    cctv: 'CCTV Installation',
+                    electrical: 'Electrical Wiring',
+                    airconditioning: 'Air Conditioning',
+                    gates: 'Automated Gates',
+                    fencing: 'Electric Fencing',
+                    smarthome: 'Smart Home System',
+                    blindcurtain: 'Smart Window Solutions'
+                };
+
+                const name = String(document.getElementById('popupName')?.value || '').trim();
+                const phone = String(document.getElementById('popupPhone')?.value || '').trim();
+                const email = String(document.getElementById('popupEmail')?.value || '').trim();
+                const location = String(document.getElementById('popupLocation')?.value || '').trim();
+                const serviceKey = String(popupService?.value || '').trim();
+                const message = String(document.getElementById('popupMessage')?.value || '').trim();
+                const serviceLabel = labelMap[serviceKey] || 'Service';
+
+                const whatsappNumber = '233550997270';
+                const lines = [
+                    'New Quote Request',
+                    `Name: ${name || 'Not provided'}`,
+                    `Phone: ${phone || 'Not provided'}`,
+                    `Email: ${email || 'Not provided'}`,
+                    `Location: ${location || 'Not provided'}`,
+                    `Service: ${serviceLabel}`,
+                    `Message: ${message || 'No details provided'}`
+                ];
+                const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(lines.join('\n'))}`;
+                const popup = window.open(whatsappUrl, '_blank');
+                if (!popup) {
+                    window.location.href = whatsappUrl;
+                }
+
+                if (popupSuccess) {
+                    popupSuccess.style.display = 'block';
+                    setTimeout(() => {
+                        popupSuccess.style.display = 'none';
+                        closeQuotePopup();
+                    }, 4000);
+                } else {
+                    closeQuotePopup();
+                }
+
+                popupQuoteForm.reset();
+            });
+        }
+
         if (heroQuoteBtn) {
             heroQuoteBtn.addEventListener('click', (e) => {
                 e.preventDefault();
