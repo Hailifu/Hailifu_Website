@@ -7363,3 +7363,181 @@
             color: #ffffff;
         }
 
+        /* Featured Reviews */
+        .featured-reviews {
+            background: #000000;
+            padding: 60px 0;
+        }
+
+        .featured-reviews-inner {
+            width: min(1200px, 92%);
+            margin: 0 auto;
+        }
+
+        .featured-reviews h2 {
+            color: #ffffff;
+            font-size: clamp(1.8rem, 2.4vw, 2.4rem);
+            margin: 0 0 24px;
+            text-transform: none;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+        }
+
+        .featured-reviews-carousel {
+            overflow: hidden;
+            position: relative;
+        }
+
+        .featured-reviews-track {
+            display: flex;
+            gap: 20px;
+            width: max-content;
+            animation: featuredReviewScroll 28s linear infinite;
+        }
+
+        .featured-reviews-carousel:hover .featured-reviews-track {
+            animation-play-state: paused;
+        }
+
+        .featured-review-card {
+            min-width: 260px;
+            max-width: 320px;
+            background: #0f0f0f;
+            border: 1px solid rgba(255, 140, 0, 0.25);
+            border-radius: 16px;
+            padding: 18px;
+            color: #ffffff;
+            box-shadow: 0 14px 28px rgba(255, 140, 0, 0.12);
+        }
+
+        .featured-review-stars {
+            color: #ff8c00;
+            margin-bottom: 10px;
+        }
+
+        .featured-review-card p {
+            margin: 0 0 12px;
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.5;
+        }
+
+        .featured-review-name {
+            font-weight: 700;
+            color: #ff8c00;
+            letter-spacing: 0.4px;
+        }
+
+        @keyframes featuredReviewScroll {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+
+        /* Live System Feed */
+        .live-system-feed {
+            background: #000000;
+            padding: 70px 0;
+            color: #ffffff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .live-system-feed::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        .live-feed-inner {
+            position: relative;
+            width: min(1200px, 92%);
+            margin: 0 auto;
+            font-family: 'Courier New', 'Roboto Mono', monospace;
+        }
+
+        .live-feed-inner h2 {
+            color: #ffffff;
+            margin: 0 0 24px;
+            font-size: clamp(1.6rem, 2.2vw, 2.2rem);
+            letter-spacing: 1px;
+        }
+
+        .live-feed-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+        }
+
+        .live-feed-card {
+            border: 1px solid #ff8c00;
+            border-radius: 14px;
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.7);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.45);
+        }
+
+        .live-feed-label {
+            color: rgba(255, 255, 255, 0.7);
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            font-size: 0.75rem;
+            margin-bottom: 10px;
+        }
+
+        .live-feed-value {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            animation: liveFlicker 4s infinite;
+        }
+
+        .status-dot-live {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #2ecc71;
+            box-shadow: 0 0 10px rgba(255, 140, 0, 0.6);
+            animation: statusPulse 1.6s ease-in-out infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 8px rgba(255, 140, 0, 0.5);
+            }
+            50% {
+                transform: scale(1.2);
+                box-shadow: 0 0 16px rgba(255, 140, 0, 0.8);
+            }
+        }
+
+        @keyframes liveFlicker {
+            0%, 100% { opacity: 1; }
+            8% { opacity: 0.85; }
+            10% { opacity: 1; }
+            20% { opacity: 0.9; }
+            22% { opacity: 1; }
+            55% { opacity: 0.95; }
+            57% { opacity: 1; }
+            72% { opacity: 0.9; }
+            74% { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .featured-review-card {
+                min-width: 220px;
+            }
+        }
+
