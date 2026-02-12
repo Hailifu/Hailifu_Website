@@ -109,6 +109,12 @@
             -webkit-text-fill-color: var(--text-color);
         }
 
+        [data-theme='light'] .section-title a {
+            color: var(--text-color);
+            background: none;
+            -webkit-text-fill-color: var(--text-color);
+        }
+
         [data-theme='light'] .section-subtitle {
             color: var(--text-muted);
         }
