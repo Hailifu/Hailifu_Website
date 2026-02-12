@@ -6599,11 +6599,14 @@
         }
 
         .popup-form-group select {
-            color: rgba(255, 255, 255, 0.92);
+            background: #ff8c00;
+            border-color: #ff8c00;
+            color: #000000;
+            font-weight: 600;
         }
 
         .popup-form-group select:invalid {
-            color: rgba(255, 255, 255, 0.6);
+            color: rgba(0, 0, 0, 0.7);
         }
 
         .popup-form-group select option {
