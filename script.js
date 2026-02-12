@@ -3513,6 +3513,24 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             if (nextBtn) nextBtn.addEventListener('click', () => goTo(1));
 
             render();
+
+            let autoTimer = null;
+            const startAuto = () => {
+                if (autoTimer) clearInterval(autoTimer);
+                autoTimer = setInterval(() => goTo(1), 5500);
+            };
+            const stopAuto = () => {
+                if (autoTimer) clearInterval(autoTimer);
+                autoTimer = null;
+            };
+            const terminal = document.querySelector('.review-terminal-box');
+            if (terminal) {
+                terminal.addEventListener('mouseenter', stopAuto);
+                terminal.addEventListener('mouseleave', startAuto);
+                terminal.addEventListener('focusin', stopAuto);
+                terminal.addEventListener('focusout', startAuto);
+            }
+            startAuto();
         }
 
         renderReviewTerminal();
