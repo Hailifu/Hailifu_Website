@@ -6602,9 +6602,9 @@
             appearance: none;
             -webkit-appearance: none;
             -moz-appearance: none;
-            background-color: #ff8c00;
-            border-color: #ff8c00;
-            color: #000000;
+            background-color: #ff8c00 !important;
+            border-color: #ff8c00 !important;
+            color: #000000 !important;
             font-weight: 700;
             padding-right: 42px;
             background-image: linear-gradient(45deg, transparent 50%, #000000 50%),
@@ -6622,8 +6622,14 @@
         }
 
         .popup-form-group select option {
-            color: #000000;
-            background: #ffffff;
+            color: #000000 !important;
+            background: #ffffff !important;
+        }
+
+        [data-theme='light'] .popup-form-group select {
+            background-color: #ff8c00 !important;
+            border-color: #ff8c00 !important;
+            color: #000000 !important;
         }
 
         .popup-form-group input::placeholder,
