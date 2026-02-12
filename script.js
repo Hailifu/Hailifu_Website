@@ -3470,6 +3470,53 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
         renderReviews();
 
+        function renderReviewTerminal() {
+            const slide = document.getElementById('reviewTerminalSlide');
+            if (!slide || !Array.isArray(REVIEWS_DATA) || !REVIEWS_DATA.length) return;
+
+            const starsSvg = Array.from({ length: 5 }, () =>
+                '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.9 6.5 7.1.6-5.3 4.6 1.6 6.9-6.3-3.7-6.3 3.7 1.6-6.9L2 9.1l7.1-.6L12 2z"/></svg>'
+            ).join('');
+
+            let index = 0;
+            const reviews = REVIEWS_DATA.filter(Boolean);
+            const prevBtn = document.querySelector('.review-terminal-nav.prev');
+            const nextBtn = document.querySelector('.review-terminal-nav.next');
+
+            const render = () => {
+                const review = reviews[index];
+                if (!review) return;
+                const name = escapeHTML(review.name);
+                const comment = escapeHTML(review.comment);
+                const meta = String(review.meta || '');
+                const isLocalGuide = /local guide/i.test(meta);
+                const badge = isLocalGuide ? '<div class="review-terminal-badge">Local Guide</div>' : '';
+
+                slide.innerHTML = `
+                    <div class="review-terminal-name">${name}</div>
+                    ${badge}
+                    <div class="review-terminal-stars-inline">${starsSvg}</div>
+                    <div class="review-terminal-text">"${comment}"</div>
+                `;
+            };
+
+            const goTo = (dir) => {
+                slide.classList.add('is-transitioning');
+                setTimeout(() => {
+                    index = (index + dir + reviews.length) % reviews.length;
+                    render();
+                    slide.classList.remove('is-transitioning');
+                }, 180);
+            };
+
+            if (prevBtn) prevBtn.addEventListener('click', () => goTo(-1));
+            if (nextBtn) nextBtn.addEventListener('click', () => goTo(1));
+
+            render();
+        }
+
+        renderReviewTerminal();
+
         function isVisibilityEnabled(project, primaryKey, fallbackKey) {
             if (!project || typeof project !== 'object') return false;
             if (typeof project[primaryKey] === 'boolean') return project[primaryKey];

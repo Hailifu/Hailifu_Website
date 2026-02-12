@@ -7363,6 +7363,168 @@
             color: #ffffff;
         }
 
+        /* Review Terminal */
+        .review-terminal {
+            background: #000000;
+            padding: 70px 0;
+        }
+
+        .review-terminal-inner {
+            width: min(1200px, 92%);
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .review-terminal-header h2 {
+            color: #ffffff;
+            font-size: clamp(1.8rem, 2.6vw, 2.6rem);
+            font-weight: 800;
+            margin: 0 0 12px;
+        }
+
+        .review-terminal-stars {
+            display: inline-flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .review-terminal-stars svg {
+            width: 22px;
+            height: 22px;
+            fill: #ff8c00;
+            filter: drop-shadow(0 0 5px #ff8c00);
+        }
+
+        .review-terminal-subtitle {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .review-terminal-subtitle i {
+            color: #ff8c00;
+        }
+
+        .review-terminal-box {
+            margin: 30px auto 20px;
+            background: #0a0a0a;
+            border: 1px solid #ff8c00;
+            border-radius: 18px;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 18px;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        .review-terminal-window {
+            min-height: 140px;
+        }
+
+        .review-terminal-slide {
+            color: #ffffff;
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+
+        .review-terminal-slide.is-transitioning {
+            opacity: 0;
+            transform: translateY(6px);
+        }
+
+        .review-terminal-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #ffffff;
+            margin-bottom: 6px;
+        }
+
+        .review-terminal-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 140, 0, 0.4);
+            color: #ff8c00;
+            font-size: 0.72rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .review-terminal-stars-inline {
+            color: #ff8c00;
+            margin-bottom: 10px;
+        }
+
+        .review-terminal-stars-inline svg {
+            width: 18px;
+            height: 18px;
+            fill: #ff8c00;
+            filter: drop-shadow(0 0 5px #ff8c00);
+        }
+
+        .review-terminal-text {
+            font-family: 'Courier New', 'Roboto Mono', monospace;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+            font-size: 0.98rem;
+        }
+
+        .review-terminal-nav {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 1px solid #ff8c00;
+            background: transparent;
+            color: #ff8c00;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .review-terminal-nav:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 0 12px rgba(255, 140, 0, 0.4);
+        }
+
+        .review-terminal-cta {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 22px;
+            border-radius: 999px;
+            border: 1px solid #ff8c00;
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .review-terminal-cta:hover {
+            background: #ff8c00;
+            color: #000000;
+        }
+
+        @media (max-width: 768px) {
+            .review-terminal-box {
+                grid-template-columns: 1fr;
+            }
+
+            .review-terminal-nav {
+                justify-self: center;
+            }
+        }
+
         /* Featured Reviews */
         .featured-reviews {
             background: #000000;
