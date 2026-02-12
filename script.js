@@ -5293,6 +5293,89 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         const serviceContext = document.getElementById('serviceContext');
         const popupFormShell = popupOverlay ? popupOverlay.querySelector('.popup-form') : null;
 
+        function initCustomSelect(selectEl) {
+            if (!selectEl || selectEl.dataset.customBound) return;
+            selectEl.dataset.customBound = '1';
+            selectEl.classList.add('custom-select-native');
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'custom-select';
+
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'custom-select-button';
+
+            const label = document.createElement('span');
+            label.className = 'custom-select-label';
+            button.appendChild(label);
+
+            const caret = document.createElement('i');
+            caret.className = 'fas fa-chevron-down';
+            button.appendChild(caret);
+
+            const list = document.createElement('div');
+            list.className = 'custom-select-list';
+
+            const options = Array.from(selectEl.options);
+            options.forEach((opt) => {
+                const optionBtn = document.createElement('button');
+                optionBtn.type = 'button';
+                optionBtn.className = 'custom-select-option';
+                optionBtn.textContent = opt.textContent;
+                optionBtn.dataset.value = opt.value;
+                if (opt.disabled) {
+                    optionBtn.disabled = true;
+                }
+                if (opt.selected && opt.value) {
+                    optionBtn.classList.add('is-selected');
+                }
+                optionBtn.addEventListener('click', () => {
+                    if (optionBtn.disabled) return;
+                    selectEl.value = optionBtn.dataset.value || '';
+                    selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+                    closeSelect();
+                });
+                list.appendChild(optionBtn);
+            });
+
+            function syncLabel() {
+                const selectedOption = selectEl.options[selectEl.selectedIndex];
+                const text = selectedOption ? selectedOption.textContent : 'Select';
+                label.textContent = text;
+                list.querySelectorAll('.custom-select-option').forEach((btn) => {
+                    const isSelected = btn.dataset.value === selectEl.value && selectEl.value;
+                    btn.classList.toggle('is-selected', Boolean(isSelected));
+                });
+            }
+
+            function closeSelect() {
+                wrapper.classList.remove('is-open');
+            }
+
+            button.addEventListener('click', () => {
+                wrapper.classList.toggle('is-open');
+            });
+
+            selectEl.addEventListener('change', syncLabel);
+
+            document.addEventListener('click', (e) => {
+                if (!wrapper.contains(e.target)) {
+                    closeSelect();
+                }
+            });
+
+            const parent = selectEl.parentNode;
+            if (parent) {
+                parent.insertBefore(wrapper, selectEl);
+                wrapper.appendChild(selectEl);
+                wrapper.appendChild(button);
+                wrapper.appendChild(list);
+                syncLabel();
+            }
+        }
+
+        initCustomSelect(popupService);
+
         const sharePortfolioFab = document.getElementById('sharePortfolioFab');
         const sharePortfolioToast = document.getElementById('sharePortfolioToast');
         const portfolioShareUrl = 'https://hailifu.github.io/Hailifu_Website/';
@@ -5383,6 +5466,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
             if (popupService && serviceKey) {
                 popupService.value = serviceKey;
+                popupService.dispatchEvent(new Event('change', { bubbles: true }));
             }
 
             if (serviceContext) {
