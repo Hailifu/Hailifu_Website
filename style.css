@@ -133,6 +133,11 @@
             color: var(--text-muted);
         }
 
+        [data-theme='light'] #services .card,
+        [data-theme='light'] #services .card a {
+            color: var(--text-color);
+        }
+
         [data-theme='light'] .stay-light,
         [data-theme='light'] .stay-light * {
             color: var(--white) !important;
