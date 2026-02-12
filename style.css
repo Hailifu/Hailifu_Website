@@ -7215,27 +7215,6 @@
             color: #ff8c00;
         }
 
-        .contact-whatsapp {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-top: 24px;
-            padding: 12px 18px;
-            border: 2px solid #ff8c00;
-            border-radius: 999px;
-            color: #ffffff;
-            text-decoration: none;
-            font-weight: 600;
-            letter-spacing: 0.3px;
-            transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .contact-whatsapp:hover {
-            background: #ff8c00;
-            color: #000000;
-            box-shadow: 0 0 18px rgba(255, 140, 0, 0.35);
-        }
-
         @media (max-width: 900px) {
             .contact-grid {
                 grid-template-columns: 1fr;
