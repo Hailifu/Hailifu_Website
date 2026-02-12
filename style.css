@@ -277,6 +277,14 @@
             color: var(--text-color);
         }
 
+        [data-theme='light'] .popup-brand-name {
+            color: var(--text-color);
+        }
+
+        [data-theme='light'] .popup-brand-tagline {
+            color: rgba(29, 29, 31, 0.7);
+        }
+
         [data-theme='light'] .popup-close {
             background: rgba(29, 29, 31, 0.06);
             color: var(--text-color);
@@ -1106,6 +1114,10 @@
             color: var(--white);
         }
 
+        [data-theme='light'] .brand-tagline {
+            color: rgba(255, 255, 255, 0.75);
+        }
+
         [data-theme='light'] .hero h1,
         [data-theme='light'] .hero p {
             text-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
@@ -1170,6 +1182,14 @@
         .hero-security {
             color: var(--orange);
             text-shadow: 0 0 12px rgba(255, 140, 0, 0.7), 0 0 28px rgba(255, 140, 0, 0.45);
+        }
+
+        .brand-tagline {
+            margin: 0 0 10px;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: rgba(255, 255, 255, 0.72);
         }
 
         .hero-slogan {
@@ -5575,6 +5595,14 @@
             letter-spacing: 0.2px;
         }
 
+        .site-footer .footer-tagline {
+            margin: 0 0 8px;
+            color: rgba(255, 255, 255, 0.75);
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            font-size: 0.78rem;
+        }
+
         .site-footer .footer-brand p {
             color: rgba(255, 255, 255, 0.72);
             line-height: 1.6;
@@ -6468,6 +6496,54 @@
             transform: translateY(10px) scale(0.98);
             opacity: 0;
             transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .popup-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 16px;
+            border-bottom: 1px solid rgba(255, 140, 0, 0.18);
+        }
+
+        .popup-header-text {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .popup-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .popup-brand-logo {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 140, 0, 0.35);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .popup-brand-copy {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .popup-brand-name {
+            font-weight: 700;
+            color: var(--white);
+            font-size: 0.95rem;
+        }
+
+        .popup-brand-tagline {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+            color: rgba(255, 255, 255, 0.6);
         }
 
                 .share-portfolio-toast {
