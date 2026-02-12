@@ -5250,8 +5250,6 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             const cards = Array.from(servicesGrid.querySelectorAll('.card'));
             if (!cards.length) return;
 
-            const contactHash = '#contact';
-
             cards.forEach((card) => {
                 card.removeAttribute('role');
                 card.removeAttribute('tabindex');
@@ -5273,22 +5271,11 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const quoteBtn = card.querySelector('.request-quote-btn');
                 if (quoteBtn) {
                     quoteBtn.textContent = 'Request a Quote';
-                    quoteBtn.setAttribute('href', contactHash);
+                    quoteBtn.setAttribute('href', '#quote');
                     quoteBtn.removeAttribute('target');
                     quoteBtn.removeAttribute('rel');
                     quoteBtn.removeAttribute('onclick');
-
-                    if (!quoteBtn.dataset.quoteScrollBound) {
-                        quoteBtn.dataset.quoteScrollBound = '1';
-                        quoteBtn.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            window.location.hash = contactHash;
-                            const target = document.getElementById('contact');
-                            if (target && typeof target.scrollIntoView === 'function') {
-                                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                            }
-                        });
-                    }
+                    quoteBtn.dataset.quoteService = card.dataset.serviceCategory || '';
                 }
             });
 
@@ -5442,6 +5429,25 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 openQuotePopup();
             });
         }
+
+        function bindQuoteButtons() {
+            const buttons = document.querySelectorAll('.request-quote-btn');
+            buttons.forEach((btn) => {
+                if (btn.dataset.quoteBound) return;
+                btn.dataset.quoteBound = '1';
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const parentCard = btn.closest('[data-service-category]');
+                    const serviceKey = btn.dataset.quoteService
+                        || parentCard?.dataset.serviceCategory
+                        || '';
+                    setQuoteService(serviceKey);
+                    openQuotePopup();
+                });
+            });
+        }
+
+        bindQuoteButtons();
 
         document.querySelectorAll('#service-cctv, #service-electrical, #service-airconditioning, #service-gates, #service-fencing, #service-smarthome, #service-blindcurtain').forEach((card) => {
             card.removeAttribute('role');
