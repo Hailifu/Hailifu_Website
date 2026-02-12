@@ -5441,8 +5441,6 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 };
 
                 const name = String(document.getElementById('popupName')?.value || '').trim();
-                const phone = String(document.getElementById('popupPhone')?.value || '').trim();
-                const email = String(document.getElementById('popupEmail')?.value || '').trim();
                 const location = String(document.getElementById('popupLocation')?.value || '').trim();
                 const serviceKey = String(popupService?.value || '').trim();
                 const message = String(document.getElementById('popupMessage')?.value || '').trim();
@@ -5452,8 +5450,6 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const lines = [
                     'New Quote Request',
                     `Name: ${name || 'Not provided'}`,
-                    `Phone: ${phone || 'Not provided'}`,
-                    `Email: ${email || 'Not provided'}`,
                     `Location: ${location || 'Not provided'}`,
                     `Service: ${serviceLabel}`,
                     `Message: ${message || 'No details provided'}`

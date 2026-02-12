@@ -6522,6 +6522,19 @@
             box-sizing: border-box;
         }
 
+        .popup-form-group select {
+            color: rgba(255, 255, 255, 0.92);
+        }
+
+        .popup-form-group select:invalid {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .popup-form-group select option {
+            color: #000000;
+            background: #ffffff;
+        }
+
         .popup-form-group input::placeholder,
         .popup-form-group textarea::placeholder {
             color: rgba(255, 255, 255, 0.55);
