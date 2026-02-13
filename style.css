@@ -7364,6 +7364,8 @@
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             z-index: 10006;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
  
         .project-modal.active {
@@ -7391,6 +7393,9 @@
             box-shadow: 0 20px 70px rgba(0, 0, 0, 0.65);
             backdrop-filter: blur(18px);
             -webkit-backdrop-filter: blur(18px);
+            max-height: calc(100vh - 48px);
+            display: flex;
+            flex-direction: column;
         }
 
         .project-modal.is-compact .project-modal-dialog {
@@ -7439,6 +7444,8 @@
             gap: 18px;
             padding: 16px;
             color: rgba(255, 255, 255, 0.92);
+            overflow-y: auto;
+            min-height: 0;
         }
 
         .project-modal.is-compact .project-modal-body {
@@ -7477,6 +7484,9 @@
             grid-template-columns: repeat(3, minmax(0, 1fr));
             grid-auto-flow: dense;
             gap: 16px;
+            max-height: min(64vh, 680px);
+            overflow-y: auto;
+            padding-right: 4px;
         }
 
         @media (max-width: 900px) {
