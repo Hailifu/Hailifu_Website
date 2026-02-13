@@ -2845,6 +2845,72 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                         return;
                     }
 
+                    const applySurfaceBtn = e.target.closest('[data-apply-media-surface][data-apply-project-id][data-apply-media-key]');
+                    if (applySurfaceBtn) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        const surface = String(applySurfaceBtn.getAttribute('data-apply-media-surface') || '').trim().toLowerCase();
+                        const projectId = String(applySurfaceBtn.getAttribute('data-apply-project-id') || '').trim();
+                        const mediaKey = String(applySurfaceBtn.getAttribute('data-apply-media-key') || '').trim();
+                        if (!surface || !projectId || !mediaKey) return;
+
+                        const projects = getProjects();
+                        const idx = projects.findIndex((p) => String(p?.id || '') === projectId);
+                        if (idx < 0) return;
+
+                        const originalProject = { ...projects[idx] };
+                        const allMedia = coerceProjectMediaItems(originalProject);
+                        const selected = allMedia.find((item) => getMediaKey(item) === mediaKey);
+                        if (!selected) return;
+
+                        const nextProject = { ...originalProject };
+                        setProjectSurfaceMedia(nextProject, surface, selected);
+                        if (surface === 'featured') {
+                            nextProject.showInFeatured = true;
+                            nextProject.featured = true;
+                        } else if (surface === 'showcase') {
+                            nextProject.showInShowcase = true;
+                            nextProject.showcase = true;
+                        } else if (surface === 'services') {
+                            nextProject.showInServices = true;
+                            nextProject.services = true;
+                        }
+
+                        projects[idx] = nextProject;
+                        saveProjects(projects);
+                        loadProjects();
+                        showAdminMediaToast('Media placement updated', 'success');
+
+                        if (firebaseIsReady()) {
+                            upsertProjectInFirebase(nextProject).catch(() => {
+                                projects[idx] = originalProject;
+                                saveProjects(projects);
+                                loadProjects();
+                                showAdminMediaToast('Save failed. Please retry.', 'error');
+                            });
+                        } else {
+                            const preset = getCloudinaryPresetValue();
+                            if (preset) {
+                                persistCloudinaryPreset();
+                                const nextConfig = {
+                                    ...(remoteConfigState && typeof remoteConfigState === 'object' ? remoteConfigState : {}),
+                                    updatedAt: new Date().toISOString(),
+                                    projects
+                                };
+                                uploadRemoteConfig(nextConfig, preset)
+                                    .then(() => {
+                                        remoteConfigState = nextConfig;
+                                        remoteConfigFingerprint = '';
+                                    })
+                                    .catch(() => {
+                                        showAdminMediaToast('Saved locally. Cloud sync failed.', 'warning');
+                                    });
+                            }
+                        }
+                        return;
+                    }
+
                     const starBtn = e.target.closest('[data-star-project-id]');
                     if (starBtn) {
                         e.preventDefault();
@@ -2883,26 +2949,86 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                         return;
                     }
 
-                    const deleteBtn = e.target.closest('[data-delete-project-id]');
-                    if (deleteBtn) {
-                        const id = deleteBtn.getAttribute('data-delete-project-id');
-                        const currentProjects = getProjects();
-                        const deletedProject = currentProjects.find((p) => p.id === id) || null;
-                        const projects = currentProjects.filter((p) => p.id !== id);
+                    const deleteMediaBtn = e.target.closest('[data-delete-media-project-id][data-delete-media-key]');
+                    if (deleteMediaBtn) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        const projectId = String(deleteMediaBtn.getAttribute('data-delete-media-project-id') || '').trim();
+                        const mediaKey = String(deleteMediaBtn.getAttribute('data-delete-media-key') || '').trim();
+                        if (!projectId || !mediaKey) return;
+
+                        const projects = getProjects();
+                        const idx = projects.findIndex((p) => String(p?.id || '') === projectId);
+                        if (idx < 0) return;
+
+                        const originalProject = { ...projects[idx] };
+                        const allMedia = coerceProjectMediaItems(originalProject);
+                        const remaining = allMedia.filter((item) => getMediaKey(item) !== mediaKey);
+                        const originalProjects = projects.slice();
+
+                        if (!remaining.length) {
+                            const nextProjects = projects.filter((p) => String(p?.id || '') !== projectId);
+                            saveProjects(nextProjects);
+                            loadProjects();
+                            showAdminMediaToast('Media deleted', 'success');
+
+                            if (firebaseIsReady()) {
+                                removeProjectInFirebase(projectId).catch(() => {
+                                    saveProjects(originalProjects);
+                                    loadProjects();
+                                    showAdminMediaToast('Delete failed. Please retry.', 'error');
+                                });
+                            } else {
+                                const preset = getCloudinaryPresetValue();
+                                if (preset) {
+                                    persistCloudinaryPreset();
+                                    const nextConfig = {
+                                        ...(remoteConfigState && typeof remoteConfigState === 'object' ? remoteConfigState : {}),
+                                        updatedAt: new Date().toISOString(),
+                                        projects: nextProjects
+                                    };
+                                    uploadRemoteConfig(nextConfig, preset)
+                                        .then(() => {
+                                            remoteConfigState = nextConfig;
+                                            remoteConfigFingerprint = '';
+                                        })
+                                        .catch(() => {
+                                            showAdminMediaToast('Deleted locally. Cloud sync failed.', 'warning');
+                                        });
+                                }
+                            }
+                            return;
+                        }
+
+                        const nextProject = { ...originalProject };
+                        nextProject.mediaItems = remaining.map((item) => ({ ...item }));
+                        nextProject.mediaSrc = remaining[0].mediaSrc;
+                        nextProject.mediaType = remaining[0].mediaType;
+                        nextProject.thumbSrc = remaining[0].thumbSrc || '';
+
+                        ['featured', 'showcase', 'services'].forEach((surface) => {
+                            const fieldMap = getProjectSurfaceFieldMap(surface);
+                            if (!fieldMap) return;
+                            const assigned = normalizeMediaItem({
+                                mediaSrc: nextProject[fieldMap.src],
+                                mediaType: nextProject[fieldMap.type],
+                                thumbSrc: nextProject[fieldMap.thumb]
+                            });
+                            if (getMediaKey(assigned) === mediaKey) {
+                                clearProjectSurfaceMedia(nextProject, surface);
+                            }
+                        });
+
+                        projects[idx] = nextProject;
                         saveProjects(projects);
                         loadProjects();
                         showAdminMediaToast('Media deleted', 'success');
 
                         if (firebaseIsReady()) {
-                            removeProjectInFirebase(id).catch(() => {
-                                if (deletedProject) {
-                                    const restored = getProjects();
-                                    if (!restored.some((p) => p.id === id)) {
-                                        restored.unshift(deletedProject);
-                                        saveProjects(restored);
-                                        loadProjects();
-                                    }
-                                }
+                            upsertProjectInFirebase(nextProject).catch(() => {
+                                saveProjects(originalProjects);
+                                loadProjects();
                                 showAdminMediaToast('Delete failed. Please retry.', 'error');
                             });
                         } else {
@@ -2924,12 +3050,6 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                                     });
                             }
                         }
-                        const generated = document.querySelector(`[data-generated-project-id="${id}"]`);
-                        if (generated) generated.remove();
-                        const activeFilter = document.querySelector('.showcase-filters .filter-btn.active');
-                        if (activeFilter) {
-                            filterProjects(activeFilter.dataset.filter || 'all');
-                        }
                         return;
                     }
 
@@ -2940,8 +3060,12 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     if (!project) return;
 
                     const temp = document.createElement('div');
-                    temp.dataset.mediaSrc = normalizeProjectMediaPath(project.mediaSrc);
-                    temp.dataset.mediaType = project.mediaType;
+                    const selectedMediaSrc = normalizeProjectMediaPath(thumb.getAttribute('data-admin-media-src') || project.mediaSrc || '');
+                    const selectedMediaType = String(thumb.getAttribute('data-admin-media-type') || project.mediaType || 'image').trim().toLowerCase() || 'image';
+                    const mediaItemsFromCard = String(thumb.getAttribute('data-media-items') || '').trim();
+                    temp.dataset.mediaSrc = selectedMediaSrc;
+                    temp.dataset.mediaType = selectedMediaType;
+                    if (mediaItemsFromCard) temp.dataset.mediaItems = mediaItemsFromCard;
                     temp.innerHTML = `
                         <div class="project-category">${project.category || ''}</div>
                         <div class="showcase-overlay">
@@ -3354,6 +3478,68 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             }
         }
 
+        function getMediaKey(mediaItem) {
+            const item = normalizeMediaItem(mediaItem);
+            if (!item) return '';
+            return `${item.mediaType}::${item.mediaSrc}`;
+        }
+
+        function getProjectSurfaceFieldMap(surface) {
+            const key = String(surface || '').trim().toLowerCase();
+            if (key === 'featured') {
+                return { src: 'featuredMediaSrc', type: 'featuredMediaType', thumb: 'featuredThumbSrc' };
+            }
+            if (key === 'showcase') {
+                return { src: 'showcaseMediaSrc', type: 'showcaseMediaType', thumb: 'showcaseThumbSrc' };
+            }
+            if (key === 'services') {
+                return { src: 'servicesMediaSrc', type: 'servicesMediaType', thumb: 'servicesThumbSrc' };
+            }
+            return null;
+        }
+
+        function getProjectSurfaceMedia(project, surface) {
+            if (!project || typeof project !== 'object') return null;
+            const fieldMap = getProjectSurfaceFieldMap(surface);
+            if (fieldMap) {
+                const candidate = normalizeMediaItem({
+                    mediaSrc: project[fieldMap.src],
+                    mediaType: project[fieldMap.type],
+                    thumbSrc: project[fieldMap.thumb]
+                });
+                if (candidate) return candidate;
+            }
+
+            const primary = normalizeMediaItem({
+                mediaSrc: project.mediaSrc,
+                mediaType: project.mediaType,
+                thumbSrc: project.thumbSrc
+            });
+            if (primary) return primary;
+
+            const list = coerceProjectMediaItems(project);
+            return list.length ? list[0] : null;
+        }
+
+        function setProjectSurfaceMedia(project, surface, mediaItem) {
+            if (!project || typeof project !== 'object') return;
+            const fieldMap = getProjectSurfaceFieldMap(surface);
+            const normalized = normalizeMediaItem(mediaItem);
+            if (!fieldMap || !normalized) return;
+            project[fieldMap.src] = normalized.mediaSrc;
+            project[fieldMap.type] = normalized.mediaType;
+            project[fieldMap.thumb] = normalized.thumbSrc || '';
+        }
+
+        function clearProjectSurfaceMedia(project, surface) {
+            if (!project || typeof project !== 'object') return;
+            const fieldMap = getProjectSurfaceFieldMap(surface);
+            if (!fieldMap) return;
+            delete project[fieldMap.src];
+            delete project[fieldMap.type];
+            delete project[fieldMap.thumb];
+        }
+
         function renderProjects() {
             if (!projectsGrid) return;
             const projects = getProjects();
@@ -3376,165 +3562,102 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             const escapeText = (value) => String(value || '')
                 .replace(/&/g, '&amp;')
                 .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;');
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
 
-            const normalizeGroupToken = (value) => String(value || '')
-                .trim()
-                .toLowerCase()
-                .replace(/\s+/g, ' ');
+            const mediaEntries = [];
+            projects.forEach((project) => {
+                const projectId = String(project?.id || '').trim();
+                if (!projectId) return;
+                const title = String(project?.title || project?.name || 'Untitled Project').trim() || 'Untitled Project';
+                const category = String(project?.category || 'general').trim() || 'general';
+                const list = coerceProjectMediaItems(project);
+                list.forEach((media, index) => {
+                    mediaEntries.push({
+                        project,
+                        projectId,
+                        title,
+                        category,
+                        media,
+                        index,
+                        total: list.length
+                    });
+                });
+            });
 
-            const getMediaCount = (project) => {
-                const items = coerceProjectMediaItems(project);
-                if (items.length) return items.length;
-                return String(project?.mediaSrc || '').trim() ? 1 : 0;
-            };
+            if (!mediaEntries.length) {
+                projectsGrid.classList.remove('is-grouped');
+                projectsGrid.innerHTML = '<div class="admin-empty">No media found.</div>';
+                return;
+            }
 
-            const renderProjectCard = (p) => {
-                const safeTitle = (p.title || 'Project').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                const starred = Boolean(p.isStarred);
-                const featured = Boolean(p.isFeatured);
-                const visibility = normalizeVisibilityFlags(p);
-                const starClass = starred ? 'project-star active' : 'project-star';
-                const starLabel = starred ? 'Unstar project' : 'Star project';
-                const featureChecked = featured ? 'checked' : '';
-                const featuredChecked = visibility.featured ? 'checked' : '';
-                const showcaseChecked = visibility.showcase ? 'checked' : '';
-                const servicesChecked = visibility.services ? 'checked' : '';
-                const resolvedMediaSrc = resolveAdminAssetPath(p.mediaSrc);
-                const resolvedThumbSrc = resolveAdminAssetPath(p.thumbSrc || p.mediaSrc);
-                const finalPath = p.mediaType === 'video' ? resolvedMediaSrc : (resolvedThumbSrc || resolvedMediaSrc);
-                const finalPathWithBuster = appendCacheBuster(finalPath, cacheStamp);
-                const thumbWithBuster = appendCacheBuster(resolvedThumbSrc || resolvedMediaSrc, cacheStamp);
-                const videoWithBuster = appendCacheBuster(resolvedMediaSrc, cacheStamp);
-                const assetForLog = p.mediaType === 'video' ? videoWithBuster : thumbWithBuster;
+            const markup = mediaEntries.slice(0, 240).map((entry) => {
+                const { project, projectId, title, category, media, index, total } = entry;
+                const safeTitle = escapeText(title);
+                const safeCategory = escapeText(String(category).replace(/[-_]+/g, ' ').replace(/\b\w/g, (ch) => ch.toUpperCase()));
+                const mediaKey = getMediaKey(media);
+                const safeMediaKey = escapeText(mediaKey);
+                const mediaSrc = String(media?.mediaSrc || '').trim();
+                const mediaType = String(media?.mediaType || 'image').trim().toLowerCase();
+                const thumbSrcRaw = mediaType === 'video'
+                    ? mediaSrc
+                    : (String(media?.thumbSrc || '').trim() || mediaSrc);
+                const resolvedThumb = resolveAdminAssetPath(thumbSrcRaw);
+                const resolvedVideo = resolveAdminAssetPath(mediaSrc);
+                const thumbWithBuster = appendCacheBuster(resolvedThumb, cacheStamp);
+                const videoWithBuster = appendCacheBuster(resolvedVideo, cacheStamp);
+                const assetForLog = mediaType === 'video' ? videoWithBuster : thumbWithBuster;
                 if (assetForLog) console.log('Admin Displaying URL:', assetForLog);
                 const crossorigin = getFirebaseCrossoriginAttr(assetForLog);
+                const mediaItemsData = JSON.stringify(coerceProjectMediaItems(project)).replace(/"/g, '&quot;');
 
-                const mediaItems = coerceProjectMediaItems(p);
-                const maxTiles = 4;
-                const buildTile = (item) => {
-                    const type = String(item?.mediaType || '').toLowerCase();
-                    const rawSrc = type === 'youtube'
-                        ? (item?.thumbSrc || getYoutubeThumbUrl(getYoutubeVideoId(item?.mediaSrc || '')) || '')
-                        : (type === 'video' ? item?.mediaSrc : (item?.thumbSrc || item?.mediaSrc));
-                    const resolved = resolveAdminAssetPath(rawSrc);
-                    const finalSrc = appendCacheBuster(resolved, cacheStamp);
-                    const cross = getFirebaseCrossoriginAttr(finalSrc);
-                    if (!finalSrc) {
-                        return `<div class="project-thumb-tile is-empty"></div>`;
-                    }
-                    if (type === 'video') {
-                        return `<div class="project-thumb-tile"><video src="${finalSrc}" muted playsinline webkit-playsinline loop autoplay preload="metadata"></video></div>`;
-                    }
-                    return `<div class="project-thumb-tile"><img src="${finalSrc}" alt="${safeTitle}" ${cross} onerror="this.onerror=null; this.src=getHailifuPlaceholderDataUri('HAILIFU')"></div>`;
-                };
+                const featuredMediaKey = getMediaKey(getProjectSurfaceMedia(project, 'featured'));
+                const showcaseMediaKey = getMediaKey(getProjectSurfaceMedia(project, 'showcase'));
+                const servicesMediaKey = getMediaKey(getProjectSurfaceMedia(project, 'services'));
 
-                const thumb = mediaItems.length > 1
-                    ? `
-                        <div class="project-thumb-gallery">
-                            ${mediaItems.slice(0, maxTiles).map(buildTile).join('')}
-                            <span class="project-thumb-count">${mediaItems.length}</span>
-                        </div>
-                    `
-                    : (p.mediaType === 'video'
-                        ? `<video src="${videoWithBuster}" muted playsinline webkit-playsinline loop autoplay preload="metadata"></video>`
-                        : `<img src="${thumbWithBuster}" alt="${safeTitle}" ${crossorigin} onerror="this.onerror=null; this.src=getHailifuPlaceholderDataUri('HAILIFU')">`);
+                const featuredBtnClass = featuredMediaKey && featuredMediaKey === mediaKey ? 'media-surface-btn is-active' : 'media-surface-btn';
+                const showcaseBtnClass = showcaseMediaKey && showcaseMediaKey === mediaKey ? 'media-surface-btn is-active' : 'media-surface-btn';
+                const servicesBtnClass = servicesMediaKey && servicesMediaKey === mediaKey ? 'media-surface-btn is-active' : 'media-surface-btn';
+
+                const previewMarkup = mediaType === 'video'
+                    ? `<video src="${videoWithBuster}" muted playsinline webkit-playsinline loop autoplay preload="metadata"></video>`
+                    : `<img src="${thumbWithBuster}" alt="${safeTitle}" ${crossorigin} onerror="this.onerror=null; this.src=getHailifuPlaceholderDataUri('HAILIFU')">`;
 
                 return `
-                    <div class="project-thumb" data-admin-project-id="${p.id}">
-                        ${thumb}
-                        <button class="${starClass}" type="button" data-star-project-id="${p.id}" aria-label="${starLabel}">
-                            <i class="fas fa-star"></i>
-                        </button>
-                        <button class="project-delete" type="button" data-delete-project-id="${p.id}" aria-label="Delete project">
+                    <div
+                        class="project-thumb"
+                        data-admin-project-id="${projectId}"
+                        data-admin-media-key="${safeMediaKey}"
+                        data-admin-media-src="${escapeText(mediaSrc)}"
+                        data-admin-media-type="${escapeText(mediaType)}"
+                        data-media-items="${mediaItemsData}"
+                    >
+                        ${previewMarkup}
+                        <button
+                            class="project-delete"
+                            type="button"
+                            data-delete-media-project-id="${projectId}"
+                            data-delete-media-key="${safeMediaKey}"
+                            aria-label="Delete media"
+                        >
                             <i class="fas fa-trash"></i>
                         </button>
-                        <label class="project-feature-toggle">
-                            <input type="checkbox" ${featureChecked} data-feature-project-id="${p.id}">
-                            <span>Feature in Lazy Loop</span>
-                        </label>
                         <div class="project-meta">
-                            <div class="project-live-status">
-                                <span class="project-live-label">Live Status</span>
-                                <div class="project-live-pills">
-                                    <span class="status-pill${visibility.featured ? ' is-on' : ''}" data-status-pill="featured">Featured</span>
-                                    <span class="status-pill${visibility.showcase ? ' is-on' : ''}" data-status-pill="showcase">Showcase</span>
-                                    <span class="status-pill${visibility.services ? ' is-on' : ''}" data-status-pill="services">Services</span>
-                                </div>
-                            </div>
-                            <div class="project-visibility-title">Placement Control</div>
-                            <div class="project-visibility-controls">
-                                <label class="visibility-toggle">
-                                    <input type="checkbox" ${featuredChecked} data-visibility-flag="featured">
-                                    <span>Featured</span>
-                                </label>
-                                <label class="visibility-toggle">
-                                    <input type="checkbox" ${showcaseChecked} data-visibility-flag="showcase">
-                                    <span>Showcase</span>
-                                </label>
-                                <label class="visibility-toggle">
-                                    <input type="checkbox" ${servicesChecked} data-visibility-flag="services">
-                                    <span>Services</span>
-                                </label>
-                                <button class="project-visibility-save" type="button" data-visibility-save-id="${p.id}">Save</button>
-                            </div>
                             <div class="project-title">${safeTitle}</div>
+                            <div class="project-media-caption">${safeCategory} - ${index + 1}/${total}</div>
+                            <div class="media-surface-actions">
+                                <button class="${featuredBtnClass}" type="button" data-apply-media-surface="featured" data-apply-project-id="${projectId}" data-apply-media-key="${safeMediaKey}">Featured Loop</button>
+                                <button class="${showcaseBtnClass}" type="button" data-apply-media-surface="showcase" data-apply-project-id="${projectId}" data-apply-media-key="${safeMediaKey}">Showcase BG</button>
+                                <button class="${servicesBtnClass}" type="button" data-apply-media-surface="services" data-apply-project-id="${projectId}" data-apply-media-key="${safeMediaKey}">Services BG</button>
+                            </div>
                         </div>
                     </div>
                 `;
-            };
-
-            const grouped = new Map();
-            projects.slice(0, 120).forEach((project) => {
-                const title = String(project?.title || project?.name || 'Untitled Project').trim() || 'Untitled Project';
-                const category = String(project?.category || 'general').trim() || 'general';
-                const key = `${normalizeGroupToken(category)}::${normalizeGroupToken(title)}`;
-
-                if (!grouped.has(key)) {
-                    grouped.set(key, {
-                        title,
-                        category,
-                        projects: [],
-                        mediaCount: 0
-                    });
-                }
-
-                const group = grouped.get(key);
-                group.projects.push(project);
-                group.mediaCount += getMediaCount(project);
-            });
-
-            const groupsMarkup = Array.from(grouped.values()).map((group) => {
-                const safeGroupTitle = escapeText(group.title);
-                const prettyCategory = String(group.category || 'general')
-                    .replace(/[-_]+/g, ' ')
-                    .trim()
-                    .replace(/\b\w/g, (ch) => ch.toUpperCase());
-                const safeGroupCategory = escapeText(prettyCategory || 'General');
-                const mediaLabel = `${group.mediaCount} media${group.mediaCount === 1 ? '' : 's'}`;
-                const safeMediaLabel = escapeText(mediaLabel);
-                const entriesLabel = `${group.projects.length} entr${group.projects.length === 1 ? 'y' : 'ies'}`;
-                const safeEntriesLabel = escapeText(entriesLabel);
-
-                return `
-                    <section class="admin-project-group">
-                        <header class="admin-project-group-header">
-                            <div class="admin-project-group-title">${safeGroupTitle}</div>
-                            <div class="admin-project-group-meta">
-                                <span class="admin-project-group-chip">${safeGroupCategory}</span>
-                                <span class="admin-project-group-chip">${safeMediaLabel}</span>
-                                <span class="admin-project-group-chip">${safeEntriesLabel}</span>
-                            </div>
-                        </header>
-                        <div class="admin-project-group-grid">
-                            ${group.projects.map((project) => renderProjectCard(project)).join('')}
-                        </div>
-                    </section>
-                `;
             }).join('');
 
-            projectsGrid.classList.add('is-grouped');
-            projectsGrid.innerHTML = groupsMarkup;
+            projectsGrid.classList.remove('is-grouped');
+            projectsGrid.innerHTML = markup;
         }
 
         function updateProjectLiveStatus(card, visibility) {
@@ -3858,7 +3981,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const normalized = String(slotCategory || '').toLowerCase().trim();
                 const projectCategory = slotToProjectCategory[normalized] || normalized;
                 const matches = showcaseProjects.filter((p) => String(p?.category || '').toLowerCase().trim() === projectCategory);
-                const withMedia = matches.filter((p) => p && p.mediaSrc);
+                const withMedia = matches.filter((p) => !!getProjectSurfaceMedia(p, 'showcase'));
                 const featured = withMedia.find((p) => p.isFeatured) || withMedia.find((p) => p.isStarred);
                 const primary = featured || withMedia[0] || matches[0] || null;
                 if (!primary) return null;
@@ -3897,15 +4020,16 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const project = pickProjectForSlot(slotCategory);
 
                 if (project) {
+                    const showcaseMedia = getProjectSurfaceMedia(project, 'showcase');
                     if (project.id) usedIds.add(String(project.id));
-                    if (project.mediaSrc) assignedCount += 1;
+                    if (showcaseMedia?.mediaSrc) assignedCount += 1;
                     console.log('Rendering card for:', project.id);
                     const label = categoryLabelMap[slotCategory] || categoryLabelMap[String(project.category || '').toLowerCase().trim()] || (project.category || 'Project');
                     const title = String(project.title || project.name || '').trim();
                     const description = String(project.description || '').trim();
 
-                    slot.dataset.mediaSrc = project.mediaSrc || '';
-                    slot.dataset.mediaType = project.mediaType || 'image';
+                    slot.dataset.mediaSrc = showcaseMedia?.mediaSrc || '';
+                    slot.dataset.mediaType = showcaseMedia?.mediaType || 'image';
                     if (project.id) slot.dataset.generatedProjectId = String(project.id);
                     slot.dataset.modalTitle = title || 'Project';
                     slot.dataset.modalDescription = description || '';
@@ -3924,9 +4048,9 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
                     const ensureShowcaseMedia = () => {
                         const existing = slot.querySelector('.showcase-bg');
-                        const mediaSrc = String(project.mediaSrc || project.imageUrl || project.mediaUrl || '').trim();
+                        const mediaSrc = String(showcaseMedia?.mediaSrc || '').trim();
                         const normalizedSrc = mediaSrc ? normalizeCloudinaryUrl(mediaSrc) : '';
-                        const type = String(project.mediaType || 'image').trim().toLowerCase() || 'image';
+                        const type = String(showcaseMedia?.mediaType || 'image').trim().toLowerCase() || 'image';
                         let node = existing;
                         if (!node) {
                             node = document.createElement('div');
@@ -3943,7 +4067,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                             node.innerHTML = `<video src="${normalizedSrc}" muted playsinline webkit-playsinline loop preload="metadata"></video>`;
                         } else if (type === 'youtube') {
                             const youtubeId = getYoutubeVideoId(normalizedSrc);
-                            const thumb = normalizeCloudinaryUrl(String(project.thumbSrc || getYoutubeThumbUrl(youtubeId) || '').trim());
+                            const thumb = normalizeCloudinaryUrl(String(showcaseMedia?.thumbSrc || getYoutubeThumbUrl(youtubeId) || '').trim());
                             node.innerHTML = `<img src="${thumb || normalizedSrc}" alt="" loading="lazy">`;
                         } else {
                             node.innerHTML = `<img src="${normalizedSrc}" alt="" loading="lazy">`;
@@ -4463,12 +4587,13 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             const toTimestamp = (project) => Number(project?.timestamp) || (Date.parse(project?.createdAt || '') || 0);
             const normalizeProject = (project) => {
                 if (!project || typeof project !== 'object') return null;
-                const mediaSrc = String(project.mediaSrc || project.imageUrl || '').trim();
-                if (!mediaSrc) return null;
+                const selectedMedia = getProjectSurfaceMedia(project, 'featured');
+                if (!selectedMedia || !selectedMedia.mediaSrc) return null;
                 return {
                     ...project,
-                    mediaSrc,
-                    mediaType: String(project.mediaType || 'image') || 'image'
+                    mediaSrc: selectedMedia.mediaSrc,
+                    mediaType: String(selectedMedia.mediaType || 'image') || 'image',
+                    thumbSrc: selectedMedia.thumbSrc || ''
                 };
             };
 
@@ -5646,6 +5771,73 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
             const emptyNode = servicesGrid.querySelector('.services-empty');
             if (emptyNode) emptyNode.remove();
+
+            const projects = getProjects()
+                .filter((p) => p && isVisibilityEnabled(p, 'showInServices', 'services'));
+            const aliasMap = {
+                autogate: 'gates'
+            };
+
+            const pickProjectForService = (serviceCategory) => {
+                const normalizedCategory = String(serviceCategory || '').toLowerCase().trim();
+                const projectCategory = aliasMap[normalizedCategory] || normalizedCategory;
+                const matches = projects.filter((p) => String(p?.category || '').toLowerCase().trim() === projectCategory);
+                if (!matches.length) return null;
+                const withMedia = matches
+                    .map((project) => ({ project, media: getProjectSurfaceMedia(project, 'services') }))
+                    .filter((entry) => entry.media && entry.media.mediaSrc);
+                if (!withMedia.length) return null;
+                const featured = withMedia.find((entry) => entry.project?.isFeatured) || withMedia.find((entry) => entry.project?.isStarred);
+                return featured || withMedia[0];
+            };
+
+            cards.forEach((card) => {
+                const serviceCategory = String(card.dataset.serviceCategory || '').toLowerCase().trim();
+                if (!serviceCategory) return;
+                const selected = pickProjectForService(serviceCategory);
+                if (!selected) return;
+
+                const project = selected.project;
+                const media = selected.media;
+                const mediaSrc = normalizeCloudinaryUrl(String(media.mediaSrc || '').trim());
+                const mediaType = String(media.mediaType || 'image').trim().toLowerCase() || 'image';
+                if (!mediaSrc) return;
+
+                const preview = document.createElement('div');
+                preview.className = 'service-media';
+                if (mediaType === 'video') {
+                    preview.innerHTML = `<video src="${mediaSrc}" muted playsinline webkit-playsinline loop preload="metadata"></video>`;
+                } else if (mediaType === 'youtube') {
+                    const youtubeId = getYoutubeVideoId(mediaSrc);
+                    const thumb = normalizeCloudinaryUrl(String(media.thumbSrc || getYoutubeThumbUrl(youtubeId) || '').trim());
+                    preview.innerHTML = `<img src="${thumb || mediaSrc}" alt="" loading="lazy">`;
+                } else {
+                    preview.innerHTML = `<img src="${mediaSrc}" alt="" loading="lazy">`;
+                }
+
+                const glow = card.querySelector('.card-glow');
+                if (glow && glow.nextSibling) {
+                    card.insertBefore(preview, glow.nextSibling);
+                } else if (glow) {
+                    card.appendChild(preview);
+                } else {
+                    card.insertBefore(preview, card.firstChild);
+                }
+
+                card.classList.add('has-media');
+                card.dataset.mediaSrc = mediaSrc;
+                card.dataset.mediaType = mediaType;
+                card.dataset.generatedProjectId = String(project?.id || '');
+                card.dataset.modalTitle = String(project?.title || project?.name || '').trim();
+                card.dataset.modalDescription = String(project?.description || '').trim();
+                card.dataset.modalCategory = String(project?.category || '').trim();
+                const mediaItems = coerceProjectMediaItems(project);
+                if (mediaItems.length > 1) {
+                    try { card.dataset.mediaItems = JSON.stringify(mediaItems); } catch {}
+                } else if (card.dataset.mediaItems) {
+                    delete card.dataset.mediaItems;
+                }
+            });
         }
 
         renderServices();
