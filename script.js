@@ -2430,27 +2430,31 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             if (!adminLazyLoopTrack || !adminLazyLoopDots) return;
 
             const projects = getProjects();
-            const maxSlides = 4;
             const cacheStamp = Date.now();
             const featured = projects
-                .filter((p) => p && p.featured)
-                .map((p) => {
-                    if (!p || typeof p !== 'object') return null;
-                    const mediaSrc = String(p.mediaSrc || p.imageUrl || '').trim();
-                    if (!mediaSrc) return null;
-                    return {
-                        ...p,
-                        mediaSrc,
-                        mediaType: String(p.mediaType || 'image') || 'image'
-                    };
+                .flatMap((p) => {
+                    if (!p || !isVisibilityEnabled(p, 'showInFeatured', 'featured')) return [];
+                    const mediaList = getProjectSurfaceMediaList(p, 'featured');
+                    if (!mediaList.length) return [];
+                    return mediaList
+                        .map((mediaItem) => {
+                            const mediaSrc = String(mediaItem?.mediaSrc || '').trim();
+                            if (!mediaSrc) return null;
+                            return {
+                                ...p,
+                                mediaSrc,
+                                mediaType: String(mediaItem?.mediaType || 'image') || 'image',
+                                thumbSrc: String(mediaItem?.thumbSrc || '').trim()
+                            };
+                        })
+                        .filter(Boolean);
                 })
                 .filter(Boolean)
                 .sort((a, b) => {
                     const ta = Number(a?.timestamp) || (Date.parse(a?.createdAt || '') || 0);
                     const tb = Number(b?.timestamp) || (Date.parse(b?.createdAt || '') || 0);
                     return tb - ta;
-                })
-                .slice(0, maxSlides);
+                });
 
             adminLazyLoopCount = featured.length;
             adminLazyLoopIndex = 0;
@@ -2877,14 +2881,22 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                         if (!selected) return;
 
                         const nextProject = { ...originalProject };
-                        setProjectSurfaceMedia(nextProject, surface, selected);
+                        let toastMessage = 'Media placement updated';
+
                         if (surface === 'featured') {
-                            nextProject.showInFeatured = true;
-                            nextProject.featured = true;
+                            const featuredToggle = toggleProjectSurfaceMedia(nextProject, surface, selected);
+                            const hasFeaturedItems = Array.isArray(featuredToggle.list) && featuredToggle.list.length > 0;
+                            nextProject.showInFeatured = hasFeaturedItems;
+                            nextProject.featured = hasFeaturedItems;
+                            toastMessage = featuredToggle.added
+                                ? 'Added to Featured Loop'
+                                : 'Removed from Featured Loop';
                         } else if (surface === 'showcase') {
+                            setProjectSurfaceMedia(nextProject, surface, selected);
                             nextProject.showInShowcase = true;
                             nextProject.showcase = true;
                         } else if (surface === 'services') {
+                            setProjectSurfaceMedia(nextProject, surface, selected);
                             nextProject.showInServices = true;
                             nextProject.services = true;
                         }
@@ -2892,7 +2904,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                         projects[idx] = nextProject;
                         saveProjects(projects);
                         loadProjects();
-                        showAdminMediaToast('Media placement updated', 'success');
+                        showAdminMediaToast(toastMessage, 'success');
 
                         if (firebaseIsReady()) {
                             upsertProjectInFirebase(nextProject).catch(() => {
@@ -3019,7 +3031,25 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                         nextProject.mediaType = remaining[0].mediaType;
                         nextProject.thumbSrc = remaining[0].thumbSrc || '';
 
-                        ['featured', 'showcase', 'services'].forEach((surface) => {
+                        const featuredRemaining = getProjectSurfaceMediaList(nextProject, 'featured')
+                            .filter((item) => getMediaKey(item) !== mediaKey);
+                        if (featuredRemaining.length) {
+                            nextProject.featuredMediaItems = featuredRemaining.map((item) => ({
+                                mediaSrc: item.mediaSrc,
+                                mediaType: item.mediaType,
+                                thumbSrc: item.thumbSrc || ''
+                            }));
+                            const primaryFeatured = featuredRemaining[0];
+                            nextProject.featuredMediaSrc = primaryFeatured.mediaSrc;
+                            nextProject.featuredMediaType = primaryFeatured.mediaType;
+                            nextProject.featuredThumbSrc = primaryFeatured.thumbSrc || '';
+                        } else {
+                            clearProjectSurfaceMedia(nextProject, 'featured');
+                            nextProject.showInFeatured = false;
+                            nextProject.featured = false;
+                        }
+
+                        ['showcase', 'services'].forEach((surface) => {
                             const fieldMap = getProjectSurfaceFieldMap(surface);
                             if (!fieldMap) return;
                             const assigned = normalizeMediaItem({
@@ -3496,6 +3526,26 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             return `${item.mediaType}::${item.mediaSrc}`;
         }
 
+        function normalizeMediaCollection(items) {
+            if (!Array.isArray(items)) return [];
+            const normalized = items
+                .map((entry) => {
+                    if (!entry) return null;
+                    if (typeof entry === 'string') return normalizeMediaItem({ mediaSrc: entry });
+                    if (typeof entry === 'object') return normalizeMediaItem(entry);
+                    return null;
+                })
+                .filter(Boolean);
+
+            const seen = new Set();
+            return normalized.filter((item) => {
+                const key = getMediaKey(item);
+                if (!key || seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            });
+        }
+
         function getProjectSurfaceFieldMap(surface) {
             const key = String(surface || '').trim().toLowerCase();
             if (key === 'featured') {
@@ -3510,9 +3560,47 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             return null;
         }
 
-        function getProjectSurfaceMedia(project, surface) {
+        function getProjectSurfaceMediaList(project, surface) {
+            if (!project || typeof project !== 'object') return [];
+            const key = String(surface || '').trim().toLowerCase();
+            if (key === 'featured') {
+                const featuredList = normalizeMediaCollection(
+                    Array.isArray(project.featuredMediaItems)
+                        ? project.featuredMediaItems
+                        : (Array.isArray(project.featuredMedia) ? project.featuredMedia : [])
+                );
+
+                const legacyMap = getProjectSurfaceFieldMap('featured');
+                const legacyItem = legacyMap
+                    ? normalizeMediaItem({
+                        mediaSrc: project[legacyMap.src],
+                        mediaType: project[legacyMap.type],
+                        thumbSrc: project[legacyMap.thumb]
+                    })
+                    : null;
+
+                if (legacyItem) {
+                    const legacyKey = getMediaKey(legacyItem);
+                    const hasLegacy = featuredList.some((item) => getMediaKey(item) === legacyKey);
+                    if (!hasLegacy) featuredList.unshift(legacyItem);
+                }
+
+                if (featuredList.length) return featuredList;
+            }
+
+            const single = getProjectSurfaceMedia(project, key, { skipList: true });
+            return single ? [single] : [];
+        }
+
+        function getProjectSurfaceMedia(project, surface, options = {}) {
             if (!project || typeof project !== 'object') return null;
-            const fieldMap = getProjectSurfaceFieldMap(surface);
+            const key = String(surface || '').trim().toLowerCase();
+            const skipList = Boolean(options && options.skipList);
+            if (!skipList && key === 'featured') {
+                const featuredList = getProjectSurfaceMediaList(project, key);
+                if (featuredList.length) return featuredList[0];
+            }
+            const fieldMap = getProjectSurfaceFieldMap(key);
             if (fieldMap) {
                 const candidate = normalizeMediaItem({
                     mediaSrc: project[fieldMap.src],
@@ -3543,9 +3631,50 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             project[fieldMap.thumb] = normalized.thumbSrc || '';
         }
 
+        function toggleProjectSurfaceMedia(project, surface, mediaItem) {
+            if (!project || typeof project !== 'object') return { added: false, list: [] };
+            const key = String(surface || '').trim().toLowerCase();
+            const normalized = normalizeMediaItem(mediaItem);
+            if (!normalized) return { added: false, list: [] };
+
+            if (key === 'featured') {
+                const current = getProjectSurfaceMediaList(project, key);
+                const targetKey = getMediaKey(normalized);
+                const exists = current.some((item) => getMediaKey(item) === targetKey);
+                const next = exists
+                    ? current.filter((item) => getMediaKey(item) !== targetKey)
+                    : [...current, normalized];
+
+                if (next.length) {
+                    project.featuredMediaItems = next.map((item) => ({
+                        mediaSrc: item.mediaSrc,
+                        mediaType: item.mediaType,
+                        thumbSrc: item.thumbSrc || ''
+                    }));
+                    const primary = next[0];
+                    project.featuredMediaSrc = primary.mediaSrc;
+                    project.featuredMediaType = primary.mediaType;
+                    project.featuredThumbSrc = primary.thumbSrc || '';
+                } else {
+                    delete project.featuredMediaItems;
+                    clearProjectSurfaceMedia(project, 'featured');
+                }
+
+                return { added: !exists, list: next };
+            }
+
+            setProjectSurfaceMedia(project, key, normalized);
+            return { added: true, list: getProjectSurfaceMediaList(project, key) };
+        }
+
         function clearProjectSurfaceMedia(project, surface) {
             if (!project || typeof project !== 'object') return;
-            const fieldMap = getProjectSurfaceFieldMap(surface);
+            const key = String(surface || '').trim().toLowerCase();
+            if (key === 'featured') {
+                delete project.featuredMediaItems;
+                delete project.featuredMedia;
+            }
+            const fieldMap = getProjectSurfaceFieldMap(key);
             if (!fieldMap) return;
             delete project[fieldMap.src];
             delete project[fieldMap.type];
@@ -3624,11 +3753,15 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const crossorigin = getFirebaseCrossoriginAttr(assetForLog);
                 const mediaItemsData = JSON.stringify(coerceProjectMediaItems(project)).replace(/"/g, '&quot;');
 
-                const featuredMediaKey = getMediaKey(getProjectSurfaceMedia(project, 'featured'));
+                const featuredMediaKeys = new Set(
+                    getProjectSurfaceMediaList(project, 'featured')
+                        .map((item) => getMediaKey(item))
+                        .filter(Boolean)
+                );
                 const showcaseMediaKey = getMediaKey(getProjectSurfaceMedia(project, 'showcase'));
                 const servicesMediaKey = getMediaKey(getProjectSurfaceMedia(project, 'services'));
 
-                const featuredBtnClass = featuredMediaKey && featuredMediaKey === mediaKey ? 'media-surface-btn is-active' : 'media-surface-btn';
+                const featuredBtnClass = featuredMediaKeys.has(mediaKey) ? 'media-surface-btn is-active' : 'media-surface-btn';
                 const showcaseBtnClass = showcaseMediaKey && showcaseMediaKey === mediaKey ? 'media-surface-btn is-active' : 'media-surface-btn';
                 const servicesBtnClass = servicesMediaKey && servicesMediaKey === mediaKey ? 'media-surface-btn is-active' : 'media-surface-btn';
 
@@ -4598,9 +4731,26 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
             const projects = Array.isArray(projectsOverride) ? projectsOverride : getProjects();
             const toTimestamp = (project) => Number(project?.timestamp) || (Date.parse(project?.createdAt || '') || 0);
-            const normalizeProject = (project) => {
+            const normalizeFeaturedProject = (project) => {
                 if (!project || typeof project !== 'object') return null;
-                const selectedMedia = getProjectSurfaceMedia(project, 'featured');
+                const selectedMediaList = getProjectSurfaceMediaList(project, 'featured');
+                if (!selectedMediaList.length) return [];
+                return selectedMediaList
+                    .map((selectedMedia) => {
+                        if (!selectedMedia || !selectedMedia.mediaSrc) return null;
+                        return {
+                            ...project,
+                            mediaSrc: selectedMedia.mediaSrc,
+                            mediaType: String(selectedMedia.mediaType || 'image') || 'image',
+                            thumbSrc: selectedMedia.thumbSrc || ''
+                        };
+                    })
+                    .filter(Boolean);
+            };
+
+            const normalizeShowcaseProject = (project) => {
+                if (!project || typeof project !== 'object') return null;
+                const selectedMedia = getProjectSurfaceMedia(project, 'showcase');
                 if (!selectedMedia || !selectedMedia.mediaSrc) return null;
                 return {
                     ...project,
@@ -4610,22 +4760,31 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 };
             };
 
-            const normalized = projects.map(normalizeProject).filter(Boolean);
-            const featured = normalized
+            const featuredPool = projects
+                .flatMap((project) => normalizeFeaturedProject(project) || [])
+                .filter(Boolean);
+            const showcasePool = projects
+                .map(normalizeShowcaseProject)
+                .filter(Boolean);
+
+            const featured = featuredPool
                 .filter((p) => isVisibilityEnabled(p, 'showInFeatured', 'featured'))
                 .sort((a, b) => toTimestamp(b) - toTimestamp(a));
 
             let featuredList = [...featured];
             if (featuredList.length < 5) {
-                const featuredIds = new Set(featuredList.map((p) => String(p?.id || p?.mediaSrc || '').trim()));
-                const fallback = normalized
+                const featuredIds = new Set(
+                    featuredList
+                        .map((p) => `${String(p?.id || '').trim()}::${getMediaKey({ mediaSrc: p?.mediaSrc, mediaType: p?.mediaType, thumbSrc: p?.thumbSrc })}`)
+                        .filter(Boolean)
+                );
+                const fallback = showcasePool
                     .filter((p) => isVisibilityEnabled(p, 'showInShowcase', 'showcase'))
                     .filter((p) => {
-                        const key = String(p?.id || p?.mediaSrc || '').trim();
+                        const key = `${String(p?.id || '').trim()}::${getMediaKey({ mediaSrc: p?.mediaSrc, mediaType: p?.mediaType, thumbSrc: p?.thumbSrc })}`;
                         return key && !featuredIds.has(key);
                     })
-                    .sort((a, b) => toTimestamp(b) - toTimestamp(a))
-                    .slice(0, Math.max(0, 5 - featuredList.length));
+                    .sort((a, b) => toTimestamp(b) - toTimestamp(a));
                 featuredList = [...featuredList, ...fallback];
             }
 
