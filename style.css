@@ -7028,6 +7028,8 @@
             z-index: 10005;
             opacity: 0;
             transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .popup-overlay.active {
@@ -7060,6 +7062,7 @@
             transform: translateY(10px) scale(0.98);
             opacity: 0;
             transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            min-height: 0;
         }
 
         .popup-header {
@@ -7131,7 +7134,10 @@
         .popup-body {
             padding: 16px;
             color: rgba(255, 255, 255, 0.92);
-            overflow: auto;
+            overflow-y: auto;
+            flex: 1 1 auto;
+            min-height: 0;
+            -webkit-overflow-scrolling: touch;
             background: rgba(0, 0, 0, 0.18);
         }
  

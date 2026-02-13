@@ -1898,6 +1898,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeReviewModal();
+                closeQuotePopup();
             }
         });
 
@@ -5782,6 +5783,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             if (popupOverlay) {
                 popupOverlay.classList.add('active');
                 if (popupFormShell) popupFormShell.classList.add('is-active');
+                document.body.classList.add('modal-open');
             }
         }
 
@@ -5789,11 +5791,18 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             if (popupOverlay) {
                 popupOverlay.classList.remove('active');
                 if (popupFormShell) popupFormShell.classList.remove('is-active');
+                document.body.classList.remove('modal-open');
             }
         }
 
         if (popupClose) {
             popupClose.addEventListener('click', closeQuotePopup);
+        }
+
+        if (popupOverlay) {
+            popupOverlay.addEventListener('click', (e) => {
+                if (e.target === popupOverlay) closeQuotePopup();
+            });
         }
 
         if (popupQuoteForm) {
