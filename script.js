@@ -314,6 +314,18 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 featuredCategory: 'airconditioning',
                 showcaseCategory: 'airconditioning'
             },
+            solar: {
+                scrollSectionId: 'services',
+                cardId: 'service-solar',
+                featuredCategory: 'solar',
+                showcaseCategory: 'solar'
+            },
+            solarenergy: {
+                scrollSectionId: 'services',
+                cardId: 'service-solar',
+                featuredCategory: 'solar',
+                showcaseCategory: 'solar'
+            },
             blinds: {
                 scrollSectionId: 'services',
                 cardId: 'service-blindcurtain',
@@ -4213,7 +4225,8 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 cctv: 'CCTV Installation',
                 electrical: 'Electrical Services',
                 gates: 'Auto Gate Service',
-                autogate: 'Auto Gate Service'
+                autogate: 'Auto Gate Service',
+                solar: 'Solar Energy'
             };
 
             const serviceLabel = labelMap[normalized] || labelMap[resolved] || 'Service';
@@ -6008,6 +6021,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 airconditioning: 'Air Conditioning',
                 gates: 'Automated Gates',
                 fencing: 'Electric Fencing',
+                solar: 'Solar Energy',
                 smarthome: 'Smart Home System',
                 blindcurtain: 'Smart Window Solutions'
             };
@@ -6017,6 +6031,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 airconditioning: 'fa-snowflake',
                 gates: 'fa-door-open',
                 fencing: 'fa-shield-alt',
+                solar: 'fa-solar-panel',
                 smarthome: 'fa-house',
                 blindcurtain: 'fa-grip-lines-vertical'
             };
@@ -6085,6 +6100,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     airconditioning: 'Air Conditioning',
                     gates: 'Automated Gates',
                     fencing: 'Electric Fencing',
+                    solar: 'Solar Energy',
                     smarthome: 'Smart Home System',
                     blindcurtain: 'Smart Window Solutions'
                 };
@@ -6158,7 +6174,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
         bindQuoteButtons();
 
-        document.querySelectorAll('#service-cctv, #service-electrical, #service-airconditioning, #service-gates, #service-fencing, #service-smarthome, #service-blindcurtain').forEach((card) => {
+        document.querySelectorAll('#service-cctv, #service-electrical, #service-airconditioning, #service-gates, #service-fencing, #service-solar, #service-smarthome, #service-blindcurtain').forEach((card) => {
             card.removeAttribute('role');
             card.removeAttribute('tabindex');
         });
