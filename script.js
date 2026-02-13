@@ -474,6 +474,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         let clearGalleryBtn = null;
         let mediaTypeButtons = [];
         let selectedMediaType = 'image';
+        let adminMediaToastTimer = null;
 
         const cloudinaryCloudName = 'daovfi3i5';
         const defaultCloudinaryUnsignedPreset = 'ml_default';
@@ -1771,6 +1772,32 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             writeJsonStorage('hailifu_page_reach', count + 1);
         }
 
+        function ensureAdminMediaToast() {
+            let toast = document.getElementById('adminMediaToast');
+            if (toast) return toast;
+            toast = document.createElement('div');
+            toast.id = 'adminMediaToast';
+            toast.className = 'admin-media-toast';
+            toast.setAttribute('role', 'status');
+            toast.setAttribute('aria-live', 'polite');
+            document.body.appendChild(toast);
+            return toast;
+        }
+
+        function showAdminMediaToast(message, type = 'success') {
+            const toast = ensureAdminMediaToast();
+            if (!toast) return;
+            toast.textContent = String(message || 'Update complete');
+            toast.classList.remove('is-success', 'is-warning', 'is-error', 'active');
+            toast.classList.add(`is-${type}`);
+            void toast.offsetWidth;
+            toast.classList.add('active');
+            if (adminMediaToastTimer) clearTimeout(adminMediaToastTimer);
+            adminMediaToastTimer = setTimeout(() => {
+                toast.classList.remove('active');
+            }, 1800);
+        }
+
         function notifyAdminReviewSubmitted(review) {
             // Placeholder for future notifications
         }
@@ -2858,12 +2885,25 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     const deleteBtn = e.target.closest('[data-delete-project-id]');
                     if (deleteBtn) {
                         const id = deleteBtn.getAttribute('data-delete-project-id');
-                        const projects = getProjects().filter((p) => p.id !== id);
+                        const currentProjects = getProjects();
+                        const deletedProject = currentProjects.find((p) => p.id === id) || null;
+                        const projects = currentProjects.filter((p) => p.id !== id);
                         saveProjects(projects);
                         loadProjects();
+                        showAdminMediaToast('Media deleted', 'success');
 
                         if (firebaseIsReady()) {
-                            removeProjectInFirebase(id).catch(() => {});
+                            removeProjectInFirebase(id).catch(() => {
+                                if (deletedProject) {
+                                    const restored = getProjects();
+                                    if (!restored.some((p) => p.id === id)) {
+                                        restored.unshift(deletedProject);
+                                        saveProjects(restored);
+                                        loadProjects();
+                                    }
+                                }
+                                showAdminMediaToast('Delete failed. Please retry.', 'error');
+                            });
                         } else {
                             const preset = getCloudinaryPresetValue();
                             if (preset) {
@@ -2878,7 +2918,9 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                                         remoteConfigState = nextConfig;
                                         remoteConfigFingerprint = '';
                                     })
-                                    .catch(() => {});
+                                    .catch(() => {
+                                        showAdminMediaToast('Deleted locally. Cloud sync failed.', 'warning');
+                                    });
                             }
                         }
                         const generated = document.querySelector(`[data-generated-project-id="${id}"]`);
