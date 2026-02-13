@@ -3359,6 +3359,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             const projects = getProjects();
 
             if (projects.length === 0) {
+                projectsGrid.classList.remove('is-grouped');
                 projectsGrid.innerHTML = '';
                 return;
             }
@@ -3372,7 +3373,23 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 return normalizeProjectMediaPath(raw);
             };
 
-            projectsGrid.innerHTML = projects.slice(0, 50).map((p) => {
+            const escapeText = (value) => String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+
+            const normalizeGroupToken = (value) => String(value || '')
+                .trim()
+                .toLowerCase()
+                .replace(/\s+/g, ' ');
+
+            const getMediaCount = (project) => {
+                const items = coerceProjectMediaItems(project);
+                if (items.length) return items.length;
+                return String(project?.mediaSrc || '').trim() ? 1 : 0;
+            };
+
+            const renderProjectCard = (p) => {
                 const safeTitle = (p.title || 'Project').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 const starred = Boolean(p.isStarred);
                 const featured = Boolean(p.isFeatured);
@@ -3465,7 +3482,59 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                         </div>
                     </div>
                 `;
+            };
+
+            const grouped = new Map();
+            projects.slice(0, 120).forEach((project) => {
+                const title = String(project?.title || project?.name || 'Untitled Project').trim() || 'Untitled Project';
+                const category = String(project?.category || 'general').trim() || 'general';
+                const key = `${normalizeGroupToken(category)}::${normalizeGroupToken(title)}`;
+
+                if (!grouped.has(key)) {
+                    grouped.set(key, {
+                        title,
+                        category,
+                        projects: [],
+                        mediaCount: 0
+                    });
+                }
+
+                const group = grouped.get(key);
+                group.projects.push(project);
+                group.mediaCount += getMediaCount(project);
+            });
+
+            const groupsMarkup = Array.from(grouped.values()).map((group) => {
+                const safeGroupTitle = escapeText(group.title);
+                const prettyCategory = String(group.category || 'general')
+                    .replace(/[-_]+/g, ' ')
+                    .trim()
+                    .replace(/\b\w/g, (ch) => ch.toUpperCase());
+                const safeGroupCategory = escapeText(prettyCategory || 'General');
+                const mediaLabel = `${group.mediaCount} media${group.mediaCount === 1 ? '' : 's'}`;
+                const safeMediaLabel = escapeText(mediaLabel);
+                const entriesLabel = `${group.projects.length} entr${group.projects.length === 1 ? 'y' : 'ies'}`;
+                const safeEntriesLabel = escapeText(entriesLabel);
+
+                return `
+                    <section class="admin-project-group">
+                        <header class="admin-project-group-header">
+                            <div class="admin-project-group-title">${safeGroupTitle}</div>
+                            <div class="admin-project-group-meta">
+                                <span class="admin-project-group-chip">${safeGroupCategory}</span>
+                                <span class="admin-project-group-chip">${safeMediaLabel}</span>
+                                <span class="admin-project-group-chip">${safeEntriesLabel}</span>
+                            </div>
+                        </header>
+                        <div class="admin-project-group-grid">
+                            ${group.projects.map((project) => renderProjectCard(project)).join('')}
+                        </div>
+                    </section>
+                `;
             }).join('');
+
+            projectsGrid.classList.add('is-grouped');
+            projectsGrid.innerHTML = groupsMarkup;
         }
 
         function updateProjectLiveStatus(card, visibility) {

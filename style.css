@@ -4712,11 +4712,80 @@
             scrollbar-color: rgba(255, 140, 0, 0.6) rgba(255, 255, 255, 0.08);
         }
 
+        .projects-grid.is-grouped {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            padding: 0;
+        }
+
+        .admin-project-group {
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 12px;
+            background: rgba(6, 6, 6, 0.55);
+            box-shadow: 0 16px 34px rgba(0, 0, 0, 0.35);
+        }
+
+        .admin-project-group-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .admin-project-group-title {
+            color: var(--text-primary);
+            font-weight: 800;
+            font-size: 0.92rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .admin-project-group-meta {
+            display: inline-flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 6px;
+        }
+
+        .admin-project-group-chip {
+            display: inline-flex;
+            align-items: center;
+            height: 22px;
+            padding: 0 8px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 140, 0, 0.3);
+            background: rgba(255, 140, 0, 0.12);
+            color: rgba(255, 255, 255, 0.92);
+            font-size: 0.66rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .admin-project-group-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+        }
+
         
         @media (max-width: 768px) {
             .projects-grid {
                 max-height: none;
                 overflow-y: visible;
+            }
+
+            .admin-project-group-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .admin-project-group-meta {
+                justify-content: flex-start;
             }
         }
 .projects-grid::-webkit-scrollbar {
@@ -4731,6 +4800,18 @@
         .projects-grid::-webkit-scrollbar-thumb {
             background: rgba(255, 140, 0, 0.6);
             border-radius: 999px;
+        }
+
+        [data-theme='light'] .admin-project-group {
+            background: rgba(255, 255, 255, 0.92);
+            border-color: rgba(29, 29, 31, 0.12);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+        }
+
+        [data-theme='light'] .admin-project-group-chip {
+            color: rgba(29, 29, 31, 0.9);
+            background: rgba(255, 140, 0, 0.14);
+            border-color: rgba(255, 140, 0, 0.32);
         }
 
         .project-thumb {
