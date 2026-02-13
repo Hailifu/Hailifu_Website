@@ -161,22 +161,6 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 rating: 5,
                 comment: 'Full review available on Google.',
                 ownerReply: 'Thank you for your appreciation. We love you too.'
-            },
-            {
-                name: 'Shaibu Salifu',
-                meta: '1 review | 0 photos',
-                date: 'Recent',
-                rating: 5,
-                comment: 'Outstanding team execution. Fast response, clean install, and professional finish.',
-                ownerReply: 'Thank you for trusting Hailifu with your installation.'
-            },
-            {
-                name: 'Amina',
-                meta: '1 review | 0 photos',
-                date: 'Recent',
-                rating: 5,
-                comment: 'Prompt installation with clear explanations. The team exceeded expectations.',
-                ownerReply: 'We appreciate your feedback and support.'
             }
         ];
 
@@ -1683,7 +1667,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const name = String(review.name || 'Customer').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 const comment = String(review.comment || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 const rating = Math.max(1, Math.min(5, Number(review.rating) || 5));
-                const stars = '\u2605\u2605\u2605\u2605\u2605'.slice(0, rating).padEnd(5, '\u2605');
+                const stars = 'â˜…â˜…â˜…â˜…â˜…'.slice(0, rating).padEnd(5, 'â˜…');
                 return `
                     <article class="hailifu-review-card">
                         <div class="hailifu-review-card-header">
@@ -1705,7 +1689,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const name = String(review.name || 'Customer').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 const comment = String(review.comment || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 const rating = Math.max(1, Math.min(5, Number(review.rating) || 5));
-                const stars = '\u2605\u2605\u2605\u2605\u2605'.slice(0, rating).padEnd(5, '\u2605');
+                const stars = 'â˜…â˜…â˜…â˜…â˜…'.slice(0, rating).padEnd(5, 'â˜…');
                 const actions = statusLabel === 'pending'
                     ? `<button type="button" data-review-approve="${review.id}">Approve</button>`
                     : '';
@@ -3551,131 +3535,6 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
         renderReviewTerminal();
 
-        function renderFeaturedReviewsFeed() {
-            const track = document.querySelector('.modern-review-section .featured-reviews-feed .featured-reviews-track');
-            if (!track || !Array.isArray(REVIEWS_DATA) || !REVIEWS_DATA.length) return;
-
-            const reviews = REVIEWS_DATA.slice(0, 22);
-            track.innerHTML = reviews.map((review) => {
-                const name = escapeHTML(review.name);
-                const date = escapeHTML(review.date);
-                const comment = escapeHTML(review.comment);
-                return `
-                    <article class="featured-review-card" data-rating="${Math.max(1, Math.min(5, Number(review.rating) || 5))}">
-                        <div class="featured-review-meta">
-                            <span class="review-source">Google</span>
-                            <span class="reviewer-name">${name}</span>
-                            <span class="review-time">${date}</span>
-                        </div>
-                        <div class="featured-review-stars">\u2605\u2605\u2605\u2605\u2605</div>
-                        <p>${comment}</p>
-                    </article>
-                `;
-            }).join('');
-        }
-
-        renderFeaturedReviewsFeed();
-
-        function initGoogleBusinessStatusToggle() {
-            const statusBtn = document.getElementById('googleBusinessStatusBtn');
-            const messageEl = document.getElementById('googleBusinessMessage');
-            if (!statusBtn) return;
-
-            const pendingMessage = 'Connect the Google Business feed to stream verified reviews here.';
-            const activeMessage = `Google Business sync active. ${REVIEWS_DATA.length} verified reviews ready.`;
-
-            const setState = (active) => {
-                statusBtn.classList.toggle('is-active', active);
-                statusBtn.setAttribute('aria-pressed', active ? 'true' : 'false');
-                statusBtn.textContent = active ? 'SYNC ACTIVE' : 'SYNC PENDING';
-                if (messageEl) messageEl.textContent = active ? activeMessage : pendingMessage;
-            };
-
-            statusBtn.addEventListener('click', () => {
-                const isActive = statusBtn.classList.contains('is-active');
-                setState(!isActive);
-            });
-
-            setState(false);
-        }
-
-        initGoogleBusinessStatusToggle();
-
-        function renderModernReviewTerminal() {
-            const terminal = document.getElementById('reviewTerminal');
-            const card = terminal ? terminal.querySelector('.review-terminal-card') : null;
-            const nameEl = document.getElementById('reviewTerminalName');
-            const starsEl = document.getElementById('reviewTerminalStars');
-            const textEl = document.getElementById('reviewTerminalText');
-            const ownerWrap = document.getElementById('reviewTerminalOwner');
-            const ownerText = document.getElementById('reviewTerminalResponse');
-            const avgEl = document.getElementById('reviewAvgRating');
-            const totalEl = document.getElementById('reviewTotalReports');
-            const prevBtn = terminal ? terminal.querySelector('[data-review-terminal-prev]') : null;
-            const nextBtn = terminal ? terminal.querySelector('[data-review-terminal-next]') : null;
-
-            if (!terminal || !card || !nameEl || !starsEl || !textEl) return;
-
-            const reviews = Array.isArray(REVIEWS_DATA) ? REVIEWS_DATA.filter(Boolean) : [];
-            if (!reviews.length) return;
-
-            const average = reviews.reduce((sum, review) => sum + (Number(review.rating) || 0), 0) / reviews.length;
-            if (avgEl) avgEl.textContent = average.toFixed(1);
-            if (totalEl) totalEl.textContent = String(reviews.length);
-
-            const buildStars = (rating) => {
-                const safe = Math.max(1, Math.min(5, Number(rating) || 5));
-                return '\u2605\u2605\u2605\u2605\u2605'.slice(0, safe).padEnd(5, '\u2605');
-            };
-
-            let index = 0;
-
-            const paint = (review) => {
-                nameEl.textContent = String(review.name || 'Customer');
-                starsEl.textContent = buildStars(review.rating);
-                textEl.textContent = `"${String(review.comment || '')}"`;
-
-                if (ownerWrap && ownerText) {
-                    const reply = String(review.ownerReply || '').trim();
-                    ownerWrap.style.display = reply ? '' : 'none';
-                    ownerText.textContent = reply || '';
-                }
-            };
-
-            const goTo = (dir) => {
-                card.classList.add('is-fading');
-                window.setTimeout(() => {
-                    index = (index + dir + reviews.length) % reviews.length;
-                    paint(reviews[index]);
-                    card.classList.remove('is-fading');
-                }, 180);
-            };
-
-            if (prevBtn) prevBtn.addEventListener('click', () => goTo(-1));
-            if (nextBtn) nextBtn.addEventListener('click', () => goTo(1));
-
-            let autoTimer = null;
-            const startAuto = () => {
-                if (autoTimer) window.clearInterval(autoTimer);
-                autoTimer = window.setInterval(() => goTo(1), 5500);
-            };
-
-            const stopAuto = () => {
-                if (autoTimer) window.clearInterval(autoTimer);
-                autoTimer = null;
-            };
-
-            terminal.addEventListener('mouseenter', stopAuto);
-            terminal.addEventListener('mouseleave', startAuto);
-            terminal.addEventListener('focusin', stopAuto);
-            terminal.addEventListener('focusout', startAuto);
-
-            paint(reviews[index]);
-            startAuto();
-        }
-
-        renderModernReviewTerminal();
-
         function isVisibilityEnabled(project, primaryKey, fallbackKey) {
             if (!project || typeof project !== 'object') return false;
             if (typeof project[primaryKey] === 'boolean') return project[primaryKey];
@@ -5227,7 +5086,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     wrap.style.color = 'rgba(255, 255, 255, 0.82)';
                     wrap.innerHTML = `
                         <div style="font-size:2rem; margin-bottom:10px; color: var(--orange);"><i class="fas fa-play-circle"></i></div>
-                        <div style="margin-bottom:12px;">This video can't be embedded in file preview mode.</div>
+                        <div style="margin-bottom:12px;">This video canâ€™t be embedded in file preview mode.</div>
                         <a href="${watchUrl}" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; justify-content:center; gap:10px; background: var(--orange); color: #fff; padding: 12px 18px; border-radius: 999px; font-weight: 800; text-decoration: none;">Open on YouTube</a>
                     `;
                     content.appendChild(wrap);
@@ -5919,17 +5778,6 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             });
         });
 
-        const showcaseGrid = document.querySelector('#showcase .showcase-grid');
-        if (showcaseGrid && !showcaseGrid.dataset.modalClickBound) {
-            showcaseGrid.dataset.modalClickBound = '1';
-            showcaseGrid.addEventListener('click', (e) => {
-                const card = e.target.closest('.showcase-item');
-                if (!card || !showcaseGrid.contains(card)) return;
-                e.preventDefault();
-                openProjectModalFromItem(card);
-            });
-        }
-
         document.querySelectorAll('#showcase .showcase-grid .showcase-item').forEach(item => item.classList.add('is-visible'));
         if (filterButtons.length) {
             const active = document.querySelector('.showcase-filters .filter-btn.active') || filterButtons[0];
@@ -5976,63 +5824,6 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 scrollElements.forEach(element => scrollObserver.observe(element));
             } else {
                 scrollElements.forEach(element => element.classList.add('animated'));
-            }
-        }
-
-        // Smooth Stats Dashboard Number Animation
-        const statsDashboardGrid = document.querySelector('.stats-dashboard-grid');
-        const statsCounterNodes = document.querySelectorAll('.stats-value[data-counter]');
-
-        const animateStatsCounter = (node) => {
-            const target = Number(node.dataset.counter || 0);
-            if (!Number.isFinite(target)) return;
-
-            const decimals = Math.max(0, Math.min(2, Number(node.dataset.decimals || 0)));
-            const suffix = String(node.dataset.suffix || '');
-            const duration = Math.max(900, Number(node.dataset.duration || 1300));
-            const startValue = 0;
-            const startTime = performance.now();
-
-            const draw = (current) => {
-                const value = decimals > 0 ? current.toFixed(decimals) : String(Math.round(current));
-                node.textContent = `${value}${suffix}`;
-            };
-
-            const tick = (now) => {
-                const progress = Math.min((now - startTime) / duration, 1);
-                const eased = 1 - Math.pow(1 - progress, 3);
-                const current = startValue + ((target - startValue) * eased);
-                draw(current);
-                if (progress < 1) {
-                    requestAnimationFrame(tick);
-                } else {
-                    draw(target);
-                }
-            };
-
-            requestAnimationFrame(tick);
-        };
-
-        const startStatsCounters = () => {
-            if (startStatsCounters.started) return;
-            startStatsCounters.started = true;
-            statsCounterNodes.forEach((node) => animateStatsCounter(node));
-        };
-
-        if (statsDashboardGrid && statsCounterNodes.length > 0) {
-            if ('IntersectionObserver' in window) {
-                const statsObserver = new IntersectionObserver((entries, observer) => {
-                    entries.forEach((entry) => {
-                        if (entry.isIntersecting) {
-                            startStatsCounters();
-                            observer.unobserve(entry.target);
-                        }
-                    });
-                }, { threshold: 0.4, rootMargin: '0px 0px -8% 0px' });
-
-                statsObserver.observe(statsDashboardGrid);
-            } else {
-                startStatsCounters();
             }
         }
 
