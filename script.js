@@ -493,15 +493,39 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         const defaultCloudinaryUnsignedPreset = 'ml_default';
         const cloudinaryPresetStorageKey = 'hailifu_cloudinary_upload_preset';
         const firebaseConfigStorageKey = 'hailifu_firebase_config';
-        const hardcodedFirebaseConfig = {
-            apiKey: 'AIzaSyBf0-nHMqu_ojZ1Ls-CEIHCXyiCnkNbRCY',
-            authDomain: 'hailifu-website.firebaseapp.com',
-            databaseURL: 'https://hailifu-website-default-rtdb.firebaseio.com/',
-            projectId: 'hailifu-website',
-            storageBucket: 'hailifu-website.firebasestorage.app',
-            messagingSenderId: '209696316971',
-            appId: '1:209696316971:web:4074db68735ba09221d46e'
-        };
+        function buildFirebaseConfigFromConfigObject(rawConfig) {
+            if (!rawConfig || typeof rawConfig !== 'object') return null;
+            const projectId = String(rawConfig.FIREBASE_PROJECT_ID || '').trim();
+            const databaseURL = String(rawConfig.FIREBASE_DATABASE_URL || '').trim()
+                || (projectId ? `https://${projectId}-default-rtdb.firebaseio.com/` : '');
+            const firebaseConfig = {
+                apiKey: String(rawConfig.FIREBASE_API_KEY || '').trim(),
+                authDomain: String(rawConfig.FIREBASE_AUTH_DOMAIN || '').trim(),
+                databaseURL,
+                projectId,
+                storageBucket: String(rawConfig.FIREBASE_STORAGE_BUCKET || '').trim(),
+                messagingSenderId: String(rawConfig.FIREBASE_MESSAGING_SENDER_ID || '').trim(),
+                appId: String(rawConfig.FIREBASE_APP_ID || '').trim()
+            };
+            if (!firebaseConfig.apiKey || !firebaseConfig.authDomain || !firebaseConfig.projectId) return null;
+            return firebaseConfig;
+        }
+
+        const configJsFirebaseConfig = (() => {
+            try {
+                if (typeof CONFIG === 'object' && CONFIG) {
+                    const parsed = buildFirebaseConfigFromConfigObject(CONFIG);
+                    if (parsed) return parsed;
+                }
+            } catch {}
+            try {
+                const fromWindow = window.CONFIG;
+                if (fromWindow && typeof fromWindow === 'object') {
+                    return buildFirebaseConfigFromConfigObject(fromWindow);
+                }
+            } catch {}
+            return null;
+        })();
         const firebaseProjectsPathStorageKey = 'hailifu_firebase_projects_path';
         const defaultFirebaseProjectsPath = 'projects';
         const firebaseSettingsPathStorageKey = 'hailifu_firebase_settings_path';
@@ -679,7 +703,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             const stored = readJsonStorage(firebaseConfigStorageKey, null);
             if (stored && typeof stored === 'object') return stored;
             try {
-                if (hardcodedFirebaseConfig && typeof hardcodedFirebaseConfig === 'object') return hardcodedFirebaseConfig;
+                if (configJsFirebaseConfig && typeof configJsFirebaseConfig === 'object') return configJsFirebaseConfig;
             } catch {}
             return null;
         }
