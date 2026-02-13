@@ -3729,15 +3729,50 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#39;');
 
-            const groupedEntries = projects.map((project) => {
+            const normalizeGroupToken = (value) => (
+                String(value || '')
+                    .toLowerCase()
+                    .replace(/\s+/g, ' ')
+                    .trim()
+            );
+
+            const groupedMap = new Map();
+            projects.forEach((project) => {
                 const projectId = String(project?.id || '').trim();
-                if (!projectId) return null;
+                if (!projectId) return;
+
                 const title = String(project?.title || project?.name || 'Untitled Project').trim() || 'Untitled Project';
                 const category = String(project?.category || 'general').trim() || 'general';
                 const list = coerceProjectMediaItems(project);
-                if (!list.length) return null;
-                return { project, projectId, title, category, list };
-            }).filter(Boolean);
+                if (!list.length) return;
+
+                const groupKey = `${normalizeGroupToken(title)}::${normalizeGroupToken(category)}` || projectId;
+                if (!groupedMap.has(groupKey)) {
+                    groupedMap.set(groupKey, {
+                        groupKey,
+                        title,
+                        category,
+                        projectIds: new Set(),
+                        mediaEntries: []
+                    });
+                }
+
+                const group = groupedMap.get(groupKey);
+                group.projectIds.add(projectId);
+                list.forEach((media, index) => {
+                    group.mediaEntries.push({
+                        project,
+                        projectId,
+                        title,
+                        category,
+                        media,
+                        index,
+                        total: list.length
+                    });
+                });
+            });
+
+            const groupedEntries = Array.from(groupedMap.values());
 
             if (!groupedEntries.length) {
                 projectsGrid.classList.add('is-grouped');
@@ -3837,29 +3872,41 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             };
 
             const markup = groupedEntries.map((group) => {
-                const { project, projectId, title, category, list } = group;
+                const { title, category, projectIds, mediaEntries } = group;
                 const safeTitle = escapeText(title);
                 const safeCategory = escapeText(formatCategoryLabel(category));
-                const featuredAssigned = getProjectSurfaceMediaList(project, 'featured').length;
-                const showcaseAssigned = getDirectSurfaceMediaKey(project, 'showcase') ? 1 : 0;
-                const servicesAssigned = getDirectSurfaceMediaKey(project, 'services') ? 1 : 0;
-                const cards = list.map((media, index) => buildMediaCard({
-                    project,
-                    projectId,
-                    title,
-                    category,
-                    media,
-                    index,
-                    total: list.length
-                })).join('');
+                const featuredAssigned = mediaEntries.reduce((count, entry) => {
+                    const mediaKey = getMediaKey(entry.media);
+                    if (!mediaKey) return count;
+                    const selected = getProjectSurfaceMediaList(entry.project, 'featured')
+                        .some((item) => getMediaKey(item) === mediaKey);
+                    return count + (selected ? 1 : 0);
+                }, 0);
+                const showcaseAssigned = mediaEntries.reduce((count, entry) => {
+                    const mediaKey = getMediaKey(entry.media);
+                    if (!mediaKey) return count;
+                    return count + (getDirectSurfaceMediaKey(entry.project, 'showcase') === mediaKey ? 1 : 0);
+                }, 0);
+                const servicesAssigned = mediaEntries.reduce((count, entry) => {
+                    const mediaKey = getMediaKey(entry.media);
+                    if (!mediaKey) return count;
+                    return count + (getDirectSurfaceMediaKey(entry.project, 'services') === mediaKey ? 1 : 0);
+                }, 0);
+                const cards = mediaEntries.map((entry) => buildMediaCard(entry)).join('');
+                const projectRecords = projectIds.size;
+                const recordsChip = projectRecords > 1
+                    ? `<span class="admin-project-group-chip">${projectRecords} records</span>`
+                    : '';
+                const groupKeySafe = escapeText(group.groupKey || title);
 
                 return `
-                    <section class="admin-project-group" data-admin-project-group="${escapeText(projectId)}">
+                    <section class="admin-project-group" data-admin-project-group="${groupKeySafe}">
                         <header class="admin-project-group-header">
                             <div class="admin-project-group-title">${safeTitle}</div>
                             <div class="admin-project-group-meta">
                                 <span class="admin-project-group-chip">${safeCategory}</span>
-                                <span class="admin-project-group-chip">${list.length} media</span>
+                                ${recordsChip}
+                                <span class="admin-project-group-chip">${mediaEntries.length} media</span>
                                 <span class="admin-project-group-chip">Featured ${featuredAssigned}</span>
                                 <span class="admin-project-group-chip">Showcase ${showcaseAssigned}</span>
                                 <span class="admin-project-group-chip">Services ${servicesAssigned}</span>
