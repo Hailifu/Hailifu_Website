@@ -1963,14 +1963,17 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             const key = String(serviceKey || '').toLowerCase().trim();
             const greetings = {
                 cctv: 'Hi! Need expert CCTV installation for your property? I can help!',
-                gate: 'Hello! Looking for a professional Auto-Gate technician?',
-                gates: 'Hello! Looking for a professional Auto-Gate technician?',
-                ac: 'Hi! Need an AC Installer or Air Condition Technician for installation or repairs?',
-                aircondition: 'Hi! Need an AC Installer or Air Condition Technician for installation or repairs?',
-                airconditioning: 'Hi! Need an AC Installer or Air Condition Technician for installation or repairs?',
-                blinds: 'Hello! Interested in Smart Blinds / Curtain & Window Blinds?',
-                blindcurtain: 'Hello! Interested in Smart Blinds / Curtain & Window Blinds?',
-                electrical: 'Hi! Need a professional Electrician for wiring, installations, or repairs?'
+                gate: 'Hello! Looking for Automated Gate installation or repairs?',
+                gates: 'Hello! Looking for Automated Gate installation or repairs?',
+                ac: 'Hi! Need Air Conditioner installation, servicing, or repairs?',
+                aircondition: 'Hi! Need Air Conditioner installation, servicing, or repairs?',
+                airconditioning: 'Hi! Need Air Conditioner installation, servicing, or repairs?',
+                blinds: 'Hello! Interested in Window Blinds and smart curtain solutions?',
+                blindcurtain: 'Hello! Interested in Window Blinds and smart curtain solutions?',
+                electrical: 'Hi! Need a professional electrician for wiring, installations, or repairs?',
+                fencing: 'Hi! Need Electric Fence perimeter installation or maintenance?',
+                fence: 'Hi! Need Electric Fence perimeter installation or maintenance?',
+                solar: 'Hi! Looking for Solar Energy system installation or upgrades?'
             };
             return greetings[key] || '';
         }
@@ -5239,16 +5242,24 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 question: 'For CCTV, how many cameras are you looking to install?'
             },
             gates: {
-                label: 'Gate Automation',
-                question: 'For Gate Automation, is it a sliding gate or swing gate?'
+                label: 'Automated Gates',
+                question: 'For Automated Gates, is it a sliding gate or swing gate?'
             },
             electrical: {
                 label: 'Electrical Wiring',
                 question: 'For Electrical Wiring, is this for a new house wiring or fixing an existing fault?'
             },
+            fencing: {
+                label: 'Electric Fence',
+                question: 'For Electric Fence, is this for a home perimeter, office, or industrial site?'
+            },
             airconditioning: {
                 label: 'Air Conditioning',
                 question: 'For Air Conditioning, is it installation, servicing, or repairs?'
+            },
+            solar: {
+                label: 'Solar Energy',
+                question: 'For Solar Energy, do you need a new installation, upgrade, or maintenance?'
             },
             blindcurtain: {
                 label: 'Smart Window Solutions',
@@ -5280,8 +5291,10 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             const t = (text || '').toLowerCase();
             if (t.includes('cctv') || t.includes('camera')) return 'cctv';
             if (t.includes('gate')) return 'gates';
+            if (t.includes('fenc')) return 'fencing';
             if (t.includes('electric')) return 'electrical';
             if (t.includes('air conditioning') || t.includes('aircondition') || t.includes('aircon') || t.includes('conditioner') || /\bac\b/.test(t)) return 'airconditioning';
+            if (t.includes('solar') || t.includes('panel') || t.includes('inverter')) return 'solar';
             if (t.includes('curtain') || t.includes('blind') || t.includes('smart window') || t.includes('smart windows') || t.includes('window')) return 'blindcurtain';
             return '';
         }
@@ -5299,14 +5312,16 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             clearChatMessages();
 
             const serviceGreeting = getServiceGreeting(deepLinkServiceKey);
-            const greetingText = serviceGreeting || 'Welcome to Hailifu! I can help you with a quick quote. Are you interested in CCTV, Gate Automation, Electrical Wiring, Air Conditioning, or Smart Window Solutions?';
+            const greetingText = serviceGreeting || 'Welcome to Hailifu! I can help you with a quick quote. Are you interested in CCTV, Automated Gates, Electrical Wiring, Electric Fence, Air Conditioning, Solar Energy, or Smart Window Solutions?';
 
             addMessage('bot', `${greetingText}
                 <div class="brilliant-quick-actions">
                     <button class="brilliant-quick-btn" type="button" data-assistant-service="cctv">CCTV</button>
-                    <button class="brilliant-quick-btn" type="button" data-assistant-service="gates">Gate Automation</button>
+                    <button class="brilliant-quick-btn" type="button" data-assistant-service="gates">Automated Gates</button>
                     <button class="brilliant-quick-btn" type="button" data-assistant-service="electrical">Electrical Wiring</button>
+                    <button class="brilliant-quick-btn" type="button" data-assistant-service="fencing">Electric Fence</button>
                     <button class="brilliant-quick-btn" type="button" data-assistant-service="airconditioning">Air Conditioning</button>
+                    <button class="brilliant-quick-btn" type="button" data-assistant-service="solar">Solar Energy</button>
                     <button class="brilliant-quick-btn" type="button" data-assistant-service="blindcurtain">Smart Window Solutions</button>
                 </div>`);
         }
@@ -5353,7 +5368,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const key = normalizeService(value) || value.toLowerCase();
                 const serviceKey = assistantCatalog[key] ? key : normalizeService(value);
                 if (!serviceKey || !assistantCatalog[serviceKey]) {
-                    addMessage('bot', 'Please choose: CCTV, Gate Automation, Electrical Wiring, Air Conditioning, or Smart Window Solutions.');
+                    addMessage('bot', 'Please choose: CCTV, Automated Gates, Electrical Wiring, Electric Fence, Air Conditioning, Solar Energy, or Smart Window Solutions.');
                     return;
                 }
                 assistantState.serviceKey = serviceKey;
