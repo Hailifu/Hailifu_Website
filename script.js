@@ -857,15 +857,26 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             else try { localStorage.removeItem(integrityImageStorageKey); } catch {}
         }
 
+        function isIntegrityVideoUrl(url) {
+            const raw = String(url || '').trim().toLowerCase();
+            if (!raw) return false;
+            if (raw.includes('/video/upload/')) return true;
+            return /\.(mp4|webm|mov|m4v|ogg|ogv)(\?|#|$)/i.test(raw);
+        }
+
         function loadIntegrityImage(url) {
             const panel = document.getElementById('integrityPanel');
             const container = document.getElementById('integrityContainer');
             const img = document.getElementById('integrityImage');
-            if (!container || !img) return;
+            const video = document.getElementById('integrityVideo');
+            if (!container || !img || !video) return;
             const raw = String(url || '').trim();
             if (!raw) {
                 img.removeAttribute('src');
+                video.removeAttribute('src');
+                try { video.load(); } catch {}
                 img.style.display = 'none';
+                video.style.display = 'none';
                 if (panel) panel.classList.remove('is-loading');
                 if (container) container.classList.add('integrity-empty');
                 return;
@@ -873,6 +884,28 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             if (container) container.classList.remove('integrity-empty');
             if (panel) panel.classList.add('is-loading');
             img.style.display = 'none';
+            video.style.display = 'none';
+
+            if (isIntegrityVideoUrl(raw)) {
+                img.removeAttribute('src');
+                video.onloadeddata = function() {
+                    video.style.display = 'block';
+                    if (panel) panel.classList.remove('is-loading');
+                    const playPromise = video.play();
+                    if (playPromise && typeof playPromise.catch === 'function') {
+                        playPromise.catch(() => {});
+                    }
+                };
+                video.onerror = function() {
+                    if (panel) panel.classList.remove('is-loading');
+                };
+                video.src = raw;
+                try { video.load(); } catch {}
+                return;
+            }
+
+            video.removeAttribute('src');
+            try { video.load(); } catch {}
             img.onload = function() {
                 img.style.display = 'block';
                 if (panel) panel.classList.remove('is-loading');
@@ -2125,12 +2158,12 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                                 </div>
                                 <div class="admin-section full-span">
                                     <div class="admin-section-heading">
-                                        <h3><i class="fas fa-image"></i> Integrity Graphic</h3>
+                                        <h3><i class="fas fa-photo-film"></i> Integrity Media</h3>
                                         <span class="admin-section-tag">Site Asset</span>
                                     </div>
-                                    <p style="margin-bottom:12px; font-size:0.85rem; color: rgba(255,255,255,0.7);">Image shown in the &quot;Why Choose Us&quot; area. Upload to replace.</p>
-                                    <input type="file" id="integrityImageInput" class="admin-file-input" accept="image/*" style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;">
-                                    <button class="upload-btn admin-action-btn integrity-graphic-btn" id="integrityGraphicBtn" type="button"><i class="fas fa-upload"></i> Change Integrity Graphic</button>
+                                    <p style="margin-bottom:12px; font-size:0.85rem; color: rgba(255,255,255,0.7);">Media shown in the &quot;Why Choose Us&quot; area. Upload image or video to replace.</p>
+                                    <input type="file" id="integrityImageInput" class="admin-file-input" accept="image/*,video/*" style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;">
+                                    <button class="upload-btn admin-action-btn integrity-graphic-btn" id="integrityGraphicBtn" type="button"><i class="fas fa-upload"></i> Upload Integrity Media</button>
                                     <div class="integrity-upload-progress" id="integrityUploadProgress" aria-hidden="true" style="display:none; margin-top:10px;">
                                         <div class="upload-progress-bar"><div class="upload-progress-fill" id="integrityUploadProgressFill" style="width:0%"></div></div>
                                     </div>
@@ -2328,6 +2361,15 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                                         </div>
                                     </div>
                                 </form>
+                            </div>
+                            <div class="admin-section">
+                                <h3><i class="fas fa-photo-film"></i> System Integrity Media</h3>
+                                <p style="margin-bottom:12px; font-size:0.85rem; color: rgba(255,255,255,0.7);">Upload image or video for the System Integrity block (Uptime / Latency / Coverage).</p>
+                                <input type="file" id="integrityMediaInputProjects" class="admin-file-input" accept="image/*,video/*" style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;">
+                                <button class="upload-btn admin-action-btn integrity-graphic-btn" id="integrityMediaBtnProjects" type="button"><i class="fas fa-upload"></i> Upload Integrity Media</button>
+                                <div class="integrity-upload-progress" id="integrityMediaUploadProgressProjects" aria-hidden="true" style="display:none; margin-top:10px;">
+                                    <div class="upload-progress-bar"><div class="upload-progress-fill" id="integrityMediaUploadProgressFillProjects" style="width:0%"></div></div>
+                                </div>
                             </div>
                             <div class="admin-section">
                                 <h3><i class="fas fa-layer-group"></i> All Media</h3>
@@ -3144,57 +3186,68 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 });
             }
 
-            const integrityGraphicBtn = document.getElementById('integrityGraphicBtn');
-            const integrityImageInput = document.getElementById('integrityImageInput');
-            const integrityUploadProgress = document.getElementById('integrityUploadProgress');
-            const integrityUploadProgressFill = document.getElementById('integrityUploadProgressFill');
-            if (integrityGraphicBtn && integrityImageInput) {
-                integrityGraphicBtn.addEventListener('click', () => { integrityImageInput.click(); });
-                integrityImageInput.addEventListener('change', function() {
+            function bindIntegrityMediaUploader(buttonId, inputId, progressId, progressFillId) {
+                const triggerBtn = document.getElementById(buttonId);
+                const fileInput = document.getElementById(inputId);
+                const progressWrap = document.getElementById(progressId);
+                const progressFill = document.getElementById(progressFillId);
+                if (!triggerBtn || !fileInput) return;
+                if (fileInput.dataset.boundIntegrityUploader === '1') return;
+                fileInput.dataset.boundIntegrityUploader = '1';
+
+                triggerBtn.addEventListener('click', () => { fileInput.click(); });
+                fileInput.addEventListener('change', function() {
                     const file = this.files?.[0];
-                    if (!file || !file.type.startsWith('image/')) {
+                    const isImage = Boolean(file && file.type && file.type.startsWith('image/'));
+                    const isVideo = Boolean(file && file.type && file.type.startsWith('video/'));
+                    if (!file || (!isImage && !isVideo)) {
                         this.value = '';
                         return;
                     }
+
                     const preset = getCloudinaryPresetValue();
                     if (!preset) {
                         alert('Enter Cloudinary preset in Projects tab first.');
                         this.value = '';
                         return;
                     }
-                    if (integrityUploadProgress) {
-                        integrityUploadProgress.style.display = 'block';
-                        integrityUploadProgress.setAttribute('aria-hidden', 'false');
+
+                    if (progressWrap) {
+                        progressWrap.style.display = 'block';
+                        progressWrap.setAttribute('aria-hidden', 'false');
                     }
-                    if (integrityUploadProgressFill) integrityUploadProgressFill.style.width = '0%';
+                    if (progressFill) progressFill.style.width = '0%';
+
                     cloudinaryUnsignedUpload(file, {
                         preset,
-                        resourceType: 'image',
+                        resourceType: 'auto',
                         folder: 'hailifu',
                         onProgress: (pct) => {
-                            if (integrityUploadProgressFill) integrityUploadProgressFill.style.width = pct + '%';
+                            if (progressFill) progressFill.style.width = `${pct}%`;
                         }
                     }).then((payload) => {
                         const url = String(payload?.secure_url || '').trim();
                         if (!url) throw new Error('Upload failed');
                         setIntegrityImageUrlLocal(url);
                         loadIntegrityImage(url);
-                        if (firebaseIsReady()) {
-                            return setFirebaseIntegrityImageUrl(url);
-                        }
+                        if (firebaseIsReady()) return setFirebaseIntegrityImageUrl(url);
                     }).then(() => {
-                        if (integrityImageInput) integrityImageInput.value = '';
+                        fileInput.value = '';
+                        showAdminMediaToast('Integrity media updated', 'success');
                     }).catch((err) => {
                         alert(String(err?.message || err || 'Upload failed'));
                     }).finally(() => {
-                        if (integrityUploadProgress) {
-                            integrityUploadProgress.style.display = 'none';
-                            integrityUploadProgress.setAttribute('aria-hidden', 'true');
+                        if (progressWrap) {
+                            progressWrap.style.display = 'none';
+                            progressWrap.setAttribute('aria-hidden', 'true');
                         }
-                        if (integrityUploadProgressFill) integrityUploadProgressFill.style.width = '0%';
+                        if (progressFill) progressFill.style.width = '0%';
                     });
                 });
             }
+
+            bindIntegrityMediaUploader('integrityGraphicBtn', 'integrityImageInput', 'integrityUploadProgress', 'integrityUploadProgressFill');
+            bindIntegrityMediaUploader('integrityMediaBtnProjects', 'integrityMediaInputProjects', 'integrityMediaUploadProgressProjects', 'integrityMediaUploadProgressFillProjects');
 
             if (adminPanel) {
                 adminPanel.addEventListener('click', (e) => {

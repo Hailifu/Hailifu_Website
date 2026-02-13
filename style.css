@@ -1539,7 +1539,8 @@
             animation: shimmerSweep 1.1s linear infinite;
         }
 
-        .about-visual-panel .about-visual-image {
+        .about-visual-panel .about-visual-image,
+        .about-visual-panel .about-visual-video {
             width: 100%;
             height: auto;
             display: block;
@@ -1547,7 +1548,13 @@
             transition: opacity 220ms ease;
         }
 
-        .about-visual-panel.is-loading .about-visual-image {
+        .about-visual-panel .about-visual-video {
+            min-height: 280px;
+            object-fit: cover;
+        }
+
+        .about-visual-panel.is-loading .about-visual-image,
+        .about-visual-panel.is-loading .about-visual-video {
             opacity: 0;
         }
 
