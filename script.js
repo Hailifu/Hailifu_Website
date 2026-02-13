@@ -2858,12 +2858,28 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     const deleteBtn = e.target.closest('[data-delete-project-id]');
                     if (deleteBtn) {
                         const id = deleteBtn.getAttribute('data-delete-project-id');
+                        const projects = getProjects().filter((p) => p.id !== id);
+                        saveProjects(projects);
+                        loadProjects();
+
                         if (firebaseIsReady()) {
                             removeProjectInFirebase(id).catch(() => {});
                         } else {
-                            const projects = getProjects().filter((p) => p.id !== id);
-                            saveProjects(projects);
-                            loadProjects();
+                            const preset = getCloudinaryPresetValue();
+                            if (preset) {
+                                persistCloudinaryPreset();
+                                const nextConfig = {
+                                    ...(remoteConfigState && typeof remoteConfigState === 'object' ? remoteConfigState : {}),
+                                    updatedAt: new Date().toISOString(),
+                                    projects
+                                };
+                                uploadRemoteConfig(nextConfig, preset)
+                                    .then(() => {
+                                        remoteConfigState = nextConfig;
+                                        remoteConfigFingerprint = '';
+                                    })
+                                    .catch(() => {});
+                            }
                         }
                         const generated = document.querySelector(`[data-generated-project-id="${id}"]`);
                         if (generated) generated.remove();
@@ -3199,31 +3215,31 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         }
 
         function getProjects() {
-            const firebaseProjects = firebaseProjectsState && Array.isArray(firebaseProjectsState)
+            const firebaseProjects = Array.isArray(firebaseProjectsState)
                 ? firebaseProjectsState
                 : null;
 
-                if (firebaseProjects && firebaseProjects.length) {
-                    const list = Array.isArray(firebaseProjects) ? firebaseProjects : [];
-                    return list.map((project) => {
-                        const base = stripProjectQuoteFields(project);
-                        const visibility = normalizeVisibilityFlags(base);
-                        const rawMediaSrc = String(base?.mediaSrc || base?.imageUrl || base?.mediaUrl || '').trim();
-                        const rawThumbSrc = String(base?.thumbSrc || base?.thumbnailUrl || base?.thumbUrl || '').trim();
-                        const mediaSrc = normalizeProjectMediaPath(rawMediaSrc);
-                        const thumbSrc = normalizeProjectMediaPath(rawThumbSrc);
-                        const mediaType = String(base?.mediaType || (mediaSrc && /\.(mp4|webm|mov)(\?|#|$)/i.test(mediaSrc) ? 'video' : 'image') || 'image').trim().toLowerCase() || 'image';
-                        return {
-                            ...base,
-                            mediaSrc,
-                            thumbSrc,
-                            mediaType,
-                            ...visibility,
-                            isStarred: Boolean(project?.isStarred),
-                            isFeatured: Boolean(project?.isFeatured)
-                        };
-                    });
-                }
+            if (firebaseProjects) {
+                const list = Array.isArray(firebaseProjects) ? firebaseProjects : [];
+                return list.map((project) => {
+                    const base = stripProjectQuoteFields(project);
+                    const visibility = normalizeVisibilityFlags(base);
+                    const rawMediaSrc = String(base?.mediaSrc || base?.imageUrl || base?.mediaUrl || '').trim();
+                    const rawThumbSrc = String(base?.thumbSrc || base?.thumbnailUrl || base?.thumbUrl || '').trim();
+                    const mediaSrc = normalizeProjectMediaPath(rawMediaSrc);
+                    const thumbSrc = normalizeProjectMediaPath(rawThumbSrc);
+                    const mediaType = String(base?.mediaType || (mediaSrc && /\.(mp4|webm|mov)(\?|#|$)/i.test(mediaSrc) ? 'video' : 'image') || 'image').trim().toLowerCase() || 'image';
+                    return {
+                        ...base,
+                        mediaSrc,
+                        thumbSrc,
+                        mediaType,
+                        ...visibility,
+                        isStarred: Boolean(project?.isStarred),
+                        isFeatured: Boolean(project?.isFeatured)
+                    };
+                });
+            }
 
             const fromRemote = remoteConfigState && Array.isArray(remoteConfigState?.projects)
                 ? remoteConfigState.projects
@@ -3277,16 +3293,22 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         }
 
         function saveProjects(projects) {
-            if (firebaseProjectsState && Array.isArray(firebaseProjectsState)) {
-                firebaseProjectsState = Array.isArray(projects)
-                    ? projects.map(stripProjectQuoteFields)
-                    : [];
-                return;
-            }
             const sanitized = Array.isArray(projects)
                 ? projects.map(stripProjectQuoteFields)
                 : [];
-            void sanitized;
+
+            if (Array.isArray(firebaseProjectsState)) {
+                firebaseProjectsState = sanitized;
+            }
+
+            writeJsonStorage('hailifu_projects', sanitized);
+
+            if (remoteConfigState && typeof remoteConfigState === 'object') {
+                remoteConfigState = {
+                    ...remoteConfigState,
+                    projects: sanitized
+                };
+            }
         }
 
         function renderProjects() {
