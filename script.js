@@ -7000,11 +7000,21 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             }
         }
 
+        let headerLastY = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0);
         const updateHeaderScrolled = () => {
             if (!mainNav) return;
             const y = window.scrollY || document.documentElement.scrollTop || 0;
+            const delta = y - headerLastY;
             mainNav.classList.toggle('is-scrolled', y > 12);
+            if (y <= 20) {
+                mainNav.classList.remove('is-hidden');
+            } else if (delta < -4) {
+                mainNav.classList.add('is-hidden');
+            } else if (delta > 4) {
+                mainNav.classList.remove('is-hidden');
+            }
             if (backToTopBtn) backToTopBtn.classList.toggle('is-visible', y > 420);
+            headerLastY = y;
         };
 
         updateHeaderScrolled();
