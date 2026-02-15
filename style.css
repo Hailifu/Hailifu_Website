@@ -7944,15 +7944,15 @@
 
         @media (max-width: 620px) {
             .project-modal-gallery {
-                grid-template-columns: 1fr;
-                gap: 10px;
-                padding: 6px 4px 8px;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 8px;
+                padding: 6px 6px 8px;
             }
 
             .project-modal.is-showcase-fullscreen .project-modal-gallery {
-                grid-template-columns: 1fr;
-                gap: 10px;
-                padding: 6px 4px 8px;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 8px;
+                padding: 6px 6px 8px;
             }
 
             .project-modal-tile.is-hero {
@@ -8117,6 +8117,21 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            position: relative;
+            isolation: isolate;
+        }
+
+        .media-lightbox-content::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: var(--lightbox-bg, none);
+            background-size: cover;
+            background-position: center;
+            filter: blur(26px) brightness(0.45);
+            transform: scale(1.08);
+            z-index: 0;
+            opacity: 0.9;
         }
 
         .media-lightbox-caption {
@@ -8140,8 +8155,10 @@
             height: 100%;
             border: 0;
             display: block;
-            object-fit: cover;
+            object-fit: contain;
             background: transparent;
+            position: relative;
+            z-index: 1;
         }
 
         .media-lightbox-content iframe {
@@ -8149,6 +8166,8 @@
             height: 100%;
             border: 0;
             display: block;
+            position: relative;
+            z-index: 1;
         }
  
         .project-modal-meta h4 {

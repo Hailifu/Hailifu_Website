@@ -6009,13 +6009,21 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             const content = projectLightbox.querySelector('.media-lightbox-content');
             if (!content) return;
             content.innerHTML = '';
+            content.style.removeProperty('--lightbox-bg');
 
             const caption = projectLightbox.querySelector('.media-lightbox-caption');
             if (caption) caption.textContent = String(title || '').trim();
 
             const type = String(mediaItem?.mediaType || '').toLowerCase();
             const src = String(mediaItem?.mediaSrc || '').trim();
+            const thumbSrc = String(mediaItem?.thumbSrc || '').trim();
             const displayTitle = String(title || 'Preview').trim();
+            const setLightboxBackdrop = (value) => {
+                const raw = String(value || '').trim();
+                if (!raw) return;
+                const safe = raw.replace(/"/g, '\\"');
+                content.style.setProperty('--lightbox-bg', `url("${safe}")`);
+            };
 
             if (type === 'video') {
                 const video = document.createElement('video');
@@ -6024,9 +6032,12 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 video.autoplay = true;
                 video.playsInline = true;
                 content.appendChild(video);
+                setLightboxBackdrop(thumbSrc);
             } else if (type === 'youtube') {
                 const youtubeId = getYoutubeVideoId(src);
                 const watchUrl = youtubeId ? getYoutubeWatchUrl(youtubeId) : src;
+                const youtubeThumb = thumbSrc || getYoutubeThumbUrl(youtubeId) || '';
+                setLightboxBackdrop(youtubeThumb);
 
                 if (!canEmbedYoutube()) {
                     const wrap = document.createElement('div');
@@ -6054,6 +6065,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 img.src = src;
                 img.alt = displayTitle;
                 content.appendChild(img);
+                setLightboxBackdrop(src);
             }
 
             projectLightbox.classList.add('active');
