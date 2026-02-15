@@ -7902,15 +7902,9 @@
             overflow-y: auto;
             overscroll-behavior-y: contain;
             -webkit-overflow-scrolling: touch;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 14px;
             padding: 10px 14px 12px;
-        }
-
-        @media (max-width: 1140px) {
-            .project-modal.is-showcase-fullscreen .project-modal-gallery {
-                grid-template-columns: repeat(3, minmax(0, 1fr));
-            }
         }
 
         .project-modal-gallery-controls {
@@ -8165,13 +8159,6 @@
             background: transparent;
             position: relative;
             z-index: 1;
-        }
-
-        @media (min-width: 900px) {
-            .media-lightbox-content img,
-            .media-lightbox-content video {
-                object-fit: cover;
-            }
         }
 
         .media-lightbox-content iframe {

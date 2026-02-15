@@ -5749,6 +5749,25 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             const nextBtn = node.querySelector('.media-lightbox-next');
             if (nextBtn) nextBtn.addEventListener('click', () => stepProjectLightboxPlaylist(1));
 
+            document.addEventListener('keydown', (e) => {
+                if (!isProjectLightboxOpen()) return;
+                const key = String(e.key || '');
+                if (key === 'Escape') {
+                    e.preventDefault();
+                    closeProjectLightbox();
+                    return;
+                }
+                if (key === 'ArrowLeft') {
+                    e.preventDefault();
+                    stepProjectLightboxPlaylist(-1);
+                    return;
+                }
+                if (key === 'ArrowRight') {
+                    e.preventDefault();
+                    stepProjectLightboxPlaylist(1);
+                }
+            });
+
             const content = node.querySelector('.media-lightbox-content');
             if (content) {
                 let touchStartX = 0;
@@ -6195,6 +6214,11 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 if (!tile) return;
                 const idx = Number(tile.dataset.index);
                 if (!Number.isFinite(idx) || !mediaItems[idx]) return;
+                const playlist = mediaItems.map((entry) => ({
+                    mediaItem: entry,
+                    title: safeTitle
+                }));
+                setProjectLightboxPlaylist(playlist, idx);
                 openProjectLightbox(mediaItems[idx], safeTitle);
             });
 
