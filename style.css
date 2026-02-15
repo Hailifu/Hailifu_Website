@@ -8915,3 +8915,166 @@
 [data-theme='light'] .modern-review-section .featured-reviews-feed .featured-review-meta {
     color: rgba(27, 27, 27, 0.62);
 }
+
+/* Tech Gallery Module */
+.tech-gallery-section {
+    width: min(1200px, 92%);
+    margin: 64px auto;
+    padding: 72px 5%;
+    border: 1px solid rgba(255, 140, 0, 0.32);
+    border-radius: 0;
+    background:
+        linear-gradient(180deg, rgba(255, 140, 0, 0.08), rgba(255, 140, 0, 0.02)),
+        linear-gradient(120deg, rgba(0, 0, 0, 0.96), rgba(7, 7, 7, 0.92));
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.5);
+    position: relative;
+    overflow: hidden;
+}
+
+.tech-gallery-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(255, 140, 0, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 140, 0, 0.08) 1px, transparent 1px);
+    background-size: 36px 36px;
+    opacity: 0.22;
+    pointer-events: none;
+}
+
+.tech-gallery-section > * {
+    position: relative;
+    z-index: 1;
+}
+
+.tech-gallery-grid {
+    margin-top: 30px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.tech-gallery-card {
+    position: relative;
+    padding: 0;
+    margin: 0;
+    border: 1px solid rgba(255, 140, 0, 0.34);
+    border-radius: 0;
+    background: #000;
+    cursor: pointer;
+    overflow: hidden;
+    text-align: left;
+    transition: border-color 0.24s ease, box-shadow 0.24s ease, transform 0.24s ease;
+}
+
+.tech-gallery-card img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.35s ease;
+    transform: scale(1);
+}
+
+.tech-gallery-label {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 10px 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #fff;
+    background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.86));
+}
+
+.tech-gallery-card:hover {
+    border-color: #FF8C00;
+    box-shadow: 0 0 0 1px rgba(255, 140, 0, 0.9), 0 0 24px rgba(255, 140, 0, 0.34);
+    transform: translateY(-2px);
+}
+
+.tech-gallery-card:hover img {
+    transform: scale(1.07);
+}
+
+.tech-gallery-lightbox {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.82);
+    z-index: 10100;
+}
+
+.tech-gallery-lightbox.active {
+    display: flex;
+}
+
+.tech-gallery-lightbox-panel {
+    width: min(1240px, 96vw);
+    max-height: 92vh;
+    border: 1px solid rgba(255, 140, 0, 0.44);
+    border-radius: 0;
+    background: #000;
+    position: relative;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.62);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.tech-gallery-lightbox-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 42px;
+    height: 42px;
+    border: 1px solid #FF8C00;
+    border-radius: 0;
+    background: #FF8C00;
+    color: #000;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2;
+    transition: filter 0.2s ease;
+}
+
+.tech-gallery-lightbox-close:hover {
+    filter: brightness(1.06);
+}
+
+.tech-gallery-lightbox-panel img {
+    width: 100%;
+    max-height: calc(92vh - 56px);
+    object-fit: contain;
+    display: block;
+    background: #000;
+}
+
+.tech-gallery-lightbox-caption {
+    margin: 0;
+    padding: 10px 12px;
+    color: #FF8C00;
+    border-top: 1px solid rgba(255, 140, 0, 0.3);
+    font-size: 0.85rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+@media (max-width: 768px) {
+    .tech-gallery-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .tech-gallery-section {
+        padding: 56px 5%;
+    }
+}

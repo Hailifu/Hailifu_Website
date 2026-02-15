@@ -40,7 +40,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-        <link rel="stylesheet" href="style.css?v=20260215i">
+        <link rel="stylesheet" href="style.css?v=20260215j">
         <style>
             #chatbotToggle.chatbot-toggle,
             #brilliantChatBtn.brilliant-chat-btn {
@@ -403,6 +403,47 @@
             </div>
         </div>
     </section>
+
+    <section class="section tech-gallery-section animate-on-scroll" id="tech-gallery">
+        <h2 class="section-title">Operations Gallery</h2>
+        <p class="section-subtitle">CCTV setup, panel wiring, and field installation snapshots.</p>
+        <div class="tech-gallery-grid" id="techGalleryGrid" aria-label="Hailifu image gallery">
+            <button class="tech-gallery-card" type="button" data-tech-gallery-src="https://placehold.co/1200x800/000000/FF8C00?text=CCTV+Setup+01" data-tech-gallery-caption="CCTV Setup">
+                <img src="https://placehold.co/1200x800/000000/FF8C00?text=CCTV+Setup+01" alt="CCTV Setup">
+                <span class="tech-gallery-label">CCTV Setup</span>
+            </button>
+            <button class="tech-gallery-card" type="button" data-tech-gallery-src="https://placehold.co/1200x800/000000/FF8C00?text=CCTV+Setup+02" data-tech-gallery-caption="CCTV Setup">
+                <img src="https://placehold.co/1200x800/000000/FF8C00?text=CCTV+Setup+02" alt="CCTV Setup">
+                <span class="tech-gallery-label">CCTV Setup</span>
+            </button>
+            <button class="tech-gallery-card" type="button" data-tech-gallery-src="https://placehold.co/1200x800/000000/FF8C00?text=Panel+Wiring+01" data-tech-gallery-caption="Panel Wiring">
+                <img src="https://placehold.co/1200x800/000000/FF8C00?text=Panel+Wiring+01" alt="Panel Wiring">
+                <span class="tech-gallery-label">Panel Wiring</span>
+            </button>
+            <button class="tech-gallery-card" type="button" data-tech-gallery-src="https://placehold.co/1200x800/000000/FF8C00?text=Panel+Wiring+02" data-tech-gallery-caption="Panel Wiring">
+                <img src="https://placehold.co/1200x800/000000/FF8C00?text=Panel+Wiring+02" alt="Panel Wiring">
+                <span class="tech-gallery-label">Panel Wiring</span>
+            </button>
+            <button class="tech-gallery-card" type="button" data-tech-gallery-src="https://placehold.co/1200x800/000000/FF8C00?text=Installation+Team+01" data-tech-gallery-caption="Installation Team">
+                <img src="https://placehold.co/1200x800/000000/FF8C00?text=Installation+Team+01" alt="Installation Team">
+                <span class="tech-gallery-label">Installation Team</span>
+            </button>
+            <button class="tech-gallery-card" type="button" data-tech-gallery-src="https://placehold.co/1200x800/000000/FF8C00?text=Installation+Team+02" data-tech-gallery-caption="Installation Team">
+                <img src="https://placehold.co/1200x800/000000/FF8C00?text=Installation+Team+02" alt="Installation Team">
+                <span class="tech-gallery-label">Installation Team</span>
+            </button>
+        </div>
+    </section>
+
+    <div class="tech-gallery-lightbox" id="techGalleryLightbox" aria-hidden="true">
+        <div class="tech-gallery-lightbox-panel" role="dialog" aria-modal="true" aria-label="Image preview">
+            <button class="tech-gallery-lightbox-close" id="techGalleryClose" type="button" aria-label="Close image preview">
+                <i class="fas fa-times"></i>
+            </button>
+            <img id="techGalleryLightboxImage" src="" alt="">
+            <p class="tech-gallery-lightbox-caption" id="techGalleryLightboxCaption"></p>
+        </div>
+    </div>
  
     <!-- Why Choose Us Section -->
     <section class="section about-section" id="about">
@@ -1056,7 +1097,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" defer></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js" defer></script>
     <script src="config.js" defer></script>
-    <script src="script.js?v=1.8" defer></script>
+    <script src="script.js?v=1.9" defer></script>
 
  </body>
  </html>

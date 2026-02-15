@@ -7199,5 +7199,68 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             }
         }
 
+        const techGalleryGrid = document.getElementById('techGalleryGrid');
+        const techGalleryLightbox = document.getElementById('techGalleryLightbox');
+        const techGalleryLightboxImage = document.getElementById('techGalleryLightboxImage');
+        const techGalleryLightboxCaption = document.getElementById('techGalleryLightboxCaption');
+        const techGalleryClose = document.getElementById('techGalleryClose');
+
+        function closeTechGalleryLightbox() {
+            if (!techGalleryLightbox) return;
+            techGalleryLightbox.classList.remove('active');
+            techGalleryLightbox.setAttribute('aria-hidden', 'true');
+            if (techGalleryLightboxImage) {
+                techGalleryLightboxImage.src = '';
+                techGalleryLightboxImage.alt = '';
+            }
+            if (techGalleryLightboxCaption) techGalleryLightboxCaption.textContent = '';
+        }
+
+        function openTechGalleryLightbox(src, caption) {
+            if (!techGalleryLightbox || !techGalleryLightboxImage) return;
+            const safeSrc = String(src || '').trim();
+            if (!safeSrc) return;
+            const safeCaption = String(caption || '').trim();
+            techGalleryLightboxImage.src = safeSrc;
+            techGalleryLightboxImage.alt = safeCaption || 'Gallery image';
+            if (techGalleryLightboxCaption) techGalleryLightboxCaption.textContent = safeCaption;
+            techGalleryLightbox.classList.add('active');
+            techGalleryLightbox.setAttribute('aria-hidden', 'false');
+        }
+
+        if (techGalleryGrid) {
+            techGalleryGrid.addEventListener('click', (e) => {
+                const card = e.target.closest('.tech-gallery-card');
+                if (!card || !techGalleryGrid.contains(card)) return;
+                e.preventDefault();
+                const src = card.getAttribute('data-tech-gallery-src') || card.querySelector('img')?.getAttribute('src') || '';
+                const caption = card.getAttribute('data-tech-gallery-caption') || card.querySelector('.tech-gallery-label')?.textContent || '';
+                openTechGalleryLightbox(src, caption);
+            });
+        }
+
+        if (techGalleryClose) {
+            techGalleryClose.addEventListener('click', (e) => {
+                e.preventDefault();
+                closeTechGalleryLightbox();
+            });
+        }
+
+        if (techGalleryLightbox) {
+            techGalleryLightbox.addEventListener('click', (e) => {
+                if (e.target === techGalleryLightbox) {
+                    closeTechGalleryLightbox();
+                }
+            });
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (!techGalleryLightbox || !techGalleryLightbox.classList.contains('active')) return;
+            if (String(e.key || '') === 'Escape') {
+                e.preventDefault();
+                closeTechGalleryLightbox();
+            }
+        });
+
         });
 
