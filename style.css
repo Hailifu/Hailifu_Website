@@ -7880,16 +7880,18 @@
 
         .project-modal-gallery {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
             grid-auto-flow: row;
             align-content: start;
+            align-items: stretch;
             gap: 14px;
             max-height: min(64vh, 680px);
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             overscroll-behavior: contain;
             touch-action: pan-y;
-            padding: 2px 6px 6px 2px;
+            scrollbar-gutter: stable both-edges;
+            padding: 8px 10px 10px;
         }
 
         .project-modal.is-showcase-fullscreen .project-modal-gallery {
@@ -7900,8 +7902,9 @@
             overflow-y: auto;
             overscroll-behavior-y: contain;
             -webkit-overflow-scrolling: touch;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 14px;
+            padding: 10px 14px 12px;
         }
 
         .project-modal-gallery-controls {
@@ -7930,48 +7933,58 @@
         @media (max-width: 900px) {
             .project-modal-gallery {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
+                padding: 8px;
             }
 
             .project-modal.is-showcase-fullscreen .project-modal-gallery {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
+                padding: 8px;
             }
         }
 
         @media (max-width: 620px) {
             .project-modal-gallery {
                 grid-template-columns: 1fr;
+                gap: 10px;
+                padding: 6px 4px 8px;
             }
 
             .project-modal.is-showcase-fullscreen .project-modal-gallery {
                 grid-template-columns: 1fr;
-                gap: 12px;
+                gap: 10px;
+                padding: 6px 4px 8px;
             }
 
             .project-modal-tile.is-hero {
                 grid-column: span 1;
                 grid-row: span 1;
-                aspect-ratio: 4 / 3;
+                aspect-ratio: 16 / 11;
             }
         }
 
         .project-modal-tile {
             position: relative;
+            display: block;
+            width: 100%;
+            line-height: 0;
+            appearance: none;
+            -webkit-appearance: none;
             padding: 0;
             border: 1px solid rgba(255, 255, 255, 0.10);
-            border-radius: 12px;
+            border-radius: 14px;
             overflow: hidden;
             background: rgba(0, 0, 0, 0.35);
             cursor: pointer;
             transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
-            transform: translateZ(0);
-            aspect-ratio: 4 / 3;
-            box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+            transform: none;
+            aspect-ratio: 16 / 11;
+            box-shadow: 0 10px 22px rgba(0, 0, 0, 0.30);
         }
 
         .project-modal-tile.is-hero {
             grid-column: span 1;
             grid-row: span 1;
-            aspect-ratio: 4 / 3;
+            aspect-ratio: 16 / 11;
         }
 
         .project-modal-tile.is-hidden {
@@ -7979,16 +7992,16 @@
         }
 
         .project-modal-tile:hover {
-            transform: translateY(-2px);
+            transform: none;
             border-color: var(--orange);
-            box-shadow: 0 12px 24px rgba(255, 140, 0, 0.16);
+            box-shadow: 0 12px 24px rgba(255, 140, 0, 0.14);
         }
 
         @media (hover: none), (pointer: coarse) {
             .project-modal-tile:hover {
                 transform: none;
                 border-color: rgba(255, 255, 255, 0.10);
-                box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+                box-shadow: 0 10px 22px rgba(0, 0, 0, 0.30);
             }
         }
 
@@ -8044,8 +8057,8 @@
             display: none;
             align-items: center;
             justify-content: center;
-            padding: 22px;
-            background: rgba(0, 0, 0, 0.86);
+            padding: 0;
+            background: rgba(0, 0, 0, 0.96);
             z-index: 10060;
         }
 
@@ -8055,8 +8068,8 @@
 
         .media-lightbox-close {
             position: absolute;
-            top: 18px;
-            right: 18px;
+            top: max(12px, env(safe-area-inset-top, 0px));
+            right: max(12px, env(safe-area-inset-right, 0px));
             width: 44px;
             height: 44px;
             border-radius: 14px;
@@ -8064,6 +8077,7 @@
             background: rgba(0, 0, 0, 0.55);
             color: var(--white);
             cursor: pointer;
+            z-index: 3;
         }
 
         .media-lightbox-nav {
@@ -8084,21 +8098,22 @@
         }
 
         .media-lightbox-prev {
-            left: 18px;
+            left: max(12px, env(safe-area-inset-left, 0px));
         }
 
         .media-lightbox-next {
-            right: 18px;
+            right: max(12px, env(safe-area-inset-right, 0px));
         }
 
         .media-lightbox-content {
-            width: min(1120px, 92vw);
-            height: min(720px, 88vh);
-            border-radius: 16px;
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            border-radius: 0;
             overflow: hidden;
-            background: rgba(15, 15, 15, 0.92);
-            border: 1px solid rgba(255, 140, 0, 0.25);
-            box-shadow: 0 30px 90px rgba(0, 0, 0, 0.75);
+            background: #000;
+            border: 0;
+            box-shadow: none;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -8106,9 +8121,9 @@
 
         .media-lightbox-caption {
             position: absolute;
-            left: 22px;
-            right: 22px;
-            bottom: 18px;
+            left: max(12px, env(safe-area-inset-left, 0px));
+            right: max(12px, env(safe-area-inset-right, 0px));
+            bottom: max(12px, env(safe-area-inset-bottom, 0px));
             padding: 10px 14px;
             border-radius: 14px;
             background: rgba(0, 0, 0, 0.58);
@@ -8120,14 +8135,20 @@
         }
 
         .media-lightbox-content img,
-        .media-lightbox-content video,
+        .media-lightbox-content video {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            display: block;
+            object-fit: cover;
+            background: transparent;
+        }
+
         .media-lightbox-content iframe {
             width: 100%;
             height: 100%;
             border: 0;
             display: block;
-            object-fit: contain;
-            background: var(--black);
         }
  
         .project-modal-meta h4 {
