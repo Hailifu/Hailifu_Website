@@ -7902,9 +7902,18 @@
             overflow-y: auto;
             overscroll-behavior-y: contain;
             -webkit-overflow-scrolling: touch;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-auto-rows: minmax(120px, calc((100vh - 210px) / 2));
+            grid-auto-rows: minmax(120px, calc((100dvh - 210px) / 2));
             gap: 14px;
             padding: 10px 14px 12px;
+        }
+
+        .project-modal.is-showcase-fullscreen .project-modal-tile,
+        .project-modal.is-showcase-fullscreen .project-modal-tile.is-hero {
+            aspect-ratio: auto;
+            height: 100%;
+            min-height: 0;
         }
 
         .project-modal-gallery-controls {
@@ -7938,6 +7947,8 @@
 
             .project-modal.is-showcase-fullscreen .project-modal-gallery {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
+                grid-auto-rows: minmax(76px, calc((100vh - 190px) / 4));
+                grid-auto-rows: minmax(76px, calc((100dvh - 190px) / 4));
                 padding: 8px;
             }
         }
@@ -7952,6 +7963,8 @@
             .project-modal.is-showcase-fullscreen .project-modal-gallery {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
                 gap: 8px;
+                grid-auto-rows: minmax(74px, calc((100vh - 180px) / 4));
+                grid-auto-rows: minmax(74px, calc((100dvh - 180px) / 4));
                 padding: 6px 6px 8px;
             }
 
