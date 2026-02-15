@@ -6103,9 +6103,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             let touchStartY = 0;
             let lastTouchMoveAt = 0;
             const tapSuppressWindowMs = 320;
-            const pageSize = 12;
-            let visibleCount = Math.min(pageSize, mediaItems.length);
-            let viewMoreBtn = null;
+            const visibleCount = mediaItems.length;
 
             gallery.addEventListener('touchstart', (e) => {
                 const t = e.touches && e.touches[0];
@@ -6191,16 +6189,6 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 tiles.forEach((tile, idx) => {
                     tile.classList.toggle('is-hidden', idx >= visibleCount);
                 });
-
-                if (viewMoreBtn) {
-                    const remaining = Math.max(0, mediaItems.length - visibleCount);
-                    if (remaining > 0) {
-                        viewMoreBtn.style.display = 'inline-flex';
-                        viewMoreBtn.textContent = `View More (${remaining})`;
-                    } else {
-                        viewMoreBtn.style.display = 'none';
-                    }
-                }
             };
 
             gallery.addEventListener('click', (e) => {
@@ -6223,26 +6211,6 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             });
 
             wrapper.appendChild(gallery);
-
-            if (mediaItems.length > pageSize) {
-                const controls = document.createElement('div');
-                controls.className = 'project-modal-gallery-controls';
-                viewMoreBtn = document.createElement('button');
-                viewMoreBtn.type = 'button';
-                viewMoreBtn.className = 'project-modal-view-more';
-                viewMoreBtn.addEventListener('click', () => {
-                    const previousCount = visibleCount;
-                    visibleCount = Math.min(mediaItems.length, visibleCount + pageSize);
-                    applyVisibleWindow();
-
-                    const firstNewTile = gallery.querySelector(`.project-modal-tile[data-index="${previousCount}"]`);
-                    if (firstNewTile) {
-                        try { firstNewTile.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch {}
-                    }
-                });
-                controls.appendChild(viewMoreBtn);
-                wrapper.appendChild(controls);
-            }
 
             applyVisibleWindow();
             return wrapper;
