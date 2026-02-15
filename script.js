@@ -1913,6 +1913,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 renderAdminReviews();
                 renderPublicReviews();
                 refreshOverview();
+                refreshLiveReviewSection();
                 notifyAdminReviewSubmitted(review);
 
                 if (formSuccess) {
@@ -3301,6 +3302,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                             renderAdminReviews();
                             renderPublicReviews();
                             refreshOverview();
+                            refreshLiveReviewSection();
                         }
                         return;
                     }
@@ -3313,6 +3315,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                         renderAdminReviews();
                         renderPublicReviews();
                         refreshOverview();
+                        refreshLiveReviewSection();
                     }
                 });
             }
@@ -4027,16 +4030,86 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             return Array.from({ length: 5 }, () => '<i class="fas fa-star"></i>').join('');
         };
 
+        const toSafeRating = (value) => Math.max(1, Math.min(5, Number(value) || 5));
+        const buildStarText = (rating) => '\u2605'.repeat(toSafeRating(rating)) + '\u2606'.repeat(5 - toSafeRating(rating));
+
+        const getRelativeReviewDate = (input) => {
+            if (!input) return 'Recent';
+            const date = input instanceof Date ? input : new Date(input);
+            if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+                return 'Recent';
+            }
+
+            const elapsedMs = Date.now() - date.getTime();
+            if (elapsedMs <= 0) return 'Recent';
+
+            const minutes = Math.floor(elapsedMs / (1000 * 60));
+            if (minutes < 2) return 'Just now';
+            if (minutes < 60) return `${minutes} minutes ago`;
+
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours} hours ago`;
+
+            const days = Math.floor(hours / 24);
+            if (days < 7) return `${days} days ago`;
+
+            return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        };
+
+        const getLiveReviewFeed = () => {
+            const approvedLive = getReviews()
+                .filter((review) => review && review.status === 'approved')
+                .map((review) => ({
+                    name: String(review.name || 'Customer').trim() || 'Customer',
+                    rating: toSafeRating(review.rating),
+                    comment: String(review.comment || '').trim(),
+                    date: getRelativeReviewDate(review.createdAt),
+                    ownerReply: String(review.ownerReply || '').trim() || 'Thank you for your feedback. We appreciate your support.',
+                    source: 'Google'
+                }));
+
+            const staticGoogle = REVIEWS_DATA
+                .filter(Boolean)
+                .map((review) => ({
+                    ...review,
+                    rating: toSafeRating(review.rating),
+                    source: 'Google'
+                }));
+
+            return approvedLive.concat(staticGoogle);
+        };
+
+        const summarizeReviewFeed = (reviews) => {
+            const safeReviews = Array.isArray(reviews) ? reviews.filter(Boolean) : [];
+            const counts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+            safeReviews.forEach((review) => {
+                counts[toSafeRating(review.rating)] += 1;
+            });
+
+            const total = safeReviews.length;
+            const average = total
+                ? safeReviews.reduce((sum, review) => sum + toSafeRating(review.rating), 0) / total
+                : 0;
+
+            return { total, average, counts };
+        };
+
+        let modernReviewTerminalIndex = 0;
+        let modernReviewTerminalFeed = [];
+        let modernReviewTerminalTimer = null;
+        let googleBusinessSyncActive = false;
+
         function renderReviews() {
             const container = document.getElementById('reviewsContainer');
             const showMoreBtn = document.getElementById('reviewsShowMore');
             if (!container) return;
+            const liveReviews = getLiveReviewFeed();
 
             const visibleCount = reviewsExpanded
-                ? REVIEWS_DATA.length
-                : Math.min(reviewsInitialCount, REVIEWS_DATA.length);
+                ? liveReviews.length
+                : Math.min(reviewsInitialCount, liveReviews.length);
 
-            container.innerHTML = REVIEWS_DATA.slice(0, visibleCount).map((review) => {
+            container.innerHTML = liveReviews.slice(0, visibleCount).map((review) => {
                 const name = escapeHTML(review.name);
                 const comment = escapeHTML(review.comment);
                 const date = escapeHTML(review.date);
@@ -4070,7 +4143,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             }).join('');
 
             if (showMoreBtn) {
-                showMoreBtn.style.display = REVIEWS_DATA.length > visibleCount ? 'inline-flex' : 'none';
+                showMoreBtn.style.display = liveReviews.length > visibleCount ? 'inline-flex' : 'none';
             }
         }
 
@@ -4086,14 +4159,14 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
         function renderReviewTerminal() {
             const slide = document.getElementById('reviewTerminalSlide');
-            if (!slide || !Array.isArray(REVIEWS_DATA) || !REVIEWS_DATA.length) return;
+            const reviews = getLiveReviewFeed().filter(Boolean);
+            if (!slide || !reviews.length) return;
 
             const starsSvg = Array.from({ length: 5 }, () =>
                 '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.9 6.5 7.1.6-5.3 4.6 1.6 6.9-6.3-3.7-6.3 3.7 1.6-6.9L2 9.1l7.1-.6L12 2z"/></svg>'
             ).join('');
 
             let index = 0;
-            const reviews = REVIEWS_DATA.filter(Boolean);
             const prevBtn = document.querySelector('.review-terminal-nav.prev');
             const nextBtn = document.querySelector('.review-terminal-nav.next');
 
@@ -4149,57 +4222,63 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
         renderReviewTerminal();
 
-        function renderFeaturedReviewsFeed() {
+        function renderFeaturedReviewsFeed(reviewsInput) {
             const track = document.querySelector('.modern-review-section .featured-reviews-feed .featured-reviews-track');
-            if (!track || !Array.isArray(REVIEWS_DATA) || !REVIEWS_DATA.length) return;
+            const reviews = Array.isArray(reviewsInput) ? reviewsInput.filter(Boolean) : getLiveReviewFeed();
+            if (!track || !reviews.length) return;
 
-            const reviews = REVIEWS_DATA.slice(0, 22);
-            track.innerHTML = reviews.map((review) => {
+            track.innerHTML = reviews.slice(0, 24).map((review) => {
                 const name = escapeHTML(review.name);
-                const date = escapeHTML(review.date);
+                const date = escapeHTML(review.date || 'Recent');
                 const comment = escapeHTML(review.comment);
+                const source = escapeHTML(review.source || 'Google');
+                const stars = buildStarText(review.rating);
                 return `
-                    <article class="featured-review-card" data-rating="${Math.max(1, Math.min(5, Number(review.rating) || 5))}">
+                    <article class="featured-review-card" data-rating="${toSafeRating(review.rating)}">
                         <div class="featured-review-meta">
-                            <span class="review-source">Google</span>
+                            <span class="review-source">${source}</span>
                             <span class="reviewer-name">${name}</span>
                             <span class="review-time">${date}</span>
                         </div>
-                        <div class="featured-review-stars">\u2605\u2605\u2605\u2605\u2605</div>
+                        <div class="featured-review-stars">${stars}</div>
                         <p>${comment}</p>
                     </article>
                 `;
             }).join('');
         }
 
-        renderFeaturedReviewsFeed();
-
-        function initGoogleBusinessStatusToggle() {
+        function setGoogleBusinessSyncState(active, total) {
             const statusBtn = document.getElementById('googleBusinessStatusBtn');
             const messageEl = document.getElementById('googleBusinessMessage');
             if (!statusBtn) return;
 
+            const totalCount = Math.max(0, Number(total) || 0);
             const pendingMessage = 'Connect the Google Business feed to stream verified reviews here.';
-            const activeMessage = `Google Business sync active. ${REVIEWS_DATA.length} verified reviews ready.`;
+            const activeMessage = `Google Business sync active. ${totalCount} verified reviews ready.`;
 
-            const setState = (active) => {
-                statusBtn.classList.toggle('is-active', active);
-                statusBtn.setAttribute('aria-pressed', active ? 'true' : 'false');
-                statusBtn.textContent = active ? 'SYNC ACTIVE' : 'SYNC PENDING';
-                if (messageEl) messageEl.textContent = active ? activeMessage : pendingMessage;
-            };
-
-            statusBtn.addEventListener('click', () => {
-                const isActive = statusBtn.classList.contains('is-active');
-                setState(!isActive);
-            });
-
-            setState(false);
+            statusBtn.classList.toggle('is-active', active);
+            statusBtn.setAttribute('aria-pressed', active ? 'true' : 'false');
+            statusBtn.textContent = active ? 'SYNC ACTIVE' : 'SYNC PENDING';
+            if (messageEl) messageEl.textContent = active ? activeMessage : pendingMessage;
         }
 
-        initGoogleBusinessStatusToggle();
+        function initGoogleBusinessStatusToggle() {
+            const statusBtn = document.getElementById('googleBusinessStatusBtn');
+            if (!statusBtn) return;
 
-        function renderModernReviewTerminal() {
+            if (!statusBtn.dataset.syncBound) {
+                statusBtn.dataset.syncBound = '1';
+                statusBtn.addEventListener('click', () => {
+                    googleBusinessSyncActive = !googleBusinessSyncActive;
+                    const reviews = getLiveReviewFeed();
+                    setGoogleBusinessSyncState(googleBusinessSyncActive, reviews.length);
+                });
+            }
+
+            setGoogleBusinessSyncState(googleBusinessSyncActive, getLiveReviewFeed().length);
+        }
+
+        function renderModernReviewTerminal(reviewsInput) {
             const terminal = document.getElementById('reviewTerminal');
             const card = terminal ? terminal.querySelector('.review-terminal-card') : null;
             const nameEl = document.getElementById('reviewTerminalName');
@@ -4207,30 +4286,21 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             const textEl = document.getElementById('reviewTerminalText');
             const ownerWrap = document.getElementById('reviewTerminalOwner');
             const ownerText = document.getElementById('reviewTerminalResponse');
-            const avgEl = document.getElementById('reviewAvgRating');
-            const totalEl = document.getElementById('reviewTotalReports');
             const prevBtn = terminal ? terminal.querySelector('[data-review-terminal-prev]') : null;
             const nextBtn = terminal ? terminal.querySelector('[data-review-terminal-next]') : null;
+            modernReviewTerminalFeed = Array.isArray(reviewsInput) ? reviewsInput.filter(Boolean) : getLiveReviewFeed();
+            const reviews = modernReviewTerminalFeed;
 
-            if (!terminal || !card || !nameEl || !starsEl || !textEl) return;
+            if (!terminal || !card || !nameEl || !starsEl || !textEl || !reviews.length) return;
 
-            const reviews = Array.isArray(REVIEWS_DATA) ? REVIEWS_DATA.filter(Boolean) : [];
-            if (!reviews.length) return;
+            if (modernReviewTerminalIndex >= reviews.length) modernReviewTerminalIndex = 0;
 
-            const average = reviews.reduce((sum, review) => sum + (Number(review.rating) || 0), 0) / reviews.length;
-            if (avgEl) avgEl.textContent = average.toFixed(1);
-            if (totalEl) totalEl.textContent = String(reviews.length);
+            const paintAtIndex = () => {
+                const review = modernReviewTerminalFeed[modernReviewTerminalIndex];
+                if (!review) return;
 
-            const buildStars = (rating) => {
-                const safe = Math.max(1, Math.min(5, Number(rating) || 5));
-                return '\u2605\u2605\u2605\u2605\u2605'.slice(0, safe).padEnd(5, '\u2605');
-            };
-
-            let index = 0;
-
-            const paint = (review) => {
                 nameEl.textContent = String(review.name || 'Customer');
-                starsEl.textContent = buildStars(review.rating);
+                starsEl.textContent = buildStarText(review.rating);
                 textEl.textContent = `"${String(review.comment || '')}"`;
 
                 if (ownerWrap && ownerText) {
@@ -4243,36 +4313,100 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             const goTo = (dir) => {
                 card.classList.add('is-fading');
                 window.setTimeout(() => {
-                    index = (index + dir + reviews.length) % reviews.length;
-                    paint(reviews[index]);
+                    const total = modernReviewTerminalFeed.length;
+                    if (!total) {
+                        card.classList.remove('is-fading');
+                        return;
+                    }
+                    modernReviewTerminalIndex = (modernReviewTerminalIndex + dir + total) % total;
+                    paintAtIndex();
                     card.classList.remove('is-fading');
                 }, 180);
             };
 
-            if (prevBtn) prevBtn.addEventListener('click', () => goTo(-1));
-            if (nextBtn) nextBtn.addEventListener('click', () => goTo(1));
+            if (!terminal.dataset.terminalBound) {
+                terminal.dataset.terminalBound = '1';
+                if (prevBtn) prevBtn.addEventListener('click', () => goTo(-1));
+                if (nextBtn) nextBtn.addEventListener('click', () => goTo(1));
 
-            let autoTimer = null;
-            const startAuto = () => {
-                if (autoTimer) window.clearInterval(autoTimer);
-                autoTimer = window.setInterval(() => goTo(1), 5500);
-            };
+                const startAuto = () => {
+                    if (modernReviewTerminalTimer) window.clearInterval(modernReviewTerminalTimer);
+                    modernReviewTerminalTimer = window.setInterval(() => goTo(1), 5500);
+                };
 
-            const stopAuto = () => {
-                if (autoTimer) window.clearInterval(autoTimer);
-                autoTimer = null;
-            };
+                const stopAuto = () => {
+                    if (modernReviewTerminalTimer) window.clearInterval(modernReviewTerminalTimer);
+                    modernReviewTerminalTimer = null;
+                };
 
-            terminal.addEventListener('mouseenter', stopAuto);
-            terminal.addEventListener('mouseleave', startAuto);
-            terminal.addEventListener('focusin', stopAuto);
-            terminal.addEventListener('focusout', startAuto);
+                terminal.addEventListener('mouseenter', stopAuto);
+                terminal.addEventListener('mouseleave', startAuto);
+                terminal.addEventListener('focusin', stopAuto);
+                terminal.addEventListener('focusout', startAuto);
+                terminal._startReviewAuto = startAuto;
+            }
 
-            paint(reviews[index]);
-            startAuto();
+            paintAtIndex();
+            if (typeof terminal._startReviewAuto === 'function') terminal._startReviewAuto();
         }
 
-        renderModernReviewTerminal();
+        function renderModernReviewSummary(reviewsInput) {
+            const reviews = Array.isArray(reviewsInput) ? reviewsInput.filter(Boolean) : getLiveReviewFeed();
+            const summary = summarizeReviewFeed(reviews);
+            const total = summary.total;
+            const average = summary.average;
+            const fiveStarCount = summary.counts[5] || 0;
+
+            const avgEl = document.getElementById('reviewAvgRating');
+            const totalEl = document.getElementById('reviewTotalReports');
+            const ratingNumber = document.getElementById('googleRatingNumber') || document.querySelector('.review-stats-card .rating-number-large');
+            const ratingStars = document.getElementById('googleRatingStars') || document.querySelector('.review-stats-card .rating-stars-large');
+            const reviewCount = document.getElementById('googleReviewCount') || document.querySelector('.review-stats-card .review-count-large');
+            const headline = document.getElementById('reviewsHeadline') || document.querySelector('.hailifu-review-header h3');
+            const headlineStars = document.getElementById('reviewsHeadlineStars') || document.querySelector('.hailifu-review-header .hailifu-review-stars');
+            const statsExcellence = document.getElementById('statsOperationalExcellence');
+            const statsStars = document.getElementById('statsOperationalStars') || document.querySelector('.stats-dashboard .stats-card .stats-stars');
+
+            if (avgEl) avgEl.textContent = average.toFixed(1);
+            if (totalEl) totalEl.textContent = String(total);
+            if (ratingNumber) ratingNumber.textContent = average.toFixed(1);
+            if (ratingStars) ratingStars.textContent = buildStarText(Math.round(average) || 5);
+            if (reviewCount) reviewCount.textContent = `${total} Google Reviews`;
+            if (headline) headline.textContent = `${fiveStarCount}+ Five-Star Reviews on Google`;
+            if (headlineStars) headlineStars.textContent = buildStarText(5);
+            if (statsExcellence) {
+                statsExcellence.dataset.counter = average.toFixed(1);
+                statsExcellence.dataset.decimals = '1';
+                statsExcellence.textContent = average.toFixed(1);
+            }
+            if (statsStars) statsStars.textContent = buildStarText(Math.round(average) || 5);
+
+            document.querySelectorAll('.modern-review-section .review-metrics .metric-row').forEach((row) => {
+                const labelEl = row.querySelector('.metric-label');
+                const fill = row.querySelector('.metric-fill');
+                if (!labelEl || !fill) return;
+                const ratingKey = Math.max(1, Math.min(5, Number(labelEl.textContent) || 0));
+                const count = summary.counts[ratingKey] || 0;
+                const width = total > 0 ? (count / total) * 100 : 0;
+                fill.style.width = `${width.toFixed(2)}%`;
+            });
+        }
+
+        function refreshLiveReviewSection() {
+            const reviews = getLiveReviewFeed();
+            renderModernReviewSummary(reviews);
+            renderFeaturedReviewsFeed(reviews);
+            renderModernReviewTerminal(reviews);
+            setGoogleBusinessSyncState(googleBusinessSyncActive, reviews.length);
+        }
+
+        initGoogleBusinessStatusToggle();
+        refreshLiveReviewSection();
+        window.addEventListener('storage', (event) => {
+            if (event && event.key === 'hailifu_reviews') {
+                refreshLiveReviewSection();
+            }
+        });
 
         function isVisibilityEnabled(project, primaryKey, fallbackKey) {
             if (!project || typeof project !== 'object') return false;
@@ -4462,11 +4596,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
                     const idValue = String(project.id || '').trim();
                     slot.classList.add('showcase-card');
-                    if (idValue) {
-                        slot.setAttribute('onclick', 'openGalleryFromElement(this)');
-                    } else {
-                        slot.removeAttribute('onclick');
-                    }
+                    slot.removeAttribute('onclick');
                 } else {
                     const existingBg = slot.querySelector('.showcase-bg');
                     if (existingBg) existingBg.remove();
@@ -4480,7 +4610,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     slot.dataset.mediaType = 'image';
                     slot.dataset.galleryGroup = 'category';
                     if (slotCategory) slot.dataset.category = slotCategory;
-                    slot.setAttribute('onclick', 'openGalleryFromElement(this)');
+                    slot.removeAttribute('onclick');
                     updateMediaCountBadge(slot, 0);
                 }
 
@@ -4525,7 +4655,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                         if (seen.has(key)) return false;
                         seen.add(key);
                         return true;
-                    }).slice(0, 24);
+                    });
                 }
             }
 
@@ -5570,6 +5700,9 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         const projectModalDescription = document.getElementById('projectModalDescription');
         const projectModalMedia = document.getElementById('projectModalMedia');
         let projectModalLastFocus = null;
+        let projectModalGalleryScrollNode = null;
+        let projectModalGalleryScrollHandler = null;
+        let projectModalHeaderLastScrollTop = 0;
 
         let projectLightbox = null;
         let projectLightboxPlaylist = null;
@@ -5747,7 +5880,6 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
         function getMediaItemsForModal(item) {
             const fromDataset = parseMediaItemsFromDataset(item);
-            if (fromDataset.length) return fromDataset;
 
             const groupMode = String(item?.dataset?.galleryGroup || '').trim().toLowerCase();
             if (groupMode === 'category') {
@@ -5797,9 +5929,12 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                         seen.add(key);
                         return true;
                     });
-                    if (unique.length) return unique.slice(0, 24);
+                    if (unique.length) return unique;
                 }
+
+                if (fromDataset.length) return fromDataset;
             }
+            if (fromDataset.length) return fromDataset;
 
             const id = String(item?.dataset?.generatedProjectId || '').trim();
             if (id) {
@@ -5838,7 +5973,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                         if (seen.has(key)) return false;
                         seen.add(key);
                         return true;
-                    }).slice(0, 12);
+                    });
                 }
             }
 
@@ -5914,9 +6049,39 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         }
 
         function buildProjectModalGallery(mediaItems, title) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'project-modal-gallery-wrap';
             const gallery = document.createElement('div');
             gallery.className = 'project-modal-gallery';
             const safeTitle = String(title || 'Preview').trim();
+            let suppressNextTileTap = false;
+            let touchStartX = 0;
+            let touchStartY = 0;
+            const pageSize = 12;
+            let visibleCount = Math.min(pageSize, mediaItems.length);
+            let viewMoreBtn = null;
+
+            gallery.addEventListener('touchstart', (e) => {
+                const t = e.touches && e.touches[0];
+                if (!t) return;
+                touchStartX = Number(t.clientX || 0);
+                touchStartY = Number(t.clientY || 0);
+                suppressNextTileTap = false;
+            }, { passive: true });
+
+            gallery.addEventListener('touchmove', (e) => {
+                const t = e.touches && e.touches[0];
+                if (!t) return;
+                const dx = Math.abs(Number(t.clientX || 0) - touchStartX);
+                const dy = Math.abs(Number(t.clientY || 0) - touchStartY);
+                if (dx > 8 || dy > 8) suppressNextTileTap = true;
+            }, { passive: true });
+
+            gallery.addEventListener('touchend', () => {
+                window.setTimeout(() => {
+                    suppressNextTileTap = false;
+                }, 0);
+            }, { passive: true });
 
             mediaItems.forEach((m, idx) => {
                 const btn = document.createElement('button');
@@ -5965,7 +6130,28 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 gallery.appendChild(btn);
             });
 
+            const applyVisibleWindow = () => {
+                const tiles = Array.from(gallery.querySelectorAll('.project-modal-tile'));
+                tiles.forEach((tile, idx) => {
+                    tile.classList.toggle('is-hidden', idx >= visibleCount);
+                });
+
+                if (viewMoreBtn) {
+                    const remaining = Math.max(0, mediaItems.length - visibleCount);
+                    if (remaining > 0) {
+                        viewMoreBtn.style.display = 'inline-flex';
+                        viewMoreBtn.textContent = `View More (${remaining})`;
+                    } else {
+                        viewMoreBtn.style.display = 'none';
+                    }
+                }
+            };
+
             gallery.addEventListener('click', (e) => {
+                if (suppressNextTileTap) {
+                    e.preventDefault();
+                    return;
+                }
                 const tile = e.target.closest('.project-modal-tile');
                 if (!tile) return;
                 const idx = Number(tile.dataset.index);
@@ -5973,7 +6159,76 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 openProjectLightbox(mediaItems[idx], safeTitle);
             });
 
-            return gallery;
+            wrapper.appendChild(gallery);
+
+            if (mediaItems.length > pageSize) {
+                const controls = document.createElement('div');
+                controls.className = 'project-modal-gallery-controls';
+                viewMoreBtn = document.createElement('button');
+                viewMoreBtn.type = 'button';
+                viewMoreBtn.className = 'project-modal-view-more';
+                viewMoreBtn.addEventListener('click', () => {
+                    const previousCount = visibleCount;
+                    visibleCount = Math.min(mediaItems.length, visibleCount + pageSize);
+                    applyVisibleWindow();
+
+                    const firstNewTile = gallery.querySelector(`.project-modal-tile[data-index="${previousCount}"]`);
+                    if (firstNewTile) {
+                        try { firstNewTile.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch {}
+                    }
+                });
+                controls.appendChild(viewMoreBtn);
+                wrapper.appendChild(controls);
+            }
+
+            applyVisibleWindow();
+            return wrapper;
+        }
+
+        function clearProjectModalHeaderAutoHide() {
+            if (projectModalGalleryScrollNode && projectModalGalleryScrollHandler) {
+                try { projectModalGalleryScrollNode.removeEventListener('scroll', projectModalGalleryScrollHandler); } catch {}
+            }
+            projectModalGalleryScrollNode = null;
+            projectModalGalleryScrollHandler = null;
+            projectModalHeaderLastScrollTop = 0;
+            if (projectModal) projectModal.classList.remove('is-header-hidden');
+        }
+
+        function bindProjectModalHeaderAutoHide(scrollNode) {
+            clearProjectModalHeaderAutoHide();
+            if (!projectModal || !scrollNode) return;
+            if (!projectModal.classList.contains('is-showcase-fullscreen')) return;
+
+            const isMobileViewport = window.matchMedia
+                ? window.matchMedia('(max-width: 820px)').matches
+                : ((window.innerWidth || 0) <= 820);
+            if (!isMobileViewport) return;
+
+            projectModalHeaderLastScrollTop = Math.max(0, Number(scrollNode.scrollTop || 0));
+            const deltaThreshold = 8;
+
+            const onScroll = () => {
+                const nextTop = Math.max(0, Number(scrollNode.scrollTop || 0));
+                if (nextTop <= 10) {
+                    projectModal.classList.remove('is-header-hidden');
+                    projectModalHeaderLastScrollTop = nextTop;
+                    return;
+                }
+
+                const delta = nextTop - projectModalHeaderLastScrollTop;
+                if (delta > deltaThreshold) {
+                    projectModal.classList.add('is-header-hidden');
+                } else if (delta < -deltaThreshold) {
+                    projectModal.classList.remove('is-header-hidden');
+                }
+
+                projectModalHeaderLastScrollTop = nextTop;
+            };
+
+            projectModalGalleryScrollNode = scrollNode;
+            projectModalGalleryScrollHandler = onScroll;
+            scrollNode.addEventListener('scroll', onScroll, { passive: true });
         }
 
         function closeProjectModal() {
@@ -5986,6 +6241,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 } catch {}
                 projectModal.classList.remove('active');
                 projectModal.classList.remove('is-compact');
+                projectModal.classList.remove('is-showcase-fullscreen');
                 projectModal.classList.remove('has-gallery');
                 projectModal.setAttribute('aria-hidden', 'true');
                 const mainEl = document.querySelector('main');
@@ -5994,6 +6250,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             if (projectModalMedia) {
                 projectModalMedia.innerHTML = '';
             }
+            clearProjectModalHeaderAutoHide();
             closeProjectLightbox();
             if (projectModalLastFocus && typeof projectModalLastFocus.focus === 'function') {
                 try { projectModalLastFocus.focus(); } catch {}
@@ -6004,7 +6261,10 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         function openProjectModalFromItem(item) {
             if (!item || !projectModal) return;
 
-            projectModal.classList.toggle('is-compact', item.classList?.contains('showcase-item'));
+            const isShowcaseItem = !!item.classList?.contains('showcase-item');
+            projectModal.classList.toggle('is-compact', false);
+            projectModal.classList.toggle('is-showcase-fullscreen', isShowcaseItem);
+            projectModal.classList.remove('is-header-hidden');
 
             const title = item.querySelector('.showcase-title')?.textContent?.trim()
                 || item.querySelector('h3')?.textContent?.trim()
@@ -6042,7 +6302,10 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 if (mediaItems.length) {
                     projectModal.classList.add('has-gallery');
                     projectModalMedia.appendChild(buildProjectModalGallery(mediaItems, title));
+                    const galleryNode = projectModalMedia.querySelector('.project-modal-gallery');
+                    bindProjectModalHeaderAutoHide(galleryNode);
                 } else {
+                    clearProjectModalHeaderAutoHide();
                     const placeholder = document.createElement('div');
                     placeholder.style.padding = '22px';
                     placeholder.style.textAlign = 'center';
@@ -6660,9 +6923,39 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         const showcaseGrid = document.querySelector('#showcase .showcase-grid');
         if (showcaseGrid && !showcaseGrid.dataset.modalClickBound) {
             showcaseGrid.dataset.modalClickBound = '1';
+            let suppressShowcaseTap = false;
+            let showcaseTouchStartX = 0;
+            let showcaseTouchStartY = 0;
+
+            showcaseGrid.addEventListener('touchstart', (e) => {
+                const t = e.touches && e.touches[0];
+                if (!t) return;
+                showcaseTouchStartX = Number(t.clientX || 0);
+                showcaseTouchStartY = Number(t.clientY || 0);
+                suppressShowcaseTap = false;
+            }, { passive: true });
+
+            showcaseGrid.addEventListener('touchmove', (e) => {
+                const t = e.touches && e.touches[0];
+                if (!t) return;
+                const dx = Math.abs(Number(t.clientX || 0) - showcaseTouchStartX);
+                const dy = Math.abs(Number(t.clientY || 0) - showcaseTouchStartY);
+                if (dx > 8 || dy > 8) suppressShowcaseTap = true;
+            }, { passive: true });
+
+            showcaseGrid.addEventListener('touchend', () => {
+                window.setTimeout(() => {
+                    suppressShowcaseTap = false;
+                }, 0);
+            }, { passive: true });
+
             showcaseGrid.addEventListener('click', (e) => {
                 const card = e.target.closest('.showcase-item');
                 if (!card || !showcaseGrid.contains(card)) return;
+                if (suppressShowcaseTap) {
+                    e.preventDefault();
+                    return;
+                }
                 e.preventDefault();
                 openProjectModalFromItem(card);
             });
