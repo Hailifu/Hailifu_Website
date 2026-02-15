@@ -1486,9 +1486,15 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 electrical: 'electrical',
                 electricals: 'electrical',
                 electric: 'electrical',
+                electricalwiring: 'electrical',
+                electricalinstallation: 'electrical',
+                electrician: 'electrical',
+                electricianservices: 'electrical',
                 gates: 'gates',
                 gate: 'gates',
                 autogate: 'gates',
+                autogates: 'gates',
+                autogateservice: 'gates',
                 automatedgates: 'gates',
                 solar: 'solar',
                 solarenergy: 'solar',
@@ -1496,13 +1502,17 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 airconditioning: 'airconditioning',
                 airconditioner: 'airconditioning',
                 aircondition: 'airconditioning',
+                airconditioningservice: 'airconditioning',
                 ac: 'airconditioning',
                 fencing: 'fencing',
                 electricfence: 'fencing',
                 fence: 'fencing',
                 blindcurtain: 'blindcurtain',
                 blinds: 'blindcurtain',
+                windowblind: 'blindcurtain',
                 windowblinds: 'blindcurtain',
+                smartwindow: 'blindcurtain',
+                smartcurtain: 'blindcurtain',
                 smartwindows: 'blindcurtain'
             };
             return map[cleaned] || cleaned;
@@ -4475,8 +4485,8 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             const usedIds = new Set();
             const pickProjectForSlot = (slotCategory) => {
                 const normalized = String(slotCategory || '').toLowerCase().trim();
-                const projectCategory = slotToProjectCategory[normalized] || normalized;
-                const matches = showcaseProjects.filter((p) => String(p?.category || '').toLowerCase().trim() === projectCategory);
+                const projectCategory = normalizeCategoryKey(slotToProjectCategory[normalized] || normalized);
+                const matches = showcaseProjects.filter((p) => normalizeCategoryKey(p?.category || '') === projectCategory);
                 const withMedia = matches.filter((p) => !!getProjectSurfaceMedia(p, 'showcase'));
                 const featured = withMedia.find((p) => p.isFeatured) || withMedia.find((p) => p.isStarred);
                 const primary = featured || withMedia[0] || matches[0] || null;
@@ -5890,17 +5900,20 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                         const categories = projects.map((p) => String(p?.category || '').trim()).filter(Boolean);
                         console.log('Gallery category match:', categoryKey, 'Available categories:', categories);
                     } catch {}
-                    const matches = projects
-                        .filter((p) => p && normalizeCategoryKey(p.category || '') === categoryKey)
-                        .filter((p) => {
-                            if (!p || typeof p !== 'object') return false;
-                            if (typeof p.showInShowcase === 'boolean') return p.showInShowcase;
-                            if (typeof p.showcase === 'boolean') return p.showcase;
-                            return true;
-                        });
+                    const matches = projects.filter((p) => p && normalizeCategoryKey(p.category || '') === categoryKey);
+                    const isPreferredShowcaseProject = (p) => {
+                        if (!p || typeof p !== 'object') return false;
+                        if (typeof p.showInShowcase === 'boolean') return p.showInShowcase;
+                        if (typeof p.showcase === 'boolean') return p.showcase;
+                        return false;
+                    };
+                    const orderedMatches = [
+                        ...matches.filter((p) => isPreferredShowcaseProject(p)),
+                        ...matches.filter((p) => !isPreferredShowcaseProject(p))
+                    ];
 
                     const combined = [];
-                    matches.forEach((p) => {
+                    orderedMatches.forEach((p) => {
                         try {
                             console.log('Gallery match project:', {
                                 id: p?.id,
@@ -6057,6 +6070,8 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             let suppressNextTileTap = false;
             let touchStartX = 0;
             let touchStartY = 0;
+            let lastTouchMoveAt = 0;
+            const tapSuppressWindowMs = 320;
             const pageSize = 12;
             let visibleCount = Math.min(pageSize, mediaItems.length);
             let viewMoreBtn = null;
@@ -6067,6 +6082,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 touchStartX = Number(t.clientX || 0);
                 touchStartY = Number(t.clientY || 0);
                 suppressNextTileTap = false;
+                lastTouchMoveAt = 0;
             }, { passive: true });
 
             gallery.addEventListener('touchmove', (e) => {
@@ -6074,13 +6090,22 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 if (!t) return;
                 const dx = Math.abs(Number(t.clientX || 0) - touchStartX);
                 const dy = Math.abs(Number(t.clientY || 0) - touchStartY);
-                if (dx > 8 || dy > 8) suppressNextTileTap = true;
+                if (dx > 8 || dy > 8) {
+                    suppressNextTileTap = true;
+                    lastTouchMoveAt = Date.now();
+                }
             }, { passive: true });
 
             gallery.addEventListener('touchend', () => {
+                if (!suppressNextTileTap) return;
                 window.setTimeout(() => {
                     suppressNextTileTap = false;
-                }, 0);
+                }, tapSuppressWindowMs);
+            }, { passive: true });
+
+            gallery.addEventListener('touchcancel', () => {
+                suppressNextTileTap = false;
+                lastTouchMoveAt = 0;
             }, { passive: true });
 
             mediaItems.forEach((m, idx) => {
@@ -6148,8 +6173,10 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             };
 
             gallery.addEventListener('click', (e) => {
-                if (suppressNextTileTap) {
+                const now = Date.now();
+                if (suppressNextTileTap || (lastTouchMoveAt > 0 && (now - lastTouchMoveAt) < tapSuppressWindowMs)) {
                     e.preventDefault();
+                    suppressNextTileTap = false;
                     return;
                 }
                 const tile = e.target.closest('.project-modal-tile');

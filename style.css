@@ -7872,6 +7872,12 @@
             min-height: 0;
         }
 
+        .project-modal.is-showcase-fullscreen .project-modal-gallery-wrap {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: hidden;
+        }
+
         .project-modal-gallery {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -7889,7 +7895,10 @@
             flex: 1 1 auto;
             min-height: 0;
             max-height: none;
-            height: 100%;
+            height: auto;
+            overflow-y: auto;
+            overscroll-behavior-y: contain;
+            -webkit-overflow-scrolling: touch;
             grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 14px;
         }
