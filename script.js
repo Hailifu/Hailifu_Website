@@ -7219,6 +7219,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             if (!techGalleryLightbox) return;
             techGalleryLightbox.classList.remove('active');
             techGalleryLightbox.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
             if (techGalleryLightboxImage) {
                 techGalleryLightboxImage.src = '';
                 techGalleryLightboxImage.alt = '';
@@ -7226,16 +7227,18 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             if (techGalleryLightboxCaption) techGalleryLightboxCaption.textContent = '';
         }
 
-        function openTechGalleryLightbox(src, caption) {
+        function openTechGalleryLightbox(src, caption, alt) {
             if (!techGalleryLightbox || !techGalleryLightboxImage) return;
             const safeSrc = String(src || '').trim();
             if (!safeSrc) return;
             const safeCaption = String(caption || '').trim();
+            const safeAlt = String(alt || safeCaption || 'Gallery image').trim();
             techGalleryLightboxImage.src = safeSrc;
-            techGalleryLightboxImage.alt = safeCaption || 'Gallery image';
+            techGalleryLightboxImage.alt = safeAlt || 'Gallery image';
             if (techGalleryLightboxCaption) techGalleryLightboxCaption.textContent = safeCaption;
             techGalleryLightbox.classList.add('active');
             techGalleryLightbox.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
         }
 
         if (techGalleryGrid) {
@@ -7245,7 +7248,8 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 e.preventDefault();
                 const src = card.getAttribute('data-tech-gallery-src') || card.querySelector('img')?.getAttribute('src') || '';
                 const caption = card.getAttribute('data-tech-gallery-caption') || card.querySelector('.tech-gallery-label')?.textContent || '';
-                openTechGalleryLightbox(src, caption);
+                const alt = card.querySelector('img')?.getAttribute('alt') || caption;
+                openTechGalleryLightbox(src, caption, alt);
             });
         }
 
