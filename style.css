@@ -5785,12 +5785,12 @@
         }
 
         .review-terminal-card {
-            transition: opacity 0.35s ease, transform 0.35s ease;
+            transition: opacity 0.32s ease, transform 0.32s ease;
         }
 
         .review-terminal-card.is-fading {
             opacity: 0;
-            transform: translateY(6px);
+            transform: translateY(4px);
         }
 
         .hailifu-review-grid {

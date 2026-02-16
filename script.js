@@ -4203,7 +4203,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     index = (index + dir + reviews.length) % reviews.length;
                     render();
                     slide.classList.remove('is-transitioning');
-                }, 180);
+                }, 240);
             };
 
             if (prevBtn) prevBtn.addEventListener('click', () => goTo(-1));
@@ -4214,18 +4214,21 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             let autoTimer = null;
             const startAuto = () => {
                 if (autoTimer) clearInterval(autoTimer);
-                autoTimer = setInterval(() => goTo(1), 5500);
+                autoTimer = setInterval(() => goTo(1), 3000);
             };
             const stopAuto = () => {
                 if (autoTimer) clearInterval(autoTimer);
                 autoTimer = null;
             };
             const terminal = document.querySelector('.review-terminal-box');
+            const hoverTargets = [terminal, slide].filter(Boolean);
             if (terminal) {
-                terminal.addEventListener('mouseenter', stopAuto);
-                terminal.addEventListener('mouseleave', startAuto);
-                terminal.addEventListener('focusin', stopAuto);
-                terminal.addEventListener('focusout', startAuto);
+                hoverTargets.forEach((node) => {
+                    node.addEventListener('mouseenter', stopAuto);
+                    node.addEventListener('mouseleave', startAuto);
+                    node.addEventListener('focusin', stopAuto);
+                    node.addEventListener('focusout', startAuto);
+                });
             }
             startAuto();
         }
@@ -4331,7 +4334,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     modernReviewTerminalIndex = (modernReviewTerminalIndex + dir + total) % total;
                     paintAtIndex();
                     card.classList.remove('is-fading');
-                }, 180);
+                }, 240);
             };
 
             if (!terminal.dataset.terminalBound) {
@@ -4341,7 +4344,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
                 const startAuto = () => {
                     if (modernReviewTerminalTimer) window.clearInterval(modernReviewTerminalTimer);
-                    modernReviewTerminalTimer = window.setInterval(() => goTo(1), 5500);
+                    modernReviewTerminalTimer = window.setInterval(() => goTo(1), 3000);
                 };
 
                 const stopAuto = () => {
@@ -4349,10 +4352,13 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     modernReviewTerminalTimer = null;
                 };
 
-                terminal.addEventListener('mouseenter', stopAuto);
-                terminal.addEventListener('mouseleave', startAuto);
-                terminal.addEventListener('focusin', stopAuto);
-                terminal.addEventListener('focusout', startAuto);
+                [terminal, card].forEach((node) => {
+                    if (!node) return;
+                    node.addEventListener('mouseenter', stopAuto);
+                    node.addEventListener('mouseleave', startAuto);
+                    node.addEventListener('focusin', stopAuto);
+                    node.addEventListener('focusout', startAuto);
+                });
                 terminal._startReviewAuto = startAuto;
             }
 
