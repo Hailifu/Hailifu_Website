@@ -1,4 +1,3 @@
-const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         const adminUnlockStorageKey = 'hailifu_admin_unlocked';
 
         const REVIEWS_DATA = [
@@ -2064,13 +2063,177 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         let adminKnocks = [];
         let adminKnockTimer = null;
 
-        function decodeAdminSecret() {
-            try {
-                return atob(adminSecretEncoded || '');
-            } catch {
-                return '';
-            }
-        }
+        const adminGatekeeper = (() => {
+            const adminVisibilityTokenStorageKey = 'hailifu_admin_visibility_token';
+            const adminVisibilitySealStorageKey = 'hailifu_admin_visibility_seal';
+            const legacyMasterHashStorageKey = 'hailifu_admin_master_key_hash';
+            const masterParamKey = 'dev';
+            const expectedMasterParamHash = '1cbdc407';
+            const expectedAccessCodeHash = '50065bf5';
+            const visibilitySalt = 'hailifu_ops_visibility_v1';
+
+            const hashKey = (value) => {
+                const raw = String(value || '').trim();
+                if (!raw) return '';
+                let hash = 0x811c9dc5;
+                for (let i = 0; i < raw.length; i += 1) {
+                    hash ^= raw.charCodeAt(i);
+                    hash = Math.imul(hash, 0x01000193) >>> 0;
+                }
+                return (hash >>> 0).toString(16).padStart(8, '0');
+            };
+
+            const buildVisibilitySeal = (token) => hashKey(`${String(token || '')}:${visibilitySalt}`);
+
+            const generateEntropyToken = () => {
+                const bytes = new Uint8Array(32);
+                try {
+                    if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
+                        window.crypto.getRandomValues(bytes);
+                    } else {
+                        for (let i = 0; i < bytes.length; i += 1) bytes[i] = Math.floor(Math.random() * 256);
+                    }
+                } catch {
+                    for (let i = 0; i < bytes.length; i += 1) bytes[i] = Math.floor(Math.random() * 256);
+                }
+                let binary = '';
+                for (let i = 0; i < bytes.length; i += 1) binary += String.fromCharCode(bytes[i]);
+                try {
+                    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+                } catch {
+                    return `${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}_${Math.random().toString(36).slice(2)}`;
+                }
+            };
+
+            const isDesktopAdminDevice = () => {
+                const ua = String(navigator.userAgent || '').toLowerCase();
+                const isMobile = /(android|iphone|ipad|ipod|iemobile|opera mini|mobile|silk)/i.test(ua);
+                const isDesktopUa = /(windows nt|macintosh|x11|linux x86_64|cros)/i.test(ua);
+                const viewportWidth = Math.max(
+                    Number(window.innerWidth) || 0,
+                    Number((window.screen && window.screen.width) || 0)
+                );
+                const viewportHeight = Math.max(
+                    Number(window.innerHeight) || 0,
+                    Number((window.screen && window.screen.height) || 0)
+                );
+                const hasDesktopResolution = viewportWidth >= 1024 && viewportHeight >= 640;
+                let hasFinePointer = false;
+                try {
+                    hasFinePointer = !!window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+                } catch {}
+                return !isMobile && (hasDesktopResolution || isDesktopUa || hasFinePointer);
+            };
+
+            const readIncomingMasterKey = () => {
+                try {
+                    const url = new URL(window.location.href);
+                    const value = String(url.searchParams.get(masterParamKey) || '').trim();
+                    if (value) return { paramKey: masterParamKey, value };
+                } catch {}
+                return null;
+            };
+
+            const clearMasterKeyFromUrl = (paramKey) => {
+                try {
+                    const url = new URL(window.location.href);
+                    if (!url.searchParams.has(paramKey)) return;
+                    url.searchParams.delete(paramKey);
+                    const nextUrl = `${url.pathname}${url.search}${url.hash}`;
+                    window.history.replaceState({}, document.title, nextUrl || window.location.pathname);
+                } catch {}
+            };
+
+            const persistVisibilityGrant = () => {
+                try {
+                    const token = generateEntropyToken();
+                    const seal = buildVisibilitySeal(token);
+                    if (!token || !seal) return false;
+                    localStorage.setItem(adminVisibilityTokenStorageKey, token);
+                    localStorage.setItem(adminVisibilitySealStorageKey, seal);
+                    localStorage.removeItem(legacyMasterHashStorageKey);
+                    return true;
+                } catch {
+                    return false;
+                }
+            };
+
+            const hasPersistedVisibilityGrant = () => {
+                try {
+                    const token = String(localStorage.getItem(adminVisibilityTokenStorageKey) || '');
+                    const seal = String(localStorage.getItem(adminVisibilitySealStorageKey) || '');
+                    if (token && seal && buildVisibilitySeal(token) === seal) return true;
+
+                    const legacy = String(localStorage.getItem(legacyMasterHashStorageKey) || '');
+                    if (legacy === expectedAccessCodeHash) return persistVisibilityGrant();
+                } catch {
+                    return false;
+                }
+                return false;
+            };
+
+            const isValidMasterParam = (value) => {
+                const hashed = hashKey(value);
+                return !!hashed && hashed === expectedMasterParamHash;
+            };
+
+            const isValidAccessSecret = (value) => {
+                const hashed = hashKey(value);
+                return !!hashed && hashed === expectedAccessCodeHash;
+            };
+
+            const consumeUrlSecretIfValid = () => {
+                const incoming = readIncomingMasterKey();
+                if (!incoming || !incoming.value) return false;
+                const isValid = isValidMasterParam(incoming.value);
+                if (isValid) {
+                    persistVisibilityGrant();
+                    clearMasterKeyFromUrl(incoming.paramKey);
+                }
+                return isValid;
+            };
+
+            const hasVisibilityGrant = () => hasPersistedVisibilityGrant();
+
+            const pulseSuccess = () => {
+                const pulseTarget = adminTrigger ? (adminTrigger.closest('.whatsapp-logo') || adminTrigger) : null;
+                if (pulseTarget) {
+                    const previousTransition = pulseTarget.style.transition;
+                    const previousBoxShadow = pulseTarget.style.boxShadow;
+                    const previousBorderColor = pulseTarget.style.borderColor;
+                    const previousTransform = pulseTarget.style.transform;
+
+                    pulseTarget.style.transition = 'box-shadow 0.28s ease, border-color 0.28s ease, transform 0.28s ease';
+                    pulseTarget.style.borderColor = '#FF8C00';
+                    pulseTarget.style.boxShadow = '0 0 0 2px rgba(255, 140, 0, 0.75), 0 0 22px rgba(255, 140, 0, 0.85)';
+                    pulseTarget.style.transform = 'scale(1.04)';
+
+                    window.setTimeout(() => {
+                        pulseTarget.style.transition = previousTransition;
+                        pulseTarget.style.boxShadow = previousBoxShadow;
+                        pulseTarget.style.borderColor = previousBorderColor;
+                        pulseTarget.style.transform = previousTransform;
+                    }, 620);
+                }
+
+                const bodyNode = document.body;
+                if (!bodyNode) return;
+                bodyNode.classList.remove('admin-handshake-glow');
+                void bodyNode.offsetWidth;
+                bodyNode.classList.add('admin-handshake-glow');
+                window.setTimeout(() => {
+                    bodyNode.classList.remove('admin-handshake-glow');
+                }, 2000);
+            };
+
+            return {
+                isDesktopAdminDevice,
+                consumeUrlSecretIfValid,
+                hasVisibilityGrant,
+                isValidAccessSecret,
+                pulseSuccess
+            };
+        })();
 
         function isAdminUnlocked() {
             try {
@@ -3356,20 +3519,35 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         }
 
         async function gateCheck() {
+            if (!adminGatekeeper.isDesktopAdminDevice()) {
+                return false;
+            }
             if (isAdminUnlocked()) {
                 initDataSync();
                 return true;
             }
+            if (adminGatekeeper.consumeUrlSecretIfValid()) {
+                setAdminUnlocked(true);
+                initDataSync();
+                adminGatekeeper.pulseSuccess();
+                return true;
+            }
             const entered = prompt('Enter access code');
             if (entered === null) return false;
-            const ok = String(entered).trim() === decodeAdminSecret();
+            const ok = adminGatekeeper.isValidAccessSecret(entered);
             if (ok) {
-                setAdminUnlocked();
+                setAdminUnlocked(true);
                 initDataSync();
+                adminGatekeeper.pulseSuccess();
                 return true;
             }
             alert('Access denied');
             return false;
+        }
+
+        if (adminGatekeeper.isDesktopAdminDevice() && adminGatekeeper.consumeUrlSecretIfValid()) {
+            setAdminUnlocked(true);
+            adminGatekeeper.pulseSuccess();
         }
 
         if (adminTrigger) {
@@ -3429,7 +3607,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             }
         });
 
-        if (isAdminUnlocked()) {
+        if (isAdminUnlocked() && adminGatekeeper.isDesktopAdminDevice()) {
             seedOpsLayer();
             syncOpsNodes();
         }
@@ -4042,6 +4220,178 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
 
         const toSafeRating = (value) => Math.max(1, Math.min(5, Number(value) || 5));
         const buildStarText = (rating) => '\u2605'.repeat(toSafeRating(rating)) + '\u2606'.repeat(5 - toSafeRating(rating));
+        const VERIFIED_REVIEWER_NAME = 'Verified Customer';
+        const REVIEW_AVATAR_PLACEHOLDER_SRC = './logo.webp';
+        const MIN_VERIFIED_REVIEW_COUNT = 21;
+        const FEATURABLE_PLACE_ID = 'hailifu-brilliant-installation';
+        const normalizePlaceIdKey = (value) => String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        const normalizeFeedKey = (value) => String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        const FEATURABLE_PLACE_KEY = normalizePlaceIdKey(FEATURABLE_PLACE_ID);
+        const toSafeMetaCount = (value) => {
+            const numeric = Number(value);
+            if (!Number.isFinite(numeric)) return null;
+            return Math.max(0, Math.round(numeric));
+        };
+        const toSafeAverageRating = (value) => {
+            const numeric = Number(value);
+            if (!Number.isFinite(numeric)) return null;
+            return Math.max(1, Math.min(5, numeric));
+        };
+        const formatVerifiedCountLabel = (value) => {
+            const count = Math.max(0, Number(value) || 0);
+            if (!count) return '--';
+            return count >= MIN_VERIFIED_REVIEW_COUNT ? `${count}+` : String(count);
+        };
+        const isMatchingPlaceId = (value) => {
+            const placeKey = normalizePlaceIdKey(value);
+            return !placeKey || placeKey === FEATURABLE_PLACE_KEY;
+        };
+        const toSafeImageUrl = (value) => {
+            let raw = String(value || '').trim();
+            if (!raw) return '';
+            raw = raw.replace(/^url\((['"]?)(.+)\1\)$/i, '$2').trim();
+            if (!raw) return '';
+            if (/^(?:[a-z0-9-]+\.)*(?:googleusercontent\.com|gstatic\.com)\//i.test(raw)) {
+                raw = `https://${raw}`;
+            }
+            if (/^\/\//.test(raw)) {
+                raw = `${window.location.protocol}${raw}`;
+            }
+            try {
+                const parsed = new URL(raw, window.location.origin);
+                if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:' && parsed.protocol !== 'data:') {
+                    return '';
+                }
+                return parsed.href;
+            } catch (error) {
+                return '';
+            }
+        };
+        const shouldUseAnonymousCrossoriginForReviewImage = (value) => {
+            const safeUrl = toSafeImageUrl(value);
+            if (!safeUrl || safeUrl.startsWith('data:')) return false;
+            try {
+                const parsed = new URL(safeUrl, window.location.origin);
+                const host = parsed.hostname.replace(/^www\./, '').toLowerCase();
+                if (!host) return false;
+                if (host.includes('firebasestorage.googleapis.com')) return true;
+                if (host.includes('res.cloudinary.com')) return true;
+                return false;
+            } catch (error) {
+                return false;
+            }
+        };
+        const isLikelyGeneratedAuthorId = (value) => {
+            const raw = String(value || '').trim();
+            if (!raw) return false;
+            const compact = raw.replace(/[\s_.-]+/g, '');
+            const noSpaces = !/\s/.test(raw);
+            const isUuidToken = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(raw);
+            const isOpaqueAbToken = /^ab[a-z0-9]{10,}$/i.test(compact) && noSpaces;
+            const isVeryLongAlphaNumericToken = compact.length > 36 && /^[a-z0-9]+$/i.test(compact) && noSpaces;
+            const isHexHashToken = compact.length >= 32 && /^[a-f0-9]+$/i.test(compact) && noSpaces;
+            return isUuidToken || isOpaqueAbToken || isVeryLongAlphaNumericToken || isHexHashToken;
+        };
+        const isDisallowedLongAlphanumericText = (value) => {
+            const raw = String(value || '').trim();
+            if (!raw) return false;
+            const compact = raw.replace(/[_-]+/g, '');
+            if (compact.length <= 50) return false;
+            if (/\s/.test(raw)) return false;
+            if (/^https?:\/\//i.test(raw)) return false;
+            return /^[a-z0-9_-]+$/i.test(compact);
+        };
+        const isIsoTimestampText = (value) => {
+            const raw = String(value || '').trim();
+            if (!raw) return false;
+            return /^\d{4}-\d{2}-\d{2}t\d{2}:\d{2}:\d{2}(?:\.\d+)?z$/i.test(raw);
+        };
+        const isDateOnlyText = (value) => {
+            const raw = String(value || '').trim();
+            if (!raw) return false;
+            if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return true;
+            if (/^\d{1,2}\s+[a-z]{3,9}\s+\d{4}$/i.test(raw)) return true;
+            return false;
+        };
+        const isUuidLikeText = (value) => {
+            const raw = String(value || '').trim();
+            if (!raw) return false;
+            return /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(raw);
+        };
+        const isPlaceholderReviewText = (value) => {
+            const raw = String(value || '').replace(/\s+/g, ' ').trim();
+            if (!raw) return true;
+            const lower = raw.toLowerCase();
+            const compact = lower.replace(/[\s_-]+/g, '');
+            if (isIsoTimestampText(raw)) return true;
+            if (isDateOnlyText(raw)) return true;
+            if (isUuidLikeText(raw)) return true;
+            if (compact === FEATURABLE_PLACE_KEY) return true;
+            if (compact === 'firstandlastinitials') return true;
+            if (compact === 'verifiedcustomer') return true;
+            if (compact === 'relative') return true;
+            if (compact === 'recent') return true;
+            if (compact === 'today') return true;
+            if (compact === 'yesterday') return true;
+            if (compact === 'live') return true;
+            if (isLikelyGeneratedAuthorId(raw)) return true;
+            return false;
+        };
+        const toSafeReviewComment = (value) => {
+            const raw = String(value || '').replace(/\s+/g, ' ').trim();
+            if (!raw) return '';
+            if (isDisallowedLongAlphanumericText(raw)) return '';
+            if (isPlaceholderReviewText(raw)) return '';
+            if (raw.length < 8) return '';
+            return raw;
+        };
+        const toSafeOwnerReply = (value) => {
+            const raw = String(value || '').replace(/\s+/g, ' ').trim();
+            if (!raw) return '';
+            if (isDisallowedLongAlphanumericText(raw)) return '';
+            if (isPlaceholderReviewText(raw)) return '';
+            if (raw.length < 8) return '';
+            return raw;
+        };
+        const toSafeReviewerName = (value) => {
+            const raw = String(value || '').replace(/\s+/g, ' ').trim();
+            if (!raw) return VERIFIED_REVIEWER_NAME;
+            if (isLikelyGeneratedAuthorId(raw)) return VERIFIED_REVIEWER_NAME;
+            return raw;
+        };
+        const firstNonEmptyText = (values) => {
+            for (let i = 0; i < values.length; i += 1) {
+                const candidate = values[i];
+                if (typeof candidate !== 'string' && typeof candidate !== 'number') continue;
+                const text = String(candidate).replace(/\s+/g, ' ').trim();
+                if (text) return text;
+            }
+            return '';
+        };
+        const isFallbackReviewerName = (value) => {
+            const raw = String(value || '').replace(/\s+/g, ' ').trim();
+            return raw === VERIFIED_REVIEWER_NAME;
+        };
+        const formatTechnicalDate = (value) => {
+            const raw = String(value || '').replace(/\s+/g, ' ').trim();
+            if (!raw) return 'Recent';
+            const parsed = new Date(raw);
+            if (!Number.isNaN(parsed.getTime())) {
+                return parsed.toLocaleDateString('en-GB', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric'
+                });
+            }
+            const normalized = raw.toLowerCase();
+            if (normalized === 'just now') return 'Just now';
+            if (normalized === 'today') return 'Today';
+            if (normalized === 'yesterday') return 'Yesterday';
+            if (normalized === 'live') return 'Live';
+            if (normalized === 'recent') return 'Recent';
+            if (normalized === 'relative') return 'Recent';
+            return raw;
+        };
 
         const getRelativeReviewDate = (input) => {
             if (!input) return 'Recent';
@@ -4066,27 +4416,485 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
         };
 
-        const getLiveReviewFeed = () => {
+        const toDisplayReviewDate = (value) => formatTechnicalDate(value);
+        const normalizeReviewMeta = (metaInput) => {
+            const meta = metaInput && typeof metaInput === 'object' ? metaInput : {};
+            const placeId = String(
+                meta.placeId ||
+                meta.place_id ||
+                meta.placeSlug ||
+                meta.place_slug ||
+                meta.placeKey ||
+                meta.place_key ||
+                meta.businessSlug ||
+                meta.business_slug ||
+                meta.listingId ||
+                meta.listing_id ||
+                meta.locationId ||
+                meta.location_id ||
+                meta.slug ||
+                FEATURABLE_PLACE_ID
+            ).trim();
+
+            if (!isMatchingPlaceId(placeId)) {
+                return null;
+            }
+
+            const average = toSafeAverageRating(
+                meta.average ??
+                meta.avg ??
+                meta.avgRating ??
+                meta.averageRating ??
+                meta.rating ??
+                meta.ratingValue ??
+                meta.overallRating
+            );
+            const total = toSafeMetaCount(
+                meta.total ??
+                meta.totalReviews ??
+                meta.totalReviewCount ??
+                meta.reviewCount ??
+                meta.numberOfReviews ??
+                meta.reviewsCount
+            );
+            if (average === null && total === null) {
+                return null;
+            }
+            return {
+                average,
+                total,
+                placeId: placeId || FEATURABLE_PLACE_ID,
+                placeMatched: true
+            };
+        };
+        const parseVerifiedState = (value) => {
+            if (typeof value === 'boolean') return value;
+            const raw = String(value || '').trim().toLowerCase();
+            if (!raw) return null;
+            if (['verified', 'true', 'yes', 'approved', 'active', 'published'].includes(raw)) return true;
+            if (['unverified', 'false', 'no', 'pending', 'rejected', 'disabled'].includes(raw)) return false;
+            return null;
+        };
+        const isGoogleReviewUrl = (value) => {
+            const raw = String(value || '').trim();
+            if (!raw) return false;
+            try {
+                const parsed = new URL(raw, window.location.origin);
+                const host = parsed.hostname.replace(/^www\./, '').toLowerCase();
+                return (
+                    host.includes('google.') ||
+                    host === 'g.page' ||
+                    host.endsWith('.g.page') ||
+                    host.includes('googleusercontent.com') ||
+                    host.includes('gstatic.com')
+                );
+            } catch (error) {
+                return false;
+            }
+        };
+        const hasReviewShapeSignal = (review) => {
+            if (!review || typeof review !== 'object' || Array.isArray(review)) return false;
+            let hasComment = false;
+            let hasAuthor = false;
+            let hasRating = false;
+
+            Object.entries(review).forEach(([rawKey, rawValue]) => {
+                const key = normalizeFeedKey(rawKey);
+                const value = rawValue;
+                if (value && typeof value === 'object') {
+                    if (/(author|reviewer|customer)/.test(key)) {
+                        const nestedName = String(
+                            value.displayName ||
+                            value.name ||
+                            value.fullName ||
+                            value.userName ||
+                            value.firstAndLastInitials ||
+                            ''
+                        ).trim();
+                        if (nestedName) hasAuthor = true;
+                    }
+                    return;
+                }
+                if (typeof value !== 'string' && typeof value !== 'number') return;
+                const text = String(value).replace(/\s+/g, ' ').trim();
+                if (!text) return;
+                if (/(reviewbody|reviewtext|reviewcontent|comment|message|testimonial|body|content|text)/.test(key) && text.length >= 8) {
+                    hasComment = true;
+                }
+                if (/(authorname|reviewername|customername|displayname|fullname|username|firstname|lastname|name)/.test(key) && text.length >= 2) {
+                    hasAuthor = true;
+                }
+                if (/(rating|stars|score|star)/.test(key)) {
+                    const numeric = Number(text);
+                    if (Number.isFinite(numeric) && numeric >= 1) hasRating = true;
+                }
+            });
+
+            return hasComment && (hasAuthor || hasRating);
+        };
+        const isVerifiedGoogleReview = (review) => {
+            if (!review || typeof review !== 'object') return false;
+
+            const sourceRaw = String(
+                review.source ||
+                review.provider ||
+                review.platform ||
+                review.reviewSource ||
+                review.review_source ||
+                (review.author && review.author.source) ||
+                ''
+            ).trim().toLowerCase();
+            const sourceMentionsGoogle = /(google|gmb|gbp|googlebusiness)/.test(sourceRaw);
+            const reviewShapeSignal = hasReviewShapeSignal(review);
+            const googleUrlSignal = [
+                review.url,
+                review.link,
+                review.reviewUrl,
+                review.review_url,
+                review.authorUrl,
+                review.author_url,
+                review.profileUrl,
+                review.profile_url,
+                review.mapUrl,
+                review.map_url,
+                review.deepLink,
+                review.deep_link,
+                review.author && (review.author.url || review.author.profileUrl || review.author.profile_url)
+            ].some(isGoogleReviewUrl);
+            const googleImageSignal = isGoogleReviewUrl(
+                review.profile_photo ||
+                review.profilePhoto ||
+                review.authorImage ||
+                review.author_image ||
+                (review.author && (review.author.photoUrl || review.author.image))
+            );
+            if (sourceRaw && !sourceMentionsGoogle && !reviewShapeSignal) return false;
+            if (!(sourceMentionsGoogle || googleUrlSignal || googleImageSignal || reviewShapeSignal)) return false;
+
+            const candidates = [
+                review.verified,
+                review.isVerified,
+                review.verificationStatus,
+                review.verifiedStatus,
+                review.status,
+                review.reviewStatus,
+                review.state,
+                review.approvalStatus,
+                review.publishStatus,
+                review.badge,
+                review.labels,
+                review.tags,
+                review.meta,
+                review.attributes,
+                review.flags,
+                review.author && review.author.verified,
+                review.author && review.author.status
+            ];
+
+            let sawExplicitState = false;
+            for (let i = 0; i < candidates.length; i += 1) {
+                const state = parseVerifiedState(candidates[i]);
+                if (state === null) continue;
+                sawExplicitState = true;
+                if (state) return true;
+            }
+
+            return sawExplicitState ? false : true;
+        };
+
+        let featurableReviewFeed = [];
+        let featurableReviewFeedSignature = '';
+        let featurableReviewBridgeBound = false;
+        let featurableReviewMeta = {
+            average: null,
+            total: null,
+            placeId: FEATURABLE_PLACE_ID,
+            placeMatched: false
+        };
+
+        const normalizeFeaturableReview = (review) => {
+            if (!review || typeof review !== 'object') return null;
+            if (!isVerifiedGoogleReview(review)) return null;
+            const reviewPlaceId = (
+                review.placeId ||
+                review.place_id ||
+                review.placeSlug ||
+                review.place_slug ||
+                review.placeKey ||
+                review.place_key ||
+                review.businessSlug ||
+                review.business_slug ||
+                review.listingId ||
+                review.listing_id ||
+                review.locationId ||
+                review.location_id ||
+                review.slug ||
+                (review.location && (review.location.slug || review.location.id))
+            );
+            if (!isMatchingPlaceId(reviewPlaceId)) return null;
+
+            const nameCandidates = [
+                review.author_name,
+                review.authorName,
+                review.authorNameText,
+                review.author_display_name,
+                review.authorDisplayName,
+                review.reviewer_name,
+                review.reviewerName,
+                review.customer_name,
+                review.customerName,
+                review.display_name,
+                review.displayName,
+                review.user_name,
+                review.userName,
+                review.first_and_last_initials,
+                review.firstAndLastInitials,
+                review.name,
+                review.author && review.author.displayName,
+                review.author && review.author.name,
+                review.author && review.author.fullName,
+                review.author && review.author.userName,
+                review.author && review.author.firstAndLastInitials,
+                review.reviewer && review.reviewer.displayName,
+                review.reviewer && review.reviewer.name,
+                review.reviewer && review.reviewer.fullName,
+                review.reviewer && review.reviewer.userName,
+                review.reviewer && review.reviewer.firstAndLastInitials
+            ];
+            const rawName = firstNonEmptyText(nameCandidates);
+            const name = toSafeReviewerName(rawName || VERIFIED_REVIEWER_NAME);
+
+            const commentCandidates = [
+                review.review_body,
+                review.reviewBody,
+                review.review_body_text,
+                review.reviewBodyText,
+                review.review_text,
+                review.reviewText,
+                review.comment,
+                review.text,
+                review.content,
+                review.description,
+                review.message
+            ];
+
+            let safeComment = '';
+            for (let i = 0; i < commentCandidates.length; i += 1) {
+                safeComment = toSafeReviewComment(commentCandidates[i]);
+                if (safeComment) break;
+            }
+            if (!safeComment) return null;
+
+            const authorImage = toSafeImageUrl(
+                review.profile_photo ||
+                review.profilePhoto ||
+                review.profilePhotoUrl ||
+                review.profile_photo_url ||
+                review.authorImage ||
+                review.author_image ||
+                review.authorPhoto ||
+                review.author_photo ||
+                review.authorPhotoUrl ||
+                review.photoUri ||
+                review.photo_uri ||
+                review.imageUrl ||
+                review.image_url ||
+                review.authorProfilePhoto ||
+                review.author_profile_photo ||
+                (review.author && (
+                    review.author.photoUrl ||
+                    review.author.photoUri ||
+                    review.author.photo_url ||
+                    review.author.profilePhoto ||
+                    review.author.profilePhotoUrl ||
+                    review.author.profile_photo_url ||
+                    review.author.image ||
+                    review.author.avatar ||
+                    review.author.avatarUrl
+                )) ||
+                (review.authorAttribution && (
+                    review.authorAttribution.photoUri ||
+                    review.authorAttribution.photoUrl ||
+                    review.authorAttribution.profilePhotoUrl
+                )) ||
+                (review.reviewer && (
+                    review.reviewer.photoUrl ||
+                    review.reviewer.photoUri ||
+                    review.reviewer.profilePhoto ||
+                    review.reviewer.profilePhotoUrl ||
+                    review.reviewer.avatar ||
+                    review.reviewer.avatarUrl ||
+                    review.reviewer.image
+                )) ||
+                review.profile_picture ||
+                review.avatar ||
+                review.avatar_url ||
+                review.image ||
+                review.image_url ||
+                review.photo ||
+                review.photo_url ||
+                review.picture ||
+                review.picture_url
+            );
+
+            const rating = toSafeRating(review.rating || review.stars || review.score || 5);
+            const date = toDisplayReviewDate(review.date || review.published_at || review.publishedAt || review.created_at || review.createdAt);
+            const ownerReply = toSafeOwnerReply(
+                review.owner_reply ||
+                review.ownerReply ||
+                review.owner_response ||
+                review.ownerResponse ||
+                review.response ||
+                review.reply ||
+                review.reply_text ||
+                review.replyText ||
+                review.business_response ||
+                review.businessResponse
+            ) || 'Thank you for your feedback. We appreciate your support.';
+
+            return {
+                name,
+                rating,
+                comment: safeComment,
+                date,
+                ownerReply,
+                source: 'Google',
+                authorImage,
+                verified: true
+            };
+        };
+
+        const getFallbackReviewFeed = () => {
             const approvedLive = getReviews()
                 .filter((review) => review && review.status === 'approved')
                 .map((review) => ({
-                    name: String(review.name || 'Customer').trim() || 'Customer',
+                    name: toSafeReviewerName(review.name || VERIFIED_REVIEWER_NAME),
                     rating: toSafeRating(review.rating),
-                    comment: String(review.comment || '').trim(),
-                    date: getRelativeReviewDate(review.createdAt),
-                    ownerReply: String(review.ownerReply || '').trim() || 'Thank you for your feedback. We appreciate your support.',
-                    source: 'Google'
-                }));
+                    comment: toSafeReviewComment(review.comment),
+                    date: toDisplayReviewDate(review.createdAt),
+                    ownerReply: toSafeOwnerReply(review.ownerReply) || 'Thank you for your feedback. We appreciate your support.',
+                    source: 'Google',
+                    authorImage: '',
+                    verified: true
+                }))
+                .filter((review) => review.comment);
 
             const staticGoogle = REVIEWS_DATA
                 .filter(Boolean)
                 .map((review) => ({
                     ...review,
+                    name: toSafeReviewerName(review.name || VERIFIED_REVIEWER_NAME),
                     rating: toSafeRating(review.rating),
-                    source: 'Google'
-                }));
+                    comment: toSafeReviewComment(review.comment),
+                    date: toDisplayReviewDate(review.date),
+                    ownerReply: toSafeOwnerReply(review.ownerReply) || 'Thank you for your feedback. We appreciate your support.',
+                    source: 'Google',
+                    authorImage: '',
+                    verified: true
+                }))
+                .filter((review) => review.comment);
 
             return approvedLive.concat(staticGoogle);
+        };
+
+        const getLiveReviewFeed = () => {
+            if (featurableReviewFeed.length) {
+                return featurableReviewFeed
+                    .map((review) => {
+                        const safeComment = toSafeReviewComment(review && review.comment);
+                        const safeOwnerReply = toSafeOwnerReply(review && review.ownerReply)
+                            || 'Thank you for your feedback. We appreciate your support.';
+                        if (!safeComment) return null;
+                        return {
+                            ...review,
+                            comment: safeComment,
+                            ownerReply: safeOwnerReply
+                        };
+                    })
+                    .filter(Boolean);
+            }
+            return [];
+        };
+
+        const applyFeaturableReviewMeta = (metaInput) => {
+            const normalizedMeta = normalizeReviewMeta(metaInput);
+            if (!normalizedMeta) return false;
+
+            const hasChanged = (
+                featurableReviewMeta.average !== normalizedMeta.average ||
+                featurableReviewMeta.total !== normalizedMeta.total ||
+                featurableReviewMeta.placeId !== normalizedMeta.placeId ||
+                featurableReviewMeta.placeMatched !== normalizedMeta.placeMatched
+            );
+
+            if (!hasChanged) return false;
+            featurableReviewMeta = { ...featurableReviewMeta, ...normalizedMeta };
+            googleBusinessSyncActive = true;
+            return true;
+        };
+
+        const getLiveReviewTotal = (reviewsInput) => {
+            const reviews = Array.isArray(reviewsInput) ? reviewsInput.filter(Boolean) : getLiveReviewFeed();
+            const fromFeed = reviews.length;
+            const fromMeta = Number.isFinite(Number(featurableReviewMeta.total))
+                ? Math.max(0, Math.round(Number(featurableReviewMeta.total)))
+                : 0;
+            return Math.max(fromFeed, fromMeta);
+        };
+
+        const applyFeaturableReviewFeed = (reviewsInput) => {
+            const incoming = Array.isArray(reviewsInput) ? reviewsInput : [];
+            if (!incoming.length) return;
+
+            const deduped = [];
+            const seen = new Set();
+            incoming.forEach((item) => {
+                const normalized = normalizeFeaturableReview(item);
+                if (!normalized) return;
+                const signature = `${normalized.name}|${normalized.comment}`.toLowerCase();
+                if (seen.has(signature)) return;
+                seen.add(signature);
+                deduped.push(normalized);
+            });
+
+            if (!deduped.length) return;
+            const nextSignature = deduped.map((item) => `${item.name}|${item.comment}`).join('||').toLowerCase();
+            if (nextSignature === featurableReviewFeedSignature) return;
+
+            featurableReviewFeed = deduped;
+            featurableReviewFeedSignature = nextSignature;
+            googleBusinessSyncActive = true;
+            refreshLiveReviewSection();
+        };
+
+        const initFeaturableReviewBridge = () => {
+            if (featurableReviewBridgeBound) return;
+            featurableReviewBridgeBound = true;
+
+            window.addEventListener('hailifu:featurable-feed', (event) => {
+                const detail = event && event.detail ? event.detail : null;
+                const incomingPlaceId = detail && (
+                    detail.placeId ||
+                    (detail.meta && (detail.meta.placeId || detail.meta.place_id || detail.meta.slug))
+                );
+                if (!isMatchingPlaceId(incomingPlaceId)) return;
+                const reviews = detail && Array.isArray(detail.reviews) ? detail.reviews : [];
+                const metaUpdated = applyFeaturableReviewMeta(detail && detail.meta ? detail.meta : null);
+                applyFeaturableReviewFeed(reviews);
+                if (metaUpdated && !reviews.length) {
+                    refreshLiveReviewSection();
+                }
+            });
+
+            const bridge = window.__hailifuFeaturableBridge;
+            if (bridge) {
+                const metaUpdated = applyFeaturableReviewMeta(bridge.latestMeta || null);
+                if (Array.isArray(bridge.latestReviews) && bridge.latestReviews.length) {
+                    applyFeaturableReviewFeed(bridge.latestReviews);
+                } else if (metaUpdated) {
+                    refreshLiveReviewSection();
+                }
+            }
         };
 
         const summarizeReviewFeed = (reviews) => {
@@ -4120,9 +4928,11 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 : Math.min(reviewsInitialCount, liveReviews.length);
 
             container.innerHTML = liveReviews.slice(0, visibleCount).map((review) => {
-                const name = escapeHTML(review.name);
+                const safeName = toSafeReviewerName(review.name);
+                const name = escapeHTML(safeName);
+                const nameClass = isFallbackReviewerName(safeName) ? 'review-name is-verified-name' : 'review-name';
                 const comment = escapeHTML(review.comment);
-                const date = escapeHTML(review.date);
+                const date = escapeHTML(toDisplayReviewDate(review.date));
                 const meta = escapeHTML(review.meta);
                 const ownerReply = escapeHTML(review.ownerReply);
                 const stars = buildStarIcons(review.rating);
@@ -4140,7 +4950,7 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                     <article class="review-card">
                         <div class="review-card-header">
                             <div class="review-meta">
-                                <span class="review-name">${name}</span>
+                                <span class="${nameClass}">${name}</span>
                                 ${metaLine}
                                 <span class="review-date">${date}</span>
                             </div>
@@ -4241,23 +5051,70 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             if (!track || !reviews.length) return;
 
             track.innerHTML = reviews.slice(0, 24).map((review) => {
-                const name = escapeHTML(review.name);
-                const date = escapeHTML(review.date || 'Recent');
+                const rawName = toSafeReviewerName(review.name || VERIFIED_REVIEWER_NAME);
+                const isFallbackName = isFallbackReviewerName(rawName);
+                const name = escapeHTML(rawName);
+                const date = escapeHTML(toDisplayReviewDate(review.date || 'Recent'));
                 const comment = escapeHTML(review.comment);
+                const ownerReply = escapeHTML(String(review.ownerReply || '').trim());
                 const source = escapeHTML(review.source || 'Google');
                 const stars = buildStarText(review.rating);
+                const authorImage = toSafeImageUrl(review.authorImage);
+                const avatarSrc = authorImage || REVIEW_AVATAR_PLACEHOLDER_SRC;
+                const avatarAlt = authorImage ? `${rawName} profile photo` : `${rawName} profile icon`;
+                const avatarClass = authorImage ? 'featured-review-avatar' : 'featured-review-avatar featured-review-avatar--placeholder';
+                const crossoriginAttr = shouldUseAnonymousCrossoriginForReviewImage(avatarSrc) ? ' crossorigin="anonymous"' : '';
+                const avatarMarkup = `<img class="${avatarClass}" src="${escapeHTML(avatarSrc)}" alt="${escapeHTML(avatarAlt)}" loading="lazy" decoding="async" referrerpolicy="no-referrer"${crossoriginAttr} onerror="this.onerror=null; this.src='${REVIEW_AVATAR_PLACEHOLDER_SRC}';">`;
+                const responseMarkup = ownerReply
+                    ? `<div class="featured-review-response"><span class="featured-review-response-label">Response</span><p>${ownerReply}</p></div>`
+                    : '';
                 return `
                     <article class="featured-review-card" data-rating="${toSafeRating(review.rating)}">
                         <div class="featured-review-meta">
-                            <span class="review-source">${source}</span>
-                            <span class="reviewer-name">${name}</span>
+                            <div class="featured-review-identity">
+                                ${avatarMarkup}
+                                <div class="featured-review-meta-copy">
+                                    <span class="review-source">${source}</span>
+                                    <span class="reviewer-name${isFallbackName ? ' is-verified-name' : ''}">${name}</span>
+                                </div>
+                            </div>
                             <span class="review-time">${date}</span>
                         </div>
                         <div class="featured-review-stars">${stars}</div>
                         <p>${comment}</p>
+                        ${responseMarkup}
                     </article>
                 `;
             }).join('');
+            enforceReviewAssetPolicies();
+        }
+
+        function enforceReviewAssetPolicies() {
+            const reviewsSection = document.getElementById('reviews');
+            if (!reviewsSection) return;
+
+            reviewsSection.querySelectorAll('img').forEach((img) => {
+                img.setAttribute('referrerpolicy', 'no-referrer');
+                const src = String(img.getAttribute('src') || img.currentSrc || '').trim();
+                if (shouldUseAnonymousCrossoriginForReviewImage(src)) {
+                    img.setAttribute('crossorigin', 'anonymous');
+                } else {
+                    img.removeAttribute('crossorigin');
+                }
+            });
+
+            reviewsSection.querySelectorAll('a[href]').forEach((link) => {
+                link.setAttribute('referrerpolicy', 'no-referrer');
+                if (String(link.target || '').toLowerCase() === '_blank') {
+                    const relTokens = String(link.getAttribute('rel') || '')
+                        .split(/\s+/)
+                        .map((token) => token.trim().toLowerCase())
+                        .filter(Boolean);
+                    if (!relTokens.includes('noopener')) relTokens.push('noopener');
+                    if (!relTokens.includes('noreferrer')) relTokens.push('noreferrer');
+                    link.setAttribute('rel', relTokens.join(' '));
+                }
+            });
         }
 
         function setGoogleBusinessSyncState(active, total) {
@@ -4266,8 +5123,11 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             if (!statusBtn) return;
 
             const totalCount = Math.max(0, Number(total) || 0);
+            const totalLabel = formatVerifiedCountLabel(totalCount);
             const pendingMessage = 'Connect the Google Business feed to stream verified reviews here.';
-            const activeMessage = `Google Business sync active. ${totalCount} verified reviews ready.`;
+            const activeMessage = totalLabel === '--'
+                ? 'Google Business sync active. Verified reviews are streaming live.'
+                : `Google Business sync active. ${totalLabel} verified reviews ready.`;
 
             statusBtn.classList.toggle('is-active', active);
             statusBtn.setAttribute('aria-pressed', active ? 'true' : 'false');
@@ -4284,16 +5144,17 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 statusBtn.addEventListener('click', () => {
                     googleBusinessSyncActive = !googleBusinessSyncActive;
                     const reviews = getLiveReviewFeed();
-                    setGoogleBusinessSyncState(googleBusinessSyncActive, reviews.length);
+                    setGoogleBusinessSyncState(googleBusinessSyncActive, getLiveReviewTotal(reviews));
                 });
             }
 
-            setGoogleBusinessSyncState(googleBusinessSyncActive, getLiveReviewFeed().length);
+            setGoogleBusinessSyncState(googleBusinessSyncActive, getLiveReviewTotal(getLiveReviewFeed()));
         }
 
         function renderModernReviewTerminal(reviewsInput) {
             const terminal = document.getElementById('reviewTerminal');
             const card = terminal ? terminal.querySelector('.review-terminal-card') : null;
+            const avatarEl = document.getElementById('reviewTerminalAvatar');
             const nameEl = document.getElementById('reviewTerminalName');
             const starsEl = document.getElementById('reviewTerminalStars');
             const textEl = document.getElementById('reviewTerminalText');
@@ -4312,9 +5173,31 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 const review = modernReviewTerminalFeed[modernReviewTerminalIndex];
                 if (!review) return;
 
-                nameEl.textContent = String(review.name || 'Customer');
+                const reviewerName = toSafeReviewerName(review.name || VERIFIED_REVIEWER_NAME);
+                const reviewText = String(review.comment || '').trim();
+                const authorImage = toSafeImageUrl(review.authorImage);
+                const avatarSrc = authorImage || REVIEW_AVATAR_PLACEHOLDER_SRC;
+
+                if (avatarEl) {
+                    if (shouldUseAnonymousCrossoriginForReviewImage(avatarSrc)) {
+                        avatarEl.crossOrigin = 'anonymous';
+                    } else {
+                        avatarEl.removeAttribute('crossorigin');
+                    }
+                    avatarEl.src = avatarSrc;
+                    avatarEl.alt = authorImage ? `${reviewerName} profile photo` : `${reviewerName} profile icon`;
+                    avatarEl.referrerPolicy = 'no-referrer';
+                    avatarEl.classList.toggle('hailifu-review-avatar--placeholder', !authorImage);
+                    avatarEl.onerror = function handleReviewAvatarError() {
+                        this.onerror = null;
+                        this.src = REVIEW_AVATAR_PLACEHOLDER_SRC;
+                    };
+                }
+
+                nameEl.textContent = reviewerName;
+                nameEl.classList.toggle('is-verified-name', isFallbackReviewerName(reviewerName));
                 starsEl.textContent = buildStarText(review.rating);
-                textEl.textContent = `"${String(review.comment || '')}"`;
+                textEl.textContent = `"${reviewText}"`;
 
                 if (ownerWrap && ownerText) {
                     const reply = String(review.ownerReply || '').trim();
@@ -4369,9 +5252,17 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
         function renderModernReviewSummary(reviewsInput) {
             const reviews = Array.isArray(reviewsInput) ? reviewsInput.filter(Boolean) : getLiveReviewFeed();
             const summary = summarizeReviewFeed(reviews);
-            const total = summary.total;
-            const average = summary.average;
-            const fiveStarCount = summary.counts[5] || 0;
+            const metaAverage = toSafeAverageRating(featurableReviewMeta.average);
+            const metaTotal = toSafeMetaCount(featurableReviewMeta.total);
+            const hasLiveVerifiedFeed = featurableReviewFeed.length > 0 || metaAverage !== null || metaTotal !== null;
+            const total = hasLiveVerifiedFeed
+                ? Math.max(metaTotal !== null ? metaTotal : summary.total, MIN_VERIFIED_REVIEW_COUNT)
+                : summary.total;
+            const average = metaAverage !== null
+                ? metaAverage
+                : (summary.total ? summary.average : (metaTotal !== null ? 5 : 0));
+            const formattedAverage = average > 0 ? average.toFixed(1) : '--';
+            const totalLabel = hasLiveVerifiedFeed ? formatVerifiedCountLabel(total) : '--';
 
             const avgEl = document.getElementById('reviewAvgRating');
             const totalEl = document.getElementById('reviewTotalReports');
@@ -4383,39 +5274,62 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
             const statsExcellence = document.getElementById('statsOperationalExcellence');
             const statsStars = document.getElementById('statsOperationalStars') || document.querySelector('.stats-dashboard .stats-card .stats-stars');
 
-            if (avgEl) avgEl.textContent = average.toFixed(1);
-            if (totalEl) totalEl.textContent = String(total);
-            if (ratingNumber) ratingNumber.textContent = average.toFixed(1);
-            if (ratingStars) ratingStars.textContent = buildStarText(Math.round(average) || 5);
-            if (reviewCount) reviewCount.textContent = `${total} Google Reviews`;
-            if (headline) headline.textContent = `${fiveStarCount}+ Five-Star Reviews on Google`;
+            if (avgEl) avgEl.textContent = formattedAverage;
+            if (totalEl) totalEl.textContent = totalLabel;
+            if (ratingNumber) ratingNumber.textContent = formattedAverage;
+            if (ratingStars) ratingStars.textContent = buildStarText(5);
+            if (reviewCount) reviewCount.textContent = hasLiveVerifiedFeed ? `${totalLabel} Google Reviews` : 'Loading verified reviews...';
+            if (headline) headline.textContent = hasLiveVerifiedFeed
+                ? `${formattedAverage} Rating | ${totalLabel} Verified Reviews`
+                : 'Live Rating | Live Verified Reviews';
             if (headlineStars) headlineStars.textContent = buildStarText(5);
             if (statsExcellence) {
-                statsExcellence.dataset.counter = average.toFixed(1);
-                statsExcellence.dataset.decimals = '1';
-                statsExcellence.textContent = average.toFixed(1);
+                if (formattedAverage === '--') {
+                    statsExcellence.textContent = '--';
+                } else {
+                    statsExcellence.dataset.counter = formattedAverage;
+                    statsExcellence.dataset.decimals = '1';
+                    statsExcellence.textContent = formattedAverage;
+                }
             }
-            if (statsStars) statsStars.textContent = buildStarText(Math.round(average) || 5);
+            if (statsStars) statsStars.textContent = buildStarText(5);
 
             document.querySelectorAll('.modern-review-section .review-metrics .metric-row').forEach((row) => {
                 const labelEl = row.querySelector('.metric-label');
                 const fill = row.querySelector('.metric-fill');
                 if (!labelEl || !fill) return;
                 const ratingKey = Math.max(1, Math.min(5, Number(labelEl.textContent) || 0));
-                const count = summary.counts[ratingKey] || 0;
-                const width = total > 0 ? (count / total) * 100 : 0;
+                let width = 0;
+                if (hasLiveVerifiedFeed) {
+                    width = ratingKey === 5 ? 100 : 0;
+                } else {
+                    const count = summary.counts[ratingKey] || 0;
+                    width = total > 0 ? (count / total) * 100 : 0;
+                }
                 fill.style.width = `${width.toFixed(2)}%`;
             });
         }
 
         function refreshLiveReviewSection() {
             const reviews = getLiveReviewFeed();
+            const hasMeta = toSafeAverageRating(featurableReviewMeta.average) !== null || toSafeMetaCount(featurableReviewMeta.total) !== null;
+            if (!reviews.length && !hasMeta) {
+                setGoogleBusinessSyncState(false, 0);
+                enforceReviewAssetPolicies();
+                return;
+            }
             renderModernReviewSummary(reviews);
-            renderFeaturedReviewsFeed(reviews);
-            renderModernReviewTerminal(reviews);
-            setGoogleBusinessSyncState(googleBusinessSyncActive, reviews.length);
+            if (reviews.length) {
+                renderFeaturedReviewsFeed(reviews);
+                renderModernReviewTerminal(reviews);
+            }
+            const liveTotal = getLiveReviewTotal(reviews);
+            const syncActive = googleBusinessSyncActive || reviews.length > 0 || hasMeta;
+            setGoogleBusinessSyncState(syncActive, liveTotal);
+            enforceReviewAssetPolicies();
         }
 
+        initFeaturableReviewBridge();
         initGoogleBusinessStatusToggle();
         refreshLiveReviewSection();
         window.addEventListener('storage', (event) => {
@@ -7214,73 +8128,6 @@ const adminSecretEncoded = 'aGFpbGlmdTIwMjY=';
                 }, 3000);
             }
         }
-
-        const techGalleryGrid = document.getElementById('techGalleryGrid');
-        const techGalleryLightbox = document.getElementById('techGalleryLightbox');
-        const techGalleryLightboxImage = document.getElementById('techGalleryLightboxImage');
-        const techGalleryLightboxCaption = document.getElementById('techGalleryLightboxCaption');
-        const techGalleryClose = document.getElementById('techGalleryClose');
-
-        function closeTechGalleryLightbox() {
-            if (!techGalleryLightbox) return;
-            techGalleryLightbox.classList.remove('active');
-            techGalleryLightbox.setAttribute('aria-hidden', 'true');
-            document.body.style.overflow = '';
-            if (techGalleryLightboxImage) {
-                techGalleryLightboxImage.src = '';
-                techGalleryLightboxImage.alt = '';
-            }
-            if (techGalleryLightboxCaption) techGalleryLightboxCaption.textContent = '';
-        }
-
-        function openTechGalleryLightbox(src, caption, alt) {
-            if (!techGalleryLightbox || !techGalleryLightboxImage) return;
-            const safeSrc = String(src || '').trim();
-            if (!safeSrc) return;
-            const safeCaption = String(caption || '').trim();
-            const safeAlt = String(alt || safeCaption || 'Gallery image').trim();
-            techGalleryLightboxImage.src = safeSrc;
-            techGalleryLightboxImage.alt = safeAlt || 'Gallery image';
-            if (techGalleryLightboxCaption) techGalleryLightboxCaption.textContent = safeCaption;
-            techGalleryLightbox.classList.add('active');
-            techGalleryLightbox.setAttribute('aria-hidden', 'false');
-            document.body.style.overflow = 'hidden';
-        }
-
-        if (techGalleryGrid) {
-            techGalleryGrid.addEventListener('click', (e) => {
-                const card = e.target.closest('.tech-gallery-card');
-                if (!card || !techGalleryGrid.contains(card)) return;
-                e.preventDefault();
-                const src = card.getAttribute('data-tech-gallery-src') || card.querySelector('img')?.getAttribute('src') || '';
-                const caption = card.getAttribute('data-tech-gallery-caption') || card.querySelector('.tech-gallery-label')?.textContent || '';
-                const alt = card.querySelector('img')?.getAttribute('alt') || caption;
-                openTechGalleryLightbox(src, caption, alt);
-            });
-        }
-
-        if (techGalleryClose) {
-            techGalleryClose.addEventListener('click', (e) => {
-                e.preventDefault();
-                closeTechGalleryLightbox();
-            });
-        }
-
-        if (techGalleryLightbox) {
-            techGalleryLightbox.addEventListener('click', (e) => {
-                if (e.target === techGalleryLightbox) {
-                    closeTechGalleryLightbox();
-                }
-            });
-        }
-
-        document.addEventListener('keydown', (e) => {
-            if (!techGalleryLightbox || !techGalleryLightbox.classList.contains('active')) return;
-            if (String(e.key || '') === 'Escape') {
-                e.preventDefault();
-                closeTechGalleryLightbox();
-            }
-        });
 
         });
 

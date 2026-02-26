@@ -23,16 +23,16 @@
         }
         :root {
             --brand-primary: #FF8C00;
-            --brand-secondary: #000000;
-            --text-header: #000000;
+            --brand-secondary: #1a1a1a;
+            --text-header: #1a1a1a;
             --text-body: #333333;
-            --brand-dark: #000000;
+            --brand-dark: #1a1a1a;
             --orange: #FF8C00;
             --orange-glow: rgba(255, 140, 0, 0.3);
-            --dark-surface: #121212;
+            --dark-surface: #202020;
             --orange-dark: #E67300;
             --orange-light: #FFB366;
-            --black: #000000;
+            --black: #1a1a1a;
             --white: #FFFFFF;
             --light-grey: #F5F5F5;
             --dark-grey: #2C2C2C;
@@ -40,23 +40,23 @@
             --accent-gold-border: rgba(212, 175, 55, 0.35);
             --accent-gold-highlight: rgba(255, 215, 128, 0.25);
             --google-blue: #4285F4;
-            --rating-star: #FFD166;
+            --rating-star: #FF8C00;
             --success-text: #9fffb2;
             --text-dark: #1b1b1b;
             --text-light: #666666;
             --shadow: rgba(0,0,0,0.1);
             --gradient-primary: linear-gradient(135deg, #FF8C00, #FFB366);
             --gradient-secondary: linear-gradient(135deg, #2C2C2C, #454545);
-            --gradient-dark: linear-gradient(135deg, #000000, #1A1A1A);
+            --gradient-dark: linear-gradient(135deg, #1a1a1a, #313131);
             --gradient-glass: linear-gradient(135deg, rgba(255,140,0,0.1), rgba(255,140,0,0.05));
             --glass-bg: rgba(255,255,255,0.05);
             --glass-border: rgba(255,140,0,0.2);
             --orange-bg: rgba(255,140,0,0.05);
-            --surface-dark: rgba(8, 8, 8, 0.92);
-            --surface-card: rgba(255,255,255,0.05);
+            --surface-dark: rgba(32, 32, 32, 0.88);
+            --surface-card: rgba(255,255,255,0.11);
             --text-muted: rgba(255, 255, 255, 0.7);
 
-            --surface-main: #0a0a0a;
+            --surface-main: #232323;
             --text-primary: #ffffff;
             --text-secondary: rgba(255,255,255,0.7);
 
@@ -65,8 +65,13 @@
             --card-bg: var(--surface-card);
             --card-border: rgba(255, 255, 255, 0.10);
             --card-shadow: 0 18px 40px rgba(0, 0, 0, 0.40);
-            --surface-strong: rgba(0, 0, 0, 0.92);
+            --surface-strong: rgba(34, 34, 34, 0.86);
             --terminal-font: 'Press Start 2P', 'Courier New', monospace;
+            --industrial-noise-svg: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0OCcgaGVpZ2h0PSc0OCcgdmlld0JveD0nMCAwIDQ4IDQ4Jz48ZyBmaWxsPSd3aGl0ZScgb3BhY2l0eT0nMC4wMyc+PHJlY3QgeD0nMScgeT0nMicgd2lkdGg9JzEnIGhlaWdodD0nMScvPjxyZWN0IHg9JzcnIHk9JzUnIHdpZHRoPScxJyBoZWlnaHQ9JzEnLz48cmVjdCB4PScxMicgeT0nMScgd2lkdGg9JzEnIGhlaWdodD0nMScvPjxyZWN0IHg9JzE3JyB5PSc2JyB3aWR0aD0nMScgaGVpZ2h0PScxJy8+PHJlY3QgeD0nMjMnIHk9JzMnIHdpZHRoPScxJyBoZWlnaHQ9JzEnLz48cmVjdCB4PScyOScgeT0nNycgd2lkdGg9JzEnIGhlaWdodD0nMScvPjxyZWN0IHg9JzM0JyB5PScyJyB3aWR0aD0nMScgaGVpZ2h0PScxJy8+PHJlY3QgeD0nNDEnIHk9JzUnIHdpZHRoPScxJyBoZWlnaHQ9JzEnLz48cmVjdCB4PSczJyB5PScxMicgd2lkdGg9JzEnIGhlaWdodD0nMScvPjxyZWN0IHg9JzknIHk9JzE2JyB3aWR0aD0nMScgaGVpZ2h0PScxJy8+PHJlY3QgeD0nMTUnIHk9JzExJyB3aWR0aD0nMScgaGVpZ2h0PScxJy8+PHJlY3QgeD0nMjEnIHk9JzE0JyB3aWR0aD0nMScgaGVpZ2h0PScxJy8+PHJlY3QgeD0nMjcnIHk9JzEwJyB3aWR0aD0nMScgaGVpZ2h0PScxJy8+PHJlY3QgeD0nMzMnIHk9JzE2JyB3aWR0aD0nMScgaGVpZ2h0PScxJy8+PHJlY3QgeD0nMzknIHk9JzEyJyB3aWR0aD0nMScgaGVpZ2h0PScxJy8+PHJlY3QgeD0nNDUnIHk9JzE1JyB3aWR0aD0nMScgaGVpZ2h0PScxJy8+PHJlY3QgeD0nMicgeT0nMjQnIHdpZHRoPScxJyBoZWlnaHQ9JzEnLz48cmVjdCB4PSc4JyB5PScyNycgd2lkdGg9JzEnIGhlaWdodD0nMScvPjxyZWN0IHg9JzE0JyB5PScyMicgd2lkdGg9JzEnIGhlaWdodD0nMScvPjxyZWN0IHg9JzIwJyB5PScyNicgd2lkdGg9JzEnIGhlaWdodD0nMScvPjxyZWN0IHg9JzI2JyB5PScyMycgd2lkdGg9JzEnIGhlaWdodD0nMScvPjxyZWN0IHg9JzMyJyB5PScyOCcgd2lkdGg9JzEnIGhlaWdodD0nMScvPjxyZWN0IHg9JzM4JyB5PScyMScgd2lkdGg9JzEnIGhlaWdodD0nMScvPjxyZWN0IHg9JzQ0JyB5PScyNScgd2lkdGg9JzEnIGhlaWdodD0nMScvPjxyZWN0IHg9JzQnIHk9JzM0JyB3aWR0aD0nMScgaGVpZ2h0PScxJy8+PHJlY3QgeD0nMTAnIHk9JzM5JyB3aWR0aD0nMScgaGVpZ2h0PScxJy8+PHJlY3QgeD0nMTYnIHk9JzMzJyB3aWR0aD0nMScgaGVpZ2h0PScxJy8+PHJlY3QgeD0nMjInIHk9JzM3JyB3aWR0aD0nMScgaGVpZ2h0PScxJy8+PHJlY3QgeD0nMjgnIHk9JzMyJyB3aWR0aD0nMScgaGVpZ2h0PScxJy8+PHJlY3QgeD0nMzQnIHk9JzM4JyB3aWR0aD0nMScgaGVpZ2h0PScxJy8+PHJlY3QgeD0nNDAnIHk9JzM1JyB3aWR0aD0nMScgaGVpZ2h0PScxJy8+PHJlY3QgeD0nNDYnIHk9JzQwJyB3aWR0aD0nMScgaGVpZ2h0PScxJy8+PHJlY3QgeD0nMScgeT0nNDQnIHdpZHRoPScxJyBoZWlnaHQ9JzEnLz48cmVjdCB4PSc3JyB5PSc0Nicgd2lkdGg9JzEnIGhlaWdodD0nMScvPjxyZWN0IHg9JzEzJyB5PSc0Mycgd2lkdGg9JzEnIGhlaWdodD0nMScvPjxyZWN0IHg9JzE5JyB5PSc0Nycgd2lkdGg9JzEnIGhlaWdodD0nMScvPjxyZWN0IHg9JzI1JyB5PSc0NCcgd2lkdGg9JzEnIGhlaWdodD0nMScvPjxyZWN0IHg9JzMxJyB5PSc0Nicgd2lkdGg9JzEnIGhlaWdodD0nMScvPjxyZWN0IHg9JzM3JyB5PSc0Micgd2lkdGg9JzEnIGhlaWdodD0nMScvPjxyZWN0IHg9JzQzJyB5PSc0Nycgd2lkdGg9JzEnIGhlaWdodD0nMScvPjwvZz48L3N2Zz4=");
+            --industrial-noise-gradient: linear-gradient(145deg, rgba(255, 255, 255, 0.055) 0%, rgba(255, 255, 255, 0.035) 45%, rgba(255, 255, 255, 0.055) 100%);
+            --industrial-noise-layer: var(--industrial-noise-gradient), var(--industrial-noise-svg);
+            --industrial-noise-size: 100% 100%, 64px 64px;
+            --industrial-noise-repeat: no-repeat, repeat;
         }
 
         [data-theme='light'] {
@@ -85,6 +90,9 @@
             --card-shadow: 0 14px 34px rgba(0, 0, 0, 0.10);
             --surface-strong: rgba(255, 255, 255, 0.92);
             --text-muted: rgba(29, 29, 31, 0.68);
+            --industrial-noise-layer: none;
+            --industrial-noise-size: auto;
+            --industrial-noise-repeat: no-repeat;
         }
 
         .stay-light,
@@ -495,7 +503,11 @@
             line-height: 1.6;
             color: var(--text-color);
             overflow-x: hidden;
-            background: var(--bg-color);
+            background-color: var(--bg-color);
+            background-image: var(--industrial-noise-layer);
+            background-size: var(--industrial-noise-size);
+            background-repeat: var(--industrial-noise-repeat);
+            background-attachment: scroll;
             padding-left: 0;
             padding-top: calc(84px + env(safe-area-inset-top, 0px));
             transition: background-color 0.5s ease, color 0.5s ease;
@@ -518,7 +530,49 @@
         }
 
         [data-theme='light'] body {
-            background: var(--bg-color);
+            background-color: var(--bg-color);
+            background-image: none;
+        }
+
+        html:not([data-theme='light']) {
+            --orange: #FF8C00;
+            --rating-star: #FF8C00;
+        }
+
+        html:not([data-theme='light']) section {
+            background-color: var(--surface-main);
+            background-image: var(--industrial-noise-layer);
+            background-size: var(--industrial-noise-size);
+            background-repeat: var(--industrial-noise-repeat);
+        }
+
+        html:not([data-theme='light']) .review-terminal,
+        html:not([data-theme='light']) .featured-reviews,
+        html:not([data-theme='light']) .live-system-feed,
+        html:not([data-theme='light']) .modern-review-section .review-terminal,
+        html:not([data-theme='light']) .modern-review-section .featured-reviews-feed {
+            background-color: var(--surface-main);
+            background-image: var(--industrial-noise-layer);
+            background-size: var(--industrial-noise-size);
+            background-repeat: var(--industrial-noise-repeat);
+        }
+
+        html:not([data-theme='light']) .review-terminal-box,
+        html:not([data-theme='light']) .section,
+        html:not([data-theme='light']) .card,
+        html:not([data-theme='light']) .showcase-item,
+        html:not([data-theme='light']) .featured-card,
+        html:not([data-theme='light']) .hailifu-review-card,
+        html:not([data-theme='light']) .stats-card,
+        html:not([data-theme='light']) .featured-review-card,
+        html:not([data-theme='light']) .live-feed-card {
+            background: rgba(36, 36, 36, 0.84);
+        }
+
+        @media (max-width: 768px) {
+            html:not([data-theme='light']) {
+                --industrial-noise-size: 100% 100%, 56px 56px;
+            }
         }
 
         img {
@@ -1135,22 +1189,52 @@
         }
 
         [data-theme='light'] .hero::before {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.28);
         }
 
         [data-theme='light'] .hero h1,
         [data-theme='light'] .hero-slogan,
-        [data-theme='light'] .hero p {
-            color: var(--white);
+        [data-theme='light'] .hero p,
+        [data-theme='light'] .hero-slogan-sub {
+            color: #FFFFFF;
         }
 
         [data-theme='light'] .brand-tagline {
-            color: rgba(255, 255, 255, 0.75);
+            color: rgba(255, 255, 255, 0.84);
         }
 
         [data-theme='light'] .hero h1,
-        [data-theme='light'] .hero p {
-            text-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+        [data-theme='light'] .hero p,
+        [data-theme='light'] .hero-slogan,
+        [data-theme='light'] .hero-slogan-sub {
+            text-shadow: 0 10px 24px rgba(0, 0, 0, 0.42);
+        }
+
+        [data-theme='light'] .hero-content {
+            background: linear-gradient(150deg, rgba(0, 0, 0, 0.26), rgba(0, 0, 0, 0.14));
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.22);
+        }
+
+        [data-theme='light'] .hero-slogan {
+            letter-spacing: 0.13em;
+        }
+
+        [data-theme='light'] .hero-security {
+            color: #FF8C00;
+        }
+
+        @media (max-width: 768px) {
+            [data-theme='light'] .hero-content {
+                background: linear-gradient(150deg, rgba(0, 0, 0, 0.34), rgba(0, 0, 0, 0.2));
+                border-color: rgba(255, 255, 255, 0.22);
+            }
+
+            [data-theme='light'] .hero-slogan {
+                letter-spacing: 0.11em;
+            }
         }
 
         .hero-content {
@@ -1265,7 +1349,7 @@
         }
 
         .hero-security {
-            color: var(--orange);
+            color: #FF8C00;
             text-shadow: 0 0 12px rgba(255, 140, 0, 0.7), 0 0 28px rgba(255, 140, 0, 0.45);
         }
 
@@ -1278,24 +1362,36 @@
         }
 
         .hero-slogan {
-            font-size: clamp(1.25rem, 3.6vw, 2rem);
-            color: var(--white);
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            text-shadow: 0 4px 0 rgba(0, 0, 0, 0.95), 0 14px 30px rgba(0, 0, 0, 0.85);
+            font-size: clamp(1.12rem, 3.2vw, 1.72rem);
+            color: #FFFFFF;
+            font-weight: 800;
+            margin-bottom: 0.55rem;
+            text-shadow: 0 6px 24px rgba(0, 0, 0, 0.82);
             font-style: normal;
-            letter-spacing: -1.5px;
+            letter-spacing: 0.15em;
+            line-height: 1.28;
             text-transform: uppercase;
-            font-family: 'Sora', 'Segoe UI', sans-serif;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+            font-family: 'Inter', 'Montserrat', 'Sora', 'Segoe UI', sans-serif;
+            display: block;
+            text-align: center;
+            max-width: min(860px, 100%);
             padding: 0;
             border-radius: 0;
             background: transparent;
             border: none;
             opacity: 0;
             animation: heroTaglineRise 1s cubic-bezier(0.4, 0, 0.2, 1) 0.6s both;
+        }
+
+        .hero-slogan-sub {
+            margin: 0 0 1rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: clamp(0.8rem, 2.3vw, 1.02rem);
+            font-weight: 500;
+            letter-spacing: 0.04em;
+            text-align: center;
+            max-width: min(760px, 100%);
+            font-family: 'Inter', 'Montserrat', 'Sora', 'Segoe UI', sans-serif;
         }
 
         .hero-slogan-accent {
@@ -1331,6 +1427,17 @@
 
             .hero h1 {
                 font-size: 2rem;
+            }
+
+            .hero-slogan {
+                font-size: clamp(0.92rem, 4.4vw, 1.18rem);
+                line-height: 1.35;
+            }
+
+            .hero-slogan-sub {
+                font-size: clamp(0.74rem, 3.4vw, 0.9rem);
+                letter-spacing: 0.03em;
+                margin-bottom: 0.9rem;
             }
 
             .service-bar {
@@ -5246,7 +5353,7 @@
         /* Modern Client Reviews Section */
         .modern-review-section {
             padding: 80px 5%;
-            background: var(--surface-main);
+            background: #000000;
             position: relative;
             overflow: hidden;
         }
@@ -8432,6 +8539,47 @@
             color: #ffffff;
         }
 
+        /* Dark Mode Admin Noise Finish */
+        html:not([data-theme='light']) .admin-panel {
+            background-color: #111111;
+            background-image: var(--industrial-noise-layer);
+            background-size: var(--industrial-noise-size);
+            background-repeat: var(--industrial-noise-repeat);
+            border-left: 1px solid rgba(255, 140, 0, 0.45);
+        }
+
+        html:not([data-theme='light']) .admin-panel::before {
+            background:
+                radial-gradient(circle at 12% 12%, rgba(255, 140, 0, 0.16), transparent 58%),
+                var(--industrial-noise-layer);
+            background-size: 100% 100%, var(--industrial-noise-size);
+            background-repeat: no-repeat, var(--industrial-noise-repeat);
+            opacity: 0.85;
+        }
+
+        html:not([data-theme='light']) .admin-header,
+        html:not([data-theme='light']) .admin-tabs,
+        html:not([data-theme='light']) .admin-section,
+        html:not([data-theme='light']) .admin-tab:not(.active),
+        html:not([data-theme='light']) .metrics-card,
+        html:not([data-theme='light']) .lead-card,
+        html:not([data-theme='light']) .admin-project-group,
+        html:not([data-theme='light']) .project-thumb,
+        html:not([data-theme='light']) .gallery-queue,
+        html:not([data-theme='light']) .gallery-queue-item,
+        html:not([data-theme='light']) .upload-form input,
+        html:not([data-theme='light']) .upload-form select,
+        html:not([data-theme='light']) .upload-form textarea {
+            background-color: rgba(17, 17, 17, 0.9);
+            background-image: var(--industrial-noise-layer);
+            background-size: var(--industrial-noise-size);
+            background-repeat: var(--industrial-noise-repeat);
+        }
+
+        html:not([data-theme='light']) .admin-tab:not(.active) {
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
         /* Review Terminal */
         .review-terminal {
             background: #000000;
@@ -8859,28 +9007,89 @@
     animation: featuredFeedScroll 26s linear infinite;
 }
 
+.modern-review-section .featured-reviews-feed .featured-reviews-window:hover .featured-reviews-track,
+.modern-review-section .featured-reviews-feed .featured-reviews-window:focus-within .featured-reviews-track {
+    animation-play-state: paused !important;
+}
+
 .modern-review-section .featured-reviews-feed .featured-review-card {
     min-width: 260px;
     max-width: 320px;
+    min-height: 220px;
+    max-height: 220px;
     padding: 16px;
+    display: flex;
+    flex-direction: column;
     border-radius: 16px;
     border: 1px solid color-mix(in srgb, var(--orange) 25%, transparent);
     color: var(--text-main);
+    overflow: hidden;
 }
 
 .modern-review-section .featured-reviews-feed .featured-review-card p {
     margin: 0;
     color: var(--text-main);
     line-height: 1.55;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.modern-review-section .featured-reviews-feed .featured-review-response {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid color-mix(in srgb, var(--orange) 24%, transparent);
+}
+
+.modern-review-section .featured-reviews-feed .featured-review-response-label {
+    display: inline-block;
+    margin-bottom: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #FF8C00;
+}
+
+.modern-review-section .featured-reviews-feed .featured-review-response p {
+    margin: 0;
+    color: var(--text-dim);
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.modern-review-section .owner-reply,
+.modern-review-section .featured-review-response {
+    display: none !important;
 }
 
 .modern-review-section .featured-reviews-feed .featured-review-meta {
     color: var(--text-dim);
 }
 
+.modern-review-section .featured-reviews-feed .featured-review-meta .review-source,
+.modern-review-section .featured-reviews-feed .featured-review-meta .reviewer-name,
+.modern-review-section .featured-reviews-feed .featured-review-meta .review-time {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
 .modern-review-section .featured-reviews-feed .featured-review-stars {
     color: var(--orange);
     text-shadow: 0 0 10px color-mix(in srgb, var(--orange) 50%, transparent);
+}
+
+.modern-review-section .rating-stars-large,
+.modern-review-section .hailifu-review-stars,
+.modern-review-section .hailifu-review-score,
+.modern-review-section .featured-review-stars,
+.modern-review-section .stats-stars {
+    color: #FF8C00 !important;
 }
 
 [data-theme='light'] .modern-review-section .featured-reviews-feed {
@@ -8923,6 +9132,108 @@
 
 [data-theme='light'] .modern-review-section .featured-reviews-feed .featured-review-meta {
     color: rgba(27, 27, 27, 0.62);
+}
+
+/* Featurable Review Data Wrapper */
+.featurable-data-proxy {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    min-height: 4px;
+    max-height: 4px;
+    overflow: hidden;
+    opacity: 0.01;
+    pointer-events: none;
+    transform: translateZ(0);
+}
+
+.hailifu-review-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid #FF8C00;
+    object-fit: cover;
+    background: #000000;
+    flex: 0 0 auto;
+}
+
+.hailifu-review-avatar--placeholder {
+    padding: 6px;
+    object-fit: contain;
+}
+
+.featured-review-meta {
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.featured-review-identity {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.featured-review-meta-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.hailifu-review-meta .hailifu-reviewer,
+.featured-review-meta .reviewer-name,
+.review-name {
+    color: #FF8C00 !important;
+}
+
+.hailifu-reviewer.is-verified-name,
+.featured-review-meta .reviewer-name.is-verified-name,
+.review-name.is-verified-name {
+    color: #FF8C00 !important;
+    text-shadow: 0 0 8px rgba(255, 140, 0, 0.35);
+}
+
+.featured-review-meta .review-time {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-dim);
+    white-space: nowrap;
+}
+
+.featured-review-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid #FF8C00;
+    object-fit: cover;
+    background: #000000;
+    flex: 0 0 auto;
+}
+
+.featured-review-avatar--fallback {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #FF8C00;
+    background: rgba(255, 140, 0, 0.12);
+}
+
+.featured-review-avatar--placeholder {
+    padding: 7px;
+    object-fit: contain;
+}
+
+[data-theme='light'] .featured-review-meta .review-time {
+    color: rgba(27, 27, 27, 0.62);
+}
+
+@media (max-width: 768px) {
+    .featured-review-meta {
+        align-items: center;
+        gap: 8px;
+    }
 }
 
 /* Tech Gallery Module */
