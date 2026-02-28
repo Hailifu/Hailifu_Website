@@ -194,6 +194,28 @@
         const themeToggle = document.getElementById('themeToggle');
         const adminSecretParamKey = 'dev';
         const adminSecretParamValue = 'hailifu_access';
+        const primarySiteUrl = 'https://hailifugh.com';
+        const canonicalRedirectHosts = new Set([
+            'hailifu-website.web.app',
+            'hailifu-website.firebaseapp.com'
+        ]);
+
+        function enforceCanonicalHostRedirect() {
+            try {
+                const host = String(window.location.hostname || '').trim().toLowerCase();
+                if (!canonicalRedirectHosts.has(host)) return false;
+                const target = new URL(primarySiteUrl);
+                target.pathname = window.location.pathname || '/';
+                target.search = window.location.search || '';
+                target.hash = window.location.hash || '';
+                window.location.replace(target.toString());
+                return true;
+            } catch {
+                return false;
+            }
+        }
+
+        if (enforceCanonicalHostRedirect()) return;
 
         function shouldSkipHeroVideo() {
             try {
@@ -649,6 +671,7 @@
         const defaultFirestoreReviewsCollection = 'reviews';
         const expectedFirestoreProjectId = 'hailifu-brilliant';
         const integrityImageStorageKey = 'hailifu_integrity_image_url';
+        const defaultIntegrityMediaUrl = './IMG_20210429_133549_551.jpg';
         const remoteConfigPublicIdStorageKey = 'hailifu_remote_config_public_id';
         const remoteConfigUrlStorageKey = 'hailifu_remote_config_url';
         const defaultRemoteConfigPublicId = 'hailifu_site_config';
@@ -1948,8 +1971,20 @@
             return db.ref(`${path}/integrityImageUrl`).set(next);
         }
 
+        function normalizeIntegrityMediaPath(rawPath) {
+            let raw = String(rawPath || '').trim();
+            if (!raw) return '';
+            raw = raw.replace(/\\/g, '/');
+            raw = raw.replace(/^\.?\/*/, '');
+            raw = raw.replace(/^public\//i, '');
+            return normalizeProjectMediaPath(raw);
+        }
+
         function getIntegrityImageUrl() {
-            return String(localStorage.getItem(integrityImageStorageKey) || '').trim();
+            const stored = String(localStorage.getItem(integrityImageStorageKey) || '').trim();
+            const normalizedStored = normalizeIntegrityMediaPath(stored);
+            if (normalizedStored) return normalizedStored;
+            return normalizeIntegrityMediaPath(defaultIntegrityMediaUrl);
         }
 
         function setIntegrityImageUrlLocal(url) {
@@ -1971,8 +2006,9 @@
             const img = document.getElementById('integrityImage');
             const video = document.getElementById('integrityVideo');
             if (!container || !img || !video) return;
-            const raw = String(url || '').trim();
-            if (!raw) {
+            const raw = normalizeIntegrityMediaPath(url);
+            const fallbackUrl = normalizeIntegrityMediaPath(defaultIntegrityMediaUrl);
+            const clearIntegrityMedia = () => {
                 img.removeAttribute('src');
                 video.removeAttribute('src');
                 try { video.load(); } catch {}
@@ -1980,6 +2016,20 @@
                 video.style.display = 'none';
                 if (panel) panel.classList.remove('is-loading');
                 if (container) container.classList.add('integrity-empty');
+            };
+            const applyIntegrityFallback = () => {
+                if (!fallbackUrl || raw === fallbackUrl) {
+                    clearIntegrityMedia();
+                    return;
+                }
+                setIntegrityImageUrlLocal(fallbackUrl);
+                loadIntegrityImage(fallbackUrl);
+                if (firebaseIsReady()) {
+                    setFirebaseIntegrityImageUrl(fallbackUrl).catch(() => {});
+                }
+            };
+            if (!raw) {
+                applyIntegrityFallback();
                 return;
             }
             if (container) container.classList.remove('integrity-empty');
@@ -1998,7 +2048,7 @@
                     }
                 };
                 video.onerror = function() {
-                    if (panel) panel.classList.remove('is-loading');
+                    applyIntegrityFallback();
                 };
                 video.src = raw;
                 try { video.load(); } catch {}
@@ -2012,7 +2062,7 @@
                 if (panel) panel.classList.remove('is-loading');
             };
             img.onerror = function() {
-                if (panel) panel.classList.remove('is-loading');
+                applyIntegrityFallback();
             };
             img.src = raw;
         }
@@ -3374,7 +3424,7 @@
                 reviewPublicName.textContent = name;
             }
             if (reviewPublicPostingText) {
-                reviewPublicPostingText.textContent = `Posting publicly as ${name}`;
+                reviewPublicPostingText.textContent = `Posting publicly as ${name} on hailifugh.com`;
             }
             if (reviewPublicAvatar) {
                 if (photo) reviewPublicAvatar.src = photo;
@@ -3399,7 +3449,7 @@
             ).trim() || 'Verified Client';
             const photo = normalizeReviewPhotoUrl(normalized.photoURL || '');
             if (reviewModalIdentityName) reviewModalIdentityName.textContent = name;
-            if (reviewModalIdentityMeta) reviewModalIdentityMeta.textContent = 'Posting publicly across Google';
+            if (reviewModalIdentityMeta) reviewModalIdentityMeta.textContent = 'Posting publicly on hailifugh.com and across Google';
             if (reviewModalIdentityAvatar) {
                 if (show && photo) reviewModalIdentityAvatar.src = photo;
                 else reviewModalIdentityAvatar.removeAttribute('src');
@@ -3762,7 +3812,7 @@
                 reviewModalTitleEcho.textContent = 'HAILIFU BRILLIANT INSTALLATION';
             }
             if (reviewModalSubtitle) {
-                reviewModalSubtitle.textContent = 'Posting publicly across Google';
+                reviewModalSubtitle.textContent = 'Posting publicly on hailifugh.com and across Google';
             }
         }
 
@@ -6260,7 +6310,7 @@
                             if (progressFill) progressFill.style.width = `${pct}%`;
                         }
                     }).then((payload) => {
-                        const url = String(payload?.secure_url || '').trim();
+                        const url = normalizeIntegrityMediaPath(String(payload?.secure_url || '').trim());
                         if (!url) throw new Error('Upload failed');
                         setIntegrityImageUrlLocal(url);
                         loadIntegrityImage(url);
@@ -8484,12 +8534,126 @@
 
         renderReviewTerminal();
 
+        let reviewShareToastTimer = null;
+
+        function ensureReviewShareToast() {
+            let toast = document.getElementById('reviewShareToast');
+            if (toast) return toast;
+            toast = document.createElement('div');
+            toast.id = 'reviewShareToast';
+            toast.className = 'review-share-toast';
+            toast.setAttribute('role', 'status');
+            toast.setAttribute('aria-live', 'polite');
+            document.body.appendChild(toast);
+            return toast;
+        }
+
+        function showReviewShareToast(message) {
+            const toast = ensureReviewShareToast();
+            if (!toast) return;
+            toast.textContent = String(message || 'Link Copied');
+            toast.classList.remove('active');
+            void toast.offsetWidth;
+            toast.classList.add('active');
+            if (reviewShareToastTimer) clearTimeout(reviewShareToastTimer);
+            reviewShareToastTimer = setTimeout(() => {
+                toast.classList.remove('active');
+            }, 1600);
+        }
+
+        async function copyReviewShareText(text) {
+            const shareText = String(text || '').trim();
+            if (!shareText) return false;
+
+            try {
+                if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                    await navigator.clipboard.writeText(shareText);
+                    return true;
+                }
+            } catch {}
+
+            try {
+                const input = document.createElement('input');
+                input.value = shareText;
+                input.setAttribute('readonly', '');
+                input.style.position = 'fixed';
+                input.style.left = '-9999px';
+                document.body.appendChild(input);
+                input.select();
+                input.setSelectionRange(0, input.value.length);
+                const ok = document.execCommand('copy');
+                input.remove();
+                return !!ok;
+            } catch {
+                return false;
+            }
+        }
+
+        function buildReviewSharePayload(name, text) {
+            const fallbackName = String(text || '').trim();
+            const safeName = String(name || fallbackName || '').trim() || 'Someone';
+            return {
+                title: 'HAILIFU | Brilliant Installation',
+                text: `${safeName} just gave us 5 stars! Check out our latest project.`,
+                url: 'https://hailifu-website.web.app'
+            };
+        }
+
+        async function handleShare(name, text) {
+            const payload = buildReviewSharePayload(name, text);
+            if (typeof navigator.share === 'function') {
+                try {
+                    await navigator.share(payload);
+                    return true;
+                } catch (error) {
+                    if (error && error.name === 'AbortError') return false;
+                }
+            }
+
+            const copied = await copyReviewShareText(payload.url);
+            showReviewShareToast(copied ? 'Link Copied' : 'Copy failed');
+            return copied;
+        }
+
+        window.handleShare = handleShare;
+
+        function ensureReviewTerminalShareButton(card) {
+            if (!card) return null;
+            let shareBtn = card.querySelector('.review-share-btn');
+            if (!shareBtn) {
+                shareBtn = document.createElement('button');
+                shareBtn.type = 'button';
+                shareBtn.className = 'review-share-btn';
+                shareBtn.innerHTML = '<i class="fas fa-share-alt" aria-hidden="true"></i>';
+                card.appendChild(shareBtn);
+            }
+            shareBtn.setAttribute('aria-label', 'Share this review');
+            shareBtn.setAttribute('title', 'Share this review');
+            shareBtn.setAttribute('data-review-share', '1');
+            return shareBtn;
+        }
+
+        function bindReviewShareButtons() {
+            const reviewsSection = document.getElementById('reviews');
+            if (!reviewsSection || reviewsSection.dataset.reviewShareBound === '1') return;
+            reviewsSection.dataset.reviewShareBound = '1';
+            reviewsSection.addEventListener('click', (event) => {
+                const trigger = event.target.closest('[data-review-share]');
+                if (!trigger || !reviewsSection.contains(trigger)) return;
+                event.preventDefault();
+                const shareName = String(trigger.getAttribute('data-review-share-name') || '').trim();
+                const shareText = String(trigger.getAttribute('data-review-share-text') || '').trim();
+                handleShare(shareName, shareText);
+            });
+        }
+
         function renderFeaturedReviewsFeed(reviewsInput) {
             const track = document.querySelector('.modern-review-section .featured-reviews-feed .featured-reviews-track');
             const reviews = Array.isArray(reviewsInput) ? reviewsInput.filter(Boolean) : getLiveReviewFeed();
             if (!track || !reviews.length) return;
 
-            track.innerHTML = reviews.slice(0, 24).map((review) => {
+            const limitedReviews = reviews.slice(0, 24);
+            track.innerHTML = limitedReviews.map((review) => {
                 const rawName = toSafeReviewerName(review.name || VERIFIED_REVIEWER_NAME);
                 const isFallbackName = isFallbackReviewerName(rawName);
                 const name = escapeHTML(rawName);
@@ -8512,6 +8676,9 @@
                     : '';
                 return `
                     <article class="featured-review-card" data-rating="${toSafeRating(review.rating)}">
+                        <button type="button" class="review-share-btn" data-review-share="1" aria-label="Share this review" title="Share this review">
+                            <i class="fas fa-share-alt" aria-hidden="true"></i>
+                        </button>
                         <div class="featured-review-meta">
                             <div class="featured-review-identity">
                                 ${avatarMarkup}
@@ -8531,6 +8698,14 @@
                     </article>
                 `;
             }).join('');
+            track.querySelectorAll('.featured-review-card .review-share-btn').forEach((btn, idx) => {
+                const review = limitedReviews[idx];
+                if (!review) return;
+                const shareName = toSafeReviewerName(review.name || VERIFIED_REVIEWER_NAME);
+                const shareText = String(review.comment || '').trim();
+                btn.setAttribute('data-review-share-name', shareName);
+                btn.setAttribute('data-review-share-text', shareText);
+            });
             enforceReviewAssetPolicies();
         }
 
@@ -8609,6 +8784,7 @@
             const nextBtn = terminal ? terminal.querySelector('[data-review-terminal-next]') : null;
             modernReviewTerminalFeed = Array.isArray(reviewsInput) ? reviewsInput.filter(Boolean) : getLiveReviewFeed();
             const reviews = modernReviewTerminalFeed;
+            const terminalShareBtn = ensureReviewTerminalShareButton(card);
 
             if (!terminal || !card || !nameEl || !starsEl || !textEl || !reviews.length) return;
 
@@ -8645,6 +8821,10 @@
                 nameEl.classList.toggle('is-verified-name', isFallbackReviewerName(reviewerName));
                 starsEl.textContent = buildStarText(review.rating);
                 textEl.textContent = `"${reviewText}"`;
+                if (terminalShareBtn) {
+                    terminalShareBtn.setAttribute('data-review-share-name', reviewerName);
+                    terminalShareBtn.setAttribute('data-review-share-text', reviewText);
+                }
                 if (verifiedBadgeEl) {
                     verifiedBadgeEl.textContent = isNativeReview ? 'Verified Native' : 'Verified';
                     verifiedBadgeEl.classList.toggle('review-verified--native', isNativeReview);
@@ -8791,6 +8971,7 @@
 
         initFeaturableReviewBridge();
         initGoogleBusinessStatusToggle();
+        bindReviewShareButtons();
         refreshLiveReviewSection();
         window.addEventListener('storage', (event) => {
             if (!event) return;
@@ -8906,6 +9087,27 @@
                 badge.setAttribute('aria-label', `${safeCount} media item${safeCount === 1 ? '' : 's'}`);
                 badge.classList.toggle('is-hidden', safeCount === 0);
             };
+
+            const ensureShowcaseViewButton = (slot, mediaType) => {
+                if (!slot) return null;
+                let button = slot.querySelector('.view-project-btn');
+                const normalizedType = String(mediaType || slot.dataset.mediaType || 'image').trim().toLowerCase();
+                const isVideo = normalizedType === 'video' || normalizedType === 'youtube';
+                const label = isVideo ? 'Watch Video' : 'View Project';
+                const icon = isVideo ? 'fa-play-circle' : 'fa-eye';
+                const iconMarkup = `<i class="fas ${icon}" aria-hidden="true"></i>`;
+
+                if (!button) {
+                    button = document.createElement('a');
+                    button.href = '#';
+                    button.className = 'view-project-btn';
+                    slot.appendChild(button);
+                }
+
+                button.setAttribute('aria-label', label);
+                button.innerHTML = `${iconMarkup} ${label}`;
+                return button;
+            };
             slots.forEach((slot) => {
                 const slotCategory = (slot.getAttribute('data-category') || slot.dataset.category || '').toLowerCase().trim();
                 const project = pickProjectForSlot(slotCategory);
@@ -8991,6 +9193,7 @@
                     const idValue = String(project.id || '').trim();
                     slot.classList.add('showcase-card');
                     slot.removeAttribute('onclick');
+                    ensureShowcaseViewButton(slot, showcaseMedia?.mediaType || slot.dataset.mediaType || 'image');
                 } else {
                     const existingBg = slot.querySelector('.showcase-bg');
                     if (existingBg) existingBg.remove();
@@ -9006,6 +9209,7 @@
                     if (slotCategory) slot.dataset.category = slotCategory;
                     slot.removeAttribute('onclick');
                     updateMediaCountBadge(slot, 0);
+                    ensureShowcaseViewButton(slot, slot.dataset.mediaType || 'image');
                 }
 
                 if (slot.dataset.modalBound) {
@@ -9014,6 +9218,7 @@
                 slot.removeAttribute('role');
                 slot.removeAttribute('tabindex');
             });
+            showcaseGrid.dataset.showcaseAssigned = String(assignedCount);
         }
 
         function renderShowcase(projectsOverride) {
@@ -11033,32 +11238,38 @@
 
         initCustomSelect(popupService);
 
-        const sharePortfolioFab = document.getElementById('sharePortfolioFab');
-        const sharePortfolioToast = document.getElementById('sharePortfolioToast');
-        const portfolioShareUrl = 'https://hailifu.github.io/Hailifu_Website/';
-        let sharePortfolioToastTimer = null;
+        const siteShareButtons = Array.from(document.querySelectorAll('[data-site-share]'));
+        const siteShareSnackbar = document.getElementById('siteShareSnackbar');
+        const siteShareUrl = primarySiteUrl;
+        let siteShareSnackbarTimer = null;
 
-        function showSharePortfolioToast(message) {
-            if (!sharePortfolioToast) return;
-            sharePortfolioToast.textContent = message || 'Link Copied!';
-            sharePortfolioToast.classList.add('active');
-            if (sharePortfolioToastTimer) clearTimeout(sharePortfolioToastTimer);
-            sharePortfolioToastTimer = setTimeout(() => {
-                sharePortfolioToast.classList.remove('active');
+        function showSiteShareSnackbar(message) {
+            const text = String(message || 'Link Copied').trim() || 'Link Copied';
+            if (!siteShareSnackbar) {
+                showReviewShareToast(text);
+                return;
+            }
+            siteShareSnackbar.textContent = text;
+            siteShareSnackbar.classList.remove('active');
+            void siteShareSnackbar.offsetWidth;
+            siteShareSnackbar.classList.add('active');
+            if (siteShareSnackbarTimer) clearTimeout(siteShareSnackbarTimer);
+            siteShareSnackbarTimer = setTimeout(() => {
+                siteShareSnackbar.classList.remove('active');
             }, 1600);
         }
 
-        async function copyPortfolioUrl() {
+        async function copySiteShareUrl() {
             try {
                 if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-                    await navigator.clipboard.writeText(portfolioShareUrl);
+                    await navigator.clipboard.writeText(siteShareUrl);
                     return true;
                 }
             } catch {}
 
             try {
                 const input = document.createElement('input');
-                input.value = portfolioShareUrl;
+                input.value = siteShareUrl;
                 input.setAttribute('readonly', '');
                 input.style.position = 'fixed';
                 input.style.left = '-9999px';
@@ -11073,32 +11284,29 @@
             }
         }
 
-        function isLikelyMobile() {
-            const ua = navigator.userAgent || '';
-            return /android|iphone|ipad|ipod|mobile/i.test(ua);
-        }
-
-        async function handleSharePortfolioClick(e) {
+        async function handleSiteShareClick(e) {
             if (e && typeof e.preventDefault === 'function') e.preventDefault();
+            const payload = {
+                title: 'HAILIFU | Brilliant Installation',
+                text: "Check out Accra's premier CCTV and Electrical installation experts. Experience the Brilliant standard.",
+                url: siteShareUrl
+            };
 
-            const canNativeShare = typeof navigator.share === 'function' && isLikelyMobile();
-            if (canNativeShare) {
+            if (typeof navigator.share === 'function') {
                 try {
-                    await navigator.share({
-                        title: 'Hailifu Portfolio',
-                        text: 'Check out the Hailifu portfolio.',
-                        url: portfolioShareUrl
-                    });
+                    await navigator.share(payload);
                     return;
-                } catch {}
+                } catch (error) {
+                    if (error && error.name === 'AbortError') return;
+                }
             }
 
-            const copied = await copyPortfolioUrl();
-            showSharePortfolioToast(copied ? 'Link Copied!' : 'Copy failed');
+            const copied = await copySiteShareUrl();
+            showSiteShareSnackbar(copied ? 'Link Copied' : 'Copy failed');
         }
 
-        [sharePortfolioFab].filter(Boolean).forEach((btn) => {
-            btn.addEventListener('click', handleSharePortfolioClick);
+        siteShareButtons.forEach((btn) => {
+            btn.addEventListener('click', handleSiteShareClick);
         });
 
         function setQuoteService(serviceKey) {

@@ -8,6 +8,7 @@
         body {
             overflow-x: hidden;
             width: 100%;
+            max-width: 100%;
             position: relative;
             margin: 0;
             padding: 0;
@@ -19,6 +20,10 @@
         }
 
         video {
+            max-width: 100%;
+        }
+
+        iframe {
             max-width: 100%;
         }
         :root {
@@ -752,7 +757,7 @@
             position: fixed;
             top: 10px;
             left: 50%;
-            width: min(1180px, calc(100% - 26px));
+            width: min(1360px, calc(100% - 26px));
             z-index: 10000;
             display: flex;
             align-items: center;
@@ -833,6 +838,15 @@
         .admin-entry-btn:focus-visible {
             outline: none;
             box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.35);
+        }
+
+        /* Sidebar navigation is intentionally disabled across all breakpoints. */
+        .side-menu-toggle,
+        .side-menu,
+        .side-menu-overlay {
+            display: none !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
         }
 
         .side-menu-toggle {
@@ -1276,14 +1290,13 @@
             background-repeat: no-repeat;
             background-position: center;
             background-size: cover;
+            filter: none;
         }
 
         .hero-video-container::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.35);
-            z-index: 1;
+            content: none;
+            display: none;
+            background: none;
         }
 
         .hero-video-container video {
@@ -1295,6 +1308,8 @@
             object-fit: cover;
             z-index: 0;
             border: 0;
+            opacity: 1;
+            filter: none;
         }
 
         .hero-video-container iframe {
@@ -1326,37 +1341,33 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(180deg, rgba(0, 0, 0, 0.52) 0%, rgba(0, 0, 0, 0.38) 45%, rgba(0, 0, 0, 0.55) 100%);
+            background: none;
             z-index: 0;
             pointer-events: none;
             transition: background 0.35s ease, backdrop-filter 0.35s ease, -webkit-backdrop-filter 0.35s ease;
+            display: none;
         }
 
         .hero.admin-reveal-blur::before {
-            background: linear-gradient(180deg, rgba(0, 0, 0, 0.62) 0%, rgba(0, 0, 0, 0.5) 45%, rgba(0, 0, 0, 0.66) 100%);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background: none;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
         }
 
         .hero::after {
-            content: '';
+            content: none;
             position: absolute;
             inset: 0;
-            background: repeating-linear-gradient(
-                180deg,
-                rgba(255, 255, 255, 0.04) 0px,
-                rgba(255, 255, 255, 0.04) 1px,
-                transparent 1px,
-                transparent 4px
-            );
+            background: none;
             mix-blend-mode: soft-light;
-            opacity: 0.35;
+            opacity: 0;
             z-index: 1;
             pointer-events: none;
+            display: none;
         }
 
         [data-theme='light'] .hero::before {
-            background: rgba(0, 0, 0, 0.28);
+            background: none;
         }
 
         [data-theme='light'] .hero h1,
@@ -1452,7 +1463,7 @@
             font-size: 3rem;
             margin-bottom: 0.5rem;
             color: var(--white);
-            text-shadow: 2px 2px 10px rgba(0,0,0,0.7);
+            text-shadow: 0 3px 10px rgba(0, 0, 0, 0.88), 0 0 20px rgba(0, 0, 0, 0.48);
             font-weight: 700;
             animation: slideUp 1s ease-out 0.3s both;
             font-family: 'Sora', 'Segoe UI', sans-serif;
@@ -1517,7 +1528,7 @@
 
         .hero-security {
             color: #FF8C00;
-            text-shadow: 0 0 12px rgba(255, 140, 0, 0.7), 0 0 28px rgba(255, 140, 0, 0.45);
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.92), 0 0 12px rgba(255, 140, 0, 0.74), 0 0 28px rgba(255, 140, 0, 0.45);
         }
 
         .brand-tagline {
@@ -1526,6 +1537,7 @@
             text-transform: uppercase;
             letter-spacing: 0.2em;
             color: rgba(255, 255, 255, 0.72);
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.84);
         }
 
         .hero-slogan {
@@ -1533,7 +1545,7 @@
             color: #FFFFFF;
             font-weight: 800;
             margin-bottom: 0.55rem;
-            text-shadow: 0 6px 24px rgba(0, 0, 0, 0.82);
+            text-shadow: 0 3px 12px rgba(0, 0, 0, 0.9), 0 0 24px rgba(0, 0, 0, 0.45);
             font-style: normal;
             letter-spacing: 0.15em;
             line-height: 1.28;
@@ -1559,6 +1571,7 @@
             text-align: center;
             max-width: min(760px, 100%);
             font-family: 'Inter', 'Montserrat', 'Sora', 'Segoe UI', sans-serif;
+            text-shadow: 0 2px 9px rgba(0, 0, 0, 0.86);
         }
 
         .hero-review-counter {
@@ -1688,7 +1701,7 @@
             font-size: clamp(1rem, 3.8vw, 1.4rem);
             margin-bottom: 2rem;
             color: var(--white);
-            text-shadow: 2px 2px 15px rgba(0,0,0,0.7);
+            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.88);
             animation: slideUp 1s ease-out 0.5s both;
         }
 
@@ -2778,8 +2791,8 @@
 
         #showcase .showcase-grid {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
             margin-top: 50px;
         }
 
@@ -3377,9 +3390,9 @@
             }
 
             .featured-loop-viewport {
-                width: 100vw;
-                margin-left: calc(50% - 50vw);
-                margin-right: calc(50% - 50vw);
+                width: 100%;
+                margin-left: 0;
+                margin-right: 0;
                 border-radius: 0;
                 overflow-x: auto;
                 overflow-y: hidden;
@@ -3397,11 +3410,11 @@
             }
 
             .featured-loop-slide {
-                width: 100vw;
-                flex: 0 0 100vw;
+                width: 100%;
+                flex: 0 0 100%;
                 scroll-snap-align: start;
                 scroll-snap-stop: always;
-                padding: 0 20px;
+                padding: 0 12px;
                 box-sizing: border-box;
                 opacity: 1;
                 transition: none;
@@ -3496,16 +3509,7 @@
         }
 
         .showcase-overlay::after {
-            content: 'View Project \2192';
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 6px;
-            font-size: 0.88rem;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            color: #ffffff;
-            opacity: 0.95;
+            content: none;
         }
 
         @media (max-width: 960px) {
@@ -3625,7 +3629,39 @@
         }
 
         .view-project-btn {
-            display: none;
+            position: absolute;
+            right: 18px;
+            bottom: 18px;
+            z-index: 6;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 140, 0, 0.95);
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 0.84rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: transform 0.3s ease, opacity 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+            pointer-events: auto;
+        }
+
+        .showcase-item:hover .view-project-btn,
+        .showcase-card:hover .view-project-btn,
+        .showcase-item:focus-within .view-project-btn {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .view-project-btn:hover {
+            background: #E67300;
+            box-shadow: 0 10px 22px rgba(255, 140, 0, 0.35);
         }
 
         /* Admin Panel Styles */
@@ -3769,6 +3805,11 @@
         @media (max-width: 768px) {
             .admin-panel.active {
                 width: 95vw;
+            }
+
+            .admin-header,
+            .admin-content {
+                min-width: 0;
             }
         }
 
@@ -7288,6 +7329,81 @@
             color: var(--text-main);
         }
 
+        .review-terminal-card,
+        .modern-review-section .featured-reviews-feed .featured-review-card {
+            position: relative;
+        }
+
+        .review-terminal-card .hailifu-review-card-header,
+        .modern-review-section .featured-reviews-feed .featured-review-meta {
+            padding-right: 44px;
+        }
+
+        .review-share-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 140, 0, 0.55);
+            background: #000000;
+            color: #FF8C00;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 3;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+        }
+
+        .review-share-btn i {
+            font-size: 0.8rem;
+            pointer-events: none;
+        }
+
+        .review-share-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 18px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(255, 140, 0, 0.2);
+        }
+
+        .review-share-btn:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(255, 140, 0, 0.85);
+        }
+
+        .review-share-toast {
+            position: fixed;
+            left: 50%;
+            bottom: 24px;
+            transform: translateX(-50%) translateY(10px);
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1px solid #FF8C00;
+            background: #000000;
+            color: #FF8C00;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            z-index: 10030;
+        }
+
+        .review-share-toast.active {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        @media (max-width: 768px) {
+            .review-share-btn {
+                top: 10px;
+                right: 10px;
+            }
+        }
+
         .hailifu-review-meta .hailifu-reviewer {
             color: var(--text-main);
         }
@@ -8843,7 +8959,7 @@
         }
 
         .project-modal.is-showcase-fullscreen .project-modal-dialog {
-            width: 100vw;
+            width: 100%;
             height: 100vh;
             height: 100dvh;
             max-height: 100dvh;
@@ -9236,7 +9352,7 @@
         }
 
         .media-lightbox-content {
-            width: 100vw;
+            width: 100%;
             height: 100vh;
             height: 100dvh;
             border-radius: 0;
@@ -10590,6 +10706,20 @@ html:not([data-theme='light']) .modern-review-section .featured-reviews-feed .fe
 
     .tech-gallery-section {
         padding: 56px 5%;
+    }
+}
+
+@media (min-width: 1024px) {
+    .section,
+    .showcase,
+    .showcase-content,
+    .featured-bento,
+    .review-terminal-inner,
+    .featured-reviews-inner,
+    .live-feed-inner,
+    .modern-review-container {
+        width: min(1360px, 94%) !important;
+        max-width: 100%;
     }
 }
 

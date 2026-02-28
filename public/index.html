@@ -6,23 +6,23 @@
     <title>HAILIFU | Brilliant Installation</title>
     <meta name="description" content="Accra's premier CCTV and Electrical installation experts. Verified 5.0-star smart home and security systems.">
     <meta name="keywords" content="CCTV, Installer, Electrician, Technician, HAILIFU">
-    <meta property="og:title" content="HAILIFU | Brilliant Installation">
-    <meta property="og:description" content="Accra's premier CCTV and Electrical installation experts. Verified 5.0-star smart home and security systems.">
-    <meta property="og:url" content="https://hailifu-website.web.app">
+    <meta property="og:title" content="HAILIFU | CCTV Installer & Professional Electrician">
+    <meta property="og:description" content="Accra's leading experts in CCTV Installation, Smart Home Automation, Electrical Installation, Air conditioning service, Blind Curtains installation and Electric fence Installtion . Experience the HAILIFU Brilliant Installation standard.">
+    <meta property="og:url" content="https://hailifugh.com">
     <meta property="og:type" content="business.business">
-    <meta property="og:image" content="https://hailifu-website.web.app/logo_k1iyvc.png">
-    <meta property="og:image:secure_url" content="https://hailifu-website.web.app/logo_k1iyvc.png">
+    <meta property="og:image" content="https://hailifugh.com/logo_k1iyvc.png">
+    <meta property="og:image:secure_url" content="https://hailifugh.com/logo_k1iyvc.png">
     <meta property="og:image:type" content="image/png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="HAILIFU industrial security brand mark in orange on a dark textured background">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="HAILIFU | Brilliant Installation">
-    <meta name="twitter:description" content="Accra's premier CCTV and Electrical installation experts. Verified 5.0-star smart home and security systems.">
-    <meta name="twitter:image" content="https://hailifu-website.web.app/logo_k1iyvc.png">
+    <meta name="twitter:title" content="HAILIFU | CCTV Installer & Professional Electrician">
+    <meta name="twitter:description" content="Accra's leading experts in CCTV Installation, Smart Home Automation, Electrical Installation, Air conditioning service, Blind Curtains installation and Electric fence Installtion . Experience the HAILIFU Brilliant Installation standard.">
+    <meta name="twitter:image" content="https://hailifugh.com/logo_k1iyvc.png">
     <meta name="twitter:image:alt" content="HAILIFU industrial security brand mark in orange on a dark textured background">
     <meta name="theme-color" content="#000000">
-    <link rel="canonical" href="https://hailifu-website.web.app/">
+    <link rel="canonical" href="https://hailifugh.com/">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="icon" type="image/png" sizes="32x32" href="/logo_k1iyvc.png">
     <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
@@ -32,10 +32,10 @@
       "@context": "https://schema.org",
       "@type": "HomeAndConstructionBusiness",
       "name": "Hailifu Brilliant Installation",
-      "url": "https://hailifu-website.web.app/",
+      "url": "https://hailifugh.com/",
       "telephone": "+233550997270",
       "email": "01hailifu@gmail.com",
-      "image": "https://hailifu-website.web.app/logo_k1iyvc.png",
+      "image": "https://hailifugh.com/logo_k1iyvc.png",
       "address": {
         "@type": "PostalAddress",
         "addressLocality": "Accra",
@@ -199,6 +199,92 @@
                     right: auto;
                 }
             }
+
+            .site-share-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 6px 10px 6px 6px;
+                border: 1px solid rgba(255, 140, 0, 0.35);
+                border-radius: 999px;
+                background: rgba(0, 0, 0, 0.22);
+                color: #FF8C00;
+                font-weight: 700;
+                font-size: 0.76rem;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+                cursor: pointer;
+                transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            }
+
+            .site-share-btn:hover {
+                transform: translateY(-1px);
+                border-color: rgba(255, 140, 0, 0.65);
+                box-shadow: 0 8px 18px rgba(0, 0, 0, 0.45), 0 0 0 2px rgba(255, 140, 0, 0.16);
+            }
+
+            .site-share-btn:focus-visible {
+                outline: none;
+                box-shadow: 0 0 0 2px rgba(255, 140, 0, 0.8);
+            }
+
+            .site-share-btn-icon {
+                width: 28px;
+                height: 28px;
+                border-radius: 999px;
+                background: #000000;
+                color: #FF8C00;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid rgba(255, 140, 0, 0.5);
+                flex-shrink: 0;
+            }
+
+            .site-share-btn-icon i {
+                font-size: 0.82rem;
+                pointer-events: none;
+            }
+
+            .site-share-btn--footer {
+                margin-top: 16px;
+                align-self: flex-start;
+            }
+
+            .site-share-snackbar {
+                position: fixed;
+                left: 50%;
+                bottom: 22px;
+                transform: translateX(-50%) translateY(10px);
+                padding: 9px 12px;
+                border-radius: 10px;
+                border: 1px solid rgba(255, 140, 0, 0.55);
+                background: #000000;
+                color: #FF8C00;
+                font-size: 0.74rem;
+                font-weight: 700;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.2s ease, transform 0.2s ease;
+                z-index: 10040;
+            }
+
+            .site-share-snackbar.active {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+
+            @media (max-width: 768px) {
+                .site-share-btn {
+                    padding: 6px;
+                }
+
+                .site-share-btn-label {
+                    display: none;
+                }
+            }
         </style>
 </head>
  <body>
@@ -212,6 +298,10 @@
             HAILIFU <span>BRILLIANT</span>
         </a>
         <div class="main-nav-actions">
+            <button class="site-share-btn site-share-btn--nav" id="siteShareNavBtn" type="button" data-site-share aria-label="Share Site">
+                <span class="site-share-btn-icon" aria-hidden="true"><i class="fas fa-share-alt"></i></span>
+                <span class="site-share-btn-label">Share Site</span>
+            </button>
             <button class="admin-entry-btn" id="adminEntryBtn" type="button" aria-label="Open admin panel">Admin Panel</button>
             <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme" aria-pressed="false" title="Theme">
                 <span class="theme-toggle-icon" aria-hidden="true">
@@ -222,29 +312,6 @@
         </div>
     </nav>
 
-    <div class="side-menu-overlay" id="sideMenuOverlay" aria-hidden="true"></div>
-
-    <div id="side-menu" class="side-menu" aria-hidden="true">
-        <div class="side-menu-header">
-            <a href="#hero" class="side-menu-logo">
-                <span class="whatsapp-logo" style="width: 40px; height: 40px; border-radius: 12px; border: 1px solid rgba(255, 140, 0, 0.25); background: rgba(255, 255, 255, 0.06); display: inline-flex; align-items: center; justify-content: center;">
-                    <img src="/logo.webp" alt="Hailifu Logo" style="width: 26px; height: 26px; object-fit: cover; border-radius: 6px;">
-                </span>
-                HAILIFU <span>BRILLIANT</span>
-            </a>
-            <button class="side-menu-close" id="sideMenuClose" type="button" aria-label="Close menu">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <nav class="side-menu-links" aria-label="Sidebar Navigation">
-            <a href="#hero">Home</a>
-            <a href="#featured-work">Projects</a>
-            <a href="#showcase">Showcase</a>
-            <a href="#services">Services</a>
-            <a href="#reviews">Success Stories</a>
-        </nav>
-    </div>
- 
     <!-- Hero Section -->
     <section class="hero" id="hero">
         <div class="hero-video-container" aria-hidden="true">
@@ -257,7 +324,7 @@
                 webkit-playsinline
                 preload="metadata"
             >
-                <source src="https://res.cloudinary.com/daovfi3i5/video/upload/v1770144924/Project_01-20_Full_HD_1080p_MEDIU_FR30_ddkrtq.mp4" type="video/mp4">
+                <source src="/cover-video.mp4" type="video/mp4">
             </video>
         </div>
         <div class="hero-content">
@@ -803,13 +870,13 @@
                 <div id="reviewModalHeaderDefault" hidden>
                     <h3>HAILIFU BRILLIANT INSTALLATION</h3>
                     <h3 class="review-modal-title-echo">HAILIFU BRILLIANT INSTALLATION</h3>
-                    <p class="review-modal-public-disclaimer">Posting publicly across Google</p>
+                    <p class="review-modal-public-disclaimer">Posting publicly on hailifugh.com and across Google</p>
                 </div>
                 <div class="review-modal-identity-overlay" id="reviewModalIdentityOverlay">
                     <img class="review-modal-identity-avatar" id="reviewModalIdentityAvatar" alt="Google profile photo" loading="lazy" decoding="async">
                     <div class="review-modal-identity-copy">
                         <strong id="reviewModalIdentityName">Verified Client</strong>
-                        <span id="reviewModalIdentityMeta">Posting publicly across Google</span>
+                        <span id="reviewModalIdentityMeta">Posting publicly on hailifugh.com and across Google</span>
                     </div>
                 </div>
                 <button class="review-modal-close" id="reviewModalClose" type="button">
@@ -977,6 +1044,7 @@
             </div>
         </div>
     </footer>
+    <div id="siteShareSnackbar" class="site-share-snackbar" role="status" aria-live="polite" aria-atomic="true"></div>
 
     <!-- Brilliant AI Chat Button -->
     <button class="brilliant-chat-btn" id="brilliantChatBtn" style="display: none;">
