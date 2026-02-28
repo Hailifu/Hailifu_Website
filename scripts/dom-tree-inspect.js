@@ -145,7 +145,7 @@
   walk(root, 0, results);
 
   // Tree-style console output
-  console.group('%c DOM Tree – suppressed / zero-height elements ', 'background:#1a1a1a; color:#FF8C00; padding:6px 10px; font-weight:bold;');
+  console.group('%c DOM Tree – suppressed / zero-height elements ', 'background:#1a1a1a; color:#995400; padding:6px 10px; font-weight:bold;');
   console.log('Total elements with issues: ' + results.length);
   console.log('');
 
@@ -162,7 +162,7 @@
   });
 
   console.log('');
-  console.log('%c Summary table (copy for debugging) ', 'color:#FF8C00; font-weight:bold;');
+  console.log('%c Summary table (copy for debugging) ', 'color:#995400; font-weight:bold;');
   console.table(results.map(function(r) {
     return {
       depth: r.depth,
@@ -194,3 +194,4 @@ function domInspect() {
 }
 domInspect();
 */
+

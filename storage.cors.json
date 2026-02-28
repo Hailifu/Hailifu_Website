@@ -1,0 +1,22 @@
+[
+  {
+    "origin": [
+      "https://hailifugh.com",
+      "https://www.hailifugh.com",
+      "http://localhost:5000",
+      "http://127.0.0.1:5000"
+    ],
+    "method": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "responseHeader": [
+      "Content-Type",
+      "Cache-Control",
+      "ETag",
+      "Content-Length"
+    ],
+    "maxAgeSeconds": 3600
+  }
+]
