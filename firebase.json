@@ -13,18 +13,6 @@
       "config.js",
       "**/config.js"
     ],
-    "redirects": [
-      {
-        "source": "/favicon.ico",
-        "destination": "/logo.webp",
-        "type": 302
-      },
-      {
-        "source": "/logo_k1iyvc.png",
-        "destination": "/logo.webp",
-        "type": 302
-      }
-    ],
     "rewrites": [
       {
         "source": "**",
