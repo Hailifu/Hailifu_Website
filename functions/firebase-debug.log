@@ -1,0 +1,232 @@
+[debug] [2026-04-06T19:19:55.562Z] ----------------------------------------------------------------------
+[debug] [2026-04-06T19:19:55.568Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\HAILIFU\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js emulators:start --only functions
+[debug] [2026-04-06T19:19:55.569Z] CLI Version:   15.8.0
+[debug] [2026-04-06T19:19:55.569Z] Platform:      win32
+[debug] [2026-04-06T19:19:55.569Z] Node Version:  v24.13.1
+[debug] [2026-04-06T19:19:55.569Z] Time:          Mon Apr 06 2026 19:19:55 GMT+0000 (Greenwich Mean Time)
+[debug] [2026-04-06T19:19:55.570Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-04-06T19:19:55.574Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2026-04-06T19:19:59.666Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-06T19:19:59.666Z] > authorizing via signed-in user (01hailifu@gmail.com)
+[info] i  emulators: Starting emulators: functions {"metadata":{"emulator":{"name":"hub"},"message":"Starting emulators: functions"}}
+[debug] [2026-04-06T19:19:59.688Z] [logging] Logging Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-04-06T19:19:59.688Z] assigned listening specs for emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}]},"metadata":{"message":"assigned listening specs for emulators"}}
+[debug] [2026-04-06T19:19:59.698Z] Write emulator hub locator at C:\Users\HAILIFU\AppData\Local\Temp\hub-hailifu-website.json
+[debug] [2026-04-06T19:19:59.732Z] [functions] Functions Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-04-06T19:19:59.732Z] [eventarc] Eventarc Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-04-06T19:19:59.732Z] [tasks] Cloud Tasks Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-04-06T19:19:59.732Z] late-assigned ports for functions and eventarc emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"functions":[{"address":"127.0.0.1","family":"IPv4","port":5001}],"eventarc":[{"address":"127.0.0.1","family":"IPv4","port":9299}],"tasks":[{"address":"127.0.0.1","family":"IPv4","port":9499}]},"metadata":{"message":"late-assigned ports for functions and eventarc emulators"}}
+[warn] !  functions: The following emulators are not running, calls to these services from the Functions emulator will affect production: apphosting, auth, firestore, database, hosting, pubsub, storage, dataconnect {"metadata":{"emulator":{"name":"functions"},"message":"The following emulators are not running, calls to these services from the Functions emulator will affect production: \u001b[1mapphosting, auth, firestore, database, hosting, pubsub, storage, dataconnect\u001b[22m"}}
+[debug] [2026-04-06T19:19:59.784Z] defaultcredentials: writing to file C:\Users\HAILIFU\AppData\Roaming\firebase\01hailifu_gmail_com_application_default_credentials.json
+[debug] [2026-04-06T19:19:59.790Z] Setting GAC to C:\Users\HAILIFU\AppData\Roaming\firebase\01hailifu_gmail_com_application_default_credentials.json {"metadata":{"emulator":{"name":"functions"},"message":"Setting GAC to C:\\Users\\HAILIFU\\AppData\\Roaming\\firebase\\01hailifu_gmail_com_application_default_credentials.json"}}
+[debug] [2026-04-06T19:19:59.792Z] Checked if tokens are valid: false, expires at: 1772398075781
+[debug] [2026-04-06T19:19:59.793Z] Checked if tokens are valid: false, expires at: 1772398075781
+[debug] [2026-04-06T19:19:59.794Z] > refreshing access token with scopes: []
+[debug] [2026-04-06T19:19:59.795Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2026-04-06T19:19:59.796Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-04-06T19:20:00.269Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2026-04-06T19:20:00.269Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-04-06T19:20:00.284Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/hailifu-website/adminSdkConfig [none]
+[debug] [2026-04-06T19:20:00.324Z] <<< [apiv2][status] GET https://firebase-public.firebaseio.com/cli.json 200
+[debug] [2026-04-06T19:20:00.324Z] <<< [apiv2][body] GET https://firebase-public.firebaseio.com/cli.json {"cloudBuildErrorAfter":1594252800000,"cloudBuildWarnAfter":1590019200000,"defaultNode10After":1594252800000,"minVersion":"3.0.5","node8DeploysDisabledAfter":1613390400000,"node8RuntimeDisabledAfter":1615809600000,"node8WarnAfter":1600128000000}
+[debug] [2026-04-06T19:20:01.651Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/hailifu-website/adminSdkConfig 200
+[debug] [2026-04-06T19:20:01.651Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/hailifu-website/adminSdkConfig {"projectId":"hailifu-website","databaseURL":"https://hailifu-website-default-rtdb.firebaseio.com","storageBucket":"hailifu-website.firebasestorage.app"}
+[info] i  ui: downloading ui-v1.15.0.zip... {"metadata":{"emulator":{"name":"ui"},"message":"downloading ui-v1.15.0.zip..."}}
+[debug] [2026-04-06T19:20:01.695Z] >>> [apiv2][query] GET https://storage.googleapis.com/firebase-preview-drop/emulator/ui-v1.15.0.zip 
+[debug] [2026-04-06T19:20:11.839Z] <<< [apiv2][status] GET https://storage.googleapis.com/firebase-preview-drop/emulator/ui-v1.15.0.zip 200
+[debug] [2026-04-06T19:20:11.839Z] <<< [apiv2][body] GET https://storage.googleapis.com/firebase-preview-drop/emulator/ui-v1.15.0.zip [stream]
+[debug] [2026-04-06T19:20:15.301Z] Data is 3538469
+[debug] [2026-04-06T19:20:15.301Z] [unzip] Entry: client/ (compressed_size=0 bytes, uncompressed_size=0 bytes)
+[debug] [2026-04-06T19:20:15.302Z] [unzip] Processing entry: client\
+[debug] [2026-04-06T19:20:15.302Z] [unzip] mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\
+[debug] [2026-04-06T19:20:15.303Z] [unzip] Entry: client/favicon-16x16.png (compressed_size=293 bytes, uncompressed_size=293 bytes)
+[debug] [2026-04-06T19:20:15.303Z] [unzip] Processing entry: client\favicon-16x16.png
+[debug] [2026-04-06T19:20:15.303Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client
+[debug] [2026-04-06T19:20:15.304Z] [unzip] Writing file: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\favicon-16x16.png
+[debug] [2026-04-06T19:20:15.305Z] [unzip] Entry: client/safari-pinned-tab.svg (compressed_size=1433 bytes, uncompressed_size=2611 bytes)
+[debug] [2026-04-06T19:20:15.306Z] [unzip] Processing entry: client\safari-pinned-tab.svg
+[debug] [2026-04-06T19:20:15.306Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client
+[debug] [2026-04-06T19:20:15.307Z] [unzip] deflating: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\safari-pinned-tab.svg
+[debug] [2026-04-06T19:20:15.312Z] [unzip] Entry: client/favicon.ico (compressed_size=2933 bytes, uncompressed_size=13294 bytes)
+[debug] [2026-04-06T19:20:15.313Z] [unzip] Processing entry: client\favicon.ico
+[debug] [2026-04-06T19:20:15.313Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client
+[debug] [2026-04-06T19:20:15.313Z] [unzip] deflating: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\favicon.ico
+[debug] [2026-04-06T19:20:15.316Z] [unzip] Entry: client/index.html (compressed_size=1364 bytes, uncompressed_size=3071 bytes)
+[debug] [2026-04-06T19:20:15.316Z] [unzip] Processing entry: client\index.html
+[debug] [2026-04-06T19:20:15.316Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client
+[debug] [2026-04-06T19:20:15.317Z] [unzip] deflating: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\index.html
+[debug] [2026-04-06T19:20:15.319Z] [unzip] Entry: client/android-chrome-192x192.png (compressed_size=2684 bytes, uncompressed_size=2684 bytes)
+[debug] [2026-04-06T19:20:15.319Z] [unzip] Processing entry: client\android-chrome-192x192.png
+[debug] [2026-04-06T19:20:15.319Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client
+[debug] [2026-04-06T19:20:15.319Z] [unzip] Writing file: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\android-chrome-192x192.png
+[debug] [2026-04-06T19:20:15.321Z] [unzip] Entry: client/apple-touch-icon.png (compressed_size=2123 bytes, uncompressed_size=2152 bytes)
+[debug] [2026-04-06T19:20:15.321Z] [unzip] Processing entry: client\apple-touch-icon.png
+[debug] [2026-04-06T19:20:15.321Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client
+[debug] [2026-04-06T19:20:15.321Z] [unzip] deflating: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\apple-touch-icon.png
+[debug] [2026-04-06T19:20:15.323Z] [unzip] Entry: client/android-chrome-512x512.png (compressed_size=5369 bytes, uncompressed_size=5411 bytes)
+[debug] [2026-04-06T19:20:15.324Z] [unzip] Processing entry: client\android-chrome-512x512.png
+[debug] [2026-04-06T19:20:15.324Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client
+[debug] [2026-04-06T19:20:15.325Z] [unzip] deflating: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\android-chrome-512x512.png
+[debug] [2026-04-06T19:20:15.326Z] [unzip] Entry: client/manifest.json (compressed_size=245 bytes, uncompressed_size=551 bytes)
+[debug] [2026-04-06T19:20:15.326Z] [unzip] Processing entry: client\manifest.json
+[debug] [2026-04-06T19:20:15.327Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client
+[debug] [2026-04-06T19:20:15.328Z] [unzip] deflating: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\manifest.json
+[debug] [2026-04-06T19:20:15.330Z] [unzip] Entry: client/robots.txt (compressed_size=26 bytes, uncompressed_size=26 bytes)
+[debug] [2026-04-06T19:20:15.330Z] [unzip] Processing entry: client\robots.txt
+[debug] [2026-04-06T19:20:15.331Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client
+[debug] [2026-04-06T19:20:15.331Z] [unzip] Writing file: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\robots.txt
+[debug] [2026-04-06T19:20:15.333Z] [unzip] Entry: client/mstile-150x150.png (compressed_size=2034 bytes, uncompressed_size=2034 bytes)
+[debug] [2026-04-06T19:20:15.333Z] [unzip] Processing entry: client\mstile-150x150.png
+[debug] [2026-04-06T19:20:15.333Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client
+[debug] [2026-04-06T19:20:15.335Z] [unzip] Writing file: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\mstile-150x150.png
+[debug] [2026-04-06T19:20:15.336Z] [unzip] Entry: client/assets/ (compressed_size=0 bytes, uncompressed_size=0 bytes)
+[debug] [2026-04-06T19:20:15.337Z] [unzip] Processing entry: client\assets\
+[debug] [2026-04-06T19:20:15.337Z] [unzip] mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\
+[debug] [2026-04-06T19:20:15.338Z] [unzip] Entry: client/assets/index-BX-A56oj.js (compressed_size=582089 bytes, uncompressed_size=2092775 bytes)
+[debug] [2026-04-06T19:20:15.338Z] [unzip] Processing entry: client\assets\index-BX-A56oj.js
+[debug] [2026-04-06T19:20:15.338Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets
+[debug] [2026-04-06T19:20:15.339Z] [unzip] deflating: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\index-BX-A56oj.js
+[debug] [2026-04-06T19:20:15.361Z] [unzip] Entry: client/assets/index-CjB9C900.css (compressed_size=35979 bytes, uncompressed_size=298654 bytes)
+[debug] [2026-04-06T19:20:15.361Z] [unzip] Processing entry: client\assets\index-CjB9C900.css
+[debug] [2026-04-06T19:20:15.361Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets
+[debug] [2026-04-06T19:20:15.362Z] [unzip] deflating: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\index-CjB9C900.css
+[debug] [2026-04-06T19:20:15.366Z] [unzip] Entry: client/assets/index-BX-A56oj.js.map (compressed_size=2362482 bytes, uncompressed_size=10036679 bytes)
+[debug] [2026-04-06T19:20:15.366Z] [unzip] Processing entry: client\assets\index-BX-A56oj.js.map
+[debug] [2026-04-06T19:20:15.366Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets
+[debug] [2026-04-06T19:20:15.366Z] [unzip] deflating: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\index-BX-A56oj.js.map
+[debug] [2026-04-06T19:20:15.487Z] [unzip] Entry: client/assets/extensions/ (compressed_size=0 bytes, uncompressed_size=0 bytes)
+[debug] [2026-04-06T19:20:15.487Z] [unzip] Processing entry: client\assets\extensions\
+[debug] [2026-04-06T19:20:15.487Z] [unzip] mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\extensions\
+[debug] [2026-04-06T19:20:15.488Z] [unzip] Entry: client/assets/extensions/default-extension.png (compressed_size=1646 bytes, uncompressed_size=1657 bytes)
+[debug] [2026-04-06T19:20:15.488Z] [unzip] Processing entry: client\assets\extensions\default-extension.png
+[debug] [2026-04-06T19:20:15.488Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\extensions
+[debug] [2026-04-06T19:20:15.489Z] [unzip] deflating: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\extensions\default-extension.png
+[debug] [2026-04-06T19:20:15.491Z] [unzip] Entry: client/assets/img/ (compressed_size=0 bytes, uncompressed_size=0 bytes)
+[debug] [2026-04-06T19:20:15.491Z] [unzip] Processing entry: client\assets\img\
+[debug] [2026-04-06T19:20:15.491Z] [unzip] mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\img\
+[debug] [2026-04-06T19:20:15.492Z] [unzip] Entry: client/assets/img/database.png (compressed_size=29449 bytes, uncompressed_size=29988 bytes)
+[debug] [2026-04-06T19:20:15.492Z] [unzip] Processing entry: client\assets\img\database.png
+[debug] [2026-04-06T19:20:15.492Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\img
+[debug] [2026-04-06T19:20:15.492Z] [unzip] deflating: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\img\database.png
+[debug] [2026-04-06T19:20:15.494Z] [unzip] Entry: client/assets/provider-icons/ (compressed_size=0 bytes, uncompressed_size=0 bytes)
+[debug] [2026-04-06T19:20:15.494Z] [unzip] Processing entry: client\assets\provider-icons\
+[debug] [2026-04-06T19:20:15.494Z] [unzip] mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\provider-icons\
+[debug] [2026-04-06T19:20:15.495Z] [unzip] Entry: client/assets/provider-icons/auth_service_saml.svg (compressed_size=575 bytes, uncompressed_size=1226 bytes)
+[debug] [2026-04-06T19:20:15.495Z] [unzip] Processing entry: client\assets\provider-icons\auth_service_saml.svg
+[debug] [2026-04-06T19:20:15.495Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\provider-icons
+[debug] [2026-04-06T19:20:15.496Z] [unzip] deflating: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\provider-icons\auth_service_saml.svg
+[debug] [2026-04-06T19:20:15.498Z] [unzip] Entry: client/assets/provider-icons/auth_service_phone.svg (compressed_size=261 bytes, uncompressed_size=414 bytes)
+[debug] [2026-04-06T19:20:15.498Z] [unzip] Processing entry: client\assets\provider-icons\auth_service_phone.svg
+[debug] [2026-04-06T19:20:15.498Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\provider-icons
+[debug] [2026-04-06T19:20:15.499Z] [unzip] deflating: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\provider-icons\auth_service_phone.svg
+[debug] [2026-04-06T19:20:15.501Z] [unzip] Entry: client/assets/provider-icons/auth_service_facebook.svg (compressed_size=289 bytes, uncompressed_size=457 bytes)
+[debug] [2026-04-06T19:20:15.501Z] [unzip] Processing entry: client\assets\provider-icons\auth_service_facebook.svg
+[debug] [2026-04-06T19:20:15.501Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\provider-icons
+[debug] [2026-04-06T19:20:15.502Z] [unzip] deflating: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\provider-icons\auth_service_facebook.svg
+[debug] [2026-04-06T19:20:15.506Z] [unzip] Entry: client/assets/provider-icons/auth_service_game_center.svg (compressed_size=991 bytes, uncompressed_size=3921 bytes)
+[debug] [2026-04-06T19:20:15.506Z] [unzip] Processing entry: client\assets\provider-icons\auth_service_game_center.svg
+[debug] [2026-04-06T19:20:15.506Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\provider-icons
+[debug] [2026-04-06T19:20:15.507Z] [unzip] deflating: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\provider-icons\auth_service_game_center.svg
+[debug] [2026-04-06T19:20:15.508Z] [unzip] Entry: client/assets/provider-icons/auth_service_apple.svg (compressed_size=230 bytes, uncompressed_size=334 bytes)
+[debug] [2026-04-06T19:20:15.509Z] [unzip] Processing entry: client\assets\provider-icons\auth_service_apple.svg
+[debug] [2026-04-06T19:20:15.509Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\provider-icons
+[debug] [2026-04-06T19:20:15.509Z] [unzip] deflating: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\provider-icons\auth_service_apple.svg
+[debug] [2026-04-06T19:20:15.511Z] [unzip] Entry: client/assets/provider-icons/auth_service_github.svg (compressed_size=466 bytes, uncompressed_size=838 bytes)
+[debug] [2026-04-06T19:20:15.511Z] [unzip] Processing entry: client\assets\provider-icons\auth_service_github.svg
+[debug] [2026-04-06T19:20:15.511Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\provider-icons
+[debug] [2026-04-06T19:20:15.512Z] [unzip] deflating: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\provider-icons\auth_service_github.svg
+[debug] [2026-04-06T19:20:15.514Z] [unzip] Entry: client/assets/provider-icons/auth_service_mslive.svg (compressed_size=203 bytes, uncompressed_size=378 bytes)
+[debug] [2026-04-06T19:20:15.514Z] [unzip] Processing entry: client\assets\provider-icons\auth_service_mslive.svg
+[debug] [2026-04-06T19:20:15.514Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\provider-icons
+[debug] [2026-04-06T19:20:15.515Z] [unzip] deflating: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\provider-icons\auth_service_mslive.svg
+[debug] [2026-04-06T19:20:15.516Z] [unzip] Entry: client/assets/provider-icons/auth_service_yahoo.svg (compressed_size=577 bytes, uncompressed_size=1182 bytes)
+[debug] [2026-04-06T19:20:15.517Z] [unzip] Processing entry: client\assets\provider-icons\auth_service_yahoo.svg
+[debug] [2026-04-06T19:20:15.517Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\provider-icons
+[debug] [2026-04-06T19:20:15.517Z] [unzip] deflating: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\provider-icons\auth_service_yahoo.svg
+[debug] [2026-04-06T19:20:15.519Z] [unzip] Entry: client/assets/provider-icons/auth_service_twitter.svg (compressed_size=444 bytes, uncompressed_size=751 bytes)
+[debug] [2026-04-06T19:20:15.520Z] [unzip] Processing entry: client\assets\provider-icons\auth_service_twitter.svg
+[debug] [2026-04-06T19:20:15.520Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\provider-icons
+[debug] [2026-04-06T19:20:15.520Z] [unzip] deflating: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\provider-icons\auth_service_twitter.svg
+[debug] [2026-04-06T19:20:15.522Z] [unzip] Entry: client/assets/provider-icons/auth_service_play_games.svg (compressed_size=565 bytes, uncompressed_size=1173 bytes)
+[debug] [2026-04-06T19:20:15.522Z] [unzip] Processing entry: client\assets\provider-icons\auth_service_play_games.svg
+[debug] [2026-04-06T19:20:15.522Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\provider-icons
+[debug] [2026-04-06T19:20:15.523Z] [unzip] deflating: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\provider-icons\auth_service_play_games.svg
+[debug] [2026-04-06T19:20:15.524Z] [unzip] Entry: client/assets/provider-icons/auth_service_email.svg (compressed_size=228 bytes, uncompressed_size=326 bytes)
+[debug] [2026-04-06T19:20:15.525Z] [unzip] Processing entry: client\assets\provider-icons\auth_service_email.svg
+[debug] [2026-04-06T19:20:15.525Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\provider-icons
+[debug] [2026-04-06T19:20:15.525Z] [unzip] deflating: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\provider-icons\auth_service_email.svg
+[debug] [2026-04-06T19:20:15.527Z] [unzip] Entry: client/assets/provider-icons/auth_service_google.svg (compressed_size=409 bytes, uncompressed_size=720 bytes)
+[debug] [2026-04-06T19:20:15.527Z] [unzip] Processing entry: client\assets\provider-icons\auth_service_google.svg
+[debug] [2026-04-06T19:20:15.527Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\provider-icons
+[debug] [2026-04-06T19:20:15.528Z] [unzip] deflating: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\provider-icons\auth_service_google.svg
+[debug] [2026-04-06T19:20:15.531Z] [unzip] Entry: client/assets/provider-icons/auth_service_oidc.svg (compressed_size=414 bytes, uncompressed_size=858 bytes)
+[debug] [2026-04-06T19:20:15.531Z] [unzip] Processing entry: client\assets\provider-icons\auth_service_oidc.svg
+[debug] [2026-04-06T19:20:15.531Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\provider-icons
+[debug] [2026-04-06T19:20:15.532Z] [unzip] deflating: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\assets\provider-icons\auth_service_oidc.svg
+[debug] [2026-04-06T19:20:15.533Z] [unzip] Entry: client/browserconfig.xml (compressed_size=491 bytes, uncompressed_size=822 bytes)
+[debug] [2026-04-06T19:20:15.533Z] [unzip] Processing entry: client\browserconfig.xml
+[debug] [2026-04-06T19:20:15.534Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client
+[debug] [2026-04-06T19:20:15.534Z] [unzip] deflating: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\browserconfig.xml
+[debug] [2026-04-06T19:20:15.536Z] [unzip] Entry: client/favicon-32x32.png (compressed_size=475 bytes, uncompressed_size=475 bytes)
+[debug] [2026-04-06T19:20:15.536Z] [unzip] Processing entry: client\favicon-32x32.png
+[debug] [2026-04-06T19:20:15.536Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client
+[debug] [2026-04-06T19:20:15.536Z] [unzip] Writing file: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\client\favicon-32x32.png
+[debug] [2026-04-06T19:20:15.538Z] [unzip] Entry: server/ (compressed_size=0 bytes, uncompressed_size=0 bytes)
+[debug] [2026-04-06T19:20:15.538Z] [unzip] Processing entry: server\
+[debug] [2026-04-06T19:20:15.538Z] [unzip] mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\server\
+[debug] [2026-04-06T19:20:15.539Z] [unzip] Entry: server/server.mjs.map (compressed_size=217845 bytes, uncompressed_size=944978 bytes)
+[debug] [2026-04-06T19:20:15.539Z] [unzip] Processing entry: server\server.mjs.map
+[debug] [2026-04-06T19:20:15.539Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\server
+[debug] [2026-04-06T19:20:15.539Z] [unzip] deflating: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\server\server.mjs.map
+[debug] [2026-04-06T19:20:15.548Z] [unzip] Entry: server/server.mjs (compressed_size=276407 bytes, uncompressed_size=933701 bytes)
+[debug] [2026-04-06T19:20:15.548Z] [unzip] Processing entry: server\server.mjs
+[debug] [2026-04-06T19:20:15.549Z] [unzip] else mkdir: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\server
+[debug] [2026-04-06T19:20:15.549Z] [unzip] deflating: C:\Users\HAILIFU\.cache\firebase\emulators\ui-v1.15.0\server\server.mjs
+[info] i  functions: Watching "C:\Users\HAILIFU\Desktop\Hailifu_Website\functions" for Cloud Functions... {"metadata":{"emulator":{"name":"functions"},"message":"Watching \"C:\\Users\\HAILIFU\\Desktop\\Hailifu_Website\\functions\" for Cloud Functions..."}}
+[debug] [2026-04-06T19:20:15.572Z] Validating nodejs source
+[debug] [2026-04-06T19:20:17.457Z] > [functions] package.json contents: {
+  "name": "hailifu-functions",
+  "private": true,
+  "main": "src/index.js",
+  "engines": {
+    "node": "22"
+  },
+  "scripts": {
+    "lint": "echo \"No lint configured\"",
+    "serve": "firebase emulators:start --only functions",
+    "deploy": "firebase deploy --only functions"
+  },
+  "dependencies": {
+    "cloudinary": "^2.6.0",
+    "firebase-admin": "^13.7.0",
+    "firebase-functions": "^7.2.3"
+  }
+}
+[debug] [2026-04-06T19:20:17.457Z] Building nodejs source
+[debug] [2026-04-06T19:20:17.458Z] Failed to find version of module node: reached end of search path C:\Users\HAILIFU\Desktop\Hailifu_Website\functions\node_modules
+[warn] !  functions: Your requested "node" version "22" doesn't match your global version "24". Using node@24 from host. 
+[debug] [2026-04-06T19:20:17.462Z] Could not find functions.yaml. Must use http discovery
+[debug] [2026-04-06T19:20:17.484Z] Found firebase-functions binary at 'C:\Users\HAILIFU\Desktop\Hailifu_Website\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8615
+
+[debug] [2026-04-06T19:20:19.721Z] Got response from /__/functions.yaml {"endpoints":{"deleteCloudinaryAsset":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"callableTrigger":{},"entryPoint":"deleteCloudinaryAsset"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[info] +  functions: Loaded functions definitions from source: deleteCloudinaryAsset. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: deleteCloudinaryAsset."}}
+[info] +  functions[us-central1-deleteCloudinaryAsset]: http function initialized (http://127.0.0.1:5001/hailifu-website/us-central1/deleteCloudinaryAsset). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://127.0.0.1:5001/hailifu-website/us-central1/deleteCloudinaryAsset)."}}
+[debug] [2026-04-06T19:20:23.804Z] Could not find VSCode notification endpoint: FetchError: request to http://localhost:40001/vscode/notify failed, reason: . If you are not running the Firebase Data Connect VSCode extension, this is expected and not an issue.
+[info] 
+┌─────────────────────────────────────────────────────────────┐
+│ ✔  All emulators ready! It is now safe to connect your app. │
+│ i  View Emulator UI at http://127.0.0.1:4000/               │
+└─────────────────────────────────────────────────────────────┘
+
+┌───────────┬────────────────┬─────────────────────────────────┐
+│ Emulator  │ Host:Port      │ View in Emulator UI             │
+├───────────┼────────────────┼─────────────────────────────────┤
+│ Functions │ 127.0.0.1:5001 │ http://127.0.0.1:4000/functions │
+└───────────┴────────────────┴─────────────────────────────────┘
+  Emulator Hub host: 127.0.0.1 port: 4400
+  Other reserved ports: 4500
+
+Issues? Report them at https://github.com/firebase/firebase-tools/issues and attach the *-debug.log files.
+ 

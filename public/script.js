@@ -518,6 +518,21 @@
         let mediaTypeButtons = [];
         let selectedMediaType = 'image';
         let adminMediaToastTimer = null;
+        let mediaLibrarySearch = null;
+        let mediaLibraryRefreshBtn = null;
+        let mediaLibraryUploadArea = null;
+        let mediaLibraryFileInput = null;
+        let mediaLibraryUploadBtn = null;
+        let mediaLibraryLinkBtn = null;
+        let mediaLibraryUrlInput = null;
+        let mediaLibraryGrid = null;
+        let mediaLibraryProgress = null;
+        let mediaLibraryProgressFill = null;
+        let mediaLibraryProgressText = null;
+        let sectionSlotSelect = null;
+        let sectionsClearSlotBtn = null;
+        let sectionsCurrentAssignment = null;
+        let sectionsMediaPicker = null;
 
         const cloudinaryCloudName = 'daovfi3i5';
         const defaultCloudinaryUnsignedPreset = 'ml_default';
@@ -679,6 +694,8 @@
         const reviewsStorageKey = 'hailifu_reviews';
         const projectsStorageKey = 'hailifu_projects';
         const deletedProjectsStorageKey = 'hailifu_deleted_project_ids';
+        const mediaLibraryStorageKey = 'hailifu_media_library';
+        const sectionMediaStorageKey = 'hailifu_section_media';
         const pageReachStorageKey = 'hailifu_page_reach';
         const pageReachSessionKey = 'hailifu_page_reach_session';
 
@@ -692,7 +709,11 @@
         let firebaseFirestore = null;
         let firebaseStorage = null;
         let firebaseProjectsState = null;
+        let firebaseMediaLibraryState = null;
+        let firebaseSectionMediaState = null;
         let firebaseProjectsRef = null;
+        let firebaseMediaLibraryRef = null;
+        let firebaseSectionMediaRef = null;
         let firebaseSettingsRef = null;
         let firebaseReviewsRef = null;
         let firebaseAuthObserverUnsubscribe = null;
@@ -704,6 +725,17 @@
         let firestorePublishedReviewsState = [];
         let firestoreProjectMismatchWarned = false;
         const reviewOauthBrandName = 'HAILIFU BRILLIANT INSTALLATION';
+        const MEDIA_SECTION_SLOTS = Object.freeze([
+            { key: 'hero.background', label: 'Hero Background' },
+            { key: 'about.integrityMedia', label: 'About Integrity Media' },
+            { key: 'services.cctvCard', label: 'Services CCTV Card' },
+            { key: 'services.electricalCard', label: 'Services Electrical Card' },
+            { key: 'services.gatesCard', label: 'Services Gates Card' },
+            { key: 'services.airconditioningCard', label: 'Services Air Conditioning Card' },
+            { key: 'services.blindcurtainCard', label: 'Services Smart Window Card' },
+            { key: 'showcase.defaultFallback', label: 'Showcase Fallback Media' },
+            { key: 'featured.defaultFallback', label: 'Featured Fallback Media' }
+        ]);
         const reviewGoogleClientIdStorageKey = 'hailifu_google_client_id';
         const emptyReviewIdentityState = Object.freeze({
             name: '',
@@ -1027,6 +1059,30 @@
             }
         }
 
+        function ensureFirebaseFunctionsService() {
+            if (!ensureFirebaseApp()) return null;
+            if (!firebase.functions || typeof firebase.functions !== 'function') return null;
+            try {
+                return firebase.functions();
+            } catch {
+                return null;
+            }
+        }
+
+        function deleteCloudinaryAssetViaFunction(publicId, resourceType = 'image') {
+            const pid = String(publicId || '').trim();
+            if (!pid) return Promise.resolve({ ok: false, skipped: true });
+            const functions = ensureFirebaseFunctionsService();
+            if (!functions || typeof functions.httpsCallable !== 'function') {
+                return Promise.reject(new Error('Firebase Functions unavailable on this page.'));
+            }
+            const callable = functions.httpsCallable('deleteCloudinaryAsset');
+            return callable({
+                publicId: pid,
+                resourceType: String(resourceType || 'image').trim().toLowerCase() || 'image'
+            });
+        }
+
         function startFirebaseProjectsSync() {
             const db = ensureFirebaseDb();
             if (!db) return false;
@@ -1110,6 +1166,143 @@
                 try { firebaseSettingsRef.off(); } catch {}
             }
             firebaseSettingsRef = null;
+        }
+
+        function getFirebaseMediaLibraryPath() {
+            return 'hailifu/mediaLibrary';
+        }
+
+        function getFirebaseSectionMediaPath() {
+            return 'hailifu/sectionMedia';
+        }
+
+        function getMediaLibraryRecords() {
+            if (Array.isArray(firebaseMediaLibraryState)) return firebaseMediaLibraryState;
+            const raw = readJsonStorage(mediaLibraryStorageKey, []);
+            return Array.isArray(raw) ? raw.filter(Boolean) : [];
+        }
+
+        function saveMediaLibraryRecords(records) {
+            writeJsonStorage(mediaLibraryStorageKey, Array.isArray(records) ? records : []);
+        }
+
+        function getSectionMediaAssignments() {
+            if (firebaseSectionMediaState && typeof firebaseSectionMediaState === 'object') {
+                return firebaseSectionMediaState;
+            }
+            const raw = readJsonStorage(sectionMediaStorageKey, {});
+            return raw && typeof raw === 'object' ? raw : {};
+        }
+
+        function saveSectionMediaAssignments(assignments) {
+            const safe = assignments && typeof assignments === 'object' ? assignments : {};
+            writeJsonStorage(sectionMediaStorageKey, safe);
+        }
+
+        function getMediaLibraryMap() {
+            const map = {};
+            getMediaLibraryRecords().forEach((entry) => {
+                const id = String(entry?.id || '').trim();
+                if (!id) return;
+                map[id] = entry;
+            });
+            return map;
+        }
+
+        function normalizeMediaLibraryRecord(input) {
+            if (!input || typeof input !== 'object') return null;
+            const id = String(input.id || '').trim();
+            const url = normalizeProjectMediaPath(String(input.url || input.mediaSrc || '').trim());
+            if (!id || !url) return null;
+            const type = String(input.type || input.mediaType || '').trim().toLowerCase();
+            const normalizedType = type === 'video' || type === 'youtube' ? type : 'image';
+            return {
+                id,
+                url,
+                type: normalizedType,
+                provider: String(input.provider || '').trim().toLowerCase() || 'external',
+                publicId: String(input.publicId || '').trim(),
+                resourceType: String(input.resourceType || '').trim().toLowerCase() || 'auto',
+                tags: Array.isArray(input.tags) ? input.tags.map((t) => String(t || '').trim()).filter(Boolean) : [],
+                title: String(input.title || '').trim(),
+                createdAt: String(input.createdAt || '').trim() || new Date().toISOString(),
+                deletedAt: input.deletedAt ? String(input.deletedAt) : ''
+            };
+        }
+
+        function normalizeSectionMediaShape(raw) {
+            if (!raw || typeof raw !== 'object') return {};
+            const out = {};
+            Object.entries(raw).forEach(([slot, value]) => {
+                const key = String(slot || '').trim();
+                if (!key) return;
+                if (value && typeof value === 'object') {
+                    const mediaId = String(value.mediaId || '').trim();
+                    if (mediaId) out[key] = { mediaId };
+                    return;
+                }
+                const mediaId = String(value || '').trim();
+                if (mediaId) out[key] = { mediaId };
+            });
+            return out;
+        }
+
+        function startFirebaseMediaLibrarySync() {
+            const db = ensureFirebaseDb();
+            if (!db) return false;
+            const path = getFirebaseMediaLibraryPath();
+            try {
+                if (firebaseMediaLibraryRef) {
+                    try { firebaseMediaLibraryRef.off(); } catch {}
+                }
+            } catch {}
+            firebaseMediaLibraryRef = db.ref(path);
+            firebaseMediaLibraryRef.on('value', (snap) => {
+                const raw = snap && typeof snap.val === 'function' ? snap.val() : null;
+                const map = raw && typeof raw === 'object' ? raw : {};
+                const list = Object.keys(map)
+                    .map((id) => normalizeMediaLibraryRecord({ ...map[id], id }))
+                    .filter(Boolean)
+                    .sort((a, b) => (Date.parse(b?.createdAt || '') || 0) - (Date.parse(a?.createdAt || '') || 0));
+                firebaseMediaLibraryState = list;
+                saveMediaLibraryRecords(list);
+                renderMediaLibraryAndSections();
+            });
+            return true;
+        }
+
+        function stopFirebaseMediaLibrarySync() {
+            if (firebaseMediaLibraryRef) {
+                try { firebaseMediaLibraryRef.off(); } catch {}
+            }
+            firebaseMediaLibraryRef = null;
+        }
+
+        function startFirebaseSectionMediaSync() {
+            const db = ensureFirebaseDb();
+            if (!db) return false;
+            const path = getFirebaseSectionMediaPath();
+            try {
+                if (firebaseSectionMediaRef) {
+                    try { firebaseSectionMediaRef.off(); } catch {}
+                }
+            } catch {}
+            firebaseSectionMediaRef = db.ref(path);
+            firebaseSectionMediaRef.on('value', (snap) => {
+                const raw = snap && typeof snap.val === 'function' ? snap.val() : null;
+                const normalized = normalizeSectionMediaShape(raw);
+                firebaseSectionMediaState = normalized;
+                saveSectionMediaAssignments(normalized);
+                renderMediaLibraryAndSections();
+            });
+            return true;
+        }
+
+        function stopFirebaseSectionMediaSync() {
+            if (firebaseSectionMediaRef) {
+                try { firebaseSectionMediaRef.off(); } catch {}
+            }
+            firebaseSectionMediaRef = null;
         }
 
         function startFirebaseReviewsSync() {
@@ -2231,6 +2424,8 @@
             try { ensureFirebaseStorageService(); } catch {}
             if (startFirebaseProjectsSync()) {
                 startFirebaseSettingsSync();
+                startFirebaseMediaLibrarySync();
+                startFirebaseSectionMediaSync();
                 if (startFirestoreReviewAuthSync()) {
                     stopFirebaseReviewsSync();
                 } else {
@@ -2240,10 +2435,13 @@
                 return true;
             }
             stopFirebaseSettingsSync();
+            stopFirebaseMediaLibrarySync();
+            stopFirebaseSectionMediaSync();
             stopFirebaseReviewsSync();
             stopFirestoreReviewAuthSync();
             syncFromRemoteConfig();
             startRemoteConfigPolling();
+            renderMediaLibraryAndSections();
             return false;
         }
 
@@ -2865,6 +3063,31 @@
 
             const mediaItems = galleryQueueItems.slice();
             const primary = mediaItems[0] || {};
+            const mediaLibrary = getMediaLibraryRecords().map(normalizeMediaLibraryRecord).filter(Boolean);
+            const mediaByUrl = new Map(mediaLibrary.map((entry) => [String(entry.url || '').trim(), entry]));
+            const mediaIds = [];
+            mediaItems.forEach((item) => {
+                const mediaSrc = normalizeProjectMediaPath(String(item?.mediaSrc || '').trim());
+                if (!mediaSrc) return;
+                let entry = mediaByUrl.get(mediaSrc);
+                if (!entry) {
+                    entry = normalizeMediaLibraryRecord({
+                        id: `media_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                        title: String(projectTitle?.value || 'Project media').trim(),
+                        url: mediaSrc,
+                        type: String(item?.mediaType || 'image').trim().toLowerCase() || 'image',
+                        provider: /res\.cloudinary\.com/i.test(mediaSrc) ? 'cloudinary' : 'external',
+                        createdAt: new Date().toISOString()
+                    });
+                    if (!entry) return;
+                    mediaLibrary.unshift(entry);
+                    mediaByUrl.set(mediaSrc, entry);
+                }
+                if (entry?.id && !mediaIds.includes(entry.id)) mediaIds.push(entry.id);
+            });
+            if (mediaLibrary.length) {
+                saveMediaLibraryRecords(mediaLibrary);
+            }
             const project = {
                 createdAt: new Date().toISOString(),
                 title: projectTitle?.value || 'Project',
@@ -2874,6 +3097,7 @@
                 mediaSrc: primary.mediaSrc || '',
                 thumbSrc: primary.thumbSrc || '',
                 mediaItems,
+                mediaIds,
                 featured: true,
                 showcase: true,
                 services: true,
@@ -2884,6 +3108,18 @@
             try {
                 if (firebaseIsReady()) {
                     setUploadUiState({ active: true, pct: 100, text: 'Saving...' });
+                    const db = ensureFirebaseDb();
+                    if (db && Array.isArray(mediaLibrary)) {
+                        const mediaUpdates = {};
+                        mediaLibrary.forEach((entry) => {
+                            const id = String(entry?.id || '').trim();
+                            if (!id) return;
+                            mediaUpdates[id] = entry;
+                        });
+                        if (Object.keys(mediaUpdates).length) {
+                            await db.ref(getFirebaseMediaLibraryPath()).update(mediaUpdates);
+                        }
+                    }
                     await addProjectInFirebase(project);
                     alert('Project Saved Successfully!');
                 } else {
@@ -5171,6 +5407,12 @@
                             <button class="admin-tab active" type="button" data-admin-tab="overview">Overview</button>
                             <button class="admin-tab" type="button" data-admin-tab="leads">Leads</button>
                             <button class="admin-tab" type="button" data-admin-tab="projects">Projects</button>
+                            <button class="admin-tab admin-tab--premium" type="button" data-admin-tab="media">
+                                Media Library <span class="admin-pill">Premium</span>
+                            </button>
+                            <button class="admin-tab admin-tab--premium" type="button" data-admin-tab="sections">
+                                Sections <span class="admin-pill">Premium</span>
+                            </button>
                             <button class="admin-tab" type="button" data-admin-tab="reviews">Reviews</button>
                         </div>
                         <div class="admin-tab-panel active" data-admin-panel="overview">
@@ -5423,6 +5665,62 @@
                                 <div id="projectsGrid" class="projects-grid"></div>
                             </div>
                         </div>
+                        <div class="admin-tab-panel" data-admin-panel="media">
+                            <div class="admin-section">
+                                <h3><i class="fas fa-photo-film"></i> Media Library</h3>
+                                <p style="margin-bottom:14px; font-size:0.85rem; color: rgba(255,255,255,0.7);">Upload once, reuse anywhere. Assign media to sections (Hero, About, Services, Showcase, Featured Work) and delete assets safely.</p>
+                                <div class="media-library-toolbar">
+                                    <input id="mediaLibrarySearch" type="search" placeholder="Search by filename, tag, type..." autocomplete="off">
+                                    <button class="upload-btn upload-btn--ghost" id="mediaLibraryRefreshBtn" type="button"><i class="fas fa-rotate"></i> Refresh</button>
+                                </div>
+                                <div class="media-library-uploader">
+                                    <div class="file-upload-area media-library-dropzone" id="mediaLibraryUploadArea">
+                                        <div class="upload-content">
+                                            <i class="fas fa-cloud-upload-alt"></i>
+                                            <p>Drag & drop or click to upload</p>
+                                            <span class="file-types">PNG, JPG, MP4 (Cloudinary)</span>
+                                        </div>
+                                        <input id="mediaLibraryFileInput" class="admin-file-input" type="file" accept="image/*,video/*" multiple style="display:none;">
+                                    </div>
+                                    <div class="media-library-actions">
+                                        <button class="upload-btn admin-action-btn" id="mediaLibraryUploadBtn" type="button"><i class="fas fa-upload"></i> Upload</button>
+                                        <button class="upload-btn upload-btn--ghost" id="mediaLibraryLinkBtn" type="button"><i class="fas fa-link"></i> Add by URL</button>
+                                    </div>
+                                    <input id="mediaLibraryUrlInput" type="url" placeholder="https://res.cloudinary.com/... or https://..." autocomplete="off">
+                                    <div class="upload-progress" id="mediaLibraryProgress" aria-hidden="true">
+                                        <div class="upload-progress-row">
+                                            <span class="upload-spinner" aria-hidden="true"></span>
+                                            <span class="upload-progress-text" id="mediaLibraryProgressText">Uploading...</span>
+                                        </div>
+                                        <div class="upload-progress-bar">
+                                            <div class="upload-progress-fill" id="mediaLibraryProgressFill" style="width:0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="admin-section">
+                                <h3><i class="fas fa-grid-2"></i> Library</h3>
+                                <div id="mediaLibraryGrid" class="media-library-grid"></div>
+                            </div>
+                        </div>
+                        <div class="admin-tab-panel" data-admin-panel="sections">
+                            <div class="admin-section">
+                                <h3><i class="fas fa-sitemap"></i> Section Media</h3>
+                                <p style="margin-bottom:14px; font-size:0.85rem; color: rgba(255,255,255,0.7);">Pick a section slot, then assign a Media Library item to display on that part of the website.</p>
+                                <div class="sections-toolbar">
+                                    <label class="sections-label" for="sectionSlotSelect">Section slot</label>
+                                    <select id="sectionSlotSelect"></select>
+                                    <button class="upload-btn upload-btn--ghost" id="sectionsClearSlotBtn" type="button"><i class="fas fa-eraser"></i> Clear slot</button>
+                                </div>
+                                <div class="sections-assignment">
+                                    <div class="sections-current" id="sectionsCurrentAssignment"></div>
+                                    <div class="sections-picker">
+                                        <div class="sections-picker-title">Assign from Media Library</div>
+                                        <div id="sectionsMediaPicker" class="media-library-grid media-library-grid--compact"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="admin-tab-panel" data-admin-panel="reviews">
                             <div class="admin-section admin-section--review-auth">
                                 <h3><i class="fas fa-user-shield"></i> Firebase Review Access</h3>
@@ -5667,6 +5965,260 @@
             else stopAdminLazyLoop();
         }
 
+        function setMediaLibraryProgress(state) {
+            const active = !!state?.active;
+            const pct = Math.max(0, Math.min(100, Number(state?.pct) || 0));
+            const text = String(state?.text || '').trim();
+            if (mediaLibraryProgress) {
+                mediaLibraryProgress.classList.toggle('is-active', active);
+                mediaLibraryProgress.setAttribute('aria-hidden', String(!active));
+            }
+            if (mediaLibraryProgressFill) mediaLibraryProgressFill.style.width = `${pct}%`;
+            if (mediaLibraryProgressText && text) mediaLibraryProgressText.textContent = text;
+        }
+
+        function upsertMediaLibraryRecord(record) {
+            const normalized = normalizeMediaLibraryRecord(record);
+            if (!normalized) return Promise.reject(new Error('Invalid media record'));
+            const current = getMediaLibraryRecords();
+            const idx = current.findIndex((item) => String(item?.id || '') === normalized.id);
+            const next = current.slice();
+            if (idx >= 0) next[idx] = { ...current[idx], ...normalized };
+            else next.unshift(normalized);
+            saveMediaLibraryRecords(next);
+            if (firebaseIsReady()) {
+                const db = ensureFirebaseDb();
+                if (db) return db.ref(`${getFirebaseMediaLibraryPath()}/${normalized.id}`).set(normalized);
+            }
+            renderMediaLibraryAndSections();
+            return Promise.resolve();
+        }
+
+        function removeMediaLibraryRecord(mediaId) {
+            const id = String(mediaId || '').trim();
+            if (!id) return Promise.resolve();
+            const current = getMediaLibraryRecords();
+            const target = current.find((entry) => String(entry?.id || '') === id);
+            const next = current.filter((entry) => String(entry?.id || '') !== id);
+            saveMediaLibraryRecords(next);
+
+            const assignments = { ...getSectionMediaAssignments() };
+            Object.keys(assignments).forEach((slotKey) => {
+                if (String(assignments?.[slotKey]?.mediaId || '') === id) delete assignments[slotKey];
+            });
+            saveSectionMediaAssignments(assignments);
+
+            const projects = getProjects().map((project) => {
+                const mediaIds = Array.isArray(project?.mediaIds) ? project.mediaIds : [];
+                if (!mediaIds.length) return project;
+                const filtered = mediaIds.filter((entryId) => String(entryId || '') !== id);
+                return { ...project, mediaIds: filtered };
+            });
+            saveProjects(projects);
+
+            if (!firebaseIsReady()) {
+                renderMediaLibraryAndSections();
+                loadProjects();
+                return Promise.resolve();
+            }
+
+            const db = ensureFirebaseDb();
+            const tasks = [];
+            if (db) {
+                tasks.push(db.ref(`${getFirebaseMediaLibraryPath()}/${id}`).remove());
+                tasks.push(db.ref(getFirebaseSectionMediaPath()).set(assignments));
+                const updates = {};
+                projects.forEach((project) => {
+                    if (!project?.id) return;
+                    updates[`${project.id}/mediaIds`] = Array.isArray(project.mediaIds) ? project.mediaIds : [];
+                });
+                tasks.push(db.ref('projects').update(updates));
+            }
+
+            if (target?.provider === 'firebase') {
+                const storage = ensureFirebaseStorageService();
+                if (storage && target?.url) {
+                    try {
+                        tasks.push(storage.refFromURL(target.url).delete());
+                    } catch {}
+                }
+            }
+
+            if (target?.provider === 'cloudinary' && target?.publicId) {
+                tasks.push(deleteCloudinaryAssetViaFunction(target.publicId, target.resourceType || 'image').catch(() => {}));
+            }
+
+            return Promise.all(tasks).then(() => {
+                renderMediaLibraryAndSections();
+                loadProjects();
+            });
+        }
+
+        function getCurrentSectionSlotKey() {
+            return String(sectionSlotSelect?.value || MEDIA_SECTION_SLOTS[0]?.key || '').trim();
+        }
+
+        function assignMediaToSection(slotKey, mediaId) {
+            const slot = String(slotKey || '').trim();
+            const id = String(mediaId || '').trim();
+            if (!slot) return Promise.resolve();
+            const next = { ...getSectionMediaAssignments() };
+            if (id) next[slot] = { mediaId: id };
+            else delete next[slot];
+            saveSectionMediaAssignments(next);
+            renderMediaLibraryAndSections();
+            if (firebaseIsReady()) {
+                const db = ensureFirebaseDb();
+                if (db) return db.ref(getFirebaseSectionMediaPath()).set(next);
+            }
+            return Promise.resolve();
+        }
+
+        async function uploadMediaLibraryFiles(files) {
+            const list = Array.from(files || []).filter(Boolean);
+            if (!list.length) return;
+            const preset = getCloudinaryPresetValue();
+            if (!preset) throw new Error('Set Cloudinary preset first in Projects tab.');
+            persistCloudinaryPreset();
+            for (let i = 0; i < list.length; i += 1) {
+                const file = list[i];
+                setMediaLibraryProgress({ active: true, pct: Math.round((i / list.length) * 100), text: `Uploading ${i + 1}/${list.length}...` });
+                const payload = await cloudinaryUnsignedUpload(file, {
+                    preset,
+                    resourceType: 'auto',
+                    folder: 'hailifu/media-library',
+                    onProgress: (pct) => {
+                        const overall = Math.round(((i + (pct / 100)) / list.length) * 100);
+                        setMediaLibraryProgress({ active: true, pct: overall, text: `Uploading ${i + 1}/${list.length}...` });
+                    }
+                });
+                const secureUrl = String(payload?.secure_url || '').trim();
+                if (!secureUrl) continue;
+                const mediaType = String(payload?.resource_type || '').toLowerCase() === 'video' ? 'video' : 'image';
+                const record = {
+                    id: `media_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                    title: String(file?.name || '').trim(),
+                    url: secureUrl,
+                    type: mediaType,
+                    provider: 'cloudinary',
+                    publicId: String(payload?.public_id || '').trim(),
+                    resourceType: String(payload?.resource_type || 'auto').trim().toLowerCase(),
+                    createdAt: new Date().toISOString()
+                };
+                await upsertMediaLibraryRecord(record);
+            }
+            setMediaLibraryProgress({ active: false, pct: 0, text: 'Uploading...' });
+        }
+
+        function mediaTypeFromUrl(rawUrl) {
+            const raw = String(rawUrl || '').trim().toLowerCase();
+            if (!raw) return 'image';
+            if (/youtube\.com|youtu\.be/.test(raw)) return 'youtube';
+            if (/\.(mp4|webm|mov|m4v|ogg|ogv)(\?|#|$)/i.test(raw) || raw.includes('/video/upload/')) return 'video';
+            return 'image';
+        }
+
+        function renderMediaLibraryCard(item, opts = {}) {
+            const compact = !!opts.compact;
+            const id = String(item?.id || '').trim();
+            const title = escapeHtml(String(item?.title || id || 'Media'));
+            const url = String(item?.url || '').trim();
+            const safeUrl = escapeHtml(url);
+            const type = String(item?.type || 'image').toLowerCase();
+            const provider = escapeHtml(String(item?.provider || 'external').toUpperCase());
+            const preview = type === 'video'
+                ? `<video src="${safeUrl}" muted playsinline webkit-playsinline preload="metadata"></video>`
+                : `<img src="${safeUrl}" alt="${title}" loading="lazy" decoding="async">`;
+            const assignBtn = `<button class="upload-btn upload-btn--ghost" type="button" data-media-assign="${id}">Assign</button>`;
+            const deleteBtn = compact ? '' : `<button class="upload-btn upload-btn--ghost" type="button" data-media-delete="${id}">Delete</button>`;
+            return `
+                <article class="media-asset-card" data-media-id="${id}">
+                    <div class="media-asset-preview">${preview}</div>
+                    <div class="media-asset-meta">
+                        <div class="media-asset-title">${title}</div>
+                        <div class="media-asset-submeta"><span>${escapeHtml(type.toUpperCase())}</span><span>${provider}</span></div>
+                        <div class="media-asset-actions">${assignBtn}${deleteBtn}</div>
+                    </div>
+                </article>
+            `;
+        }
+
+        function renderMediaLibraryAndSections() {
+            const all = getMediaLibraryRecords()
+                .map(normalizeMediaLibraryRecord)
+                .filter((entry) => entry && !entry.deletedAt);
+            const search = String(mediaLibrarySearch?.value || '').trim().toLowerCase();
+            const filtered = !search
+                ? all
+                : all.filter((entry) => {
+                    const hay = `${entry.title} ${entry.url} ${entry.type} ${(entry.tags || []).join(' ')}`.toLowerCase();
+                    return hay.includes(search);
+                });
+
+            if (mediaLibraryGrid) {
+                mediaLibraryGrid.innerHTML = filtered.length
+                    ? filtered.map((entry) => renderMediaLibraryCard(entry)).join('')
+                    : '<div class="admin-empty">No media in library yet.</div>';
+                bindHailifuMediaFallback(mediaLibraryGrid, 'HAILIFU');
+            }
+
+            if (sectionSlotSelect) {
+                if (!sectionSlotSelect.dataset.ready) {
+                    sectionSlotSelect.innerHTML = MEDIA_SECTION_SLOTS.map((slot) => `<option value="${escapeHtml(slot.key)}">${escapeHtml(slot.label)}</option>`).join('');
+                    sectionSlotSelect.dataset.ready = '1';
+                }
+            }
+
+            const slot = getCurrentSectionSlotKey();
+            const assignments = getSectionMediaAssignments();
+            const assignedId = String(assignments?.[slot]?.mediaId || '').trim();
+            const assigned = all.find((entry) => String(entry?.id || '') === assignedId);
+            if (sectionsCurrentAssignment) {
+                sectionsCurrentAssignment.innerHTML = assigned
+                    ? `Current: <strong>${escapeHtml(assigned.title || assigned.id)}</strong> (${escapeHtml(assigned.type)})`
+                    : 'Current: <strong>None</strong>';
+            }
+
+            if (sectionsMediaPicker) {
+                sectionsMediaPicker.innerHTML = filtered.length
+                    ? filtered.map((entry) => renderMediaLibraryCard(entry, { compact: true })).join('')
+                    : '<div class="admin-empty">No media available to assign.</div>';
+                bindHailifuMediaFallback(sectionsMediaPicker, 'HAILIFU');
+            }
+        }
+
+        function getSectionAssignedMedia(slotKey) {
+            const slot = String(slotKey || '').trim();
+            if (!slot) return null;
+            const assignments = getSectionMediaAssignments();
+            const mediaId = String(assignments?.[slot]?.mediaId || '').trim();
+            if (!mediaId) return null;
+            const media = getMediaLibraryMap()[mediaId];
+            if (!media) return null;
+            return normalizeMediaLibraryRecord(media);
+        }
+
+        function applySectionMediaAssignments() {
+            const heroMedia = getSectionAssignedMedia('hero.background');
+            if (heroMedia?.url) {
+                if (heroMedia.type === 'video') {
+                    try { initHeroVideo(heroMedia.url); } catch {}
+                } else {
+                    const heroContainer = document.querySelector('.hero-video-container');
+                    if (heroContainer) {
+                        heroContainer.style.backgroundImage = `url("${heroMedia.url.replace(/"/g, '\\"')}")`;
+                        heroContainer.style.backgroundSize = 'cover';
+                        heroContainer.style.backgroundPosition = 'center center';
+                    }
+                }
+            }
+
+            const integrityMedia = getSectionAssignedMedia('about.integrityMedia');
+            if (integrityMedia?.url) {
+                try { loadIntegrityImage(integrityMedia.url); } catch {}
+            }
+        }
+
         function syncOpsNodes() {
             if (!adminPanel || adminBindingsReady) return;
             adminBindingsReady = true;
@@ -5722,6 +6274,21 @@
             addGalleryItemBtn = document.getElementById('addGalleryItemBtn');
             clearGalleryBtn = document.getElementById('clearGalleryBtn');
             mediaTypeButtons = Array.from(document.querySelectorAll('.media-btn'));
+            mediaLibrarySearch = document.getElementById('mediaLibrarySearch');
+            mediaLibraryRefreshBtn = document.getElementById('mediaLibraryRefreshBtn');
+            mediaLibraryUploadArea = document.getElementById('mediaLibraryUploadArea');
+            mediaLibraryFileInput = document.getElementById('mediaLibraryFileInput');
+            mediaLibraryUploadBtn = document.getElementById('mediaLibraryUploadBtn');
+            mediaLibraryLinkBtn = document.getElementById('mediaLibraryLinkBtn');
+            mediaLibraryUrlInput = document.getElementById('mediaLibraryUrlInput');
+            mediaLibraryGrid = document.getElementById('mediaLibraryGrid');
+            mediaLibraryProgress = document.getElementById('mediaLibraryProgress');
+            mediaLibraryProgressFill = document.getElementById('mediaLibraryProgressFill');
+            mediaLibraryProgressText = document.getElementById('mediaLibraryProgressText');
+            sectionSlotSelect = document.getElementById('sectionSlotSelect');
+            sectionsClearSlotBtn = document.getElementById('sectionsClearSlotBtn');
+            sectionsCurrentAssignment = document.getElementById('sectionsCurrentAssignment');
+            sectionsMediaPicker = document.getElementById('sectionsMediaPicker');
 
             adminLazyLoop = document.getElementById('adminLazyLoop');
             adminLazyLoopTrack = document.getElementById('adminLazyLoopTrack');
@@ -5917,6 +6484,140 @@
                     saveProjectFromQueue();
                 });
             }
+
+            if (mediaLibrarySearch) {
+                mediaLibrarySearch.addEventListener('input', () => {
+                    renderMediaLibraryAndSections();
+                });
+            }
+
+            if (mediaLibraryRefreshBtn) {
+                mediaLibraryRefreshBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    renderMediaLibraryAndSections();
+                });
+            }
+
+            if (mediaLibraryUploadArea && mediaLibraryFileInput) {
+                const openPicker = () => {
+                    try {
+                        mediaLibraryFileInput.focus();
+                        mediaLibraryFileInput.click();
+                    } catch {}
+                };
+                mediaLibraryUploadArea.addEventListener('click', openPicker);
+                mediaLibraryUploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    mediaLibraryUploadArea.classList.add('dragover');
+                });
+                mediaLibraryUploadArea.addEventListener('dragleave', () => mediaLibraryUploadArea.classList.remove('dragover'));
+                mediaLibraryUploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    mediaLibraryUploadArea.classList.remove('dragover');
+                    if (e.dataTransfer?.files?.length) {
+                        try { mediaLibraryFileInput.files = e.dataTransfer.files; } catch {}
+                    }
+                });
+            }
+
+            if (mediaLibraryUploadBtn) {
+                mediaLibraryUploadBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    try {
+                        await uploadMediaLibraryFiles(mediaLibraryFileInput?.files || []);
+                        if (mediaLibraryFileInput) mediaLibraryFileInput.value = '';
+                        showAdminMediaToast('Media uploaded to library.', 'success');
+                    } catch (error) {
+                        const message = String(error?.message || error || 'Upload failed');
+                        showAdminMediaToast(message, 'error');
+                    } finally {
+                        setMediaLibraryProgress({ active: false, pct: 0, text: 'Uploading...' });
+                        renderMediaLibraryAndSections();
+                    }
+                });
+            }
+
+            if (mediaLibraryLinkBtn) {
+                mediaLibraryLinkBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    const raw = String(mediaLibraryUrlInput?.value || '').trim();
+                    if (!raw) {
+                        showAdminMediaToast('Enter media URL first.', 'warning');
+                        return;
+                    }
+                    const record = {
+                        id: `media_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                        title: raw.split('/').pop() || 'Linked media',
+                        url: raw,
+                        type: mediaTypeFromUrl(raw),
+                        provider: /res\.cloudinary\.com/i.test(raw) ? 'cloudinary' : (/firebasestorage/i.test(raw) ? 'firebase' : 'external'),
+                        createdAt: new Date().toISOString()
+                    };
+                    await upsertMediaLibraryRecord(record);
+                    if (mediaLibraryUrlInput) mediaLibraryUrlInput.value = '';
+                    renderMediaLibraryAndSections();
+                    showAdminMediaToast('Media URL added.', 'success');
+                });
+            }
+
+            if (mediaLibraryGrid) {
+                mediaLibraryGrid.addEventListener('click', (e) => {
+                    const assignBtn = e.target.closest('[data-media-assign]');
+                    if (assignBtn) {
+                        e.preventDefault();
+                        const id = String(assignBtn.getAttribute('data-media-assign') || '').trim();
+                        assignMediaToSection(getCurrentSectionSlotKey(), id).then(() => {
+                            showAdminMediaToast('Media assigned to section.', 'success');
+                        }).catch((error) => {
+                            showAdminMediaToast(String(error?.message || error || 'Assign failed'), 'error');
+                        });
+                        return;
+                    }
+                    const deleteBtn = e.target.closest('[data-media-delete]');
+                    if (deleteBtn) {
+                        e.preventDefault();
+                        const id = String(deleteBtn.getAttribute('data-media-delete') || '').trim();
+                        removeMediaLibraryRecord(id).then(() => {
+                            showAdminMediaToast('Media deleted.', 'success');
+                        }).catch((error) => {
+                            showAdminMediaToast(String(error?.message || error || 'Delete failed'), 'error');
+                        });
+                    }
+                });
+            }
+
+            if (sectionSlotSelect) {
+                sectionSlotSelect.addEventListener('change', () => {
+                    renderMediaLibraryAndSections();
+                });
+            }
+
+            if (sectionsClearSlotBtn) {
+                sectionsClearSlotBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    assignMediaToSection(getCurrentSectionSlotKey(), '').then(() => {
+                        showAdminMediaToast('Section slot cleared.', 'success');
+                    }).catch((error) => {
+                        showAdminMediaToast(String(error?.message || error || 'Clear failed'), 'error');
+                    });
+                });
+            }
+
+            if (sectionsMediaPicker) {
+                sectionsMediaPicker.addEventListener('click', (e) => {
+                    const assignBtn = e.target.closest('[data-media-assign]');
+                    if (!assignBtn) return;
+                    e.preventDefault();
+                    const id = String(assignBtn.getAttribute('data-media-assign') || '').trim();
+                    assignMediaToSection(getCurrentSectionSlotKey(), id).then(() => {
+                        showAdminMediaToast('Section media updated.', 'success');
+                    }).catch((error) => {
+                        showAdminMediaToast(String(error?.message || error || 'Assign failed'), 'error');
+                    });
+                });
+            }
+
+            renderMediaLibraryAndSections();
 
             if (projectsGrid) {
                 projectsGrid.addEventListener('click', (e) => {
@@ -6466,6 +7167,7 @@
         function haltDataSync() {
             try { stopAdminLazyLoop(); } catch {}
             stopFirestorePendingReviewsSync();
+            renderMediaLibraryAndSections();
             if (adminBackdrop) {
                 adminBackdrop.classList.remove('active');
                 adminBackdrop.setAttribute('aria-hidden', 'true');
@@ -7000,6 +7702,7 @@
 
             return records.map((project, idx) => {
                 const base = stripProjectQuoteFields(project);
+                const mediaLibraryMap = getMediaLibraryMap();
                 const visibility = normalizeVisibilityFlags(base);
                 const rawMediaSrc = String(base?.mediaSrc || base?.imageUrl || base?.mediaUrl || '').trim();
                 const rawThumbSrc = String(base?.thumbSrc || base?.thumbnailUrl || base?.thumbUrl || '').trim();
@@ -7032,12 +7735,28 @@
                 }
 
                 const mediaType = String(base?.mediaType || (mediaSrc && /\.(mp4|webm|mov)(\?|#|$)/i.test(mediaSrc) ? 'video' : 'image') || 'image').trim().toLowerCase() || 'image';
+                const mediaIds = Array.isArray(base?.mediaIds) ? base.mediaIds.map((id) => String(id || '').trim()).filter(Boolean) : [];
+                const mediaItemsFromIds = mediaIds
+                    .map((id) => mediaLibraryMap[id])
+                    .filter(Boolean)
+                    .map((entry) => normalizeMediaItem({
+                        mediaSrc: entry.url,
+                        mediaType: entry.type,
+                        thumbSrc: ''
+                    }))
+                    .filter(Boolean);
+
+                const mediaItemsExisting = Array.isArray(base?.mediaItems) ? base.mediaItems : [];
+                const mergedMediaItems = normalizeMediaCollection([...mediaItemsFromIds, ...mediaItemsExisting]);
+                const primaryFromMediaIds = mergedMediaItems[0] || null;
                 return {
                     ...base,
                     id: fallbackId,
-                    mediaSrc,
-                    thumbSrc,
-                    mediaType,
+                    mediaSrc: primaryFromMediaIds?.mediaSrc || mediaSrc,
+                    thumbSrc: primaryFromMediaIds?.thumbSrc || thumbSrc,
+                    mediaType: primaryFromMediaIds?.mediaType || mediaType,
+                    mediaItems: mergedMediaItems.length ? mergedMediaItems : mediaItemsExisting,
+                    mediaIds,
                     ...visibility,
                     isStarred: Boolean(project?.isStarred),
                     isFeatured: Boolean(project?.isFeatured)
@@ -7060,6 +7779,76 @@
                     ...remoteConfigState,
                     projects: sanitized
                 };
+            }
+        }
+
+        function migrateLegacyProjectsToMediaLibrary() {
+            const projects = getProjects();
+            if (!Array.isArray(projects) || !projects.length) return;
+            const mediaLibrary = getMediaLibraryRecords().map(normalizeMediaLibraryRecord).filter(Boolean);
+            const mediaMapByUrl = new Map(mediaLibrary.map((entry) => [String(entry.url || '').trim(), entry]));
+            let mediaChanged = false;
+            let projectChanged = false;
+
+            const migratedProjects = projects.map((project) => {
+                if (!project || typeof project !== 'object') return project;
+                const currentIds = Array.isArray(project.mediaIds) ? project.mediaIds.map((id) => String(id || '').trim()).filter(Boolean) : [];
+                const resolvedIds = currentIds.slice();
+                const items = coerceProjectMediaItems(project);
+                items.forEach((item) => {
+                    const mediaSrc = normalizeProjectMediaPath(String(item?.mediaSrc || '').trim());
+                    if (!mediaSrc) return;
+                    let existing = mediaMapByUrl.get(mediaSrc);
+                    if (!existing) {
+                        existing = normalizeMediaLibraryRecord({
+                            id: `media_mig_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                            url: mediaSrc,
+                            type: String(item?.mediaType || 'image').trim().toLowerCase() || 'image',
+                            provider: /^https?:\/\//i.test(mediaSrc) && /res\.cloudinary\.com/i.test(mediaSrc) ? 'cloudinary' : 'external',
+                            createdAt: new Date().toISOString(),
+                            title: String(project?.title || '').trim() || 'Migrated media'
+                        });
+                        if (!existing) return;
+                        mediaLibrary.unshift(existing);
+                        mediaMapByUrl.set(mediaSrc, existing);
+                        mediaChanged = true;
+                    }
+                    if (existing?.id && !resolvedIds.includes(existing.id)) {
+                        resolvedIds.push(existing.id);
+                    }
+                });
+                if (resolvedIds.join('|') !== currentIds.join('|')) {
+                    projectChanged = true;
+                    return { ...project, mediaIds: resolvedIds };
+                }
+                return project;
+            });
+
+            if (mediaChanged) {
+                saveMediaLibraryRecords(mediaLibrary);
+                if (firebaseIsReady()) {
+                    const db = ensureFirebaseDb();
+                    if (db) {
+                        const updates = {};
+                        mediaLibrary.forEach((entry) => {
+                            const id = String(entry?.id || '').trim();
+                            if (!id) return;
+                            updates[id] = entry;
+                        });
+                        if (Object.keys(updates).length) {
+                            db.ref(getFirebaseMediaLibraryPath()).update(updates).catch(() => {});
+                        }
+                    }
+                }
+            }
+            if (projectChanged) {
+                saveProjects(migratedProjects);
+                if (firebaseIsReady()) {
+                    migratedProjects.forEach((project) => {
+                        if (!project?.id) return;
+                        upsertProjectInFirebase(project).catch(() => {});
+                    });
+                }
             }
         }
 
@@ -9014,6 +9803,8 @@
 
         function loadProjects() {
             if (!projectsGrid) projectsGrid = document.getElementById('projectsGrid');
+            migrateLegacyProjectsToMediaLibrary();
+            applySectionMediaAssignments();
             renderProjects();
             const projects = getProjects();
             const showcaseProjects = projects.filter((p) => p && isVisibilityEnabled(p, 'showInShowcase', 'showcase'));
@@ -9196,8 +9987,26 @@
                     ensureShowcaseViewButton(slot, showcaseMedia?.mediaType || slot.dataset.mediaType || 'image');
                 } else {
                     const existingBg = slot.querySelector('.showcase-bg');
-                    if (existingBg) existingBg.remove();
-                    slot.classList.remove('has-media');
+                    const fallbackMedia = getSectionAssignedMedia('showcase.defaultFallback');
+                    if (fallbackMedia?.url) {
+                        let bgNode = existingBg;
+                        if (!bgNode) {
+                            bgNode = document.createElement('div');
+                            bgNode.className = 'showcase-bg';
+                            slot.insertBefore(bgNode, slot.firstChild);
+                        }
+                        const safeSrc = normalizeCloudinaryUrl(fallbackMedia.url);
+                        if (fallbackMedia.type === 'video') {
+                            bgNode.innerHTML = `<video src="${safeSrc}" muted playsinline webkit-playsinline loop preload="metadata"></video>`;
+                        } else {
+                            bgNode.innerHTML = `<img src="${safeSrc}" alt="" loading="lazy" decoding="async">`;
+                        }
+                        slot.classList.add('has-media');
+                        bindHailifuMediaFallback(bgNode, 'HAILIFU');
+                    } else {
+                        if (existingBg) existingBg.remove();
+                        slot.classList.remove('has-media');
+                    }
                     slot.classList.add('showcase-card');
                     delete slot.dataset.generatedProjectId;
                     delete slot.dataset.modalTitle;
@@ -9739,6 +10548,23 @@
             featuredLoopBoundNode = null;
             featuredLoopIndex = 0;
             featuredLoopCount = featuredList.length;
+
+            if (!featuredList.length) {
+                const fallbackMedia = getSectionAssignedMedia('featured.defaultFallback');
+                if (fallbackMedia?.url) {
+                    featuredList = [{
+                        id: `featured_fallback_${Date.now()}`,
+                        title: 'Featured Highlight',
+                        description: 'Assigned from Premium Media Library.',
+                        category: 'featured',
+                        mediaSrc: fallbackMedia.url,
+                        mediaType: fallbackMedia.type || 'image',
+                        thumbSrc: '',
+                        createdAt: new Date().toISOString()
+                    }];
+                    featuredLoopCount = 1;
+                }
+            }
 
             if (!featuredList.length) {
                 featuredBento.innerHTML = `
