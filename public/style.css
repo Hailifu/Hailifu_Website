@@ -9309,9 +9309,9 @@
             overflow-y: auto;
             overscroll-behavior-y: contain;
             -webkit-overflow-scrolling: touch;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            grid-auto-rows: minmax(120px, calc((100vh - 210px) / 2));
-            grid-auto-rows: minmax(120px, calc((100dvh - 210px) / 2));
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-auto-rows: minmax(96px, calc((100vh - 220px) / 3));
+            grid-auto-rows: minmax(96px, calc((100dvh - 220px) / 3));
             gap: 14px;
             padding: 10px 14px 12px;
         }
@@ -9348,30 +9348,30 @@
 
         @media (max-width: 900px) {
             .project-modal-gallery {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
+                grid-template-columns: repeat(3, minmax(0, 1fr));
                 padding: 8px;
             }
 
             .project-modal.is-showcase-fullscreen .project-modal-gallery {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                grid-auto-rows: minmax(76px, calc((100vh - 190px) / 4));
-                grid-auto-rows: minmax(76px, calc((100dvh - 190px) / 4));
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                grid-auto-rows: minmax(76px, calc((100vh - 200px) / 3));
+                grid-auto-rows: minmax(76px, calc((100dvh - 200px) / 3));
                 padding: 8px;
             }
         }
 
         @media (max-width: 620px) {
             .project-modal-gallery {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
+                grid-template-columns: repeat(3, minmax(0, 1fr));
                 gap: 8px;
                 padding: 6px 6px 8px;
             }
 
             .project-modal.is-showcase-fullscreen .project-modal-gallery {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
+                grid-template-columns: repeat(3, minmax(0, 1fr));
                 gap: 8px;
-                grid-auto-rows: minmax(74px, calc((100vh - 180px) / 4));
-                grid-auto-rows: minmax(74px, calc((100dvh - 180px) / 4));
+                grid-auto-rows: minmax(64px, calc((100vh - 180px) / 3));
+                grid-auto-rows: minmax(64px, calc((100dvh - 180px) / 3));
                 padding: 6px 6px 8px;
             }
 

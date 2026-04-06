@@ -2278,7 +2278,7 @@
         function upsertProjectInFirebase(project) {
             const db = ensureFirebaseDb();
             if (!db) return Promise.reject(new Error('Firebase not configured'));
-            const path = 'projects';
+            const path = getFirebaseProjectsPath();
             const id = String(project?.id || '').trim();
             if (!id) return Promise.reject(new Error('Missing project id'));
             return db.ref(`${path}/${id}`).set(stripProjectQuoteFields(project));
@@ -2287,7 +2287,7 @@
         function addProjectInFirebase(project) {
             const db = ensureFirebaseDb();
             if (!db) return Promise.reject(new Error('Firebase not configured'));
-            const path = 'projects';
+            const path = getFirebaseProjectsPath();
             const listRef = db.ref(path);
             const newRef = listRef.push();
             const key = String(newRef?.key || '').trim();
@@ -2309,7 +2309,7 @@
         function removeProjectInFirebase(projectId) {
             const db = ensureFirebaseDb();
             if (!db) return Promise.reject(new Error('Firebase not configured'));
-            const path = 'projects';
+            const path = getFirebaseProjectsPath();
             const id = String(projectId || '').trim();
             if (!id) return Promise.resolve();
             return db.ref(`${path}/${id}`).remove();
@@ -6024,33 +6024,68 @@
 
             const db = ensureFirebaseDb();
             const tasks = [];
+            const failures = [];
             if (db) {
-                tasks.push(db.ref(`${getFirebaseMediaLibraryPath()}/${id}`).remove());
-                tasks.push(db.ref(getFirebaseSectionMediaPath()).set(assignments));
+                tasks.push({
+                    label: 'RTDB media record',
+                    op: db.ref(`${getFirebaseMediaLibraryPath()}/${id}`).remove()
+                });
+                tasks.push({
+                    label: 'RTDB section assignments',
+                    op: db.ref(getFirebaseSectionMediaPath()).set(assignments)
+                });
                 const updates = {};
                 projects.forEach((project) => {
                     if (!project?.id) return;
                     updates[`${project.id}/mediaIds`] = Array.isArray(project.mediaIds) ? project.mediaIds : [];
                 });
-                tasks.push(db.ref('projects').update(updates));
+                tasks.push({
+                    label: 'RTDB projects mediaIds',
+                    op: db.ref(getFirebaseProjectsPath()).update(updates)
+                });
+            } else {
+                tasks.push({
+                    label: 'Firebase database',
+                    op: Promise.reject(new Error('Firebase Realtime Database unavailable.'))
+                });
             }
 
             if (target?.provider === 'firebase') {
                 const storage = ensureFirebaseStorageService();
                 if (storage && target?.url) {
                     try {
-                        tasks.push(storage.refFromURL(target.url).delete());
+                        tasks.push({
+                            label: 'Firebase Storage file',
+                            op: storage.refFromURL(target.url).delete()
+                        });
                     } catch {}
                 }
             }
 
             if (target?.provider === 'cloudinary' && target?.publicId) {
-                tasks.push(deleteCloudinaryAssetViaFunction(target.publicId, target.resourceType || 'image').catch(() => {}));
+                tasks.push({
+                    label: 'Cloudinary asset',
+                    op: deleteCloudinaryAssetViaFunction(target.publicId, target.resourceType || 'image')
+                });
             }
 
-            return Promise.all(tasks).then(() => {
+            return Promise.allSettled(tasks.map((entry) => entry.op)).then((results) => {
+                results.forEach((result, idx) => {
+                    if (result.status === 'rejected') {
+                        const label = tasks[idx]?.label || 'Delete step';
+                        const reason = String(result.reason?.message || result.reason || 'Unknown failure');
+                        failures.push(`${label}: ${reason}`);
+                    }
+                });
                 renderMediaLibraryAndSections();
                 loadProjects();
+                if (failures.length) {
+                    const blocked = failures.some((msg) => /permission|denied|unauth|auth|required/i.test(String(msg)));
+                    if (blocked) {
+                        throw new Error(`Delete partially failed (permissions): ${failures.join(' | ')}`);
+                    }
+                    throw new Error(`Delete partially failed: ${failures.join(' | ')}`);
+                }
             });
         }
 
@@ -11535,7 +11570,7 @@
             let touchStartY = 0;
             let lastTouchMoveAt = 0;
             const tapSuppressWindowMs = 320;
-            const visibleCount = mediaItems.length;
+            const visibleCount = Math.min(9, mediaItems.length);
 
             gallery.addEventListener('touchstart', (e) => {
                 const t = e.touches && e.touches[0];

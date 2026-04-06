@@ -2035,7 +2035,7 @@
         function upsertProjectInFirebase(project) {
             const db = ensureFirebaseDb();
             if (!db) return Promise.reject(new Error('Firebase not configured'));
-            const path = 'projects';
+            const path = getFirebaseProjectsPath();
             const id = String(project?.id || '').trim();
             if (!id) return Promise.reject(new Error('Missing project id'));
             return db.ref(`${path}/${id}`).set(stripProjectQuoteFields(project));
@@ -2044,7 +2044,7 @@
         function addProjectInFirebase(project) {
             const db = ensureFirebaseDb();
             if (!db) return Promise.reject(new Error('Firebase not configured'));
-            const path = 'projects';
+            const path = getFirebaseProjectsPath();
             const listRef = db.ref(path);
             const newRef = listRef.push();
             const key = String(newRef?.key || '').trim();
@@ -2066,7 +2066,7 @@
         function removeProjectInFirebase(projectId) {
             const db = ensureFirebaseDb();
             if (!db) return Promise.reject(new Error('Firebase not configured'));
-            const path = 'projects';
+            const path = getFirebaseProjectsPath();
             const id = String(projectId || '').trim();
             if (!id) return Promise.resolve();
             return db.ref(`${path}/${id}`).remove();
@@ -10504,7 +10504,7 @@
             let touchStartY = 0;
             let lastTouchMoveAt = 0;
             const tapSuppressWindowMs = 320;
-            const visibleCount = mediaItems.length;
+            const visibleCount = Math.min(9, mediaItems.length);
 
             gallery.addEventListener('touchstart', (e) => {
                 const t = e.touches && e.touches[0];
