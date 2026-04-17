@@ -724,6 +724,8 @@
         let firestorePendingReviewsState = [];
         let firestorePublishedReviewsState = [];
         let firestoreProjectMismatchWarned = false;
+
+        let supabaseClient = null;
         const reviewOauthBrandName = 'HAILIFU BRILLIANT INSTALLATION';
         const MEDIA_SECTION_SLOTS = Object.freeze([
             { key: 'hero.background', label: 'Hero Background' },
@@ -2313,6 +2315,40 @@
             const id = String(projectId || '').trim();
             if (!id) return Promise.resolve();
             return db.ref(`${path}/${id}`).remove();
+        }
+
+        function ensureSupabaseClient() {
+            if (supabaseClient) return supabaseClient;
+            if (typeof window.supabase === 'undefined') {
+                console.warn('[HAILIFU] Supabase client not loaded');
+                return null;
+            }
+            const supabaseUrl = window.SUPABASE_URL || '';
+            const supabaseKey = window.SUPABASE_ANON_KEY || '';
+            if (!supabaseUrl || !supabaseKey) {
+                console.warn('[HAILIFU] Supabase credentials not configured');
+                return null;
+            }
+            try {
+                supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+                return supabaseClient;
+            } catch (error) {
+                console.error('[HAILIFU] Failed to initialize Supabase client:', error);
+                return null;
+            }
+        }
+
+        async function deleteProjectInSupabase(projectId) {
+            const supabase = ensureSupabaseClient();
+            if (!supabase) return Promise.reject(new Error('Supabase not configured'));
+            const id = String(projectId || '').trim();
+            if (!id) return Promise.resolve();
+            const { error } = await supabase
+                .from('projects')
+                .delete()
+                .eq('id', id);
+            if (error) return Promise.reject(error);
+            return Promise.resolve();
         }
 
         function getRemoteConfigUrl() {
@@ -6884,31 +6920,11 @@
                             loadProjects();
                             showAdminMediaToast('Media deleted', 'success');
 
-                            if (firebaseIsReady()) {
-                                removeProjectInFirebase(projectId).catch(() => {
-                                    saveProjects(originalProjects);
-                                    loadProjects();
-                                    showAdminMediaToast('Delete failed. Please retry.', 'error');
-                                });
-                            } else {
-                                const preset = getCloudinaryPresetValue();
-                                if (preset) {
-                                    persistCloudinaryPreset();
-                                    const nextConfig = {
-                                        ...(remoteConfigState && typeof remoteConfigState === 'object' ? remoteConfigState : {}),
-                                        updatedAt: new Date().toISOString(),
-                                        projects: nextProjects
-                                    };
-                                    uploadRemoteConfig(nextConfig, preset)
-                                        .then(() => {
-                                            remoteConfigState = nextConfig;
-                                            remoteConfigFingerprint = '';
-                                        })
-                                        .catch(() => {
-                                            showAdminMediaToast('Deleted locally. Cloud sync failed.', 'warning');
-                                        });
-                                }
-                            }
+                            deleteProjectInSupabase(projectId).catch(() => {
+                                saveProjects(originalProjects);
+                                loadProjects();
+                                showAdminMediaToast('Delete failed. Please retry.', 'error');
+                            });
                             return;
                         }
 
