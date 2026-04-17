@@ -8318,7 +8318,7 @@
         const formatVerifiedCountLabel = (value) => {
             const count = Math.max(0, Number(value) || 0);
             if (!count) return '--';
-            return `${count}+`;
+            return String(count);
         };
         const isMatchingPlaceId = (value) => {
             const placeKey = normalizePlaceIdKey(value);
@@ -9797,6 +9797,32 @@
         initGoogleBusinessStatusToggle();
         bindReviewShareButtons();
         refreshLiveReviewSection();
+
+        let liveReviewRefreshTimer = null;
+        const startLiveReviewAutoRefresh = () => {
+            if (liveReviewRefreshTimer) clearInterval(liveReviewRefreshTimer);
+            liveReviewRefreshTimer = setInterval(() => {
+                refreshLiveReviewSection();
+            }, 300000);
+        };
+        const stopLiveReviewAutoRefresh = () => {
+            if (liveReviewRefreshTimer) {
+                clearInterval(liveReviewRefreshTimer);
+                liveReviewRefreshTimer = null;
+            }
+        };
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                refreshLiveReviewSection();
+                startLiveReviewAutoRefresh();
+            } else {
+                stopLiveReviewAutoRefresh();
+            }
+        });
+
+        startLiveReviewAutoRefresh();
+
         window.addEventListener('storage', (event) => {
             if (!event) return;
             if (event.key === reviewsStorageKey) {

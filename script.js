@@ -7444,7 +7444,7 @@
         const formatVerifiedCountLabel = (value) => {
             const count = Math.max(0, Number(value) || 0);
             if (!count) return '--';
-            return `${count}+`;
+            return String(count);
         };
         const isMatchingPlaceId = (value) => {
             const placeKey = normalizePlaceIdKey(value);
@@ -8428,6 +8428,7 @@
             let index = 0;
             const prevBtn = document.querySelector('.review-terminal-nav.prev');
             const nextBtn = document.querySelector('.review-terminal-nav.next');
+            const terminal = document.querySelector('.review-terminal-box');
 
             const render = () => {
                 const review = reviews[index];
@@ -8455,11 +8456,6 @@
                 }, 240);
             };
 
-            if (prevBtn) prevBtn.addEventListener('click', () => goTo(-1));
-            if (nextBtn) nextBtn.addEventListener('click', () => goTo(1));
-
-            render();
-
             let autoTimer = null;
             const startAuto = () => {
                 if (autoTimer) clearInterval(autoTimer);
@@ -8469,16 +8465,28 @@
                 if (autoTimer) clearInterval(autoTimer);
                 autoTimer = null;
             };
-            const terminal = document.querySelector('.review-terminal-box');
-            const hoverTargets = [terminal, slide].filter(Boolean);
-            if (terminal) {
-                hoverTargets.forEach((node) => {
-                    node.addEventListener('mouseenter', stopAuto);
-                    node.addEventListener('mouseleave', startAuto);
-                    node.addEventListener('focusin', stopAuto);
-                    node.addEventListener('focusout', startAuto);
-                });
+
+            if (!terminal || terminal.dataset.terminalBound === '1') {
+                if (!terminal) return;
+                startAuto();
+                render();
+                return;
             }
+
+            terminal.dataset.terminalBound = '1';
+
+            if (prevBtn) prevBtn.addEventListener('click', () => goTo(-1));
+            if (nextBtn) nextBtn.addEventListener('click', () => goTo(1));
+
+            const hoverTargets = [terminal, slide].filter(Boolean);
+            hoverTargets.forEach((node) => {
+                node.addEventListener('mouseenter', stopAuto);
+                node.addEventListener('mouseleave', startAuto);
+                node.addEventListener('focusin', stopAuto);
+                node.addEventListener('focusout', startAuto);
+            });
+
+            render();
             startAuto();
         }
 
@@ -8792,6 +8800,32 @@
         initFeaturableReviewBridge();
         initGoogleBusinessStatusToggle();
         refreshLiveReviewSection();
+
+        let liveReviewRefreshTimer = null;
+        const startLiveReviewAutoRefresh = () => {
+            if (liveReviewRefreshTimer) clearInterval(liveReviewRefreshTimer);
+            liveReviewRefreshTimer = setInterval(() => {
+                refreshLiveReviewSection();
+            }, 300000);
+        };
+        const stopLiveReviewAutoRefresh = () => {
+            if (liveReviewRefreshTimer) {
+                clearInterval(liveReviewRefreshTimer);
+                liveReviewRefreshTimer = null;
+            }
+        };
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                refreshLiveReviewSection();
+                startLiveReviewAutoRefresh();
+            } else {
+                stopLiveReviewAutoRefresh();
+            }
+        });
+
+        startLiveReviewAutoRefresh();
+
         window.addEventListener('storage', (event) => {
             if (!event) return;
             if (event.key === reviewsStorageKey) {
