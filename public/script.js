@@ -6099,10 +6099,9 @@
             }
 
             if (target?.provider === 'cloudinary' && target?.publicId) {
-                tasks.push({
-                    label: 'Cloudinary asset',
-                    op: deleteCloudinaryAssetViaFunction(target.publicId, target.resourceType || 'image')
-                });
+                // Skip Firebase callable function for Cloudinary deletion
+                // Cloudinary assets can be deleted via the Cloudinary dashboard or API directly
+                console.log('[HAILIFU] Cloudinary asset deletion skipped (Firebase function disabled):', target.publicId);
             }
 
             return Promise.allSettled(tasks.map((entry) => entry.op)).then((results) => {
