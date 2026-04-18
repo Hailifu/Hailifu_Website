@@ -3795,7 +3795,8 @@
         }
 
         .admin-panel.active {
-            width: min(520px, calc(100vw - 32px));
+            width: 100vw;
+            left: 0;
         }
 
         .admin-header, .admin-content {
@@ -3804,7 +3805,7 @@
 
         @media (max-width: 768px) {
             .admin-panel.active {
-                width: 95vw;
+                width: 100vw;
             }
 
             .admin-header,
@@ -5944,11 +5945,36 @@
             box-shadow: 0 0 12px rgba(37, 211, 102, 0.25);
         }
 
+        .google-business-admin-status {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .google-business-admin-status p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
         [data-theme='light'] .google-business-status.is-active {
             color: #1f8f4a;
             border-color: rgba(31, 143, 74, 0.35);
             background: rgba(31, 143, 74, 0.1);
             box-shadow: none;
+        }
+
+        [data-theme='light'] .google-business-admin-status {
+            background: rgba(26, 26, 26, 0.05);
+            border-color: rgba(26, 26, 26, 0.1);
+        }
+
+        [data-theme='light'] .google-business-admin-status p {
+            color: rgba(26, 26, 26, 0.7);
         }
 
         .featured-reviews-feed {
@@ -6168,6 +6194,10 @@
 
         .header-star-rating {
             text-shadow: 0 0 12px color-mix(in srgb, var(--orange) 50%, transparent);
+        }
+
+        [data-theme='light'] .header-star-rating {
+            text-shadow: 0 0 8px color-mix(in srgb, var(--orange) 40%, transparent);
         }
 
         @keyframes pulse {

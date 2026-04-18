@@ -5766,6 +5766,13 @@
                             </div>
                         </div>
                         <div class="admin-tab-panel" data-admin-panel="reviews">
+                            <div class="admin-section">
+                                <h3><i class="fab fa-google"></i> Google Business Reviews</h3>
+                                <div class="google-business-admin-status">
+                                    <button class="google-business-status" id="googleBusinessStatusBtn" type="button" aria-pressed="false">SYNC PENDING</button>
+                                    <p id="googleBusinessMessage">Connect the Google Business feed to stream verified reviews here.</p>
+                                </div>
+                            </div>
                             <div class="admin-section admin-section--review-auth">
                                 <h3><i class="fas fa-user-shield"></i> Firebase Review Access</h3>
                                 <p id="reviewAuthStatus" class="review-auth-status">Sign in with Firebase to access pending reviews.</p>
@@ -12503,16 +12510,17 @@
                 }, 0);
             }, { passive: true });
 
-            showcaseGrid.addEventListener('click', (e) => {
-                const card = e.target.closest('.showcase-item');
-                if (!card || !showcaseGrid.contains(card)) return;
-                if (suppressShowcaseTap) {
-                    e.preventDefault();
-                    return;
-                }
-                e.preventDefault();
-                openProjectModalFromItem(card);
-            });
+            // Disabled - replaced with photo gallery modal
+            // showcaseGrid.addEventListener('click', (e) => {
+            //     const card = e.target.closest('.showcase-item');
+            //     if (!card || !showcaseGrid.contains(card)) return;
+            //     if (suppressShowcaseTap) {
+            //         e.preventDefault();
+            //         return;
+            //     }
+            //     e.preventDefault();
+            //     openProjectModalFromItem(card);
+            // });
         }
 
         document.querySelectorAll('#showcase .showcase-grid .showcase-item').forEach(item => item.classList.add('is-visible'));
@@ -12730,6 +12738,336 @@
                     updateStars(0);
                 }, 3000);
             }
+        }
+
+        // Photo Gallery Modal Functionality
+        const photoGalleryModal = document.getElementById('photoGalleryModal');
+        const galleryBackdrop = document.getElementById('galleryBackdrop');
+        const galleryCloseBtn = document.getElementById('galleryCloseBtn');
+        const galleryGrid = document.getElementById('galleryGrid');
+        const galleryTitle = document.getElementById('galleryTitle');
+        const gallerySubtitle = document.getElementById('gallerySubtitle');
+        const galleryTabs = document.getElementById('galleryTabs');
+        const galleryGridView = document.getElementById('galleryGridView');
+        const galleryLightboxView = document.getElementById('galleryLightboxView');
+        const lightboxImage = document.getElementById('lightboxImage');
+        const gallerySideCarousel = document.getElementById('gallerySideCarousel');
+        const galleryPrevBtn = document.getElementById('galleryPrevBtn');
+        const galleryNextBtn = document.getElementById('galleryNextBtn');
+        let currentGalleryPhotos = [];
+        let currentCollection = 'all';
+        let currentPhotoIndex = 0;
+        let filteredPhotos = [];
+
+        function openPhotoGallery(project) {
+            console.log('[Gallery] openPhotoGallery called with project:', project);
+            if (!project || !photoGalleryModal) {
+                console.log('[Gallery] Cannot open - missing project or modal');
+                return;
+            }
+
+            // Set title and subtitle
+            galleryTitle.textContent = project.title || 'Project Gallery';
+            gallerySubtitle.textContent = project.description || 'Browse all photos';
+
+            // Collect photos from the project
+            currentGalleryPhotos = [];
+
+            // Add main media
+            if (project.mediaSrc) {
+                currentGalleryPhotos.push({
+                    src: project.mediaSrc,
+                    type: project.mediaType || 'image',
+                    collection: 'all'
+                });
+            }
+
+            // Add media items if available
+            if (project.mediaItems && Array.isArray(project.mediaItems)) {
+                project.mediaItems.forEach((item, index) => {
+                    if (item.mediaSrc) {
+                        currentGalleryPhotos.push({
+                            src: item.mediaSrc,
+                            type: item.mediaType || 'image',
+                            collection: index % 2 === 0 ? 'exterior' : 'interior'
+                        });
+                    }
+                });
+            }
+
+            // Add some demo photos for visual testing
+            const demoPhotos = [
+                { src: 'hailifu cctv - Copy.png', type: 'image', heightSpan: 1 },
+                { src: 'electric-1 - Copy.jpg', type: 'image', heightSpan: 1 },
+                { src: '1663060778Sliding-Gate-Automation-1.webp', type: 'image', heightSpan: 1 },
+                { src: 'hailifu power panel.png', type: 'image', heightSpan: 1 },
+                { src: 'lighting.jpg', type: 'image', heightSpan: 2 },
+                { src: 'hailifu termination.png', type: 'image', heightSpan: 1 },
+                { src: 'IMG_20210727_132436_260.jpg', type: 'image', heightSpan: 1 },
+                { src: 'hailifu AC - Copy.png', type: 'image', heightSpan: 1 },
+                { src: 'hailifu cctv - Copy.png', type: 'image', heightSpan: 2 },
+                { src: 'electric-1 - Copy.jpg', type: 'image', heightSpan: 1 },
+                { src: '1663060778Sliding-Gate-Automation-1.webp', type: 'image', heightSpan: 1 },
+                { src: 'hailifu power panel.png', type: 'image', heightSpan: 2 }
+            ];
+
+            demoPhotos.forEach((photo, index) => {
+                currentGalleryPhotos.push({
+                    src: photo.src,
+                    type: photo.type,
+                    collection: index % 3 === 0 ? 'exterior' : (index % 3 === 1 ? 'interior' : 'latest'),
+                    heightSpan: photo.heightSpan || 1
+                });
+            });
+
+            // Show grid view by default
+            showGridView();
+            renderGalleryGrid();
+            photoGalleryModal.classList.add('active');
+            photoGalleryModal.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePhotoGallery() {
+            if (!photoGalleryModal) return;
+
+            // Remove focus from any element inside the modal
+            const activeElement = document.activeElement;
+            if (activeElement && photoGalleryModal.contains(activeElement)) {
+                activeElement.blur();
+            }
+
+            photoGalleryModal.classList.remove('active');
+            photoGalleryModal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+        }
+
+        function showGridView() {
+            if (galleryGridView && galleryLightboxView) {
+                galleryGridView.style.display = 'block';
+                galleryLightboxView.style.display = 'none';
+            }
+        }
+
+        function showLightboxView(photoIndex) {
+            if (galleryGridView && galleryLightboxView) {
+                galleryGridView.style.display = 'none';
+                galleryLightboxView.style.display = 'flex';
+                currentPhotoIndex = photoIndex;
+                updateLightbox();
+            }
+        }
+
+        function filterPhotos() {
+            if (currentCollection === 'all') {
+                filteredPhotos = currentGalleryPhotos;
+            } else if (currentCollection === 'videos') {
+                filteredPhotos = currentGalleryPhotos.filter(p => p.type === 'video');
+            } else {
+                filteredPhotos = currentGalleryPhotos.filter(p => p.collection === currentCollection);
+            }
+            return filteredPhotos;
+        }
+
+        function renderGalleryGrid() {
+            if (!galleryGrid) return;
+
+            const photos = filterPhotos();
+
+            galleryGrid.innerHTML = '';
+
+            if (photos.length === 0) {
+                galleryGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: rgba(255,255,255,0.5); padding: 40px;">No photos in this collection</div>';
+                return;
+            }
+
+            photos.forEach((photo, index) => {
+                const item = document.createElement('div');
+                item.className = 'gallery-item';
+                if (photo.type === 'video') {
+                    item.classList.add('video-indicator');
+                }
+                if (photo.heightSpan) {
+                    item.style.gridRowEnd = `span ${photo.heightSpan}`;
+                }
+
+                const img = document.createElement('img');
+                img.src = photo.src;
+                img.alt = `Photo ${index + 1}`;
+                img.loading = 'lazy';
+
+                item.appendChild(img);
+                item.addEventListener('click', () => showLightboxView(index));
+                galleryGrid.appendChild(item);
+            });
+        }
+
+        function updateLightbox() {
+            if (!lightboxImage || !gallerySideCarousel) return;
+
+            const photos = filterPhotos();
+            if (photos.length === 0) return;
+
+            const currentPhoto = photos[currentPhotoIndex];
+            lightboxImage.src = currentPhoto.src;
+            lightboxImage.alt = `Photo ${currentPhotoIndex + 1}`;
+
+            // Render carousel thumbnails
+            gallerySideCarousel.innerHTML = '';
+            photos.forEach((photo, index) => {
+                const item = document.createElement('div');
+                item.className = 'gallery-carousel-item';
+                if (index === currentPhotoIndex) {
+                    item.classList.add('active');
+                }
+
+                const img = document.createElement('img');
+                img.src = photo.src;
+                img.alt = `Photo ${index + 1}`;
+
+                item.appendChild(img);
+                item.addEventListener('click', () => {
+                    currentPhotoIndex = index;
+                    updateLightbox();
+                });
+                gallerySideCarousel.appendChild(item);
+            });
+
+            // Scroll active thumbnail into view
+            const activeItem = gallerySideCarousel.querySelector('.active');
+            if (activeItem) {
+                activeItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        function navigatePhoto(direction) {
+            const photos = filterPhotos();
+            if (photos.length === 0) return;
+
+            currentPhotoIndex += direction;
+            if (currentPhotoIndex < 0) {
+                currentPhotoIndex = photos.length - 1;
+            } else if (currentPhotoIndex >= photos.length) {
+                currentPhotoIndex = 0;
+            }
+            updateLightbox();
+        }
+
+        function initPhotoGallery() {
+            console.log('[Gallery] Initializing photo gallery...');
+            console.log('[Gallery] Modal element:', photoGalleryModal);
+            console.log('[Gallery] Grid element:', galleryGrid);
+
+            // Close button
+            if (galleryCloseBtn) {
+                galleryCloseBtn.addEventListener('click', closePhotoGallery);
+            }
+
+            // Backdrop click
+            if (galleryBackdrop) {
+                galleryBackdrop.addEventListener('click', closePhotoGallery);
+            }
+
+            // Escape key
+            document.addEventListener('keydown', (e) => {
+                if (!photoGalleryModal.classList.contains('active')) return;
+
+                if (e.key === 'Escape') {
+                    closePhotoGallery();
+                } else if (e.key === 'ArrowLeft') {
+                    navigatePhoto(-1);
+                } else if (e.key === 'ArrowRight') {
+                    navigatePhoto(1);
+                }
+            });
+
+            // Tab switching
+            if (galleryTabs) {
+                galleryTabs.addEventListener('click', (e) => {
+                    const tab = e.target.closest('.gallery-tab');
+                    if (!tab) return;
+
+                    // Update active state
+                    galleryTabs.querySelectorAll('.gallery-tab').forEach(t => {
+                        t.classList.remove('active');
+                        t.setAttribute('aria-pressed', 'false');
+                    });
+                    tab.classList.add('active');
+                    tab.setAttribute('aria-pressed', 'true');
+
+                    // Update collection
+                    currentCollection = tab.dataset.collection || 'all';
+                    showGridView();
+                    renderGalleryGrid();
+                });
+            }
+
+            // Navigation buttons
+            if (galleryPrevBtn) {
+                galleryPrevBtn.addEventListener('click', () => navigatePhoto(-1));
+            }
+
+            if (galleryNextBtn) {
+                galleryNextBtn.addEventListener('click', () => navigatePhoto(1));
+            }
+
+            // Add click handlers to showcase items
+            const showcaseItems = document.querySelectorAll('.showcase-item');
+            console.log('[Gallery] Found showcase items:', showcaseItems.length);
+            showcaseItems.forEach(item => {
+                item.style.cursor = 'pointer';
+                item.addEventListener('click', () => {
+                    console.log('[Gallery] Showcase item clicked');
+                    const category = item.dataset.category;
+                    const title = item.querySelector('.showcase-title')?.textContent || 'Project';
+                    const description = item.querySelector('.showcase-description')?.textContent || '';
+
+                    openPhotoGallery({
+                        title: title,
+                        description: description,
+                        category: category
+                    });
+                });
+            });
+
+            // Action buttons
+            const manageBtn = document.getElementById('galleryManageBtn');
+            const addBtn = document.getElementById('galleryAddBtn');
+
+            if (manageBtn) {
+                manageBtn.addEventListener('click', () => {
+                    console.log('[Gallery] Manage photos clicked');
+                    alert('Photo management feature coming soon!\n\nThis will allow you to:\n- Delete photos\n- Reorder photos\n- Edit photo captions\n- Manage collections');
+                });
+            }
+
+            if (addBtn) {
+                addBtn.addEventListener('click', () => {
+                    console.log('[Gallery] Add photo clicked');
+                    // Create a file input
+                    const fileInput = document.createElement('input');
+                    fileInput.type = 'file';
+                    fileInput.accept = 'image/*,video/*';
+                    fileInput.multiple = true;
+
+                    fileInput.addEventListener('change', (e) => {
+                        const files = e.target.files;
+                        if (files && files.length > 0) {
+                            console.log('[Gallery] Selected files:', files.length);
+                            alert(`Selected ${files.length} file(s) for upload.\n\nPhoto upload feature coming soon!\n\nThis will upload your photos to Cloudinary and add them to the gallery.`);
+                        }
+                    });
+
+                    fileInput.click();
+                });
+            }
+        }
+
+        // Initialize gallery when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initPhotoGallery);
+        } else {
+            initPhotoGallery();
         }
 
         });
