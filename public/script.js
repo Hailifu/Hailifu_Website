@@ -2338,17 +2338,25 @@
             }
         }
 
-        async function deleteProjectInSupabase(projectId) {
+        // THE NEW, OPEN CIRCUIT
+        async function deleteProjectInSupabase(id) {
+            console.log("[HAILIFU] Bypassing blocked Firebase service...");
             const supabase = ensureSupabaseClient();
-            if (!supabase) return Promise.reject(new Error('Supabase not configured'));
-            const id = String(projectId || '').trim();
-            if (!id) return Promise.resolve();
-            const { error } = await supabase
-                .from('projects')
+            if (!supabase) {
+                console.error("[HAILIFU] Supabase client not available");
+                return;
+            }
+
+            const { data, error } = await supabase
+                .from('installations') // Your new table name
                 .delete()
                 .eq('id', id);
-            if (error) return Promise.reject(error);
-            return Promise.resolve();
+
+            if (error) {
+                console.error("Supabase Error:", error.message);
+            } else {
+                console.log("[HAILIFU] Success: Project removed from Supabase.");
+            }
         }
 
         function getRemoteConfigUrl() {
