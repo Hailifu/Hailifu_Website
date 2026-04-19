@@ -6930,6 +6930,108 @@
 
             bindIntegrityMediaUploader('integrityGraphicBtn', 'integrityImageInput', 'integrityUploadProgress', 'integrityUploadProgressFill');
             bindIntegrityMediaUploader('integrityMediaBtnProjects', 'integrityMediaInputProjects', 'integrityMediaUploadProgressProjects', 'integrityMediaUploadProgressFillProjects');
+<<<<<<< HEAD
+=======
+
+            if (adminPanel) {
+                adminPanel.addEventListener('click', (e) => {
+                    const closeBtn = e.target.closest('#adminToggle, .admin-toggle');
+                    if (closeBtn) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        haltDataSync();
+                        return;
+                    }
+
+                    const tabBtn = e.target.closest('.admin-tab, .admin-sidebar-item');
+                    if (tabBtn) {
+                        e.preventDefault();
+                        setAdminTab(tabBtn.dataset.adminTab);
+                        return;
+                    }
+
+                    const leadDeleteBtn = e.target.closest('[data-lead-delete]');
+                    if (leadDeleteBtn) {
+                        e.preventDefault();
+                        const leadId = leadDeleteBtn.getAttribute('data-lead-delete');
+                        deleteLeadById(leadId);
+                        return;
+                    }
+
+                    const approveBtn = e.target.closest('[data-review-approve]');
+                    if (approveBtn) {
+                        e.preventDefault();
+                        const id = approveBtn.getAttribute('data-review-approve');
+                        if (!canAccessReviewModeration()) {
+                            showAdminMediaToast('Complete Triple-Click Handshake and Firebase login first.', 'warning');
+                            return;
+                        }
+                        if (hasFirestoreReviewRuntime() && canAccessReviewModeration()) {
+                            updateReviewStatusInFirestore(id, 'published')
+                                .then(() => {
+                                    showAdminMediaToast('Review published.', 'success');
+                                })
+                                .catch((error) => {
+                                    const message = String(error?.message || 'Failed to publish review').replace(/^Firebase:\s*/i, '');
+                                    showAdminMediaToast(message, 'error');
+                                });
+                            return;
+                        }
+
+                        const reviews = getReviews();
+                        const idx = reviews.findIndex((r) => r.id === id);
+                        if (idx >= 0) {
+                            reviews[idx].status = 'published';
+                            saveReviews(reviews);
+                            if (hasFirestoreReviewRuntime()) {
+                                upsertReviewInFirestore(reviews[idx]).catch(() => {});
+                            }
+                            if (firebaseIsReady()) {
+                                upsertReviewInFirebase(reviews[idx]).catch(() => {});
+                            }
+                            renderAdminReviews();
+                            renderPublicReviews();
+                            refreshOverview();
+                            refreshLiveReviewSection();
+                        }
+                        return;
+                    }
+
+                    const deleteBtn = e.target.closest('[data-review-delete]');
+                    if (deleteBtn) {
+                        e.preventDefault();
+                        const id = deleteBtn.getAttribute('data-review-delete');
+                        if (!canAccessReviewModeration()) {
+                            showAdminMediaToast('Complete Triple-Click Handshake and Firebase login first.', 'warning');
+                            return;
+                        }
+                        if (hasFirestoreReviewRuntime() && canAccessReviewModeration()) {
+                            removeReviewInFirestore(id)
+                                .then(() => {
+                                    showAdminMediaToast('Review deleted.', 'success');
+                                })
+                                .catch((error) => {
+                                    const message = String(error?.message || 'Failed to delete review').replace(/^Firebase:\s*/i, '');
+                                    showAdminMediaToast(message, 'error');
+                                });
+                            return;
+                        }
+                        const reviews = getReviews().filter((r) => r.id !== id);
+                        saveReviews(reviews);
+                        if (hasFirestoreReviewRuntime()) {
+                            removeReviewInFirestore(id).catch(() => {});
+                        }
+                        if (firebaseIsReady()) {
+                            removeReviewInFirebase(id).catch(() => {});
+                        }
+                        renderAdminReviews();
+                        renderPublicReviews();
+                        refreshOverview();
+                        refreshLiveReviewSection();
+                    }
+                });
+            }
+>>>>>>> b6061ec (Deployment: Syncing root assets and brand styles)
         }
 
         function initDataSync() {
@@ -6948,7 +7050,10 @@
                 adminBackdrop.setAttribute('aria-hidden', 'false');
             }
             if (adminPanel) {
+<<<<<<< HEAD
                 adminPanel.classList.remove('admin-login-modal');
+=======
+>>>>>>> b6061ec (Deployment: Syncing root assets and brand styles)
                 adminPanel.style.display = 'grid';
                 adminPanel.style.opacity = '1';
                 void adminPanel.offsetWidth;
@@ -7949,6 +8054,8 @@
                 const featuredBtnClass = featuredMediaKeys.has(mediaKey) ? 'media-surface-btn is-active' : 'media-surface-btn';
                 const showcaseBtnClass = showcaseMediaKey && showcaseMediaKey === mediaKey ? 'media-surface-btn is-active' : 'media-surface-btn';
                 const servicesBtnClass = servicesMediaKey && servicesMediaKey === mediaKey ? 'media-surface-btn is-active' : 'media-surface-btn';
+                const heroBtnClass = project?.showInHero && project?.mediaSrc === mediaSrc ? 'media-surface-btn is-active' : 'media-surface-btn';
+                const integrityBtnClass = project?.showInIntegrity && project?.mediaSrc === mediaSrc ? 'media-surface-btn is-active' : 'media-surface-btn';
 
                 const typeBadge = mediaType === 'video'
                     ? '<div class="project-media-badge"><i class="fas fa-film"></i> Video</div>'
@@ -7982,9 +8089,11 @@
                             <div class="project-title">${safeTitle}</div>
                             <div class="project-media-caption">${safeCategory} - ${index + 1}/${total}</div>
                             <div class="media-surface-actions">
-                                <button class="${featuredBtnClass}" type="button" data-apply-media-surface="featured" data-apply-project-id="${projectId}" data-apply-media-key="${safeMediaKey}">Featured Loop</button>
-                                <button class="${showcaseBtnClass}" type="button" data-apply-media-surface="showcase" data-apply-project-id="${projectId}" data-apply-media-key="${safeMediaKey}">Showcase BG</button>
-                                <button class="${servicesBtnClass}" type="button" data-apply-media-surface="services" data-apply-project-id="${projectId}" data-apply-media-key="${safeMediaKey}">Services BG</button>
+                                <button class="${featuredBtnClass}" type="button" data-apply-media-surface="featured" data-apply-project-id="${projectId}" data-apply-media-key="${safeMediaKey}">Featured</button>
+                                <button class="${showcaseBtnClass}" type="button" data-apply-media-surface="showcase" data-apply-project-id="${projectId}" data-apply-media-key="${safeMediaKey}">Showcase</button>
+                                <button class="${servicesBtnClass}" type="button" data-apply-media-surface="services" data-apply-project-id="${projectId}" data-apply-media-key="${safeMediaKey}">Services</button>
+                                <button class="${heroBtnClass}" type="button" data-apply-media-surface="hero" data-apply-project-id="${projectId}" data-apply-media-key="${safeMediaKey}">Hero BG</button>
+                                <button class="${integrityBtnClass}" type="button" data-apply-media-surface="integrity" data-apply-project-id="${projectId}" data-apply-media-key="${safeMediaKey}">Integrity</button>
                             </div>
                         </div>
                     </div>
@@ -8012,6 +8121,12 @@
                     if (!mediaKey) return count;
                     return count + (getDirectSurfaceMediaKey(entry.project, 'services') === mediaKey ? 1 : 0);
                 }, 0);
+                const heroAssigned = mediaEntries.reduce((count, entry) => {
+                    return count + (entry.project?.showInHero && getMediaKey(entry.media) === getMediaKey(entry.project) ? 1 : 0);
+                }, 0);
+                const integrityAssigned = mediaEntries.reduce((count, entry) => {
+                    return count + (entry.project?.showInIntegrity && getMediaKey(entry.media) === getMediaKey(entry.project) ? 1 : 0);
+                }, 0);
                 const cards = mediaEntries.map((entry) => buildMediaCard(entry)).join('');
                 const projectRecords = projectIds.size;
                 const recordsChip = projectRecords > 1
@@ -8030,6 +8145,8 @@
                                 <span class="admin-project-group-chip">Featured ${featuredAssigned}</span>
                                 <span class="admin-project-group-chip">Showcase ${showcaseAssigned}</span>
                                 <span class="admin-project-group-chip">Services ${servicesAssigned}</span>
+                                <span class="admin-project-group-chip">Hero ${heroAssigned}</span>
+                                <span class="admin-project-group-chip">Integrity ${integrityAssigned}</span>
                             </div>
                         </header>
                         <div class="admin-project-group-grid">${cards}</div>

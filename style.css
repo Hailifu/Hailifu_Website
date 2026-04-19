@@ -9936,6 +9936,7 @@
             top: 0;
             right: 0;
             z-index: 10001;
+<<<<<<< HEAD
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.32s ease, visibility 0.32s ease;
@@ -9945,6 +9946,8 @@
             display: grid;
             opacity: 1;
             visibility: visible;
+=======
+>>>>>>> b6061ec (Deployment: Syncing root assets and brand styles)
         }
 
         @media (max-width: 992px) {
@@ -10076,12 +10079,15 @@
             gap: 10px;
             margin-top: 15px;
             cursor: pointer;
+<<<<<<< HEAD
             transition: all 0.3s ease;
         }
 
         .admin-sidebar-close:hover {
             background: var(--orange);
             border-color: var(--orange);
+=======
+>>>>>>> b6061ec (Deployment: Syncing root assets and brand styles)
         }
 
         .admin-main {
@@ -10133,6 +10139,7 @@
         }
 
         /* Global Brand Hover Styles */
+<<<<<<< HEAD
         .admin-panel a:hover, 
         .admin-panel button:hover, 
         .admin-panel input:hover, 
@@ -10153,6 +10160,40 @@
             background: var(--orange) !important;
             color: #ffffff !important;
             box-shadow: 0 12px 30px rgba(255, 140, 0, 0.4) !important;
+=======
+        a:hover, 
+        button:hover, 
+        input:hover, 
+        select:hover, 
+        textarea:hover,
+        .filter-btn:hover,
+        .service-chip:hover {
+            color: var(--orange) !important;
+            transition: all 0.3s ease;
+        }
+
+        button:hover,
+        .btn:hover,
+        .primary-cta-btn:hover,
+        .admin-action-btn:hover,
+        .upload-btn:hover {
+            background-color: var(--orange) !important;
+            color: #ffffff !important;
+            border-color: var(--orange) !important;
+        }
+
+        /* Uniform sizing and hover for selectable elements */
+        .admin-panel input:hover,
+        .admin-panel select:hover,
+        .admin-panel textarea:hover,
+        .admin-panel button:hover,
+        .admin-sidebar-item:hover,
+        .media-surface-btn:hover,
+        .upload-btn:hover,
+        .admin-action-btn:hover {
+            border-color: var(--orange) !important;
+            box-shadow: 0 0 10px rgba(255, 140, 0, 0.3);
+>>>>>>> b6061ec (Deployment: Syncing root assets and brand styles)
         }
 
         .admin-header {
