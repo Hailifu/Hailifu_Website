@@ -360,99 +360,6 @@
                 background: rgba(0, 0, 0, 0.2);
             }
 
-            /* Google Business Style Review Modal */
-            .google-star-rating {
-                display: flex;
-                gap: 4px;
-            }
-
-            .google-star {
-                background: none;
-                border: none;
-                cursor: pointer;
-                padding: 4px;
-                transition: transform 0.1s ease;
-            }
-
-            .google-star:hover {
-                transform: scale(1.1);
-            }
-
-            .google-star[aria-checked="true"] svg path {
-                fill: #fabb05;
-            }
-
-            .google-star[aria-checked="false"] svg path {
-                fill: #e0e0e0;
-            }
-
-            .google-pill {
-                display: inline-flex;
-                align-items: center;
-                padding: 8px 16px;
-                border: 1px solid rgba(255, 255, 255, 0.3);
-                border-radius: 18px;
-                background: transparent;
-                color: white;
-                font-size: 14px;
-                cursor: pointer;
-                transition: all 0.2s ease;
-                margin: 4px;
-            }
-
-            .google-pill:hover {
-                background: rgba(255, 255, 255, 0.1);
-            }
-
-            .google-pill[aria-pressed="true"] {
-                background: rgba(255, 255, 255, 0.15);
-                border-color: rgba(255, 255, 255, 0.5);
-            }
-
-            .review-sublabel {
-                font-size: 12px;
-                color: rgba(255, 255, 255, 0.6);
-                font-weight: normal;
-            }
-
-            .review-service-option.google-pill {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-            }
-
-            .review-service-option.google-pill input {
-                display: none;
-            }
-
-            .review-service-option.google-pill:has(input:checked) {
-                background: rgba(255, 255, 255, 0.15);
-                border-color: rgba(255, 255, 255, 0.5);
-            }
-
-            [data-theme='light'] .google-pill {
-                border-color: rgba(0, 0, 0, 0.2);
-                color: #1a1a1a;
-            }
-
-            [data-theme='light'] .google-pill:hover {
-                background: rgba(0, 0, 0, 0.05);
-            }
-
-            [data-theme='light'] .google-pill[aria-pressed="true"] {
-                background: rgba(0, 0, 0, 0.08);
-                border-color: rgba(0, 0, 0, 0.3);
-            }
-
-            [data-theme='light'] .review-service-option.google-pill:has(input:checked) {
-                background: rgba(0, 0, 0, 0.08);
-                border-color: rgba(0, 0, 0, 0.3);
-            }
-
-            [data-theme='light'] .review-sublabel {
-                color: rgba(0, 0, 0, 0.6);
-            }
-
             .gallery-header {
                 padding: 24px 24px 16px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -2427,7 +2334,7 @@
     })();
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="script.js?v=5.1" defer></script>
+    <script src="script.js?v=5.2" defer></script>
 
     <!-- Photo Gallery Modal -->
     <div id="photoGalleryModal" class="photo-gallery-modal" aria-hidden="true" role="dialog" aria-modal="true">

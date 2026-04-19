@@ -5423,75 +5423,87 @@
             const markup = `
                 <div class="admin-backdrop" id="adminBackdrop" aria-hidden="true"></div>
                 <div class="admin-panel admin-login-modal" id="adminPanel" aria-hidden="true">
-                    <div class="admin-header">
-                        <div class="admin-brand">
-                            <div class="admin-logo-wrap">
-                                <img src="./logo.webp" alt="Hailifu" class="admin-logo">
-                            </div>
-                            <div class="admin-brand-text">
-                                <div class="admin-title">Premium Command Center</div>
-                                <div class="admin-subtitle">Hailifu Ops Console</div>
-                            </div>
+                    <nav class="admin-sidebar">
+                        <div class="admin-sidebar-brand">
+                            <img src="./logo.webp" alt="Hailifu" class="admin-sidebar-logo">
+                            <span class="admin-sidebar-title">HAILIFU</span>
                         </div>
-
-                        <div class="admin-status" role="status" aria-live="polite">
-                            <span class="status-pulse" aria-hidden="true"></span>
-                            <div class="status-text">
-                                <span class="status-label">System Status</span>
-                                <span class="status-value">Operational</span>
+                        <ul class="admin-sidebar-nav">
+                            <li class="admin-sidebar-item active" data-admin-tab="overview">
+                                <i class="fas fa-gauge-high"></i> <span>Dashboard</span>
+                            </li>
+                            <li class="admin-sidebar-item" data-admin-tab="leads">
+                                <i class="fas fa-id-card"></i> <span>Leads</span>
+                            </li>
+                            <li class="admin-sidebar-item" data-admin-tab="projects">
+                                <i class="fas fa-images"></i> <span>Projects</span>
+                            </li>
+                            <li class="admin-sidebar-item" data-admin-tab="media">
+                                <i class="fas fa-photo-film"></i> <span>Media</span>
+                            </li>
+                            <li class="admin-sidebar-item" data-admin-tab="sections">
+                                <i class="fas fa-sitemap"></i> <span>Sections</span>
+                            </li>
+                            <li class="admin-sidebar-item" data-admin-tab="reviews">
+                                <i class="fas fa-star"></i> <span>Reviews</span>
+                            </li>
+                        </ul>
+                        <div class="admin-sidebar-footer">
+                            <div class="admin-sidebar-status" role="status" aria-live="polite">
+                                <span class="status-pulse" aria-hidden="true"></span>
+                                <span>System Online</span>
                             </div>
-                        </div>
-
-                        <button class="admin-toggle" id="adminToggle" type="button" aria-label="Close admin panel">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    <div class="admin-content">
-                        <div class="admin-tabs">
-                            <button class="admin-tab active" type="button" data-admin-tab="overview">Overview</button>
-                            <button class="admin-tab" type="button" data-admin-tab="leads">Leads</button>
-                            <button class="admin-tab" type="button" data-admin-tab="projects">Projects</button>
-                            <button class="admin-tab admin-tab--premium" type="button" data-admin-tab="media">
-                                Media Library <span class="admin-pill">Premium</span>
+                            <button class="admin-sidebar-close" id="adminToggle" type="button" aria-label="Close admin panel">
+                                <i class="fas fa-arrow-left"></i> <span>Exit</span>
                             </button>
-                            <button class="admin-tab admin-tab--premium" type="button" data-admin-tab="sections">
-                                Sections <span class="admin-pill">Premium</span>
-                            </button>
-                            <button class="admin-tab" type="button" data-admin-tab="reviews">Reviews</button>
                         </div>
-                        <div class="admin-tab-panel active" data-admin-panel="overview">
-                            <div class="command-center-grid">
-                                <div class="admin-section admin-section--metrics full-span">
-                                    <div class="admin-section-heading">
-                                        <h3><i class="fas fa-gauge-high"></i> Performance Metrics</h3>
-                                        <span class="admin-section-tag">Live Sync</span>
-                                    </div>
-                                    <div class="metrics-grid">
-                                        <div class="metrics-card metrics-card--accent">
-                                            <span class="metrics-label">Total Leads</span>
-                                            <div class="metrics-value" id="overviewTotalLeads">0</div>
-                                            <span class="metrics-meta">Active inquiries</span>
-                                        </div>
-                                        <div class="metrics-card">
-                                            <span class="metrics-label">Reviews</span>
-                                            <div class="metrics-value" id="overviewRecentReviews">0</div>
-                                            <span class="metrics-meta">Awaiting approval</span>
-                                        </div>
-                                        <div class="metrics-card metrics-card--success">
-                                            <span class="metrics-label">Page Reach</span>
-                                            <div class="metrics-value" id="overviewReach">0</div>
-                                            <span class="metrics-meta">Weekly touches</span>
-                                        </div>
-                                        <div class="metrics-card">
-                                            <span class="metrics-label">Response Window</span>
-                                            <div class="metrics-value">12m</div>
-                                            <span class="metrics-meta">Avg. turnaround</span>
+                    </nav>
+                    <main class="admin-main">
+                        <header class="admin-main-header">
+                            <h1 id="adminMainTitle">System Overview</h1>
+                            <div class="admin-main-header-right">
+                                <span class="admin-portal-badge">Admin Portal</span>
+                            </div>
+                        </header>
+                        <div class="admin-main-content">
+                            <div class="admin-tab-panel active" data-admin-panel="overview">
+                                <section class="admin-stats-grid">
+                                    <div class="admin-stat-card">
+                                        <div class="admin-stat-icon"><i class="fas fa-user-clock"></i></div>
+                                        <div class="admin-stat-body">
+                                            <h3>Total Leads</h3>
+                                            <p id="overviewTotalLeads">0</p>
+                                            <span class="admin-stat-meta">Active inquiries</span>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="admin-section full-span">
+                                    <div class="admin-stat-card">
+                                        <div class="admin-stat-icon"><i class="fas fa-star"></i></div>
+                                        <div class="admin-stat-body">
+                                            <h3>Reviews</h3>
+                                            <p id="overviewRecentReviews">0</p>
+                                            <span class="admin-stat-meta">Awaiting approval</span>
+                                        </div>
+                                    </div>
+                                    <div class="admin-stat-card">
+                                        <div class="admin-stat-icon"><i class="fas fa-satellite-dish"></i></div>
+                                        <div class="admin-stat-body">
+                                            <h3>Page Reach</h3>
+                                            <p id="overviewReach">0</p>
+                                            <span class="admin-stat-meta">Weekly touches</span>
+                                        </div>
+                                    </div>
+                                    <div class="admin-stat-card">
+                                        <div class="admin-stat-icon"><i class="fas fa-clock"></i></div>
+                                        <div class="admin-stat-body">
+                                            <h3>Response Window</h3>
+                                            <p>12m</p>
+                                            <span class="admin-stat-meta">Avg. turnaround</span>
+                                        </div>
+                                    </div>
+                                </section>
+                                <section class="admin-data-section">
                                     <div class="admin-section-heading">
-                                        <h3><i class="fas fa-photo-film"></i> Integrity Media</h3>
+                                        <h2><i class="fas fa-photo-film"></i> Integrity Media</h2>
                                         <span class="admin-section-tag">Site Asset</span>
                                     </div>
                                     <p style="margin-bottom:12px; font-size:0.85rem; color: rgba(255,255,255,0.7);">Media shown in the &quot;Why Choose Us&quot; area. Upload image or video to replace.</p>
@@ -5500,312 +5512,277 @@
                                     <div class="integrity-upload-progress" id="integrityUploadProgress" aria-hidden="true" style="display:none; margin-top:10px;">
                                         <div class="upload-progress-bar"><div class="upload-progress-fill" id="integrityUploadProgressFill" style="width:0%"></div></div>
                                     </div>
-                                </div>
-                                <div class="admin-section admin-section--interest">
-                                    <h3><i class="fas fa-signal"></i> Client Interest</h3>
+                                </section>
+                                <section class="admin-data-section">
+                                    <h2><i class="fas fa-signal"></i> Client Interest</h2>
                                     <div class="interest-grid">
                                         <div class="interest-row">
-                                            <div class="interest-label">
-                                                <span>CCTV</span>
-                                                <strong id="interestCctvCount">0</strong>
-                                            </div>
+                                            <div class="interest-label"><span>CCTV</span><strong id="interestCctvCount">0</strong></div>
                                             <div class="interest-bar"><div class="interest-fill" id="interestCctv"></div></div>
                                         </div>
-
                                         <div class="interest-row">
-                                            <div class="interest-label">
-                                                <span>Electrical</span>
-                                                <strong id="interestElectricalCount">0</strong>
-                                            </div>
+                                            <div class="interest-label"><span>Electrical</span><strong id="interestElectricalCount">0</strong></div>
                                             <div class="interest-bar"><div class="interest-fill" id="interestElectrical"></div></div>
                                         </div>
-
                                         <div class="interest-row">
-                                            <div class="interest-label">
-                                                <span>Air Conditioning</span>
-                                                <strong id="interestAirconditioningCount">0</strong>
-                                            </div>
+                                            <div class="interest-label"><span>Air Conditioning</span><strong id="interestAirconditioningCount">0</strong></div>
                                             <div class="interest-bar"><div class="interest-fill" id="interestAirconditioning"></div></div>
                                         </div>
-
                                         <div class="interest-row">
-                                            <div class="interest-label">
-                                                <span>Smart Window Solutions</span>
-                                                <strong id="interestBlindcurtainCount">0</strong>
-                                            </div>
+                                            <div class="interest-label"><span>Smart Window Solutions</span><strong id="interestBlindcurtainCount">0</strong></div>
                                             <div class="interest-bar"><div class="interest-fill" id="interestBlindcurtain"></div></div>
                                         </div>
-
                                         <div class="interest-row">
-                                            <div class="interest-label">
-                                                <span>Automated Gates</span>
-                                                <strong id="interestGatesCount">0</strong>
-                                            </div>
+                                            <div class="interest-label"><span>Automated Gates</span><strong id="interestGatesCount">0</strong></div>
                                             <div class="interest-bar"><div class="interest-fill" id="interestGates"></div></div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="admin-section admin-section--preview">
-                                    <h3><i class="fas fa-infinity"></i> Live Showcase Loop</h3>
+                                </section>
+                                <section class="admin-data-section">
+                                    <h2><i class="fas fa-infinity"></i> Live Showcase Loop</h2>
                                     <div class="admin-lazyloop" id="adminLazyLoop">
                                         <div class="admin-lazyloop-viewport">
                                             <div class="admin-lazyloop-track" id="adminLazyLoopTrack"></div>
                                         </div>
                                         <div class="admin-lazyloop-dots" id="adminLazyLoopDots" aria-hidden="true"></div>
                                     </div>
-                                </div>
-                                <div class="admin-section admin-section--logs full-span">
+                                </section>
+                                <section class="admin-data-section">
                                     <div class="admin-section-heading">
-                                        <h3><i class="fas fa-terminal"></i> Recent Logs</h3>
+                                        <h2><i class="fas fa-terminal"></i> Recent Logs</h2>
                                         <span class="admin-section-tag">Live Feed</span>
                                     </div>
                                     <div class="admin-logs">
-                                        <div class="log-row">
-                                            <span class="log-time">00:24:18</span>
-                                            <span class="log-message">Deploy package queued</span>
-                                            <span class="log-status"><span class="log-dot" aria-hidden="true"></span>OK</span>
-                                        </div>
-                                        <div class="log-row">
-                                            <span class="log-time">00:24:41</span>
-                                            <span class="log-message">Lead sync handshake</span>
-                                            <span class="log-status"><span class="log-dot" aria-hidden="true"></span>PASS</span>
-                                        </div>
-                                        <div class="log-row">
-                                            <span class="log-time">00:25:02</span>
-                                            <span class="log-message">Media pipeline aligned</span>
-                                            <span class="log-status"><span class="log-dot" aria-hidden="true"></span>LIVE</span>
-                                        </div>
-                                        <div class="log-row">
-                                            <span class="log-time">00:25:30</span>
-                                            <span class="log-message">Analytics pulse check</span>
-                                            <span class="log-status"><span class="log-dot" aria-hidden="true"></span>OK</span>
-                                        </div>
+                                        <div class="log-row"><span class="log-time">00:24:18</span><span class="log-message">Deploy package queued</span><span class="log-status"><span class="log-dot" aria-hidden="true"></span>OK</span></div>
+                                        <div class="log-row"><span class="log-time">00:24:41</span><span class="log-message">Lead sync handshake</span><span class="log-status"><span class="log-dot" aria-hidden="true"></span>PASS</span></div>
+                                        <div class="log-row"><span class="log-time">00:25:02</span><span class="log-message">Media pipeline aligned</span><span class="log-status"><span class="log-dot" aria-hidden="true"></span>LIVE</span></div>
+                                        <div class="log-row"><span class="log-time">00:25:30</span><span class="log-message">Analytics pulse check</span><span class="log-status"><span class="log-dot" aria-hidden="true"></span>OK</span></div>
                                     </div>
-                                </div>
-                                <div class="admin-section admin-section--leads full-span">
-                                    <h3><i class="fas fa-user-clock"></i> Recent Leads</h3>
+                                </section>
+                                <section class="admin-data-section">
+                                    <h2><i class="fas fa-user-clock"></i> Recent Leads</h2>
                                     <div id="overviewLeadsList"></div>
-                                </div>
+                                </section>
                             </div>
-                        </div>
-                        <div class="admin-tab-panel" data-admin-panel="leads">
-                            <div class="admin-section">
-                                <h3><i class="fas fa-id-card"></i> Lead Inbox</h3>
-                                <div id="leadsGrid"></div>
+                            <div class="admin-tab-panel" data-admin-panel="leads">
+                                <section class="admin-data-section">
+                                    <h2><i class="fas fa-id-card"></i> Lead Inbox</h2>
+                                    <div id="leadsGrid"></div>
+                                </section>
                             </div>
-                        </div>
-                        <div class="admin-tab-panel" data-admin-panel="projects">
-                            <div class="admin-section">
-                                <h3><i class="fas fa-images"></i> Gallery Manager</h3>
-                                <p style="margin-bottom:14px; font-size:0.85rem; color: rgba(255,255,255,0.7);">Add Media: upload images/videos, set title and description, delete or reorder. Changes persist after refresh.</p>
-                                <form class="upload-form">
-                                    <div class="form-group">
-                                        <label for="cloudinaryPreset">Cloudinary Unsigned Upload Preset</label>
-                                        <input id="cloudinaryPreset" type="password" placeholder="Preset name">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="firebaseConfig">Firebase Config (JSON)</label>
-                                        <textarea id="firebaseConfig" placeholder='{"apiKey":"...","authDomain":"...","databaseURL":"...","projectId":"...","appId":"..."}'></textarea>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="firebaseProjectsPath">Firebase Projects Path</label>
-                                        <input id="firebaseProjectsPath" type="text" placeholder="hailifu/projects">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="firebaseSettingsPath">Firebase Settings Path</label>
-                                        <input id="firebaseSettingsPath" type="text" placeholder="hailifu/settings">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="remoteConfigPublicId">Remote Config Public ID</label>
-                                        <input id="remoteConfigPublicId" type="text" placeholder="hailifu_site_config">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="remoteConfigUrl">Remote Config URL (optional override)</label>
-                                        <input id="remoteConfigUrl" type="url" placeholder="https://res.cloudinary.com/.../raw/upload/...json">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="projectTitle">Project Title</label>
-                                        <input id="projectTitle" type="text" placeholder="Project name">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="projectCategory">Showcase Project Category</label>
-                                        <select id="projectCategory">
-                                            <option value="all">All Projects</option>
-                                            <option value="cctv">CCTV</option>
-                                            <option value="electrical">Electrical</option>
-                                            <option value="gates">Automated Gates</option>
-                                            <option value="solar">Solar Energy</option>
-                                            <option value="fencing">Electric Fence</option>
-                                            <option value="airconditioning">Air Conditioner</option>
-                                            <option value="blindcurtain">Window Blinds</option>
-                                            <option value="smarthome">Smart Home</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="projectDescription">Description</label>
-                                        <textarea id="projectDescription" placeholder="Short summary"></textarea>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Media Type</label>
-                                        <div class="media-type-toggle">
-                                            <button class="media-btn active" type="button" data-type="image"><i class="fas fa-image"></i> Image</button>
-                                            <button class="media-btn" type="button" data-type="video"><i class="fas fa-video"></i> Video</button>
-                                        </div>
-                                    </div>
-                                    <div class="upload-controls">
+                            <div class="admin-tab-panel" data-admin-panel="projects">
+                                <section class="admin-data-section">
+                                    <h2><i class="fas fa-images"></i> Gallery Manager</h2>
+                                    <p style="margin-bottom:14px; font-size:0.85rem; color: rgba(255,255,255,0.7);">Add Media: upload images/videos, set title and description, delete or reorder. Changes persist after refresh.</p>
+                                    <form class="upload-form">
                                         <div class="form-group">
-                                            <label>Upload Media</label>
-                                            <div class="file-upload-area gallery-manager-dropzone" id="fileUploadArea">
-                                                <div class="upload-content">
-                                                    <i class="fas fa-cloud-upload-alt"></i>
-                                                    <p>Drag and drop or click to upload</p>
-                                                    <span class="file-types">PNG, JPG, MP4 (max 4MB)</span>
+                                            <label for="cloudinaryPreset">Cloudinary Unsigned Upload Preset</label>
+                                            <input id="cloudinaryPreset" type="password" placeholder="Preset name">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="firebaseConfig">Firebase Config (JSON)</label>
+                                            <textarea id="firebaseConfig" placeholder='{"apiKey":"...","authDomain":"...","databaseURL":"...","projectId":"...","appId":"..."}'></textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="firebaseProjectsPath">Firebase Projects Path</label>
+                                            <input id="firebaseProjectsPath" type="text" placeholder="hailifu/projects">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="firebaseSettingsPath">Firebase Settings Path</label>
+                                            <input id="firebaseSettingsPath" type="text" placeholder="hailifu/settings">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="remoteConfigPublicId">Remote Config Public ID</label>
+                                            <input id="remoteConfigPublicId" type="text" placeholder="hailifu_site_config">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="remoteConfigUrl">Remote Config URL (optional override)</label>
+                                            <input id="remoteConfigUrl" type="url" placeholder="https://res.cloudinary.com/.../raw/upload/...json">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="projectTitle">Project Title</label>
+                                            <input id="projectTitle" type="text" placeholder="Project name">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="projectCategory">Showcase Project Category</label>
+                                            <select id="projectCategory">
+                                                <option value="all">All Projects</option>
+                                                <option value="cctv">CCTV</option>
+                                                <option value="electrical">Electrical</option>
+                                                <option value="gates">Automated Gates</option>
+                                                <option value="solar">Solar Energy</option>
+                                                <option value="fencing">Electric Fence</option>
+                                                <option value="airconditioning">Air Conditioner</option>
+                                                <option value="blindcurtain">Window Blinds</option>
+                                                <option value="smarthome">Smart Home</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="projectDescription">Description</label>
+                                            <textarea id="projectDescription" placeholder="Short summary"></textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Media Type</label>
+                                            <div class="media-type-toggle">
+                                                <button class="media-btn active" type="button" data-type="image"><i class="fas fa-image"></i> Image</button>
+                                                <button class="media-btn" type="button" data-type="video"><i class="fas fa-video"></i> Video</button>
+                                            </div>
+                                        </div>
+                                        <div class="upload-controls">
+                                            <div class="form-group">
+                                                <label>Upload Media</label>
+                                                <div class="file-upload-area gallery-manager-dropzone" id="fileUploadArea">
+                                                    <div class="upload-content">
+                                                        <i class="fas fa-cloud-upload-alt"></i>
+                                                        <p>Drag and drop or click to upload</p>
+                                                        <span class="file-types">PNG, JPG, MP4 (max 4MB)</span>
+                                                    </div>
+                                                    <input id="projectFile" class="admin-file-input" type="file" accept="image/*,video/*" multiple style="display:none;">
                                                 </div>
-                                                <input id="projectFile" class="admin-file-input" type="file" accept="image/*,video/*" multiple style="display:none;">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="projectMediaUrl">Or Media URL (YouTube / direct link)</label>
+                                                <input id="projectMediaUrl" type="url" placeholder="https://youtube.com/shorts/...">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Gallery Items</label>
+                                                <div class="gallery-queue" id="galleryQueue" aria-live="polite">
+                                                    <div class="gallery-queue-empty">No media added yet.</div>
+                                                </div>
+                                                <div class="gallery-queue-actions">
+                                                    <button class="upload-btn upload-btn--ghost" id="addGalleryItemBtn" type="button"><i class="fas fa-plus"></i> Add to Gallery</button>
+                                                    <button class="upload-btn upload-btn--ghost" id="clearGalleryBtn" type="button"><i class="fas fa-trash"></i> Clear</button>
+                                                </div>
+                                            </div>
+                                            <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+                                                <input type="checkbox" id="setAsHeroToggle" style="width:auto;">
+                                                <label for="setAsHeroToggle" style="margin:0; text-transform:none; letter-spacing:0; font-weight:700;">Set as Hero Background Video</label>
+                                            </div>
+                                            <button class="upload-btn admin-action-btn" id="uploadBtn" type="button"><i class="fas fa-upload"></i> Save Project</button>
+                                            <div class="upload-progress" id="uploadProgress" aria-hidden="true">
+                                                <div class="upload-progress-row">
+                                                    <span class="upload-spinner" aria-hidden="true"></span>
+                                                    <span class="upload-progress-text" id="uploadProgressText">Uploading...</span>
+                                                </div>
+                                                <div class="upload-progress-bar">
+                                                    <div class="upload-progress-fill" id="uploadProgressFill" style="width:0%"></div>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="form-group">
-                                            <label for="projectMediaUrl">Or Media URL (YouTube / direct link)</label>
-                                            <input id="projectMediaUrl" type="url" placeholder="https://youtube.com/shorts/...">
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Gallery Items</label>
-                                            <div class="gallery-queue" id="galleryQueue" aria-live="polite">
-                                                <div class="gallery-queue-empty">No media added yet.</div>
+                                    </form>
+                                </section>
+                                <section class="admin-data-section">
+                                    <h2><i class="fas fa-photo-film"></i> System Integrity Media</h2>
+                                    <p style="margin-bottom:12px; font-size:0.85rem; color: rgba(255,255,255,0.7);">Upload image or video for the System Integrity block (Uptime / Latency / Coverage).</p>
+                                    <input type="file" id="integrityMediaInputProjects" class="admin-file-input" accept="image/*,video/*" style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;">
+                                    <button class="upload-btn admin-action-btn integrity-graphic-btn" id="integrityMediaBtnProjects" type="button"><i class="fas fa-upload"></i> Upload Integrity Media</button>
+                                    <div class="integrity-upload-progress" id="integrityMediaUploadProgressProjects" aria-hidden="true" style="display:none; margin-top:10px;">
+                                        <div class="upload-progress-bar"><div class="upload-progress-fill" id="integrityMediaUploadProgressFillProjects" style="width:0%"></div></div>
+                                    </div>
+                                </section>
+                                <section class="admin-data-section">
+                                    <h2><i class="fas fa-layer-group"></i> All Media</h2>
+                                    <div id="projectsGrid" class="projects-grid"></div>
+                                </section>
+                            </div>
+                            <div class="admin-tab-panel" data-admin-panel="media">
+                                <section class="admin-data-section">
+                                    <h2><i class="fas fa-photo-film"></i> Media Library</h2>
+                                    <p style="margin-bottom:14px; font-size:0.85rem; color: rgba(255,255,255,0.7);">Upload once, reuse anywhere. Assign media to sections (Hero, About, Services, Showcase, Featured Work) and delete assets safely.</p>
+                                    <div class="media-library-toolbar">
+                                        <input id="mediaLibrarySearch" type="search" placeholder="Search by filename, tag, type..." autocomplete="off">
+                                        <button class="upload-btn upload-btn--ghost" id="mediaLibraryRefreshBtn" type="button"><i class="fas fa-rotate"></i> Refresh</button>
+                                    </div>
+                                    <div class="media-library-uploader">
+                                        <div class="file-upload-area media-library-dropzone" id="mediaLibraryUploadArea">
+                                            <div class="upload-content">
+                                                <i class="fas fa-cloud-upload-alt"></i>
+                                                <p>Drag & drop or click to upload</p>
+                                                <span class="file-types">PNG, JPG, MP4 (Cloudinary)</span>
                                             </div>
-                                            <div class="gallery-queue-actions">
-                                                <button class="upload-btn upload-btn--ghost" id="addGalleryItemBtn" type="button"><i class="fas fa-plus"></i> Add to Gallery</button>
-                                                <button class="upload-btn upload-btn--ghost" id="clearGalleryBtn" type="button"><i class="fas fa-trash"></i> Clear</button>
-                                            </div>
+                                            <input id="mediaLibraryFileInput" class="admin-file-input" type="file" accept="image/*,video/*" multiple style="display:none;">
                                         </div>
-                                        <div class="form-group" style="display:flex; align-items:center; gap:10px;">
-                                            <input type="checkbox" id="setAsHeroToggle" style="width:auto;">
-                                            <label for="setAsHeroToggle" style="margin:0; text-transform:none; letter-spacing:0; font-weight:700;">Set as Hero Background Video</label>
+                                        <div class="media-library-actions">
+                                            <button class="upload-btn admin-action-btn" id="mediaLibraryUploadBtn" type="button"><i class="fas fa-upload"></i> Upload</button>
+                                            <button class="upload-btn upload-btn--ghost" id="mediaLibraryLinkBtn" type="button"><i class="fas fa-link"></i> Add by URL</button>
                                         </div>
-                                        <button class="upload-btn admin-action-btn" id="uploadBtn" type="button"><i class="fas fa-upload"></i> Save Project</button>
-                                        <div class="upload-progress" id="uploadProgress" aria-hidden="true">
+                                        <input id="mediaLibraryUrlInput" type="url" placeholder="https://res.cloudinary.com/... or https://..." autocomplete="off">
+                                        <div class="upload-progress" id="mediaLibraryProgress" aria-hidden="true">
                                             <div class="upload-progress-row">
                                                 <span class="upload-spinner" aria-hidden="true"></span>
-                                                <span class="upload-progress-text" id="uploadProgressText">Uploading...</span>
+                                                <span class="upload-progress-text" id="mediaLibraryProgressText">Uploading...</span>
                                             </div>
                                             <div class="upload-progress-bar">
-                                                <div class="upload-progress-fill" id="uploadProgressFill" style="width:0%"></div>
+                                                <div class="upload-progress-fill" id="mediaLibraryProgressFill" style="width:0%"></div>
                                             </div>
                                         </div>
                                     </div>
-                                </form>
+                                </section>
+                                <section class="admin-data-section">
+                                    <h2><i class="fas fa-grid-2"></i> Library</h2>
+                                    <div id="mediaLibraryGrid" class="media-library-grid"></div>
+                                </section>
                             </div>
-                            <div class="admin-section">
-                                <h3><i class="fas fa-photo-film"></i> System Integrity Media</h3>
-                                <p style="margin-bottom:12px; font-size:0.85rem; color: rgba(255,255,255,0.7);">Upload image or video for the System Integrity block (Uptime / Latency / Coverage).</p>
-                                <input type="file" id="integrityMediaInputProjects" class="admin-file-input" accept="image/*,video/*" style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;">
-                                <button class="upload-btn admin-action-btn integrity-graphic-btn" id="integrityMediaBtnProjects" type="button"><i class="fas fa-upload"></i> Upload Integrity Media</button>
-                                <div class="integrity-upload-progress" id="integrityMediaUploadProgressProjects" aria-hidden="true" style="display:none; margin-top:10px;">
-                                    <div class="upload-progress-bar"><div class="upload-progress-fill" id="integrityMediaUploadProgressFillProjects" style="width:0%"></div></div>
-                                </div>
-                            </div>
-                            <div class="admin-section">
-                                <h3><i class="fas fa-layer-group"></i> All Media</h3>
-                                <div id="projectsGrid" class="projects-grid"></div>
-                            </div>
-                        </div>
-                        <div class="admin-tab-panel" data-admin-panel="media">
-                            <div class="admin-section">
-                                <h3><i class="fas fa-photo-film"></i> Media Library</h3>
-                                <p style="margin-bottom:14px; font-size:0.85rem; color: rgba(255,255,255,0.7);">Upload once, reuse anywhere. Assign media to sections (Hero, About, Services, Showcase, Featured Work) and delete assets safely.</p>
-                                <div class="media-library-toolbar">
-                                    <input id="mediaLibrarySearch" type="search" placeholder="Search by filename, tag, type..." autocomplete="off">
-                                    <button class="upload-btn upload-btn--ghost" id="mediaLibraryRefreshBtn" type="button"><i class="fas fa-rotate"></i> Refresh</button>
-                                </div>
-                                <div class="media-library-uploader">
-                                    <div class="file-upload-area media-library-dropzone" id="mediaLibraryUploadArea">
-                                        <div class="upload-content">
-                                            <i class="fas fa-cloud-upload-alt"></i>
-                                            <p>Drag & drop or click to upload</p>
-                                            <span class="file-types">PNG, JPG, MP4 (Cloudinary)</span>
-                                        </div>
-                                        <input id="mediaLibraryFileInput" class="admin-file-input" type="file" accept="image/*,video/*" multiple style="display:none;">
+                            <div class="admin-tab-panel" data-admin-panel="sections">
+                                <section class="admin-data-section">
+                                    <h2><i class="fas fa-sitemap"></i> Section Media</h2>
+                                    <p style="margin-bottom:14px; font-size:0.85rem; color: rgba(255,255,255,0.7);">Pick a section slot, then assign a Media Library item to display on that part of the website.</p>
+                                    <div class="sections-toolbar">
+                                        <label class="sections-label" for="sectionSlotSelect">Section slot</label>
+                                        <select id="sectionSlotSelect"></select>
+                                        <button class="upload-btn upload-btn--ghost" id="sectionsClearSlotBtn" type="button"><i class="fas fa-eraser"></i> Clear slot</button>
                                     </div>
-                                    <div class="media-library-actions">
-                                        <button class="upload-btn admin-action-btn" id="mediaLibraryUploadBtn" type="button"><i class="fas fa-upload"></i> Upload</button>
-                                        <button class="upload-btn upload-btn--ghost" id="mediaLibraryLinkBtn" type="button"><i class="fas fa-link"></i> Add by URL</button>
-                                    </div>
-                                    <input id="mediaLibraryUrlInput" type="url" placeholder="https://res.cloudinary.com/... or https://..." autocomplete="off">
-                                    <div class="upload-progress" id="mediaLibraryProgress" aria-hidden="true">
-                                        <div class="upload-progress-row">
-                                            <span class="upload-spinner" aria-hidden="true"></span>
-                                            <span class="upload-progress-text" id="mediaLibraryProgressText">Uploading...</span>
-                                        </div>
-                                        <div class="upload-progress-bar">
-                                            <div class="upload-progress-fill" id="mediaLibraryProgressFill" style="width:0%"></div>
+                                    <div class="sections-assignment">
+                                        <div class="sections-current" id="sectionsCurrentAssignment"></div>
+                                        <div class="sections-picker">
+                                            <div class="sections-picker-title">Assign from Media Library</div>
+                                            <div id="sectionsMediaPicker" class="media-library-grid media-library-grid--compact"></div>
                                         </div>
                                     </div>
-                                </div>
+                                </section>
                             </div>
-                            <div class="admin-section">
-                                <h3><i class="fas fa-grid-2"></i> Library</h3>
-                                <div id="mediaLibraryGrid" class="media-library-grid"></div>
-                            </div>
-                        </div>
-                        <div class="admin-tab-panel" data-admin-panel="sections">
-                            <div class="admin-section">
-                                <h3><i class="fas fa-sitemap"></i> Section Media</h3>
-                                <p style="margin-bottom:14px; font-size:0.85rem; color: rgba(255,255,255,0.7);">Pick a section slot, then assign a Media Library item to display on that part of the website.</p>
-                                <div class="sections-toolbar">
-                                    <label class="sections-label" for="sectionSlotSelect">Section slot</label>
-                                    <select id="sectionSlotSelect"></select>
-                                    <button class="upload-btn upload-btn--ghost" id="sectionsClearSlotBtn" type="button"><i class="fas fa-eraser"></i> Clear slot</button>
-                                </div>
-                                <div class="sections-assignment">
-                                    <div class="sections-current" id="sectionsCurrentAssignment"></div>
-                                    <div class="sections-picker">
-                                        <div class="sections-picker-title">Assign from Media Library</div>
-                                        <div id="sectionsMediaPicker" class="media-library-grid media-library-grid--compact"></div>
+                            <div class="admin-tab-panel" data-admin-panel="reviews">
+                                <section class="admin-data-section">
+                                    <h2><i class="fab fa-google"></i> Google Business Reviews</h2>
+                                    <div class="google-business-admin-status">
+                                        <button class="google-business-status" id="googleBusinessStatusBtn" type="button" aria-pressed="false">SYNC PENDING</button>
+                                        <p id="googleBusinessMessage">Connect the Google Business feed to stream verified reviews here.</p>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="admin-tab-panel" data-admin-panel="reviews">
-                            <div class="admin-section">
-                                <h3><i class="fab fa-google"></i> Google Business Reviews</h3>
-                                <div class="google-business-admin-status">
-                                    <button class="google-business-status" id="googleBusinessStatusBtn" type="button" aria-pressed="false">SYNC PENDING</button>
-                                    <p id="googleBusinessMessage">Connect the Google Business feed to stream verified reviews here.</p>
-                                </div>
-                            </div>
-                            <div class="admin-section admin-section--review-auth">
-                                <h3><i class="fas fa-user-shield"></i> Firebase Review Access</h3>
-                                <p id="reviewAuthStatus" class="review-auth-status">Sign in with Firebase to access pending reviews.</p>
-                                <form id="reviewAuthForm" class="review-auth-form" autocomplete="on">
-                                    <div class="review-auth-grid">
-                                        <input id="reviewAuthEmail" type="email" placeholder="admin@hailifu.com" autocomplete="username">
-                                        <input id="reviewAuthPassword" type="password" placeholder="Firebase password" autocomplete="current-password">
-                                    </div>
-                                    <div class="review-admin-actions">
-                                        <button type="submit" class="review-admin-btn approve" id="reviewAuthLoginBtn">Firebase Login</button>
-                                        <button type="button" class="review-admin-btn delete" id="reviewAuthLogoutBtn">Sign Out</button>
-                                    </div>
-                                </form>
-                            </div>
-                            <div class="admin-review-module" id="reviewModerationShell" hidden>
-                                <div class="admin-section">
-                                    <h3><i class="fas fa-sliders-h"></i> Review Settings</h3>
-                                    <label style="display:flex; align-items:center; gap:10px; color: rgba(255,255,255,0.85);">
-                                        <input type="checkbox" id="reviewsRequireApproval">
-                                        Require approval before reviews appear publicly.
-                                    </label>
-                                </div>
-                                <div class="admin-section">
-                                    <h3><i class="fas fa-hourglass-half"></i> Pending Reviews</h3>
-                                    <div id="pendingReviewsGrid" class="admin-review-stack"></div>
-                                </div>
-                                <div class="admin-section">
-                                    <h3><i class="fas fa-check-circle"></i> Published Reviews</h3>
-                                    <div id="publishedReviewsGrid" class="admin-review-stack"></div>
+                                </section>
+                                <section class="admin-data-section admin-section--review-auth">
+                                    <h2><i class="fas fa-user-shield"></i> Firebase Review Access</h2>
+                                    <p id="reviewAuthStatus" class="review-auth-status">Sign in with Firebase to access pending reviews.</p>
+                                    <form id="reviewAuthForm" class="review-auth-form" autocomplete="on">
+                                        <div class="review-auth-grid">
+                                            <input id="reviewAuthEmail" type="email" placeholder="admin@hailifu.com" autocomplete="username">
+                                            <input id="reviewAuthPassword" type="password" placeholder="Firebase password" autocomplete="current-password">
+                                        </div>
+                                        <div class="review-admin-actions">
+                                            <button type="submit" class="review-admin-btn approve" id="reviewAuthLoginBtn">Firebase Login</button>
+                                            <button type="button" class="review-admin-btn delete" id="reviewAuthLogoutBtn">Sign Out</button>
+                                        </div>
+                                    </form>
+                                </section>
+                                <div class="admin-review-module" id="reviewModerationShell" hidden>
+                                    <section class="admin-data-section">
+                                        <h2><i class="fas fa-sliders-h"></i> Review Settings</h2>
+                                        <label style="display:flex; align-items:center; gap:10px; color: rgba(255,255,255,0.85);">
+                                            <input type="checkbox" id="reviewsRequireApproval">
+                                            Require approval before reviews appear publicly.
+                                        </label>
+                                    </section>
+                                    <section class="admin-data-section">
+                                        <h2><i class="fas fa-hourglass-half"></i> Pending Reviews</h2>
+                                        <div id="pendingReviewsGrid" class="admin-review-stack"></div>
+                                    </section>
+                                    <section class="admin-data-section">
+                                        <h2><i class="fas fa-check-circle"></i> Published Reviews</h2>
+                                        <div id="publishedReviewsGrid" class="admin-review-stack"></div>
+                                    </section>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </main>
                 </div>
             `;
             document.body.insertAdjacentHTML('beforeend', markup);
@@ -5992,18 +5969,27 @@
         }
 
         function setAdminTab(tabKey) {
-            if (!adminTabs.length || !adminTabPanels.length) {
-                adminTabs = Array.from(document.querySelectorAll('.admin-tab'));
+            if (!adminTabPanels.length) {
+                adminTabs = Array.from(document.querySelectorAll('.admin-tab, .admin-sidebar-item'));
                 adminTabPanels = Array.from(document.querySelectorAll('.admin-tab-panel'));
             }
-            if (!adminTabs.length || !adminTabPanels.length) return;
+            const sidebarItems = Array.from(document.querySelectorAll('.admin-sidebar-item'));
+            if (!adminTabPanels.length) return;
 
             const normalizedKey = String(tabKey || '').trim().toLowerCase();
             if (!normalizedKey) return;
 
+            const titleMap = { overview: 'System Overview', leads: 'Lead Inbox', projects: 'Gallery Manager', media: 'Media Library', sections: 'Section Media', reviews: 'Reviews' };
+            const titleEl = document.getElementById('adminMainTitle');
+            if (titleEl) titleEl.textContent = titleMap[normalizedKey] || 'Dashboard';
+
             adminTabs.forEach((tab) => {
                 const tabValue = String(tab.dataset.adminTab || '').trim().toLowerCase();
                 tab.classList.toggle('active', tabValue === normalizedKey);
+            });
+            sidebarItems.forEach((item) => {
+                const itemValue = String(item.dataset.adminTab || '').trim().toLowerCase();
+                item.classList.toggle('active', itemValue === normalizedKey);
             });
             adminTabPanels.forEach((panel) => {
                 const panelValue = String(panel.dataset.adminPanel || '').trim().toLowerCase();
@@ -13069,6 +13055,57 @@
         } else {
             initPhotoGallery();
         }
+
+        // ── Google Business-style Review Modal ──────────────────────────
+        (function initGoogleStyleReview() {
+            const starContainer = document.getElementById('googleStarRating');
+            const ratingInput = document.getElementById('reviewRatingInput');
+            if (!starContainer || !ratingInput) return;
+
+            const stars = starContainer.querySelectorAll('.google-star');
+
+            function updateStars(selectedRating) {
+                stars.forEach(star => {
+                    const r = parseInt(star.dataset.rating);
+                    star.setAttribute('aria-checked', r <= selectedRating ? 'true' : 'false');
+                });
+            }
+
+            stars.forEach(star => {
+                star.addEventListener('click', () => {
+                    const rating = parseInt(star.dataset.rating);
+                    ratingInput.value = rating;
+                    updateStars(rating);
+                });
+
+                star.addEventListener('mouseenter', () => {
+                    const hoverRating = parseInt(star.dataset.rating);
+                    stars.forEach(s => {
+                        const r = parseInt(s.dataset.rating);
+                        s.setAttribute('aria-checked', r <= hoverRating ? 'true' : 'false');
+                    });
+                });
+            });
+
+            starContainer.addEventListener('mouseleave', () => {
+                const current = parseInt(ratingInput.value) || 0;
+                updateStars(current);
+            });
+
+            // Initialize all stars as unchecked
+            updateStars(0);
+
+            // Google-style pill buttons for "Did you use this business?"
+            const usedBtns = document.querySelectorAll('[data-review-used]');
+            const usedInput = document.getElementById('reviewUsedInput');
+            usedBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    usedBtns.forEach(b => b.setAttribute('aria-pressed', 'false'));
+                    btn.setAttribute('aria-pressed', 'true');
+                    if (usedInput) usedInput.value = btn.dataset.reviewUsed;
+                });
+            });
+        })();
 
         });
 
