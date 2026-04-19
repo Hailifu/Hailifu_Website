@@ -702,7 +702,7 @@
                 <span class="site-share-btn-icon" aria-hidden="true"><i class="fas fa-share-alt"></i></span>
                 <span class="site-share-btn-label">Share Site</span>
             </button>
-            <button class="admin-entry-btn" id="adminEntryBtn" type="button" aria-label="Open admin panel">Admin Panel</button>
+            <button class="admin-entry-btn" id="adminEntryBtn" type="button" aria-label="Open admin portal">Admin Portal</button>
             <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme" aria-pressed="false" title="Theme">
                 <span class="theme-toggle-icon" aria-hidden="true">
                     <span class="theme-icon theme-icon--moon"><i class="fas fa-moon"></i></span>
@@ -1245,8 +1245,8 @@
                 </div>
                 <div class="cta-buttons">
                     <button type="button" class="primary-cta-btn" data-review-modal-open>
-                        <i class="fas fa-star"></i>
-                        <span>Leave 5-Star Review</span>
+                        <i class="fab fa-google"></i>
+                        <span>Write a Review</span>
                     </button>
                     <a href="#popupOverlay" class="secondary-cta-btn" data-quote-open>
                         <i class="fas fa-comments"></i>
@@ -1388,20 +1388,73 @@
 
     <div class="project-modal" id="projectModal" aria-hidden="true">
         <div class="project-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="projectModalTitle">
-            <div class="project-modal-header">
-                <div class="project-modal-title">
-                    <strong id="projectModalTitle">Project</strong>
-                    <span id="projectModalCategory">Category</span>
-                </div>
-                <button class="project-modal-close" id="projectModalClose" type="button" aria-label="Close project preview">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
             <div class="project-modal-body">
-                <div class="project-modal-media" id="projectModalMedia"></div>
-                <div class="project-modal-meta">
-                    <h4>Project Details</h4>
-                    <p id="projectModalDescription"></p>
+                <div class="project-modal-main">
+                    <div class="project-modal-top-tabs">
+                        <button class="modal-tab active" data-tab="all">All</button>
+                        <button class="modal-tab" data-tab="owner">By owner</button>
+                        <button class="modal-tab" data-tab="video">Videos</button>
+                    </div>
+                    <div class="project-modal-media-container">
+                        <div class="project-modal-media" id="projectModalMedia"></div>
+                        <button class="nav-btn prev-btn" id="projectModalPrev" aria-label="Previous photo"><i class="fas fa-chevron-left"></i></button>
+                        <button class="nav-btn next-btn" id="projectModalNext" aria-label="Next photo"><i class="fas fa-chevron-right"></i></button>
+                        
+                        <div class="media-controls-overlay">
+                            <button class="control-btn" id="modalFullscreen" title="Full screen"><i class="fas fa-expand"></i></button>
+                            <button class="control-btn" id="modalShare" title="Share"><i class="fas fa-share-alt"></i></button>
+                        </div>
+                    </div>
+                    <div class="project-modal-thumbnails" id="projectModalThumbnails">
+                        <!-- Thumbnails will be injected here -->
+                    </div>
+                </div>
+                <div class="project-modal-sidebar">
+                    <div class="sidebar-header">
+                        <div class="brand-info">
+                            <img src="/logo.webp" alt="Hailifu" class="mini-logo">
+                            <div>
+                                <div class="brand-name">Hailifu Brilliant Installation</div>
+                                <div class="post-date" id="projectModalDate">Posted recently</div>
+                            </div>
+                        </div>
+                        <div class="sidebar-actions">
+                            <button class="project-modal-close" id="projectModalClose" type="button" aria-label="Close dialogue">
+                                <svg focusable="false" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="sidebar-content">
+                        <div class="sidebar-section">
+                            <h2 id="projectModalTitle">Project Title</h2>
+                            <div class="category-tag" id="projectModalCategory">Category</div>
+                            <p id="projectModalDescription">Project description goes here...</p>
+                        </div>
+                        
+                        <div class="sidebar-section contact-business">
+                            <h3>Contact Business</h3>
+                            <div class="business-info-row">
+                                <i class="fas fa-phone"></i>
+                                <span>+27 78 456 1234</span>
+                            </div>
+                            <div class="business-info-row">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Johannesburg, South Africa</span>
+                            </div>
+                            <button class="sidebar-cta-btn">Request a Quote</button>
+                        </div>
+
+                        <div class="sidebar-section google-stats">
+                            <div class="stat-item">
+                                <i class="fas fa-eye"></i>
+                                <span>2.4k views</span>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-thumbs-up"></i>
+                                <span>Helpful?</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

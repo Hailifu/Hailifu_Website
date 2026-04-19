@@ -790,9 +790,15 @@
 
         function applyTheme(theme) {
             const normalized = theme === 'light' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', normalized === 'light' ? 'light' : 'dark');
-            if (themeToggle) themeToggle.setAttribute('aria-pressed', String(normalized === 'light'));
-
+            document.documentElement.setAttribute('data-theme', normalized);
+            document.body.setAttribute('data-theme', normalized);
+            if (themeToggle) {
+                themeToggle.setAttribute('aria-pressed', String(normalized === 'light'));
+                const icon = themeToggle.querySelector('i');
+                if (icon) {
+                    icon.className = normalized === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+                }
+            }
         }
 
         function getInitialTheme() {
@@ -811,7 +817,9 @@
         applyTheme(getInitialTheme());
 
         if (themeToggle) {
-            themeToggle.addEventListener('click', () => {
+            themeToggle.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 themeToggle.classList.remove('is-rotating');
                 requestAnimationFrame(() => {
                     themeToggle.classList.add('is-rotating');
@@ -5900,7 +5908,7 @@
                     <div class="admin-lazyloop-slide is-empty">
                         <div class="admin-lazyloop-overlay">
                             <div class="admin-lazyloop-title">No projects yet</div>
-                            <div class="admin-lazyloop-subtitle">Add a project in the Admin Panel to see it here.</div>
+                            <div class="admin-lazyloop-subtitle">Add a project in the Admin Portal to see it here.</div>
                         </div>
                     </div>
                 `;

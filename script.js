@@ -194,6 +194,28 @@
         const themeToggle = document.getElementById('themeToggle');
         const adminSecretParamKey = 'dev';
         const adminSecretParamValue = 'hailifu_access';
+        const primarySiteUrl = 'https://hailifugh.com';
+        const canonicalRedirectHosts = new Set([
+            'hailifu-website.web.app',
+            'hailifu-website.firebaseapp.com'
+        ]);
+
+        function enforceCanonicalHostRedirect() {
+            try {
+                const host = String(window.location.hostname || '').trim().toLowerCase();
+                if (!canonicalRedirectHosts.has(host)) return false;
+                const target = new URL(primarySiteUrl);
+                target.pathname = window.location.pathname || '/';
+                target.search = window.location.search || '';
+                target.hash = window.location.hash || '';
+                window.location.replace(target.toString());
+                return true;
+            } catch {
+                return false;
+            }
+        }
+
+        if (enforceCanonicalHostRedirect()) return;
 
         function shouldSkipHeroVideo() {
             try {
@@ -496,6 +518,21 @@
         let mediaTypeButtons = [];
         let selectedMediaType = 'image';
         let adminMediaToastTimer = null;
+        let mediaLibrarySearch = null;
+        let mediaLibraryRefreshBtn = null;
+        let mediaLibraryUploadArea = null;
+        let mediaLibraryFileInput = null;
+        let mediaLibraryUploadBtn = null;
+        let mediaLibraryLinkBtn = null;
+        let mediaLibraryUrlInput = null;
+        let mediaLibraryGrid = null;
+        let mediaLibraryProgress = null;
+        let mediaLibraryProgressFill = null;
+        let mediaLibraryProgressText = null;
+        let sectionSlotSelect = null;
+        let sectionsClearSlotBtn = null;
+        let sectionsCurrentAssignment = null;
+        let sectionsMediaPicker = null;
 
         const cloudinaryCloudName = 'daovfi3i5';
         const defaultCloudinaryUnsignedPreset = 'ml_default';
@@ -649,6 +686,7 @@
         const defaultFirestoreReviewsCollection = 'reviews';
         const expectedFirestoreProjectId = 'hailifu-brilliant';
         const integrityImageStorageKey = 'hailifu_integrity_image_url';
+        const defaultIntegrityMediaUrl = './IMG_20210429_133549_551.jpg';
         const remoteConfigPublicIdStorageKey = 'hailifu_remote_config_public_id';
         const remoteConfigUrlStorageKey = 'hailifu_remote_config_url';
         const defaultRemoteConfigPublicId = 'hailifu_site_config';
@@ -656,6 +694,8 @@
         const reviewsStorageKey = 'hailifu_reviews';
         const projectsStorageKey = 'hailifu_projects';
         const deletedProjectsStorageKey = 'hailifu_deleted_project_ids';
+        const mediaLibraryStorageKey = 'hailifu_media_library';
+        const sectionMediaStorageKey = 'hailifu_section_media';
         const pageReachStorageKey = 'hailifu_page_reach';
         const pageReachSessionKey = 'hailifu_page_reach_session';
 
@@ -669,7 +709,11 @@
         let firebaseFirestore = null;
         let firebaseStorage = null;
         let firebaseProjectsState = null;
+        let firebaseMediaLibraryState = null;
+        let firebaseSectionMediaState = null;
         let firebaseProjectsRef = null;
+        let firebaseMediaLibraryRef = null;
+        let firebaseSectionMediaRef = null;
         let firebaseSettingsRef = null;
         let firebaseReviewsRef = null;
         let firebaseAuthObserverUnsubscribe = null;
@@ -683,6 +727,17 @@
 
         let supabaseClient = null;
         const reviewOauthBrandName = 'HAILIFU BRILLIANT INSTALLATION';
+        const MEDIA_SECTION_SLOTS = Object.freeze([
+            { key: 'hero.background', label: 'Hero Background' },
+            { key: 'about.integrityMedia', label: 'About Integrity Media' },
+            { key: 'services.cctvCard', label: 'Services CCTV Card' },
+            { key: 'services.electricalCard', label: 'Services Electrical Card' },
+            { key: 'services.gatesCard', label: 'Services Gates Card' },
+            { key: 'services.airconditioningCard', label: 'Services Air Conditioning Card' },
+            { key: 'services.blindcurtainCard', label: 'Services Smart Window Card' },
+            { key: 'showcase.defaultFallback', label: 'Showcase Fallback Media' },
+            { key: 'featured.defaultFallback', label: 'Featured Fallback Media' }
+        ]);
         const reviewGoogleClientIdStorageKey = 'hailifu_google_client_id';
         const emptyReviewIdentityState = Object.freeze({
             name: '',
@@ -735,9 +790,15 @@
 
         function applyTheme(theme) {
             const normalized = theme === 'light' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', normalized === 'light' ? 'light' : 'dark');
-            if (themeToggle) themeToggle.setAttribute('aria-pressed', String(normalized === 'light'));
-
+            document.documentElement.setAttribute('data-theme', normalized);
+            document.body.setAttribute('data-theme', normalized);
+            if (themeToggle) {
+                themeToggle.setAttribute('aria-pressed', String(normalized === 'light'));
+                const icon = themeToggle.querySelector('i');
+                if (icon) {
+                    icon.className = normalized === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+                }
+            }
         }
 
         function getInitialTheme() {
@@ -756,7 +817,9 @@
         applyTheme(getInitialTheme());
 
         if (themeToggle) {
-            themeToggle.addEventListener('click', () => {
+            themeToggle.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 themeToggle.classList.remove('is-rotating');
                 requestAnimationFrame(() => {
                     themeToggle.classList.add('is-rotating');
@@ -1006,6 +1069,30 @@
             }
         }
 
+        function ensureFirebaseFunctionsService() {
+            if (!ensureFirebaseApp()) return null;
+            if (!firebase.functions || typeof firebase.functions !== 'function') return null;
+            try {
+                return firebase.functions();
+            } catch {
+                return null;
+            }
+        }
+
+        function deleteCloudinaryAssetViaFunction(publicId, resourceType = 'image') {
+            const pid = String(publicId || '').trim();
+            if (!pid) return Promise.resolve({ ok: false, skipped: true });
+            const functions = ensureFirebaseFunctionsService();
+            if (!functions || typeof functions.httpsCallable !== 'function') {
+                return Promise.reject(new Error('Firebase Functions unavailable on this page.'));
+            }
+            const callable = functions.httpsCallable('deleteCloudinaryAsset');
+            return callable({
+                publicId: pid,
+                resourceType: String(resourceType || 'image').trim().toLowerCase() || 'image'
+            });
+        }
+
         function startFirebaseProjectsSync() {
             const db = ensureFirebaseDb();
             if (!db) return false;
@@ -1089,6 +1176,143 @@
                 try { firebaseSettingsRef.off(); } catch {}
             }
             firebaseSettingsRef = null;
+        }
+
+        function getFirebaseMediaLibraryPath() {
+            return 'hailifu/mediaLibrary';
+        }
+
+        function getFirebaseSectionMediaPath() {
+            return 'hailifu/sectionMedia';
+        }
+
+        function getMediaLibraryRecords() {
+            if (Array.isArray(firebaseMediaLibraryState)) return firebaseMediaLibraryState;
+            const raw = readJsonStorage(mediaLibraryStorageKey, []);
+            return Array.isArray(raw) ? raw.filter(Boolean) : [];
+        }
+
+        function saveMediaLibraryRecords(records) {
+            writeJsonStorage(mediaLibraryStorageKey, Array.isArray(records) ? records : []);
+        }
+
+        function getSectionMediaAssignments() {
+            if (firebaseSectionMediaState && typeof firebaseSectionMediaState === 'object') {
+                return firebaseSectionMediaState;
+            }
+            const raw = readJsonStorage(sectionMediaStorageKey, {});
+            return raw && typeof raw === 'object' ? raw : {};
+        }
+
+        function saveSectionMediaAssignments(assignments) {
+            const safe = assignments && typeof assignments === 'object' ? assignments : {};
+            writeJsonStorage(sectionMediaStorageKey, safe);
+        }
+
+        function getMediaLibraryMap() {
+            const map = {};
+            getMediaLibraryRecords().forEach((entry) => {
+                const id = String(entry?.id || '').trim();
+                if (!id) return;
+                map[id] = entry;
+            });
+            return map;
+        }
+
+        function normalizeMediaLibraryRecord(input) {
+            if (!input || typeof input !== 'object') return null;
+            const id = String(input.id || '').trim();
+            const url = normalizeProjectMediaPath(String(input.url || input.mediaSrc || '').trim());
+            if (!id || !url) return null;
+            const type = String(input.type || input.mediaType || '').trim().toLowerCase();
+            const normalizedType = type === 'video' || type === 'youtube' ? type : 'image';
+            return {
+                id,
+                url,
+                type: normalizedType,
+                provider: String(input.provider || '').trim().toLowerCase() || 'external',
+                publicId: String(input.publicId || '').trim(),
+                resourceType: String(input.resourceType || '').trim().toLowerCase() || 'auto',
+                tags: Array.isArray(input.tags) ? input.tags.map((t) => String(t || '').trim()).filter(Boolean) : [],
+                title: String(input.title || '').trim(),
+                createdAt: String(input.createdAt || '').trim() || new Date().toISOString(),
+                deletedAt: input.deletedAt ? String(input.deletedAt) : ''
+            };
+        }
+
+        function normalizeSectionMediaShape(raw) {
+            if (!raw || typeof raw !== 'object') return {};
+            const out = {};
+            Object.entries(raw).forEach(([slot, value]) => {
+                const key = String(slot || '').trim();
+                if (!key) return;
+                if (value && typeof value === 'object') {
+                    const mediaId = String(value.mediaId || '').trim();
+                    if (mediaId) out[key] = { mediaId };
+                    return;
+                }
+                const mediaId = String(value || '').trim();
+                if (mediaId) out[key] = { mediaId };
+            });
+            return out;
+        }
+
+        function startFirebaseMediaLibrarySync() {
+            const db = ensureFirebaseDb();
+            if (!db) return false;
+            const path = getFirebaseMediaLibraryPath();
+            try {
+                if (firebaseMediaLibraryRef) {
+                    try { firebaseMediaLibraryRef.off(); } catch {}
+                }
+            } catch {}
+            firebaseMediaLibraryRef = db.ref(path);
+            firebaseMediaLibraryRef.on('value', (snap) => {
+                const raw = snap && typeof snap.val === 'function' ? snap.val() : null;
+                const map = raw && typeof raw === 'object' ? raw : {};
+                const list = Object.keys(map)
+                    .map((id) => normalizeMediaLibraryRecord({ ...map[id], id }))
+                    .filter(Boolean)
+                    .sort((a, b) => (Date.parse(b?.createdAt || '') || 0) - (Date.parse(a?.createdAt || '') || 0));
+                firebaseMediaLibraryState = list;
+                saveMediaLibraryRecords(list);
+                renderMediaLibraryAndSections();
+            });
+            return true;
+        }
+
+        function stopFirebaseMediaLibrarySync() {
+            if (firebaseMediaLibraryRef) {
+                try { firebaseMediaLibraryRef.off(); } catch {}
+            }
+            firebaseMediaLibraryRef = null;
+        }
+
+        function startFirebaseSectionMediaSync() {
+            const db = ensureFirebaseDb();
+            if (!db) return false;
+            const path = getFirebaseSectionMediaPath();
+            try {
+                if (firebaseSectionMediaRef) {
+                    try { firebaseSectionMediaRef.off(); } catch {}
+                }
+            } catch {}
+            firebaseSectionMediaRef = db.ref(path);
+            firebaseSectionMediaRef.on('value', (snap) => {
+                const raw = snap && typeof snap.val === 'function' ? snap.val() : null;
+                const normalized = normalizeSectionMediaShape(raw);
+                firebaseSectionMediaState = normalized;
+                saveSectionMediaAssignments(normalized);
+                renderMediaLibraryAndSections();
+            });
+            return true;
+        }
+
+        function stopFirebaseSectionMediaSync() {
+            if (firebaseSectionMediaRef) {
+                try { firebaseSectionMediaRef.off(); } catch {}
+            }
+            firebaseSectionMediaRef = null;
         }
 
         function startFirebaseReviewsSync() {
@@ -1725,74 +1949,50 @@
             return true;
         }
 
-        // THE NEW SUPABASE REVIEW CIRCUIT
-        async function startFirestorePublishedReviewsSync() {
-            console.log("[HAILIFU] Switching review feed to Supabase...");
-            const supabase = ensureSupabaseClient();
-            if (!supabase) {
-                console.error("[HAILIFU] Supabase client not available");
-                return false;
-            }
-
-            const { data, error } = await supabase
-                .from('reviews') // Make sure you create a 'reviews' table in Supabase
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (error) {
-                console.error("Review Load Error:", error.message);
+        function startFirestorePublishedReviewsSync() {
+            const firestore = ensureFirebaseFirestoreService();
+            if (!firestore) {
+                if (firestorePublishedReviewsUnsubscribe) {
+                    try { firestorePublishedReviewsUnsubscribe(); } catch {}
+                    firestorePublishedReviewsUnsubscribe = null;
+                }
                 firestorePublishedReviewsState = [];
-                renderAdminReviews();
-                renderPublicReviews();
-                refreshLiveReviewSection();
                 return false;
-            } else {
-                console.log("Reviews Received:", data);
-                const normalized = data.filter((review) => {
-                    const status = String(review.status || '').trim().toLowerCase();
-                    if (status === 'pending') return false;
-                    const comment = String(
-                        review.comment ||
-                        review.reviewText ||
-                        review.review_text ||
-                        review.text ||
-                        review.message ||
-                        review.content ||
-                        ''
-                    ).trim();
-                    return !!comment;
-                });
-                firestorePublishedReviewsState = normalized;
-                renderAdminReviews();
-                renderPublicReviews();
-                refreshLiveReviewSection();
-                return true;
-            }
-        }
-
-        // ADD THIS TO LOAD REVIEWS LIVE
-        function startSupabaseLiveReviews() {
-            const supabase = ensureSupabaseClient();
-            if (!supabase) {
-                console.error("[HAILIFU] Supabase client not available for live reviews");
-                return;
             }
 
-            const getLiveReviews = supabase
-                .channel('any')
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reviews' }, payload => {
-                    console.log('[HAILIFU] Realtime review received:', payload.new);
-                    // Add the new review to the state
-                    firestorePublishedReviewsState.unshift(payload.new);
-                    // This function will put the review on your screen
+            if (firestorePublishedReviewsUnsubscribe) return true;
+
+            const collectionName = getFirestoreReviewsCollection();
+            firestorePublishedReviewsUnsubscribe = firestore
+                .collection(collectionName)
+                .onSnapshot((snapshot) => {
+                    const normalized = normalizeFirestoreReviewSnapshot(snapshot, { defaultStatusWhenMissing: 'published' })
+                        .filter((review) => {
+                            const status = String(review.status || '').trim().toLowerCase();
+                            if (status === 'pending') return false;
+                            const comment = String(
+                                review.comment ||
+                                review.reviewText ||
+                                review.review_text ||
+                                review.text ||
+                                review.message ||
+                                review.content ||
+                                ''
+                            ).trim();
+                            return !!comment;
+                        });
+                    firestorePublishedReviewsState = normalized;
                     renderAdminReviews();
                     renderPublicReviews();
                     refreshLiveReviewSection();
-                })
-                .subscribe();
-
-            console.log("[HAILIFU] Supabase live review subscription active");
-            return getLiveReviews;
+                }, (error) => {
+                    reportFirestoreReviewReadError(error, collectionName);
+                    firestorePublishedReviewsState = [];
+                    renderAdminReviews();
+                    renderPublicReviews();
+                    refreshLiveReviewSection();
+                });
+            return true;
         }
 
         function startFirestoreReviewAuthSync() {
@@ -1810,8 +2010,7 @@
                 return false;
             }
 
-            startFirestorePublishedReviewsSync().catch((err) => console.error('[HAILIFU] Failed to fetch reviews:', err));
-            startSupabaseLiveReviews();
+            startFirestorePublishedReviewsSync();
 
             if (firebaseAuthObserverUnsubscribe) {
                 if (canAccessReviewModeration()) startFirestorePendingReviewsSync();
@@ -1832,8 +2031,7 @@
                 if (canAccessReviewModeration()) startFirestorePendingReviewsSync();
                 else stopFirestorePendingReviewsSync();
 
-                startFirestorePublishedReviewsSync().catch((err) => console.error('[HAILIFU] Failed to fetch reviews:', err));
-                startSupabaseLiveReviews();
+                startFirestorePublishedReviewsSync();
                 syncReviewAuthUiState();
                 renderAdminReviews();
                 renderPublicReviews();
@@ -1976,8 +2174,20 @@
             return db.ref(`${path}/integrityImageUrl`).set(next);
         }
 
+        function normalizeIntegrityMediaPath(rawPath) {
+            let raw = String(rawPath || '').trim();
+            if (!raw) return '';
+            raw = raw.replace(/\\/g, '/');
+            raw = raw.replace(/^\.?\/*/, '');
+            raw = raw.replace(/^public\//i, '');
+            return normalizeProjectMediaPath(raw);
+        }
+
         function getIntegrityImageUrl() {
-            return String(localStorage.getItem(integrityImageStorageKey) || '').trim();
+            const stored = String(localStorage.getItem(integrityImageStorageKey) || '').trim();
+            const normalizedStored = normalizeIntegrityMediaPath(stored);
+            if (normalizedStored) return normalizedStored;
+            return normalizeIntegrityMediaPath(defaultIntegrityMediaUrl);
         }
 
         function setIntegrityImageUrlLocal(url) {
@@ -1999,8 +2209,9 @@
             const img = document.getElementById('integrityImage');
             const video = document.getElementById('integrityVideo');
             if (!container || !img || !video) return;
-            const raw = String(url || '').trim();
-            if (!raw) {
+            const raw = normalizeIntegrityMediaPath(url);
+            const fallbackUrl = normalizeIntegrityMediaPath(defaultIntegrityMediaUrl);
+            const clearIntegrityMedia = () => {
                 img.removeAttribute('src');
                 video.removeAttribute('src');
                 try { video.load(); } catch {}
@@ -2008,6 +2219,20 @@
                 video.style.display = 'none';
                 if (panel) panel.classList.remove('is-loading');
                 if (container) container.classList.add('integrity-empty');
+            };
+            const applyIntegrityFallback = () => {
+                if (!fallbackUrl || raw === fallbackUrl) {
+                    clearIntegrityMedia();
+                    return;
+                }
+                setIntegrityImageUrlLocal(fallbackUrl);
+                loadIntegrityImage(fallbackUrl);
+                if (firebaseIsReady()) {
+                    setFirebaseIntegrityImageUrl(fallbackUrl).catch(() => {});
+                }
+            };
+            if (!raw) {
+                applyIntegrityFallback();
                 return;
             }
             if (container) container.classList.remove('integrity-empty');
@@ -2026,7 +2251,7 @@
                     }
                 };
                 video.onerror = function() {
-                    if (panel) panel.classList.remove('is-loading');
+                    applyIntegrityFallback();
                 };
                 video.src = raw;
                 try { video.load(); } catch {}
@@ -2040,7 +2265,7 @@
                 if (panel) panel.classList.remove('is-loading');
             };
             img.onerror = function() {
-                if (panel) panel.classList.remove('is-loading');
+                applyIntegrityFallback();
             };
             img.src = raw;
         }
@@ -2251,6 +2476,8 @@
             try { ensureFirebaseStorageService(); } catch {}
             if (startFirebaseProjectsSync()) {
                 startFirebaseSettingsSync();
+                startFirebaseMediaLibrarySync();
+                startFirebaseSectionMediaSync();
                 if (startFirestoreReviewAuthSync()) {
                     stopFirebaseReviewsSync();
                 } else {
@@ -2260,10 +2487,13 @@
                 return true;
             }
             stopFirebaseSettingsSync();
+            stopFirebaseMediaLibrarySync();
+            stopFirebaseSectionMediaSync();
             stopFirebaseReviewsSync();
             stopFirestoreReviewAuthSync();
             syncFromRemoteConfig();
             startRemoteConfigPolling();
+            renderMediaLibraryAndSections();
             return false;
         }
 
@@ -2281,54 +2511,6 @@
             const preset = String(cloudinaryPresetInput?.value || '').trim();
             if (!preset) return;
             writeJsonStorage(cloudinaryPresetStorageKey, preset);
-        }
-
-        // THE CLEAN CIRCUIT - Supabase-backed Cloudinary deletion
-        async function deleteMedia(publicId) {
-            console.log("[HAILIFU] Attempting Cloud Purge for:", publicId);
-
-            // Instead of Firebase tokens, we use the Supabase-backed logic
-            const response = await fetch('/api/delete-cloudinary', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ publicId: publicId })
-            });
-
-            if (!response.ok) {
-                throw new Error("Cloud delete rejected: Service configuration mismatch.");
-            }
-        }
-
-        function extractCloudinaryPublicId(url) {
-            const raw = String(url || '').trim();
-            if (!raw) return '';
-            if (!/res\.cloudinary\.com/i.test(raw)) return '';
-
-            try {
-                const urlObj = new URL(raw);
-                const pathParts = urlObj.pathname.split('/');
-                const uploadIndex = pathParts.indexOf('upload');
-                if (uploadIndex === -1 || uploadIndex + 1 >= pathParts.length) return '';
-
-                // Skip version number if present (starts with v followed by digits)
-                let startIndex = uploadIndex + 1;
-                if (/^v\d+$/.test(pathParts[startIndex])) {
-                    startIndex++;
-                }
-
-                // Join remaining parts as public ID
-                const publicId = pathParts.slice(startIndex).join('/');
-                // Remove file extension
-                const lastDot = publicId.lastIndexOf('.');
-                if (lastDot > 0) {
-                    return publicId.substring(0, lastDot);
-                }
-                return publicId;
-            } catch {
-                return '';
-            }
         }
 
         function setUploadUiState(state) {
@@ -2356,19 +2538,11 @@
 
             return new Promise((resolve, reject) => {
                 if (!preset) {
-                    reject(new Error('Missing upload preset. Please configure your Cloudinary unsigned upload preset in the admin panel.'));
+                    reject(new Error('Missing upload preset'));
                     return;
                 }
                 if (!file) {
                     reject(new Error('Missing file'));
-                    return;
-                }
-
-                // File size validation (max 10MB for unsigned uploads)
-                const maxSize = 10 * 1024 * 1024; // 10MB
-                if (file.size > maxSize) {
-                    const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-                    reject(new Error(`File too large (${sizeMB}MB). Maximum size is 10MB for unsigned uploads. Please compress your file or use a smaller one.`));
                     return;
                 }
 
@@ -2385,23 +2559,20 @@
                     };
                 }
 
-                xhr.onerror = () => {
-                    const error = xhr.response?.error?.message || 'Upload failed. Please check your Cloudinary preset configuration.';
-                    reject(new Error(error));
-                };
-
+                xhr.onerror = () => reject(new Error('Upload failed'));
                 xhr.onload = () => {
                     const payload = xhr.response || null;
                     const ok = xhr.status >= 200 && xhr.status < 300 && payload && payload.secure_url;
                     if (ok) resolve(payload);
                     else {
-                        const msg = payload?.error?.message || `Upload failed (HTTP ${xhr.status}). Please check your Cloudinary preset is configured for unsigned uploads.`;
+                        const msg = payload?.error?.message || 'Upload failed';
                         reject(new Error(msg));
                     }
                 };
 
                 const fd = new FormData();
                 fd.append('upload_preset', preset);
+                fd.append('unsigned', 'true');
                 fd.append('file', file);
                 if (folder) fd.append('folder', folder);
                 if (publicId) fd.append('public_id', publicId);
@@ -2944,6 +3115,31 @@
 
             const mediaItems = galleryQueueItems.slice();
             const primary = mediaItems[0] || {};
+            const mediaLibrary = getMediaLibraryRecords().map(normalizeMediaLibraryRecord).filter(Boolean);
+            const mediaByUrl = new Map(mediaLibrary.map((entry) => [String(entry.url || '').trim(), entry]));
+            const mediaIds = [];
+            mediaItems.forEach((item) => {
+                const mediaSrc = normalizeProjectMediaPath(String(item?.mediaSrc || '').trim());
+                if (!mediaSrc) return;
+                let entry = mediaByUrl.get(mediaSrc);
+                if (!entry) {
+                    entry = normalizeMediaLibraryRecord({
+                        id: `media_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                        title: String(projectTitle?.value || 'Project media').trim(),
+                        url: mediaSrc,
+                        type: String(item?.mediaType || 'image').trim().toLowerCase() || 'image',
+                        provider: /res\.cloudinary\.com/i.test(mediaSrc) ? 'cloudinary' : 'external',
+                        createdAt: new Date().toISOString()
+                    });
+                    if (!entry) return;
+                    mediaLibrary.unshift(entry);
+                    mediaByUrl.set(mediaSrc, entry);
+                }
+                if (entry?.id && !mediaIds.includes(entry.id)) mediaIds.push(entry.id);
+            });
+            if (mediaLibrary.length) {
+                saveMediaLibraryRecords(mediaLibrary);
+            }
             const project = {
                 createdAt: new Date().toISOString(),
                 title: projectTitle?.value || 'Project',
@@ -2953,9 +3149,17 @@
                 mediaSrc: primary.mediaSrc || '',
                 thumbSrc: primary.thumbSrc || '',
                 mediaItems,
+                mediaIds,
                 featured: true,
                 showcase: true,
                 services: true,
+                hero: false,
+                integrity: false,
+                showInFeatured: true,
+                showInShowcase: true,
+                showInServices: true,
+                showInHero: false,
+                showInIntegrity: false,
                 isStarred: false,
                 isFeatured: false
             };
@@ -2963,6 +3167,18 @@
             try {
                 if (firebaseIsReady()) {
                     setUploadUiState({ active: true, pct: 100, text: 'Saving...' });
+                    const db = ensureFirebaseDb();
+                    if (db && Array.isArray(mediaLibrary)) {
+                        const mediaUpdates = {};
+                        mediaLibrary.forEach((entry) => {
+                            const id = String(entry?.id || '').trim();
+                            if (!id) return;
+                            mediaUpdates[id] = entry;
+                        });
+                        if (Object.keys(mediaUpdates).length) {
+                            await db.ref(getFirebaseMediaLibraryPath()).update(mediaUpdates);
+                        }
+                    }
                     await addProjectInFirebase(project);
                     alert('Project Saved Successfully!');
                 } else {
@@ -3503,7 +3719,7 @@
                 reviewPublicName.textContent = name;
             }
             if (reviewPublicPostingText) {
-                reviewPublicPostingText.textContent = `Posting publicly as ${name}`;
+                reviewPublicPostingText.textContent = `Posting publicly as ${name} on hailifugh.com`;
             }
             if (reviewPublicAvatar) {
                 if (photo) reviewPublicAvatar.src = photo;
@@ -3528,7 +3744,7 @@
             ).trim() || 'Verified Client';
             const photo = normalizeReviewPhotoUrl(normalized.photoURL || '');
             if (reviewModalIdentityName) reviewModalIdentityName.textContent = name;
-            if (reviewModalIdentityMeta) reviewModalIdentityMeta.textContent = 'Posting publicly across Google';
+            if (reviewModalIdentityMeta) reviewModalIdentityMeta.textContent = 'Posting publicly on hailifugh.com and across Google';
             if (reviewModalIdentityAvatar) {
                 if (show && photo) reviewModalIdentityAvatar.src = photo;
                 else reviewModalIdentityAvatar.removeAttribute('src');
@@ -3891,7 +4107,7 @@
                 reviewModalTitleEcho.textContent = 'HAILIFU BRILLIANT INSTALLATION';
             }
             if (reviewModalSubtitle) {
-                reviewModalSubtitle.textContent = 'Posting publicly across Google';
+                reviewModalSubtitle.textContent = 'Posting publicly on hailifugh.com and across Google';
             }
         }
 
@@ -4740,11 +4956,6 @@
 
         function closeReviewModal() {
             if (!reviewModal) return;
-            // Remove focus from any element inside the modal before hiding
-            const activeElement = document.activeElement;
-            if (activeElement && reviewModal.contains(activeElement)) {
-                activeElement.blur();
-            }
             setReviewIdentityLoading(false);
             clearReviewIdentityFailureState();
             reviewModal.classList.remove('active');
@@ -5220,76 +5431,93 @@
             }
             const existing = document.getElementById('adminPanel');
             if (existing) {
-                existing.classList.add('admin-login-modal');
                 adminPanel = existing;
                 return adminPanel;
             }
             const markup = `
                 <div class="admin-backdrop" id="adminBackdrop" aria-hidden="true"></div>
-                <div class="admin-panel admin-login-modal" id="adminPanel" aria-hidden="true">
-                    <div class="admin-header">
-                        <div class="admin-brand">
-                            <div class="admin-logo-wrap">
-                                <img src="./logo.webp" alt="Hailifu" class="admin-logo">
-                            </div>
-                            <div class="admin-brand-text">
-                                <div class="admin-title">Premium Command Center</div>
-                                <div class="admin-subtitle">Hailifu Ops Console</div>
-                            </div>
+                <div class="admin-panel" id="adminPanel" aria-hidden="true" style="display: none; opacity: 0;">
+                    <nav class="admin-sidebar">
+                        <div class="admin-sidebar-brand">
+                            <img src="./logo.webp" alt="Hailifu" class="admin-sidebar-logo">
+                            <span class="admin-sidebar-title">HAILIFU</span>
                         </div>
-
-                        <div class="admin-status" role="status" aria-live="polite">
-                            <span class="status-pulse" aria-hidden="true"></span>
-                            <div class="status-text">
-                                <span class="status-label">System Status</span>
-                                <span class="status-value">Operational</span>
+                        <ul class="admin-sidebar-nav">
+                            <li class="admin-sidebar-item active" data-admin-tab="overview">
+                                <i class="fas fa-gauge-high"></i> <span>Dashboard</span>
+                            </li>
+                            <li class="admin-sidebar-item" data-admin-tab="leads">
+                                <i class="fas fa-id-card"></i> <span>Leads</span>
+                            </li>
+                            <li class="admin-sidebar-item" data-admin-tab="projects">
+                                <i class="fas fa-images"></i> <span>Projects</span>
+                            </li>
+                            <li class="admin-sidebar-item" data-admin-tab="media">
+                                <i class="fas fa-photo-film"></i> <span>Media</span>
+                            </li>
+                            <li class="admin-sidebar-item" data-admin-tab="sections">
+                                <i class="fas fa-sitemap"></i> <span>Sections</span>
+                            </li>
+                            <li class="admin-sidebar-item" data-admin-tab="reviews">
+                                <i class="fas fa-star"></i> <span>Reviews</span>
+                            </li>
+                        </ul>
+                        <div class="admin-sidebar-footer">
+                            <div class="admin-sidebar-status" role="status" aria-live="polite">
+                                <span class="status-pulse" aria-hidden="true"></span>
+                                <span>System Online</span>
                             </div>
+                            <button class="admin-sidebar-close" id="adminToggle" type="button" aria-label="Close admin panel">
+                                <i class="fas fa-arrow-left"></i> <span>Exit</span>
+                            </button>
                         </div>
-
-                        <button class="admin-toggle" id="adminToggle" type="button" aria-label="Close admin panel">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    <div class="admin-content">
-                        <div class="admin-tabs">
-                            <button class="admin-tab active" type="button" data-admin-tab="overview">Overview</button>
-                            <button class="admin-tab" type="button" data-admin-tab="leads">Leads</button>
-                            <button class="admin-tab" type="button" data-admin-tab="projects">Projects</button>
-                            <button class="admin-tab" type="button" data-admin-tab="reviews">Reviews</button>
-                        </div>
-                        <div class="admin-tab-panel active" data-admin-panel="overview">
-                            <div class="command-center-grid">
-                                <div class="admin-section admin-section--metrics full-span">
-                                    <div class="admin-section-heading">
-                                        <h3><i class="fas fa-gauge-high"></i> Performance Metrics</h3>
-                                        <span class="admin-section-tag">Live Sync</span>
-                                    </div>
-                                    <div class="metrics-grid">
-                                        <div class="metrics-card metrics-card--accent">
-                                            <span class="metrics-label">Total Leads</span>
-                                            <div class="metrics-value" id="overviewTotalLeads">0</div>
-                                            <span class="metrics-meta">Active inquiries</span>
-                                        </div>
-                                        <div class="metrics-card">
-                                            <span class="metrics-label">Reviews</span>
-                                            <div class="metrics-value" id="overviewRecentReviews">0</div>
-                                            <span class="metrics-meta">Awaiting approval</span>
-                                        </div>
-                                        <div class="metrics-card metrics-card--success">
-                                            <span class="metrics-label">Page Reach</span>
-                                            <div class="metrics-value" id="overviewReach">0</div>
-                                            <span class="metrics-meta">Weekly touches</span>
-                                        </div>
-                                        <div class="metrics-card">
-                                            <span class="metrics-label">Response Window</span>
-                                            <div class="metrics-value">12m</div>
-                                            <span class="metrics-meta">Avg. turnaround</span>
+                    </nav>
+                    <main class="admin-main">
+                        <header class="admin-main-header">
+                            <h1 id="adminMainTitle">System Overview</h1>
+                            <div class="admin-main-header-right">
+                                <span class="admin-portal-badge">Admin Portal</span>
+                            </div>
+                        </header>
+                        <div class="admin-main-content">
+                            <div class="admin-tab-panel active" data-admin-panel="overview">
+                                <section class="admin-stats-grid">
+                                    <div class="admin-stat-card">
+                                        <div class="admin-stat-icon"><i class="fas fa-user-clock"></i></div>
+                                        <div class="admin-stat-body">
+                                            <h3>Total Leads</h3>
+                                            <p id="overviewTotalLeads">0</p>
+                                            <span class="admin-stat-meta">Active inquiries</span>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="admin-section full-span">
+                                    <div class="admin-stat-card">
+                                        <div class="admin-stat-icon"><i class="fas fa-star"></i></div>
+                                        <div class="admin-stat-body">
+                                            <h3>Reviews</h3>
+                                            <p id="overviewRecentReviews">0</p>
+                                            <span class="admin-stat-meta">Awaiting approval</span>
+                                        </div>
+                                    </div>
+                                    <div class="admin-stat-card">
+                                        <div class="admin-stat-icon"><i class="fas fa-satellite-dish"></i></div>
+                                        <div class="admin-stat-body">
+                                            <h3>Page Reach</h3>
+                                            <p id="overviewReach">0</p>
+                                            <span class="admin-stat-meta">Weekly touches</span>
+                                        </div>
+                                    </div>
+                                    <div class="admin-stat-card">
+                                        <div class="admin-stat-icon"><i class="fas fa-clock"></i></div>
+                                        <div class="admin-stat-body">
+                                            <h3>Response Window</h3>
+                                            <p>12m</p>
+                                            <span class="admin-stat-meta">Avg. turnaround</span>
+                                        </div>
+                                    </div>
+                                </section>
+                                <section class="admin-data-section">
                                     <div class="admin-section-heading">
-                                        <h3><i class="fas fa-photo-film"></i> Integrity Media</h3>
+                                        <h2><i class="fas fa-photo-film"></i> Integrity Media</h2>
                                         <span class="admin-section-tag">Site Asset</span>
                                     </div>
                                     <p style="margin-bottom:12px; font-size:0.85rem; color: rgba(255,255,255,0.7);">Media shown in the &quot;Why Choose Us&quot; area. Upload image or video to replace.</p>
@@ -5298,249 +5526,278 @@
                                     <div class="integrity-upload-progress" id="integrityUploadProgress" aria-hidden="true" style="display:none; margin-top:10px;">
                                         <div class="upload-progress-bar"><div class="upload-progress-fill" id="integrityUploadProgressFill" style="width:0%"></div></div>
                                     </div>
-                                </div>
-                                <div class="admin-section admin-section--interest">
-                                    <h3><i class="fas fa-signal"></i> Client Interest</h3>
+                                </section>
+                                <section class="admin-data-section">
+                                    <h2><i class="fas fa-signal"></i> Client Interest</h2>
                                     <div class="interest-grid">
                                         <div class="interest-row">
-                                            <div class="interest-label">
-                                                <span>CCTV</span>
-                                                <strong id="interestCctvCount">0</strong>
-                                            </div>
+                                            <div class="interest-label"><span>CCTV</span><strong id="interestCctvCount">0</strong></div>
                                             <div class="interest-bar"><div class="interest-fill" id="interestCctv"></div></div>
                                         </div>
-
                                         <div class="interest-row">
-                                            <div class="interest-label">
-                                                <span>Electrical</span>
-                                                <strong id="interestElectricalCount">0</strong>
-                                            </div>
+                                            <div class="interest-label"><span>Electrical</span><strong id="interestElectricalCount">0</strong></div>
                                             <div class="interest-bar"><div class="interest-fill" id="interestElectrical"></div></div>
                                         </div>
-
                                         <div class="interest-row">
-                                            <div class="interest-label">
-                                                <span>Air Conditioning</span>
-                                                <strong id="interestAirconditioningCount">0</strong>
-                                            </div>
+                                            <div class="interest-label"><span>Air Conditioning</span><strong id="interestAirconditioningCount">0</strong></div>
                                             <div class="interest-bar"><div class="interest-fill" id="interestAirconditioning"></div></div>
                                         </div>
-
                                         <div class="interest-row">
-                                            <div class="interest-label">
-                                                <span>Smart Window Solutions</span>
-                                                <strong id="interestBlindcurtainCount">0</strong>
-                                            </div>
+                                            <div class="interest-label"><span>Smart Window Solutions</span><strong id="interestBlindcurtainCount">0</strong></div>
                                             <div class="interest-bar"><div class="interest-fill" id="interestBlindcurtain"></div></div>
                                         </div>
-
                                         <div class="interest-row">
-                                            <div class="interest-label">
-                                                <span>Automated Gates</span>
-                                                <strong id="interestGatesCount">0</strong>
-                                            </div>
+                                            <div class="interest-label"><span>Automated Gates</span><strong id="interestGatesCount">0</strong></div>
                                             <div class="interest-bar"><div class="interest-fill" id="interestGates"></div></div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="admin-section admin-section--preview">
-                                    <h3><i class="fas fa-infinity"></i> Live Showcase Loop</h3>
+                                </section>
+                                <section class="admin-data-section">
+                                    <h2><i class="fas fa-infinity"></i> Live Showcase Loop</h2>
                                     <div class="admin-lazyloop" id="adminLazyLoop">
                                         <div class="admin-lazyloop-viewport">
                                             <div class="admin-lazyloop-track" id="adminLazyLoopTrack"></div>
                                         </div>
                                         <div class="admin-lazyloop-dots" id="adminLazyLoopDots" aria-hidden="true"></div>
                                     </div>
-                                </div>
-                                <div class="admin-section admin-section--logs full-span">
+                                </section>
+                                <section class="admin-data-section">
                                     <div class="admin-section-heading">
-                                        <h3><i class="fas fa-terminal"></i> Recent Logs</h3>
+                                        <h2><i class="fas fa-terminal"></i> Recent Logs</h2>
                                         <span class="admin-section-tag">Live Feed</span>
                                     </div>
                                     <div class="admin-logs">
-                                        <div class="log-row">
-                                            <span class="log-time">00:24:18</span>
-                                            <span class="log-message">Deploy package queued</span>
-                                            <span class="log-status"><span class="log-dot" aria-hidden="true"></span>OK</span>
-                                        </div>
-                                        <div class="log-row">
-                                            <span class="log-time">00:24:41</span>
-                                            <span class="log-message">Lead sync handshake</span>
-                                            <span class="log-status"><span class="log-dot" aria-hidden="true"></span>PASS</span>
-                                        </div>
-                                        <div class="log-row">
-                                            <span class="log-time">00:25:02</span>
-                                            <span class="log-message">Media pipeline aligned</span>
-                                            <span class="log-status"><span class="log-dot" aria-hidden="true"></span>LIVE</span>
-                                        </div>
-                                        <div class="log-row">
-                                            <span class="log-time">00:25:30</span>
-                                            <span class="log-message">Analytics pulse check</span>
-                                            <span class="log-status"><span class="log-dot" aria-hidden="true"></span>OK</span>
-                                        </div>
+                                        <div class="log-row"><span class="log-time">00:24:18</span><span class="log-message">Deploy package queued</span><span class="log-status"><span class="log-dot" aria-hidden="true"></span>OK</span></div>
+                                        <div class="log-row"><span class="log-time">00:24:41</span><span class="log-message">Lead sync handshake</span><span class="log-status"><span class="log-dot" aria-hidden="true"></span>PASS</span></div>
+                                        <div class="log-row"><span class="log-time">00:25:02</span><span class="log-message">Media pipeline aligned</span><span class="log-status"><span class="log-dot" aria-hidden="true"></span>LIVE</span></div>
+                                        <div class="log-row"><span class="log-time">00:25:30</span><span class="log-message">Analytics pulse check</span><span class="log-status"><span class="log-dot" aria-hidden="true"></span>OK</span></div>
                                     </div>
-                                </div>
-                                <div class="admin-section admin-section--leads full-span">
-                                    <h3><i class="fas fa-user-clock"></i> Recent Leads</h3>
+                                </section>
+                                <section class="admin-data-section">
+                                    <h2><i class="fas fa-user-clock"></i> Recent Leads</h2>
                                     <div id="overviewLeadsList"></div>
-                                </div>
+                                </section>
                             </div>
-                        </div>
-                        <div class="admin-tab-panel" data-admin-panel="leads">
-                            <div class="admin-section">
-                                <h3><i class="fas fa-id-card"></i> Lead Inbox</h3>
-                                <div id="leadsGrid"></div>
+                            <div class="admin-tab-panel" data-admin-panel="leads">
+                                <section class="admin-data-section">
+                                    <h2><i class="fas fa-id-card"></i> Lead Inbox</h2>
+                                    <div id="leadsGrid"></div>
+                                </section>
                             </div>
-                        </div>
-                        <div class="admin-tab-panel" data-admin-panel="projects">
-                            <div class="admin-section">
-                                <h3><i class="fas fa-images"></i> Gallery Manager</h3>
-                                <p style="margin-bottom:14px; font-size:0.85rem; color: rgba(255,255,255,0.7);">Add Media: upload images/videos, set title and description, delete or reorder. Changes persist after refresh.</p>
-                                <form class="upload-form">
-                                    <div class="form-group">
-                                        <label for="cloudinaryPreset">Cloudinary Unsigned Upload Preset</label>
-                                        <input id="cloudinaryPreset" type="password" placeholder="Preset name">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="firebaseConfig">Firebase Config (JSON)</label>
-                                        <textarea id="firebaseConfig" placeholder='{"apiKey":"...","authDomain":"...","databaseURL":"...","projectId":"...","appId":"..."}'></textarea>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="firebaseProjectsPath">Firebase Projects Path</label>
-                                        <input id="firebaseProjectsPath" type="text" placeholder="hailifu/projects">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="firebaseSettingsPath">Firebase Settings Path</label>
-                                        <input id="firebaseSettingsPath" type="text" placeholder="hailifu/settings">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="remoteConfigPublicId">Remote Config Public ID</label>
-                                        <input id="remoteConfigPublicId" type="text" placeholder="hailifu_site_config">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="remoteConfigUrl">Remote Config URL (optional override)</label>
-                                        <input id="remoteConfigUrl" type="url" placeholder="https://res.cloudinary.com/.../raw/upload/...json">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="projectTitle">Project Title</label>
-                                        <input id="projectTitle" type="text" placeholder="Project name">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="projectCategory">Showcase Project Category</label>
-                                        <select id="projectCategory">
-                                            <option value="all">All Projects</option>
-                                            <option value="cctv">CCTV</option>
-                                            <option value="electrical">Electrical</option>
-                                            <option value="gates">Automated Gates</option>
-                                            <option value="solar">Solar Energy</option>
-                                            <option value="fencing">Electric Fence</option>
-                                            <option value="airconditioning">Air Conditioner</option>
-                                            <option value="blindcurtain">Window Blinds</option>
-                                            <option value="smarthome">Smart Home</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="projectDescription">Description</label>
-                                        <textarea id="projectDescription" placeholder="Short summary"></textarea>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Media Type</label>
-                                        <div class="media-type-toggle">
-                                            <button class="media-btn active" type="button" data-type="image"><i class="fas fa-image"></i> Image</button>
-                                            <button class="media-btn" type="button" data-type="video"><i class="fas fa-video"></i> Video</button>
-                                        </div>
-                                    </div>
-                                    <div class="upload-controls">
+                            <div class="admin-tab-panel" data-admin-panel="projects">
+                                <section class="admin-data-section">
+                                    <h2><i class="fas fa-images"></i> Gallery Manager</h2>
+                                    <p style="margin-bottom:14px; font-size:0.85rem; color: rgba(255,255,255,0.7);">Add Media: upload images/videos, set title and description, delete or reorder. Changes persist after refresh.</p>
+                                    <form class="upload-form">
                                         <div class="form-group">
-                                            <label>Upload Media</label>
-                                            <div class="file-upload-area gallery-manager-dropzone" id="fileUploadArea">
-                                                <div class="upload-content">
-                                                    <i class="fas fa-cloud-upload-alt"></i>
-                                                    <p>Drag and drop or click to upload</p>
-                                                    <span class="file-types">PNG, JPG, MP4 (max 4MB)</span>
+                                            <label for="cloudinaryPreset">Cloudinary Unsigned Upload Preset</label>
+                                            <input id="cloudinaryPreset" type="password" placeholder="Preset name">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="firebaseConfig">Firebase Config (JSON)</label>
+                                            <textarea id="firebaseConfig" placeholder='{"apiKey":"...","authDomain":"...","databaseURL":"...","projectId":"...","appId":"..."}'></textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="firebaseProjectsPath">Firebase Projects Path</label>
+                                            <input id="firebaseProjectsPath" type="text" placeholder="hailifu/projects">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="firebaseSettingsPath">Firebase Settings Path</label>
+                                            <input id="firebaseSettingsPath" type="text" placeholder="hailifu/settings">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="remoteConfigPublicId">Remote Config Public ID</label>
+                                            <input id="remoteConfigPublicId" type="text" placeholder="hailifu_site_config">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="remoteConfigUrl">Remote Config URL (optional override)</label>
+                                            <input id="remoteConfigUrl" type="url" placeholder="https://res.cloudinary.com/.../raw/upload/...json">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="projectTitle">Project Title</label>
+                                            <input id="projectTitle" type="text" placeholder="Project name">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="projectCategory">Showcase Project Category</label>
+                                            <select id="projectCategory">
+                                                <option value="all">All Projects</option>
+                                                <option value="cctv">CCTV</option>
+                                                <option value="electrical">Electrical</option>
+                                                <option value="gates">Automated Gates</option>
+                                                <option value="solar">Solar Energy</option>
+                                                <option value="fencing">Electric Fence</option>
+                                                <option value="airconditioning">Air Conditioner</option>
+                                                <option value="blindcurtain">Window Blinds</option>
+                                                <option value="smarthome">Smart Home</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="projectDescription">Description</label>
+                                            <textarea id="projectDescription" placeholder="Short summary"></textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Media Type</label>
+                                            <div class="media-type-toggle">
+                                                <button class="media-btn active" type="button" data-type="image"><i class="fas fa-image"></i> Image</button>
+                                                <button class="media-btn" type="button" data-type="video"><i class="fas fa-video"></i> Video</button>
+                                            </div>
+                                        </div>
+                                        <div class="upload-controls">
+                                            <div class="form-group">
+                                                <label>Upload Media</label>
+                                                <div class="file-upload-area gallery-manager-dropzone" id="fileUploadArea">
+                                                    <div class="upload-content">
+                                                        <i class="fas fa-cloud-upload-alt"></i>
+                                                        <p>Drag and drop or click to upload</p>
+                                                        <span class="file-types">PNG, JPG, MP4 (max 4MB)</span>
+                                                    </div>
+                                                    <input id="projectFile" class="admin-file-input" type="file" accept="image/*,video/*" multiple style="display:none;">
                                                 </div>
-                                                <input id="projectFile" class="admin-file-input" type="file" accept="image/*,video/*" multiple style="display:none;">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="projectMediaUrl">Or Media URL (YouTube / direct link)</label>
+                                                <input id="projectMediaUrl" type="url" placeholder="https://youtube.com/shorts/...">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Gallery Items</label>
+                                                <div class="gallery-queue" id="galleryQueue" aria-live="polite">
+                                                    <div class="gallery-queue-empty">No media added yet.</div>
+                                                </div>
+                                                <div class="gallery-queue-actions">
+                                                    <button class="upload-btn upload-btn--ghost" id="addGalleryItemBtn" type="button"><i class="fas fa-plus"></i> Add to Gallery</button>
+                                                    <button class="upload-btn upload-btn--ghost" id="clearGalleryBtn" type="button"><i class="fas fa-trash"></i> Clear</button>
+                                                </div>
+                                            </div>
+                                            <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+                                                <input type="checkbox" id="setAsHeroToggle" style="width:auto;">
+                                                <label for="setAsHeroToggle" style="margin:0; text-transform:none; letter-spacing:0; font-weight:700;">Set as Hero Background Video</label>
+                                            </div>
+                                            <button class="upload-btn admin-action-btn" id="uploadBtn" type="button"><i class="fas fa-upload"></i> Save Project</button>
+                                            <div class="upload-progress" id="uploadProgress" aria-hidden="true">
+                                                <div class="upload-progress-row">
+                                                    <span class="upload-spinner" aria-hidden="true"></span>
+                                                    <span class="upload-progress-text" id="uploadProgressText">Uploading...</span>
+                                                </div>
+                                                <div class="upload-progress-bar">
+                                                    <div class="upload-progress-fill" id="uploadProgressFill" style="width:0%"></div>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="form-group">
-                                            <label for="projectMediaUrl">Or Media URL (YouTube / direct link)</label>
-                                            <input id="projectMediaUrl" type="url" placeholder="https://youtube.com/shorts/...">
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Gallery Items</label>
-                                            <div class="gallery-queue" id="galleryQueue" aria-live="polite">
-                                                <div class="gallery-queue-empty">No media added yet.</div>
+                                    </form>
+                                </section>
+                                <section class="admin-data-section">
+                                    <h2><i class="fas fa-photo-film"></i> System Integrity Media</h2>
+                                    <p style="margin-bottom:12px; font-size:0.85rem; color: rgba(255,255,255,0.7);">Upload image or video for the System Integrity block (Uptime / Latency / Coverage).</p>
+                                    <input type="file" id="integrityMediaInputProjects" class="admin-file-input" accept="image/*,video/*" style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;">
+                                    <button class="upload-btn admin-action-btn integrity-graphic-btn" id="integrityMediaBtnProjects" type="button"><i class="fas fa-upload"></i> Upload Integrity Media</button>
+                                    <div class="integrity-upload-progress" id="integrityMediaUploadProgressProjects" aria-hidden="true" style="display:none; margin-top:10px;">
+                                        <div class="upload-progress-bar"><div class="upload-progress-fill" id="integrityMediaUploadProgressFillProjects" style="width:0%"></div></div>
+                                    </div>
+                                </section>
+                                <section class="admin-data-section">
+                                    <h2><i class="fas fa-layer-group"></i> All Media</h2>
+                                    <div id="projectsGrid" class="projects-grid"></div>
+                                </section>
+                            </div>
+                            <div class="admin-tab-panel" data-admin-panel="media">
+                                <section class="admin-data-section">
+                                    <h2><i class="fas fa-photo-film"></i> Media Library</h2>
+                                    <p style="margin-bottom:14px; font-size:0.85rem; color: rgba(255,255,255,0.7);">Upload once, reuse anywhere. Assign media to sections (Hero, About, Services, Showcase, Featured Work) and delete assets safely.</p>
+                                    <div class="media-library-toolbar">
+                                        <input id="mediaLibrarySearch" type="search" placeholder="Search by filename, tag, type..." autocomplete="off">
+                                        <button class="upload-btn upload-btn--ghost" id="mediaLibraryRefreshBtn" type="button"><i class="fas fa-rotate"></i> Refresh</button>
+                                    </div>
+                                    <div class="media-library-uploader">
+                                        <div class="file-upload-area media-library-dropzone" id="mediaLibraryUploadArea">
+                                            <div class="upload-content">
+                                                <i class="fas fa-cloud-upload-alt"></i>
+                                                <p>Drag & drop or click to upload</p>
+                                                <span class="file-types">PNG, JPG, MP4 (Cloudinary)</span>
                                             </div>
-                                            <div class="gallery-queue-actions">
-                                                <button class="upload-btn upload-btn--ghost" id="addGalleryItemBtn" type="button"><i class="fas fa-plus"></i> Add to Gallery</button>
-                                                <button class="upload-btn upload-btn--ghost" id="clearGalleryBtn" type="button"><i class="fas fa-trash"></i> Clear</button>
-                                            </div>
+                                            <input id="mediaLibraryFileInput" class="admin-file-input" type="file" accept="image/*,video/*" multiple style="display:none;">
                                         </div>
-                                        <div class="form-group" style="display:flex; align-items:center; gap:10px;">
-                                            <input type="checkbox" id="setAsHeroToggle" style="width:auto;">
-                                            <label for="setAsHeroToggle" style="margin:0; text-transform:none; letter-spacing:0; font-weight:700;">Set as Hero Background Video</label>
+                                        <div class="media-library-actions">
+                                            <button class="upload-btn admin-action-btn" id="mediaLibraryUploadBtn" type="button"><i class="fas fa-upload"></i> Upload</button>
+                                            <button class="upload-btn upload-btn--ghost" id="mediaLibraryLinkBtn" type="button"><i class="fas fa-link"></i> Add by URL</button>
                                         </div>
-                                        <button class="upload-btn admin-action-btn" id="uploadBtn" type="button"><i class="fas fa-upload"></i> Save Project</button>
-                                        <div class="upload-progress" id="uploadProgress" aria-hidden="true">
+                                        <input id="mediaLibraryUrlInput" type="url" placeholder="https://res.cloudinary.com/... or https://..." autocomplete="off">
+                                        <div class="upload-progress" id="mediaLibraryProgress" aria-hidden="true">
                                             <div class="upload-progress-row">
                                                 <span class="upload-spinner" aria-hidden="true"></span>
-                                                <span class="upload-progress-text" id="uploadProgressText">Uploading...</span>
+                                                <span class="upload-progress-text" id="mediaLibraryProgressText">Uploading...</span>
                                             </div>
                                             <div class="upload-progress-bar">
-                                                <div class="upload-progress-fill" id="uploadProgressFill" style="width:0%"></div>
+                                                <div class="upload-progress-fill" id="mediaLibraryProgressFill" style="width:0%"></div>
                                             </div>
                                         </div>
                                     </div>
-                                </form>
+                                </section>
+                                <section class="admin-data-section">
+                                    <h2><i class="fas fa-grid-2"></i> Library</h2>
+                                    <div id="mediaLibraryGrid" class="media-library-grid"></div>
+                                </section>
                             </div>
-                            <div class="admin-section">
-                                <h3><i class="fas fa-photo-film"></i> System Integrity Media</h3>
-                                <p style="margin-bottom:12px; font-size:0.85rem; color: rgba(255,255,255,0.7);">Upload image or video for the System Integrity block (Uptime / Latency / Coverage).</p>
-                                <input type="file" id="integrityMediaInputProjects" class="admin-file-input" accept="image/*,video/*" style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;">
-                                <button class="upload-btn admin-action-btn integrity-graphic-btn" id="integrityMediaBtnProjects" type="button"><i class="fas fa-upload"></i> Upload Integrity Media</button>
-                                <div class="integrity-upload-progress" id="integrityMediaUploadProgressProjects" aria-hidden="true" style="display:none; margin-top:10px;">
-                                    <div class="upload-progress-bar"><div class="upload-progress-fill" id="integrityMediaUploadProgressFillProjects" style="width:0%"></div></div>
+                            <div class="admin-tab-panel" data-admin-panel="sections">
+                                <section class="admin-data-section">
+                                    <h2><i class="fas fa-sitemap"></i> Section Media</h2>
+                                    <p style="margin-bottom:14px; font-size:0.85rem; color: rgba(255,255,255,0.7);">Pick a section slot, then assign a Media Library item to display on that part of the website.</p>
+                                    <div class="sections-toolbar">
+                                        <label class="sections-label" for="sectionSlotSelect">Section slot</label>
+                                        <select id="sectionSlotSelect"></select>
+                                        <button class="upload-btn upload-btn--ghost" id="sectionsClearSlotBtn" type="button"><i class="fas fa-eraser"></i> Clear slot</button>
+                                    </div>
+                                    <div class="sections-assignment">
+                                        <div class="sections-current" id="sectionsCurrentAssignment"></div>
+                                        <div class="sections-picker">
+                                            <div class="sections-picker-title">Assign from Media Library</div>
+                                            <div id="sectionsMediaPicker" class="media-library-grid media-library-grid--compact"></div>
+                                        </div>
+                                    </div>
+                                </section>
+                            </div>
+                            <div class="admin-tab-panel" data-admin-panel="reviews">
+                                <section class="admin-data-section">
+                                    <h2><i class="fab fa-google"></i> Google Business Reviews</h2>
+                                    <div class="google-business-admin-status">
+                                        <button class="google-business-status" id="googleBusinessStatusBtn" type="button" aria-pressed="false">SYNC PENDING</button>
+                                        <button class="admin-action-btn" id="refreshReviewFeedBtn" type="button" style="margin-top:10px; width: auto; font-size: 0.8rem;"><i class="fas fa-sync-alt"></i> Refresh Feed</button>
+                                        <p id="googleBusinessMessage" style="margin-top:10px;">Connect the Google Business feed to stream verified reviews here.</p>
+                                    </div>
+                                </section>
+                                <section class="admin-data-section admin-section--review-auth">
+                                    <h2><i class="fas fa-user-shield"></i> Firebase Review Access</h2>
+                                    <p id="reviewAuthStatus" class="review-auth-status">Sign in with Firebase to access pending reviews.</p>
+                                    <form id="reviewAuthForm" class="review-auth-form" autocomplete="on">
+                                        <div class="review-auth-grid">
+                                            <input id="reviewAuthEmail" type="email" placeholder="admin@hailifu.com" autocomplete="username">
+                                            <input id="reviewAuthPassword" type="password" placeholder="Firebase password" autocomplete="current-password">
+                                        </div>
+                                        <div class="review-admin-actions">
+                                            <button type="submit" class="review-admin-btn approve" id="reviewAuthLoginBtn">Firebase Login</button>
+                                            <button type="button" class="review-admin-btn delete" id="reviewAuthLogoutBtn">Sign Out</button>
+                                        </div>
+                                    </form>
+                                </section>
+                                <div class="admin-review-module" id="reviewModerationShell" hidden>
+                                    <section class="admin-data-section">
+                                        <h2><i class="fas fa-sliders-h"></i> Review Settings</h2>
+                                        <label style="display:flex; align-items:center; gap:10px; color: rgba(255,255,255,0.85);">
+                                            <input type="checkbox" id="reviewsRequireApproval">
+                                            Require approval before reviews appear publicly.
+                                        </label>
+                                    </section>
+                                    <section class="admin-data-section">
+                                        <h2><i class="fas fa-hourglass-half"></i> Pending Reviews</h2>
+                                        <div id="pendingReviewsGrid" class="admin-review-stack"></div>
+                                    </section>
+                                    <section class="admin-data-section">
+                                        <h2><i class="fas fa-check-circle"></i> Published Reviews</h2>
+                                        <div id="publishedReviewsGrid" class="admin-review-stack"></div>
+                                    </section>
                                 </div>
-                            </div>
-                            <div class="admin-section">
-                                <h3><i class="fas fa-layer-group"></i> All Media</h3>
-                                <div id="projectsGrid" class="projects-grid"></div>
                             </div>
                         </div>
-                        <div class="admin-tab-panel" data-admin-panel="reviews">
-                            <div class="admin-section admin-section--review-auth">
-                                <h3><i class="fas fa-user-shield"></i> Firebase Review Access</h3>
-                                <p id="reviewAuthStatus" class="review-auth-status">Sign in with Firebase to access pending reviews.</p>
-                                <form id="reviewAuthForm" class="review-auth-form" autocomplete="on">
-                                    <div class="review-auth-grid">
-                                        <input id="reviewAuthEmail" type="email" placeholder="admin@hailifu.com" autocomplete="username">
-                                        <input id="reviewAuthPassword" type="password" placeholder="Firebase password" autocomplete="current-password">
-                                    </div>
-                                    <div class="review-admin-actions">
-                                        <button type="submit" class="review-admin-btn approve" id="reviewAuthLoginBtn">Firebase Login</button>
-                                        <button type="button" class="review-admin-btn delete" id="reviewAuthLogoutBtn">Sign Out</button>
-                                    </div>
-                                </form>
-                            </div>
-                            <div class="admin-review-module" id="reviewModerationShell" hidden>
-                                <div class="admin-section">
-                                    <h3><i class="fas fa-sliders-h"></i> Review Settings</h3>
-                                    <label style="display:flex; align-items:center; gap:10px; color: rgba(255,255,255,0.85);">
-                                        <input type="checkbox" id="reviewsRequireApproval">
-                                        Require approval before reviews appear publicly.
-                                    </label>
-                                </div>
-                                <div class="admin-section">
-                                    <h3><i class="fas fa-hourglass-half"></i> Pending Reviews</h3>
-                                    <div id="pendingReviewsGrid" class="admin-review-stack"></div>
-                                </div>
-                                <div class="admin-section">
-                                    <h3><i class="fas fa-check-circle"></i> Published Reviews</h3>
-                                    <div id="publishedReviewsGrid" class="admin-review-stack"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    </main>
                 </div>
             `;
             document.body.insertAdjacentHTML('beforeend', markup);
@@ -5658,7 +5915,7 @@
                     <div class="admin-lazyloop-slide is-empty">
                         <div class="admin-lazyloop-overlay">
                             <div class="admin-lazyloop-title">No projects yet</div>
-                            <div class="admin-lazyloop-subtitle">Add a project in the Admin Panel to see it here.</div>
+                            <div class="admin-lazyloop-subtitle">Add a project in the Admin Portal to see it here.</div>
                         </div>
                     </div>
                 `;
@@ -5727,18 +5984,27 @@
         }
 
         function setAdminTab(tabKey) {
-            if (!adminTabs.length || !adminTabPanels.length) {
-                adminTabs = Array.from(document.querySelectorAll('.admin-tab'));
+            if (!adminTabPanels.length) {
+                adminTabs = Array.from(document.querySelectorAll('.admin-tab, .admin-sidebar-item'));
                 adminTabPanels = Array.from(document.querySelectorAll('.admin-tab-panel'));
             }
-            if (!adminTabs.length || !adminTabPanels.length) return;
+            const sidebarItems = Array.from(document.querySelectorAll('.admin-sidebar-item'));
+            if (!adminTabPanels.length) return;
 
             const normalizedKey = String(tabKey || '').trim().toLowerCase();
             if (!normalizedKey) return;
 
+            const titleMap = { overview: 'System Overview', leads: 'Lead Inbox', projects: 'Gallery Manager', media: 'Media Library', sections: 'Section Media', reviews: 'Reviews' };
+            const titleEl = document.getElementById('adminMainTitle');
+            if (titleEl) titleEl.textContent = titleMap[normalizedKey] || 'Dashboard';
+
             adminTabs.forEach((tab) => {
                 const tabValue = String(tab.dataset.adminTab || '').trim().toLowerCase();
                 tab.classList.toggle('active', tabValue === normalizedKey);
+            });
+            sidebarItems.forEach((item) => {
+                const itemValue = String(item.dataset.adminTab || '').trim().toLowerCase();
+                item.classList.toggle('active', itemValue === normalizedKey);
             });
             adminTabPanels.forEach((panel) => {
                 const panelValue = String(panel.dataset.adminPanel || '').trim().toLowerCase();
@@ -5751,13 +6017,301 @@
             else stopAdminLazyLoop();
         }
 
+        function setMediaLibraryProgress(state) {
+            const active = !!state?.active;
+            const pct = Math.max(0, Math.min(100, Number(state?.pct) || 0));
+            const text = String(state?.text || '').trim();
+            if (mediaLibraryProgress) {
+                mediaLibraryProgress.classList.toggle('is-active', active);
+                mediaLibraryProgress.setAttribute('aria-hidden', String(!active));
+            }
+            if (mediaLibraryProgressFill) mediaLibraryProgressFill.style.width = `${pct}%`;
+            if (mediaLibraryProgressText && text) mediaLibraryProgressText.textContent = text;
+        }
+
+        function upsertMediaLibraryRecord(record) {
+            const normalized = normalizeMediaLibraryRecord(record);
+            if (!normalized) return Promise.reject(new Error('Invalid media record'));
+            const current = getMediaLibraryRecords();
+            const idx = current.findIndex((item) => String(item?.id || '') === normalized.id);
+            const next = current.slice();
+            if (idx >= 0) next[idx] = { ...current[idx], ...normalized };
+            else next.unshift(normalized);
+            saveMediaLibraryRecords(next);
+            if (firebaseIsReady()) {
+                const db = ensureFirebaseDb();
+                if (db) return db.ref(`${getFirebaseMediaLibraryPath()}/${normalized.id}`).set(normalized);
+            }
+            renderMediaLibraryAndSections();
+            return Promise.resolve();
+        }
+
+        function removeMediaLibraryRecord(mediaId) {
+            const id = String(mediaId || '').trim();
+            if (!id) return Promise.resolve();
+            const current = getMediaLibraryRecords();
+            const target = current.find((entry) => String(entry?.id || '') === id);
+            const next = current.filter((entry) => String(entry?.id || '') !== id);
+            saveMediaLibraryRecords(next);
+
+            const assignments = { ...getSectionMediaAssignments() };
+            Object.keys(assignments).forEach((slotKey) => {
+                if (String(assignments?.[slotKey]?.mediaId || '') === id) delete assignments[slotKey];
+            });
+            saveSectionMediaAssignments(assignments);
+
+            const projects = getProjects().map((project) => {
+                const mediaIds = Array.isArray(project?.mediaIds) ? project.mediaIds : [];
+                if (!mediaIds.length) return project;
+                const filtered = mediaIds.filter((entryId) => String(entryId || '') !== id);
+                return { ...project, mediaIds: filtered };
+            });
+            saveProjects(projects);
+
+            if (!firebaseIsReady()) {
+                renderMediaLibraryAndSections();
+                loadProjects();
+                return Promise.resolve();
+            }
+
+            const db = ensureFirebaseDb();
+            const tasks = [];
+            const failures = [];
+            if (db) {
+                tasks.push({
+                    label: 'RTDB media record',
+                    op: db.ref(`${getFirebaseMediaLibraryPath()}/${id}`).remove()
+                });
+                tasks.push({
+                    label: 'RTDB section assignments',
+                    op: db.ref(getFirebaseSectionMediaPath()).set(assignments)
+                });
+                const updates = {};
+                projects.forEach((project) => {
+                    if (!project?.id) return;
+                    updates[`${project.id}/mediaIds`] = Array.isArray(project.mediaIds) ? project.mediaIds : [];
+                });
+                tasks.push({
+                    label: 'RTDB projects mediaIds',
+                    op: db.ref(getFirebaseProjectsPath()).update(updates)
+                });
+            } else {
+                tasks.push({
+                    label: 'Firebase database',
+                    op: Promise.reject(new Error('Firebase Realtime Database unavailable.'))
+                });
+            }
+
+            if (target?.provider === 'firebase') {
+                const storage = ensureFirebaseStorageService();
+                if (storage && target?.url) {
+                    try {
+                        tasks.push({
+                            label: 'Firebase Storage file',
+                            op: storage.refFromURL(target.url).delete()
+                        });
+                    } catch {}
+                }
+            }
+
+            if (target?.provider === 'cloudinary' && target?.publicId) {
+                // Skip Firebase callable function for Cloudinary deletion
+                // Cloudinary assets can be deleted via the Cloudinary dashboard or API directly
+                console.log('[HAILIFU] Cloudinary asset deletion skipped (Firebase function disabled):', target.publicId);
+            }
+
+            return Promise.allSettled(tasks.map((entry) => entry.op)).then((results) => {
+                results.forEach((result, idx) => {
+                    if (result.status === 'rejected') {
+                        const label = tasks[idx]?.label || 'Delete step';
+                        const reason = String(result.reason?.message || result.reason || 'Unknown failure');
+                        failures.push(`${label}: ${reason}`);
+                    }
+                });
+                renderMediaLibraryAndSections();
+                loadProjects();
+                if (failures.length) {
+                    const blocked = failures.some((msg) => /permission|denied|unauth|auth|required/i.test(String(msg)));
+                    if (blocked) {
+                        throw new Error(`Delete partially failed (permissions): ${failures.join(' | ')}`);
+                    }
+                    throw new Error(`Delete partially failed: ${failures.join(' | ')}`);
+                }
+            });
+        }
+
+        function getCurrentSectionSlotKey() {
+            return String(sectionSlotSelect?.value || MEDIA_SECTION_SLOTS[0]?.key || '').trim();
+        }
+
+        function assignMediaToSection(slotKey, mediaId) {
+            const slot = String(slotKey || '').trim();
+            const id = String(mediaId || '').trim();
+            if (!slot) return Promise.resolve();
+            const next = { ...getSectionMediaAssignments() };
+            if (id) next[slot] = { mediaId: id };
+            else delete next[slot];
+            saveSectionMediaAssignments(next);
+            renderMediaLibraryAndSections();
+            if (firebaseIsReady()) {
+                const db = ensureFirebaseDb();
+                if (db) return db.ref(getFirebaseSectionMediaPath()).set(next);
+            }
+            return Promise.resolve();
+        }
+
+        async function uploadMediaLibraryFiles(files) {
+            const list = Array.from(files || []).filter(Boolean);
+            if (!list.length) return;
+            const preset = getCloudinaryPresetValue();
+            if (!preset) throw new Error('Set Cloudinary preset first in Projects tab.');
+            persistCloudinaryPreset();
+            for (let i = 0; i < list.length; i += 1) {
+                const file = list[i];
+                setMediaLibraryProgress({ active: true, pct: Math.round((i / list.length) * 100), text: `Uploading ${i + 1}/${list.length}...` });
+                const payload = await cloudinaryUnsignedUpload(file, {
+                    preset,
+                    resourceType: 'auto',
+                    folder: 'hailifu/media-library',
+                    onProgress: (pct) => {
+                        const overall = Math.round(((i + (pct / 100)) / list.length) * 100);
+                        setMediaLibraryProgress({ active: true, pct: overall, text: `Uploading ${i + 1}/${list.length}...` });
+                    }
+                });
+                const secureUrl = String(payload?.secure_url || '').trim();
+                if (!secureUrl) continue;
+                const mediaType = String(payload?.resource_type || '').toLowerCase() === 'video' ? 'video' : 'image';
+                const record = {
+                    id: `media_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                    title: String(file?.name || '').trim(),
+                    url: secureUrl,
+                    type: mediaType,
+                    provider: 'cloudinary',
+                    publicId: String(payload?.public_id || '').trim(),
+                    resourceType: String(payload?.resource_type || 'auto').trim().toLowerCase(),
+                    createdAt: new Date().toISOString()
+                };
+                await upsertMediaLibraryRecord(record);
+            }
+            setMediaLibraryProgress({ active: false, pct: 0, text: 'Uploading...' });
+        }
+
+        function mediaTypeFromUrl(rawUrl) {
+            const raw = String(rawUrl || '').trim().toLowerCase();
+            if (!raw) return 'image';
+            if (/youtube\.com|youtu\.be/.test(raw)) return 'youtube';
+            if (/\.(mp4|webm|mov|m4v|ogg|ogv)(\?|#|$)/i.test(raw) || raw.includes('/video/upload/')) return 'video';
+            return 'image';
+        }
+
+        function renderMediaLibraryCard(item, opts = {}) {
+            const compact = !!opts.compact;
+            const id = String(item?.id || '').trim();
+            const title = escapeHtml(String(item?.title || id || 'Media'));
+            const url = String(item?.url || '').trim();
+            const safeUrl = escapeHtml(url);
+            const type = String(item?.type || 'image').toLowerCase();
+            const provider = escapeHtml(String(item?.provider || 'external').toUpperCase());
+            const preview = type === 'video'
+                ? `<video src="${safeUrl}" muted playsinline webkit-playsinline preload="metadata"></video>`
+                : `<img src="${safeUrl}" alt="${title}" loading="lazy" decoding="async">`;
+            const assignBtn = `<button class="upload-btn upload-btn--ghost" type="button" data-media-assign="${id}">Assign</button>`;
+            const deleteBtn = compact ? '' : `<button class="upload-btn upload-btn--ghost" type="button" data-media-delete="${id}">Delete</button>`;
+            return `
+                <article class="media-asset-card" data-media-id="${id}">
+                    <div class="media-asset-preview">${preview}</div>
+                    <div class="media-asset-meta">
+                        <div class="media-asset-title">${title}</div>
+                        <div class="media-asset-submeta"><span>${escapeHtml(type.toUpperCase())}</span><span>${provider}</span></div>
+                        <div class="media-asset-actions">${assignBtn}${deleteBtn}</div>
+                    </div>
+                </article>
+            `;
+        }
+
+        function renderMediaLibraryAndSections() {
+            const all = getMediaLibraryRecords()
+                .map(normalizeMediaLibraryRecord)
+                .filter((entry) => entry && !entry.deletedAt);
+            const search = String(mediaLibrarySearch?.value || '').trim().toLowerCase();
+            const filtered = !search
+                ? all
+                : all.filter((entry) => {
+                    const hay = `${entry.title} ${entry.url} ${entry.type} ${(entry.tags || []).join(' ')}`.toLowerCase();
+                    return hay.includes(search);
+                });
+
+            if (mediaLibraryGrid) {
+                mediaLibraryGrid.innerHTML = filtered.length
+                    ? filtered.map((entry) => renderMediaLibraryCard(entry)).join('')
+                    : '<div class="admin-empty">No media in library yet.</div>';
+                bindHailifuMediaFallback(mediaLibraryGrid, 'HAILIFU');
+            }
+
+            if (sectionSlotSelect) {
+                if (!sectionSlotSelect.dataset.ready) {
+                    sectionSlotSelect.innerHTML = MEDIA_SECTION_SLOTS.map((slot) => `<option value="${escapeHtml(slot.key)}">${escapeHtml(slot.label)}</option>`).join('');
+                    sectionSlotSelect.dataset.ready = '1';
+                }
+            }
+
+            const slot = getCurrentSectionSlotKey();
+            const assignments = getSectionMediaAssignments();
+            const assignedId = String(assignments?.[slot]?.mediaId || '').trim();
+            const assigned = all.find((entry) => String(entry?.id || '') === assignedId);
+            if (sectionsCurrentAssignment) {
+                sectionsCurrentAssignment.innerHTML = assigned
+                    ? `Current: <strong>${escapeHtml(assigned.title || assigned.id)}</strong> (${escapeHtml(assigned.type)})`
+                    : 'Current: <strong>None</strong>';
+            }
+
+            if (sectionsMediaPicker) {
+                sectionsMediaPicker.innerHTML = filtered.length
+                    ? filtered.map((entry) => renderMediaLibraryCard(entry, { compact: true })).join('')
+                    : '<div class="admin-empty">No media available to assign.</div>';
+                bindHailifuMediaFallback(sectionsMediaPicker, 'HAILIFU');
+            }
+        }
+
+        function getSectionAssignedMedia(slotKey) {
+            const slot = String(slotKey || '').trim();
+            if (!slot) return null;
+            const assignments = getSectionMediaAssignments();
+            const mediaId = String(assignments?.[slot]?.mediaId || '').trim();
+            if (!mediaId) return null;
+            const media = getMediaLibraryMap()[mediaId];
+            if (!media) return null;
+            return normalizeMediaLibraryRecord(media);
+        }
+
+        function applySectionMediaAssignments() {
+            const heroMedia = getSectionAssignedMedia('hero.background');
+            if (heroMedia?.url) {
+                if (heroMedia.type === 'video') {
+                    try { initHeroVideo(heroMedia.url); } catch {}
+                } else {
+                    const heroContainer = document.querySelector('.hero-video-container');
+                    if (heroContainer) {
+                        heroContainer.style.backgroundImage = `url("${heroMedia.url.replace(/"/g, '\\"')}")`;
+                        heroContainer.style.backgroundSize = 'cover';
+                        heroContainer.style.backgroundPosition = 'center center';
+                    }
+                }
+            }
+
+            const integrityMedia = getSectionAssignedMedia('about.integrityMedia');
+            if (integrityMedia?.url) {
+                try { loadIntegrityImage(integrityMedia.url); } catch {}
+            }
+        }
+
         function syncOpsNodes() {
             if (!adminPanel || adminBindingsReady) return;
             adminBindingsReady = true;
 
             adminBackdrop = document.getElementById('adminBackdrop');
             adminToggle = document.getElementById('adminToggle');
-            adminTabs = Array.from(document.querySelectorAll('.admin-tab'));
+            adminTabs = Array.from(document.querySelectorAll('.admin-tab, .admin-sidebar-item'));
             adminTabPanels = Array.from(document.querySelectorAll('.admin-tab-panel'));
             reviewsRequireApproval = document.getElementById('reviewsRequireApproval');
             pendingReviewsGrid = document.getElementById('pendingReviewsGrid');
@@ -5806,6 +6360,21 @@
             addGalleryItemBtn = document.getElementById('addGalleryItemBtn');
             clearGalleryBtn = document.getElementById('clearGalleryBtn');
             mediaTypeButtons = Array.from(document.querySelectorAll('.media-btn'));
+            mediaLibrarySearch = document.getElementById('mediaLibrarySearch');
+            mediaLibraryRefreshBtn = document.getElementById('mediaLibraryRefreshBtn');
+            mediaLibraryUploadArea = document.getElementById('mediaLibraryUploadArea');
+            mediaLibraryFileInput = document.getElementById('mediaLibraryFileInput');
+            mediaLibraryUploadBtn = document.getElementById('mediaLibraryUploadBtn');
+            mediaLibraryLinkBtn = document.getElementById('mediaLibraryLinkBtn');
+            mediaLibraryUrlInput = document.getElementById('mediaLibraryUrlInput');
+            mediaLibraryGrid = document.getElementById('mediaLibraryGrid');
+            mediaLibraryProgress = document.getElementById('mediaLibraryProgress');
+            mediaLibraryProgressFill = document.getElementById('mediaLibraryProgressFill');
+            mediaLibraryProgressText = document.getElementById('mediaLibraryProgressText');
+            sectionSlotSelect = document.getElementById('sectionSlotSelect');
+            sectionsClearSlotBtn = document.getElementById('sectionsClearSlotBtn');
+            sectionsCurrentAssignment = document.getElementById('sectionsCurrentAssignment');
+            sectionsMediaPicker = document.getElementById('sectionsMediaPicker');
 
             adminLazyLoop = document.getElementById('adminLazyLoop');
             adminLazyLoopTrack = document.getElementById('adminLazyLoopTrack');
@@ -5813,6 +6382,21 @@
 
             if (adminToggle) {
                 adminToggle.addEventListener('click', haltDataSync);
+            }
+
+            const refreshReviewBtn = document.getElementById('refreshReviewFeedBtn');
+            if (refreshReviewBtn) {
+                refreshReviewBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    refreshReviewBtn.disabled = true;
+                    refreshReviewBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+                    refreshLiveReviewSection();
+                    setTimeout(() => {
+                        refreshReviewBtn.disabled = false;
+                        refreshReviewBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh Feed';
+                        showAdminMediaToast('Review feed refreshed', 'success');
+                    }, 1500);
+                });
             }
 
             if (adminBackdrop) {
@@ -6002,6 +6586,140 @@
                 });
             }
 
+            if (mediaLibrarySearch) {
+                mediaLibrarySearch.addEventListener('input', () => {
+                    renderMediaLibraryAndSections();
+                });
+            }
+
+            if (mediaLibraryRefreshBtn) {
+                mediaLibraryRefreshBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    renderMediaLibraryAndSections();
+                });
+            }
+
+            if (mediaLibraryUploadArea && mediaLibraryFileInput) {
+                const openPicker = () => {
+                    try {
+                        mediaLibraryFileInput.focus();
+                        mediaLibraryFileInput.click();
+                    } catch {}
+                };
+                mediaLibraryUploadArea.addEventListener('click', openPicker);
+                mediaLibraryUploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    mediaLibraryUploadArea.classList.add('dragover');
+                });
+                mediaLibraryUploadArea.addEventListener('dragleave', () => mediaLibraryUploadArea.classList.remove('dragover'));
+                mediaLibraryUploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    mediaLibraryUploadArea.classList.remove('dragover');
+                    if (e.dataTransfer?.files?.length) {
+                        try { mediaLibraryFileInput.files = e.dataTransfer.files; } catch {}
+                    }
+                });
+            }
+
+            if (mediaLibraryUploadBtn) {
+                mediaLibraryUploadBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    try {
+                        await uploadMediaLibraryFiles(mediaLibraryFileInput?.files || []);
+                        if (mediaLibraryFileInput) mediaLibraryFileInput.value = '';
+                        showAdminMediaToast('Media uploaded to library.', 'success');
+                    } catch (error) {
+                        const message = String(error?.message || error || 'Upload failed');
+                        showAdminMediaToast(message, 'error');
+                    } finally {
+                        setMediaLibraryProgress({ active: false, pct: 0, text: 'Uploading...' });
+                        renderMediaLibraryAndSections();
+                    }
+                });
+            }
+
+            if (mediaLibraryLinkBtn) {
+                mediaLibraryLinkBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    const raw = String(mediaLibraryUrlInput?.value || '').trim();
+                    if (!raw) {
+                        showAdminMediaToast('Enter media URL first.', 'warning');
+                        return;
+                    }
+                    const record = {
+                        id: `media_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                        title: raw.split('/').pop() || 'Linked media',
+                        url: raw,
+                        type: mediaTypeFromUrl(raw),
+                        provider: /res\.cloudinary\.com/i.test(raw) ? 'cloudinary' : (/firebasestorage/i.test(raw) ? 'firebase' : 'external'),
+                        createdAt: new Date().toISOString()
+                    };
+                    await upsertMediaLibraryRecord(record);
+                    if (mediaLibraryUrlInput) mediaLibraryUrlInput.value = '';
+                    renderMediaLibraryAndSections();
+                    showAdminMediaToast('Media URL added.', 'success');
+                });
+            }
+
+            if (mediaLibraryGrid) {
+                mediaLibraryGrid.addEventListener('click', (e) => {
+                    const assignBtn = e.target.closest('[data-media-assign]');
+                    if (assignBtn) {
+                        e.preventDefault();
+                        const id = String(assignBtn.getAttribute('data-media-assign') || '').trim();
+                        assignMediaToSection(getCurrentSectionSlotKey(), id).then(() => {
+                            showAdminMediaToast('Media assigned to section.', 'success');
+                        }).catch((error) => {
+                            showAdminMediaToast(String(error?.message || error || 'Assign failed'), 'error');
+                        });
+                        return;
+                    }
+                    const deleteBtn = e.target.closest('[data-media-delete]');
+                    if (deleteBtn) {
+                        e.preventDefault();
+                        const id = String(deleteBtn.getAttribute('data-media-delete') || '').trim();
+                        removeMediaLibraryRecord(id).then(() => {
+                            showAdminMediaToast('Media deleted.', 'success');
+                        }).catch((error) => {
+                            showAdminMediaToast(String(error?.message || error || 'Delete failed'), 'error');
+                        });
+                    }
+                });
+            }
+
+            if (sectionSlotSelect) {
+                sectionSlotSelect.addEventListener('change', () => {
+                    renderMediaLibraryAndSections();
+                });
+            }
+
+            if (sectionsClearSlotBtn) {
+                sectionsClearSlotBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    assignMediaToSection(getCurrentSectionSlotKey(), '').then(() => {
+                        showAdminMediaToast('Section slot cleared.', 'success');
+                    }).catch((error) => {
+                        showAdminMediaToast(String(error?.message || error || 'Clear failed'), 'error');
+                    });
+                });
+            }
+
+            if (sectionsMediaPicker) {
+                sectionsMediaPicker.addEventListener('click', (e) => {
+                    const assignBtn = e.target.closest('[data-media-assign]');
+                    if (!assignBtn) return;
+                    e.preventDefault();
+                    const id = String(assignBtn.getAttribute('data-media-assign') || '').trim();
+                    assignMediaToSection(getCurrentSectionSlotKey(), id).then(() => {
+                        showAdminMediaToast('Section media updated.', 'success');
+                    }).catch((error) => {
+                        showAdminMediaToast(String(error?.message || error || 'Assign failed'), 'error');
+                    });
+                });
+            }
+
+            renderMediaLibraryAndSections();
+
             if (projectsGrid) {
                 projectsGrid.addEventListener('click', (e) => {
                     const saveBtn = e.target.closest('[data-visibility-save-id]');
@@ -6113,6 +6831,30 @@
                             setProjectSurfaceMedia(nextProject, surface, selected);
                             nextProject.showInServices = true;
                             nextProject.services = true;
+                        } else if (surface === 'hero') {
+                            nextProject.showInHero = true;
+                            nextProject.hero = true;
+                            // Clear hero from other projects
+                            projects.forEach((p, pIdx) => {
+                                if (pIdx !== idx) {
+                                    p.showInHero = false;
+                                    p.hero = false;
+                                }
+                            });
+                            try { initHeroVideo(selected.mediaSrc); } catch {}
+                            toastMessage = 'Set as Hero Background';
+                        } else if (surface === 'integrity') {
+                            nextProject.showInIntegrity = true;
+                            nextProject.integrity = true;
+                            // Clear integrity from other projects
+                            projects.forEach((p, pIdx) => {
+                                if (pIdx !== idx) {
+                                    p.showInIntegrity = false;
+                                    p.integrity = false;
+                                }
+                            });
+                            try { loadIntegrityImage(selected.mediaSrc); } catch {}
+                            toastMessage = 'Set as Integrity Media';
                         }
 
                         const rerenderAfterSurfaceChange = (projectState, surfaceKey) => {
@@ -6133,6 +6875,9 @@
                             }
                             if (surfaceKey === 'services') {
                                 renderServices();
+                            }
+                            if (surfaceKey === 'hero' || surfaceKey === 'integrity') {
+                                renderProjects();
                             }
                         };
 
@@ -6223,19 +6968,8 @@
 
                         const originalProject = { ...projects[idx] };
                         const allMedia = coerceProjectMediaItems(originalProject);
-                        const deletedMedia = allMedia.find((item) => getMediaKey(item) === mediaKey);
                         const remaining = allMedia.filter((item) => getMediaKey(item) !== mediaKey);
                         const originalProjects = projects.slice();
-
-                        // Delete from Cloudinary using the Clean Circuit
-                        if (deletedMedia && deletedMedia.mediaSrc) {
-                            const publicId = extractCloudinaryPublicId(deletedMedia.mediaSrc);
-                            if (publicId) {
-                                deleteMedia(publicId).catch((err) => {
-                                    console.error('[HAILIFU] Cloudinary delete failed:', err);
-                                });
-                            }
-                        }
 
                         if (!remaining.length) {
                             const nextProjects = projects.filter((p) => String(p?.id || '') !== projectId);
@@ -6385,7 +7119,7 @@
                             if (progressFill) progressFill.style.width = `${pct}%`;
                         }
                     }).then((payload) => {
-                        const url = String(payload?.secure_url || '').trim();
+                        const url = normalizeIntegrityMediaPath(String(payload?.secure_url || '').trim());
                         if (!url) throw new Error('Upload failed');
                         setIntegrityImageUrlLocal(url);
                         loadIntegrityImage(url);
@@ -6418,10 +7152,48 @@
                         return;
                     }
 
-                    const tabBtn = e.target.closest('.admin-tab');
+                    const tabBtn = e.target.closest('.admin-tab, .admin-sidebar-item');
                     if (tabBtn) {
                         e.preventDefault();
                         setAdminTab(tabBtn.dataset.adminTab);
+                        return;
+                    }
+
+                    const uploadBtnEl = e.target.closest('#uploadBtn');
+                    if (uploadBtnEl) {
+                        e.preventDefault();
+                        saveProjectFromQueue();
+                        return;
+                    }
+
+                    const addGalleryBtnEl = e.target.closest('#addGalleryItemBtn');
+                    if (addGalleryBtnEl) {
+                        e.preventDefault();
+                        addMediaFromInputs();
+                        return;
+                    }
+
+                    const clearGalleryBtnEl = e.target.closest('#clearGalleryBtn');
+                    if (clearGalleryBtnEl) {
+                        e.preventDefault();
+                        clearGalleryQueueState();
+                        return;
+                    }
+
+                    const mediaTypeBtnEl = e.target.closest('.media-btn');
+                    if (mediaTypeBtnEl) {
+                        e.preventDefault();
+                        const type = mediaTypeBtnEl.dataset.type || 'image';
+                        mediaTypeButtons.forEach((b) => b.classList.toggle('active', b === mediaTypeBtnEl));
+                        selectedMediaType = type;
+                        return;
+                    }
+
+                    const integrityBtnEl = e.target.closest('.integrity-graphic-btn');
+                    if (integrityBtnEl) {
+                        e.preventDefault();
+                        // The file input click is handled by bindIntegrityMediaUploader
+                        // but we want to make sure we don't trigger other things.
                         return;
                     }
 
@@ -6503,12 +7275,40 @@
                         renderPublicReviews();
                         refreshOverview();
                         refreshLiveReviewSection();
+                        return;
+                    }
+
+                    const assignMediaBtn = e.target.closest('[data-media-assign]');
+                    if (assignMediaBtn) {
+                        e.preventDefault();
+                        const id = String(assignMediaBtn.getAttribute('data-media-assign') || '').trim();
+                        assignMediaToSection(getCurrentSectionSlotKey(), id).then(() => {
+                            showAdminMediaToast('Media assigned to section.', 'success');
+                        }).catch((error) => {
+                            showAdminMediaToast(String(error?.message || error || 'Assign failed'), 'error');
+                        });
+                        return;
+                    }
+
+                    const deleteMediaBtn = e.target.closest('[data-media-delete]');
+                    if (deleteMediaBtn) {
+                        e.preventDefault();
+                        const id = String(deleteMediaBtn.getAttribute('data-media-delete') || '').trim();
+                        removeMediaLibraryRecord(id).then(() => {
+                            showAdminMediaToast('Media deleted.', 'success');
+                        }).catch((error) => {
+                            showAdminMediaToast(String(error?.message || error || 'Delete failed'), 'error');
+                        });
                     }
                 });
             }
         }
 
         function initDataSync() {
+            if (adminHideTimer) {
+                clearTimeout(adminHideTimer);
+                adminHideTimer = null;
+            }
             seedOpsLayer();
             syncOpsNodes();
             startReviewIdentityAuthSync();
@@ -6524,7 +7324,8 @@
                 adminBackdrop.setAttribute('aria-hidden', 'false');
             }
             if (adminPanel) {
-                adminPanel.style.display = 'block';
+                adminPanel.style.display = 'grid';
+                adminPanel.style.opacity = '1';
                 void adminPanel.offsetWidth;
                 adminPanel.classList.add('active');
                 adminPanel.setAttribute('aria-hidden', 'false');
@@ -6541,17 +7342,14 @@
         function haltDataSync() {
             try { stopAdminLazyLoop(); } catch {}
             stopFirestorePendingReviewsSync();
+            renderMediaLibraryAndSections();
             if (adminBackdrop) {
                 adminBackdrop.classList.remove('active');
                 adminBackdrop.setAttribute('aria-hidden', 'true');
             }
             if (adminPanel) {
-                // Remove focus from any element inside the panel before hiding
-                const activeElement = document.activeElement;
-                if (activeElement && adminPanel.contains(activeElement)) {
-                    activeElement.blur();
-                }
                 adminPanel.classList.remove('active');
+                adminPanel.style.opacity = '0';
                 adminPanel.setAttribute('aria-hidden', 'true');
                 if (adminHideTimer) clearTimeout(adminHideTimer);
                 adminHideTimer = window.setTimeout(() => {
@@ -6612,11 +7410,6 @@
             }
         }
 
-        const ghostActivationWindowMs = 500;
-        const ghostActivationClicksRequired = 3;
-        let ghostActivationClicks = [];
-        let ghostActivationFallbackTimer = null;
-
         consumeAdminSecretKeyFromUrl();
         updateAdminEntryButtonVisibility();
 
@@ -6626,52 +7419,16 @@
                 e.preventDefault();
                 e.stopPropagation();
 
-                if (reviewModal && reviewModal.classList.contains('active')) {
-                    if (ghostActivationFallbackTimer) {
-                        clearTimeout(ghostActivationFallbackTimer);
-                        ghostActivationFallbackTimer = null;
+                // Logo triple-click for admin access removed.
+                // Logo now only handles review identity tap.
+                void (async () => {
+                    const result = await handleLogoIdentityTap({ openReviewModalIfNeeded: true });
+                    if (result && result.redirected) return;
+                    const hasIdentity = !!(result && result.identity && result.identity.email);
+                    if (!hasIdentity && !reviewModal?.classList?.contains('active')) {
+                        navigateToAdminTriggerFallback();
                     }
-                    ghostActivationClicks = [];
-
-                    void (async () => {
-                        await handleLogoIdentityTap({ openReviewModalIfNeeded: false });
-                    })();
-                    return;
-                }
-
-                const now = Date.now();
-                ghostActivationClicks = ghostActivationClicks.filter((stamp) => now - stamp <= ghostActivationWindowMs);
-                ghostActivationClicks.push(now);
-
-                if (ghostActivationFallbackTimer) {
-                    clearTimeout(ghostActivationFallbackTimer);
-                    ghostActivationFallbackTimer = null;
-                }
-
-                if (ghostActivationClicks.length >= ghostActivationClicksRequired) {
-                    ghostActivationClicks = [];
-                    const granted = activateAdminFromGhostTrigger(ghostTriggerNode);
-                    if (!granted) return;
-                    updateAdminEntryButtonVisibility();
-                    if (adminPanel && adminPanel.classList.contains('active')) {
-                        return;
-                    }
-                    initDataSync();
-                    return;
-                }
-
-                ghostActivationFallbackTimer = window.setTimeout(() => {
-                    ghostActivationClicks = [];
-                    ghostActivationFallbackTimer = null;
-                    void (async () => {
-                        const result = await handleLogoIdentityTap({ openReviewModalIfNeeded: true });
-                        if (result && result.redirected) return;
-                        const hasIdentity = !!(result && result.identity && result.identity.email);
-                        if (!hasIdentity && !reviewModal?.classList?.contains('active')) {
-                            navigateToAdminTriggerFallback();
-                        }
-                    })();
-                }, ghostActivationWindowMs + 20);
+                })();
             });
         }
 
@@ -7080,6 +7837,7 @@
 
             return records.map((project, idx) => {
                 const base = stripProjectQuoteFields(project);
+                const mediaLibraryMap = getMediaLibraryMap();
                 const visibility = normalizeVisibilityFlags(base);
                 const rawMediaSrc = String(base?.mediaSrc || base?.imageUrl || base?.mediaUrl || '').trim();
                 const rawThumbSrc = String(base?.thumbSrc || base?.thumbnailUrl || base?.thumbUrl || '').trim();
@@ -7112,12 +7870,28 @@
                 }
 
                 const mediaType = String(base?.mediaType || (mediaSrc && /\.(mp4|webm|mov)(\?|#|$)/i.test(mediaSrc) ? 'video' : 'image') || 'image').trim().toLowerCase() || 'image';
+                const mediaIds = Array.isArray(base?.mediaIds) ? base.mediaIds.map((id) => String(id || '').trim()).filter(Boolean) : [];
+                const mediaItemsFromIds = mediaIds
+                    .map((id) => mediaLibraryMap[id])
+                    .filter(Boolean)
+                    .map((entry) => normalizeMediaItem({
+                        mediaSrc: entry.url,
+                        mediaType: entry.type,
+                        thumbSrc: ''
+                    }))
+                    .filter(Boolean);
+
+                const mediaItemsExisting = Array.isArray(base?.mediaItems) ? base.mediaItems : [];
+                const mergedMediaItems = normalizeMediaCollection([...mediaItemsFromIds, ...mediaItemsExisting]);
+                const primaryFromMediaIds = mergedMediaItems[0] || null;
                 return {
                     ...base,
                     id: fallbackId,
-                    mediaSrc,
-                    thumbSrc,
-                    mediaType,
+                    mediaSrc: primaryFromMediaIds?.mediaSrc || mediaSrc,
+                    thumbSrc: primaryFromMediaIds?.thumbSrc || thumbSrc,
+                    mediaType: primaryFromMediaIds?.mediaType || mediaType,
+                    mediaItems: mergedMediaItems.length ? mergedMediaItems : mediaItemsExisting,
+                    mediaIds,
                     ...visibility,
                     isStarred: Boolean(project?.isStarred),
                     isFeatured: Boolean(project?.isFeatured)
@@ -7140,6 +7914,76 @@
                     ...remoteConfigState,
                     projects: sanitized
                 };
+            }
+        }
+
+        function migrateLegacyProjectsToMediaLibrary() {
+            const projects = getProjects();
+            if (!Array.isArray(projects) || !projects.length) return;
+            const mediaLibrary = getMediaLibraryRecords().map(normalizeMediaLibraryRecord).filter(Boolean);
+            const mediaMapByUrl = new Map(mediaLibrary.map((entry) => [String(entry.url || '').trim(), entry]));
+            let mediaChanged = false;
+            let projectChanged = false;
+
+            const migratedProjects = projects.map((project) => {
+                if (!project || typeof project !== 'object') return project;
+                const currentIds = Array.isArray(project.mediaIds) ? project.mediaIds.map((id) => String(id || '').trim()).filter(Boolean) : [];
+                const resolvedIds = currentIds.slice();
+                const items = coerceProjectMediaItems(project);
+                items.forEach((item) => {
+                    const mediaSrc = normalizeProjectMediaPath(String(item?.mediaSrc || '').trim());
+                    if (!mediaSrc) return;
+                    let existing = mediaMapByUrl.get(mediaSrc);
+                    if (!existing) {
+                        existing = normalizeMediaLibraryRecord({
+                            id: `media_mig_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                            url: mediaSrc,
+                            type: String(item?.mediaType || 'image').trim().toLowerCase() || 'image',
+                            provider: /^https?:\/\//i.test(mediaSrc) && /res\.cloudinary\.com/i.test(mediaSrc) ? 'cloudinary' : 'external',
+                            createdAt: new Date().toISOString(),
+                            title: String(project?.title || '').trim() || 'Migrated media'
+                        });
+                        if (!existing) return;
+                        mediaLibrary.unshift(existing);
+                        mediaMapByUrl.set(mediaSrc, existing);
+                        mediaChanged = true;
+                    }
+                    if (existing?.id && !resolvedIds.includes(existing.id)) {
+                        resolvedIds.push(existing.id);
+                    }
+                });
+                if (resolvedIds.join('|') !== currentIds.join('|')) {
+                    projectChanged = true;
+                    return { ...project, mediaIds: resolvedIds };
+                }
+                return project;
+            });
+
+            if (mediaChanged) {
+                saveMediaLibraryRecords(mediaLibrary);
+                if (firebaseIsReady()) {
+                    const db = ensureFirebaseDb();
+                    if (db) {
+                        const updates = {};
+                        mediaLibrary.forEach((entry) => {
+                            const id = String(entry?.id || '').trim();
+                            if (!id) return;
+                            updates[id] = entry;
+                        });
+                        if (Object.keys(updates).length) {
+                            db.ref(getFirebaseMediaLibraryPath()).update(updates).catch(() => {});
+                        }
+                    }
+                }
+            }
+            if (projectChanged) {
+                saveProjects(migratedProjects);
+                if (firebaseIsReady()) {
+                    migratedProjects.forEach((project) => {
+                        if (!project?.id) return;
+                        upsertProjectInFirebase(project).catch(() => {});
+                    });
+                }
             }
         }
 
@@ -7430,6 +8274,8 @@
                 const featuredBtnClass = featuredMediaKeys.has(mediaKey) ? 'media-surface-btn is-active' : 'media-surface-btn';
                 const showcaseBtnClass = showcaseMediaKey && showcaseMediaKey === mediaKey ? 'media-surface-btn is-active' : 'media-surface-btn';
                 const servicesBtnClass = servicesMediaKey && servicesMediaKey === mediaKey ? 'media-surface-btn is-active' : 'media-surface-btn';
+                const heroBtnClass = project?.showInHero && project?.mediaSrc === mediaSrc ? 'media-surface-btn is-active' : 'media-surface-btn';
+                const integrityBtnClass = project?.showInIntegrity && project?.mediaSrc === mediaSrc ? 'media-surface-btn is-active' : 'media-surface-btn';
 
                 const typeBadge = mediaType === 'video'
                     ? '<div class="project-media-badge"><i class="fas fa-film"></i> Video</div>'
@@ -7463,9 +8309,11 @@
                             <div class="project-title">${safeTitle}</div>
                             <div class="project-media-caption">${safeCategory} - ${index + 1}/${total}</div>
                             <div class="media-surface-actions">
-                                <button class="${featuredBtnClass}" type="button" data-apply-media-surface="featured" data-apply-project-id="${projectId}" data-apply-media-key="${safeMediaKey}">Featured Loop</button>
-                                <button class="${showcaseBtnClass}" type="button" data-apply-media-surface="showcase" data-apply-project-id="${projectId}" data-apply-media-key="${safeMediaKey}">Showcase BG</button>
-                                <button class="${servicesBtnClass}" type="button" data-apply-media-surface="services" data-apply-project-id="${projectId}" data-apply-media-key="${safeMediaKey}">Services BG</button>
+                                <button class="${featuredBtnClass}" type="button" data-apply-media-surface="featured" data-apply-project-id="${projectId}" data-apply-media-key="${safeMediaKey}">Featured</button>
+                                <button class="${showcaseBtnClass}" type="button" data-apply-media-surface="showcase" data-apply-project-id="${projectId}" data-apply-media-key="${safeMediaKey}">Showcase</button>
+                                <button class="${servicesBtnClass}" type="button" data-apply-media-surface="services" data-apply-project-id="${projectId}" data-apply-media-key="${safeMediaKey}">Services</button>
+                                <button class="${heroBtnClass}" type="button" data-apply-media-surface="hero" data-apply-project-id="${projectId}" data-apply-media-key="${safeMediaKey}">Hero BG</button>
+                                <button class="${integrityBtnClass}" type="button" data-apply-media-surface="integrity" data-apply-project-id="${projectId}" data-apply-media-key="${safeMediaKey}">Integrity</button>
                             </div>
                         </div>
                     </div>
@@ -7493,6 +8341,12 @@
                     if (!mediaKey) return count;
                     return count + (getDirectSurfaceMediaKey(entry.project, 'services') === mediaKey ? 1 : 0);
                 }, 0);
+                const heroAssigned = mediaEntries.reduce((count, entry) => {
+                    return count + (entry.project?.showInHero && getMediaKey(entry.media) === getMediaKey(entry.project) ? 1 : 0);
+                }, 0);
+                const integrityAssigned = mediaEntries.reduce((count, entry) => {
+                    return count + (entry.project?.showInIntegrity && getMediaKey(entry.media) === getMediaKey(entry.project) ? 1 : 0);
+                }, 0);
                 const cards = mediaEntries.map((entry) => buildMediaCard(entry)).join('');
                 const projectRecords = projectIds.size;
                 const recordsChip = projectRecords > 1
@@ -7511,6 +8365,8 @@
                                 <span class="admin-project-group-chip">Featured ${featuredAssigned}</span>
                                 <span class="admin-project-group-chip">Showcase ${showcaseAssigned}</span>
                                 <span class="admin-project-group-chip">Services ${servicesAssigned}</span>
+                                <span class="admin-project-group-chip">Hero ${heroAssigned}</span>
+                                <span class="admin-project-group-chip">Integrity ${integrityAssigned}</span>
                             </div>
                         </header>
                         <div class="admin-project-group-grid">${cards}</div>
@@ -7803,7 +8659,7 @@
         };
 
         const toDisplayReviewDate = (value) => formatTechnicalDate(value);
-        const formatTrustCounter = (value) => String(Math.max(0, Math.round(Number(value) || 0)));
+        const formatTrustCounter = (value) => String(Math.max(0, Math.round(Number(value) || 0))) + '+';
         const drawMergedReviewCounter = () => {};
         const setMergedReviewCounter = (nextTotal, opts = {}) => {
             const safeNext = Math.max(0, Math.round(Number(nextTotal) || 0));
@@ -8558,7 +9414,6 @@
             let index = 0;
             const prevBtn = document.querySelector('.review-terminal-nav.prev');
             const nextBtn = document.querySelector('.review-terminal-nav.next');
-            const terminal = document.querySelector('.review-terminal-box');
 
             const render = () => {
                 const review = reviews[index];
@@ -8586,6 +9441,11 @@
                 }, 240);
             };
 
+            if (prevBtn) prevBtn.addEventListener('click', () => goTo(-1));
+            if (nextBtn) nextBtn.addEventListener('click', () => goTo(1));
+
+            render();
+
             let autoTimer = null;
             const startAuto = () => {
                 if (autoTimer) clearInterval(autoTimer);
@@ -8595,39 +9455,141 @@
                 if (autoTimer) clearInterval(autoTimer);
                 autoTimer = null;
             };
-
-            if (!terminal || terminal.dataset.terminalBound === '1') {
-                if (!terminal) return;
-                startAuto();
-                render();
-                return;
-            }
-
-            terminal.dataset.terminalBound = '1';
-
-            if (prevBtn) prevBtn.addEventListener('click', () => goTo(-1));
-            if (nextBtn) nextBtn.addEventListener('click', () => goTo(1));
-
+            const terminal = document.querySelector('.review-terminal-box');
             const hoverTargets = [terminal, slide].filter(Boolean);
-            hoverTargets.forEach((node) => {
-                node.addEventListener('mouseenter', stopAuto);
-                node.addEventListener('mouseleave', startAuto);
-                node.addEventListener('focusin', stopAuto);
-                node.addEventListener('focusout', startAuto);
-            });
-
-            render();
+            if (terminal) {
+                hoverTargets.forEach((node) => {
+                    node.addEventListener('mouseenter', stopAuto);
+                    node.addEventListener('mouseleave', startAuto);
+                    node.addEventListener('focusin', stopAuto);
+                    node.addEventListener('focusout', startAuto);
+                });
+            }
             startAuto();
         }
 
         renderReviewTerminal();
+
+        let reviewShareToastTimer = null;
+
+        function ensureReviewShareToast() {
+            let toast = document.getElementById('reviewShareToast');
+            if (toast) return toast;
+            toast = document.createElement('div');
+            toast.id = 'reviewShareToast';
+            toast.className = 'review-share-toast';
+            toast.setAttribute('role', 'status');
+            toast.setAttribute('aria-live', 'polite');
+            document.body.appendChild(toast);
+            return toast;
+        }
+
+        function showReviewShareToast(message) {
+            const toast = ensureReviewShareToast();
+            if (!toast) return;
+            toast.textContent = String(message || 'Link Copied');
+            toast.classList.remove('active');
+            void toast.offsetWidth;
+            toast.classList.add('active');
+            if (reviewShareToastTimer) clearTimeout(reviewShareToastTimer);
+            reviewShareToastTimer = setTimeout(() => {
+                toast.classList.remove('active');
+            }, 1600);
+        }
+
+        async function copyReviewShareText(text) {
+            const shareText = String(text || '').trim();
+            if (!shareText) return false;
+
+            try {
+                if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                    await navigator.clipboard.writeText(shareText);
+                    return true;
+                }
+            } catch {}
+
+            try {
+                const input = document.createElement('input');
+                input.value = shareText;
+                input.setAttribute('readonly', '');
+                input.style.position = 'fixed';
+                input.style.left = '-9999px';
+                document.body.appendChild(input);
+                input.select();
+                input.setSelectionRange(0, input.value.length);
+                const ok = document.execCommand('copy');
+                input.remove();
+                return !!ok;
+            } catch {
+                return false;
+            }
+        }
+
+        function buildReviewSharePayload(name, text) {
+            const fallbackName = String(text || '').trim();
+            const safeName = String(name || fallbackName || '').trim() || 'Someone';
+            return {
+                title: 'HAILIFU | Brilliant Installation',
+                text: `${safeName} just gave us 5 stars! Check out our latest project.`,
+                url: 'https://hailifu-website.web.app'
+            };
+        }
+
+        async function handleShare(name, text) {
+            const payload = buildReviewSharePayload(name, text);
+            if (typeof navigator.share === 'function') {
+                try {
+                    await navigator.share(payload);
+                    return true;
+                } catch (error) {
+                    if (error && error.name === 'AbortError') return false;
+                }
+            }
+
+            const copied = await copyReviewShareText(payload.url);
+            showReviewShareToast(copied ? 'Link Copied' : 'Copy failed');
+            return copied;
+        }
+
+        window.handleShare = handleShare;
+
+        function ensureReviewTerminalShareButton(card) {
+            if (!card) return null;
+            let shareBtn = card.querySelector('.review-share-btn');
+            if (!shareBtn) {
+                shareBtn = document.createElement('button');
+                shareBtn.type = 'button';
+                shareBtn.className = 'review-share-btn';
+                shareBtn.innerHTML = '<i class="fas fa-share-alt" aria-hidden="true"></i>';
+                card.appendChild(shareBtn);
+            }
+            shareBtn.setAttribute('aria-label', 'Share this review');
+            shareBtn.setAttribute('title', 'Share this review');
+            shareBtn.setAttribute('data-review-share', '1');
+            return shareBtn;
+        }
+
+        function bindReviewShareButtons() {
+            const reviewsSection = document.getElementById('reviews');
+            if (!reviewsSection || reviewsSection.dataset.reviewShareBound === '1') return;
+            reviewsSection.dataset.reviewShareBound = '1';
+            reviewsSection.addEventListener('click', (event) => {
+                const trigger = event.target.closest('[data-review-share]');
+                if (!trigger || !reviewsSection.contains(trigger)) return;
+                event.preventDefault();
+                const shareName = String(trigger.getAttribute('data-review-share-name') || '').trim();
+                const shareText = String(trigger.getAttribute('data-review-share-text') || '').trim();
+                handleShare(shareName, shareText);
+            });
+        }
 
         function renderFeaturedReviewsFeed(reviewsInput) {
             const track = document.querySelector('.modern-review-section .featured-reviews-feed .featured-reviews-track');
             const reviews = Array.isArray(reviewsInput) ? reviewsInput.filter(Boolean) : getLiveReviewFeed();
             if (!track || !reviews.length) return;
 
-            track.innerHTML = reviews.slice(0, 24).map((review) => {
+            const limitedReviews = reviews.slice(0, 24);
+            track.innerHTML = limitedReviews.map((review) => {
                 const rawName = toSafeReviewerName(review.name || VERIFIED_REVIEWER_NAME);
                 const isFallbackName = isFallbackReviewerName(rawName);
                 const name = escapeHTML(rawName);
@@ -8650,6 +9612,9 @@
                     : '';
                 return `
                     <article class="featured-review-card" data-rating="${toSafeRating(review.rating)}">
+                        <button type="button" class="review-share-btn" data-review-share="1" aria-label="Share this review" title="Share this review">
+                            <i class="fas fa-share-alt" aria-hidden="true"></i>
+                        </button>
                         <div class="featured-review-meta">
                             <div class="featured-review-identity">
                                 ${avatarMarkup}
@@ -8669,6 +9634,14 @@
                     </article>
                 `;
             }).join('');
+            track.querySelectorAll('.featured-review-card .review-share-btn').forEach((btn, idx) => {
+                const review = limitedReviews[idx];
+                if (!review) return;
+                const shareName = toSafeReviewerName(review.name || VERIFIED_REVIEWER_NAME);
+                const shareText = String(review.comment || '').trim();
+                btn.setAttribute('data-review-share-name', shareName);
+                btn.setAttribute('data-review-share-text', shareText);
+            });
             enforceReviewAssetPolicies();
         }
 
@@ -8747,6 +9720,7 @@
             const nextBtn = terminal ? terminal.querySelector('[data-review-terminal-next]') : null;
             modernReviewTerminalFeed = Array.isArray(reviewsInput) ? reviewsInput.filter(Boolean) : getLiveReviewFeed();
             const reviews = modernReviewTerminalFeed;
+            const terminalShareBtn = ensureReviewTerminalShareButton(card);
 
             if (!terminal || !card || !nameEl || !starsEl || !textEl || !reviews.length) return;
 
@@ -8783,6 +9757,10 @@
                 nameEl.classList.toggle('is-verified-name', isFallbackReviewerName(reviewerName));
                 starsEl.textContent = buildStarText(review.rating);
                 textEl.textContent = `"${reviewText}"`;
+                if (terminalShareBtn) {
+                    terminalShareBtn.setAttribute('data-review-share-name', reviewerName);
+                    terminalShareBtn.setAttribute('data-review-share-text', reviewText);
+                }
                 if (verifiedBadgeEl) {
                     verifiedBadgeEl.textContent = isNativeReview ? 'Verified Native' : 'Verified';
                     verifiedBadgeEl.classList.toggle('review-verified--native', isNativeReview);
@@ -8929,6 +9907,7 @@
 
         initFeaturableReviewBridge();
         initGoogleBusinessStatusToggle();
+        bindReviewShareButtons();
         refreshLiveReviewSection();
 
         let liveReviewRefreshTimer = null;
@@ -8997,6 +9976,8 @@
 
         function loadProjects() {
             if (!projectsGrid) projectsGrid = document.getElementById('projectsGrid');
+            migrateLegacyProjectsToMediaLibrary();
+            applySectionMediaAssignments();
             renderProjects();
             const projects = getProjects();
             const showcaseProjects = projects.filter((p) => p && isVisibilityEnabled(p, 'showInShowcase', 'showcase'));
@@ -9069,6 +10050,27 @@
                 if (span) span.textContent = label;
                 badge.setAttribute('aria-label', `${safeCount} media item${safeCount === 1 ? '' : 's'}`);
                 badge.classList.toggle('is-hidden', safeCount === 0);
+            };
+
+            const ensureShowcaseViewButton = (slot, mediaType) => {
+                if (!slot) return null;
+                let button = slot.querySelector('.view-project-btn');
+                const normalizedType = String(mediaType || slot.dataset.mediaType || 'image').trim().toLowerCase();
+                const isVideo = normalizedType === 'video' || normalizedType === 'youtube';
+                const label = isVideo ? 'Watch Video' : 'View Project';
+                const icon = isVideo ? 'fa-play-circle' : 'fa-eye';
+                const iconMarkup = `<i class="fas ${icon}" aria-hidden="true"></i>`;
+
+                if (!button) {
+                    button = document.createElement('a');
+                    button.href = '#';
+                    button.className = 'view-project-btn';
+                    slot.appendChild(button);
+                }
+
+                button.setAttribute('aria-label', label);
+                button.innerHTML = `${iconMarkup} ${label}`;
+                return button;
             };
             slots.forEach((slot) => {
                 const slotCategory = (slot.getAttribute('data-category') || slot.dataset.category || '').toLowerCase().trim();
@@ -9155,10 +10157,29 @@
                     const idValue = String(project.id || '').trim();
                     slot.classList.add('showcase-card');
                     slot.removeAttribute('onclick');
+                    ensureShowcaseViewButton(slot, showcaseMedia?.mediaType || slot.dataset.mediaType || 'image');
                 } else {
                     const existingBg = slot.querySelector('.showcase-bg');
-                    if (existingBg) existingBg.remove();
-                    slot.classList.remove('has-media');
+                    const fallbackMedia = getSectionAssignedMedia('showcase.defaultFallback');
+                    if (fallbackMedia?.url) {
+                        let bgNode = existingBg;
+                        if (!bgNode) {
+                            bgNode = document.createElement('div');
+                            bgNode.className = 'showcase-bg';
+                            slot.insertBefore(bgNode, slot.firstChild);
+                        }
+                        const safeSrc = normalizeCloudinaryUrl(fallbackMedia.url);
+                        if (fallbackMedia.type === 'video') {
+                            bgNode.innerHTML = `<video src="${safeSrc}" muted playsinline webkit-playsinline loop preload="metadata"></video>`;
+                        } else {
+                            bgNode.innerHTML = `<img src="${safeSrc}" alt="" loading="lazy" decoding="async">`;
+                        }
+                        slot.classList.add('has-media');
+                        bindHailifuMediaFallback(bgNode, 'HAILIFU');
+                    } else {
+                        if (existingBg) existingBg.remove();
+                        slot.classList.remove('has-media');
+                    }
                     slot.classList.add('showcase-card');
                     delete slot.dataset.generatedProjectId;
                     delete slot.dataset.modalTitle;
@@ -9170,6 +10191,7 @@
                     if (slotCategory) slot.dataset.category = slotCategory;
                     slot.removeAttribute('onclick');
                     updateMediaCountBadge(slot, 0);
+                    ensureShowcaseViewButton(slot, slot.dataset.mediaType || 'image');
                 }
 
                 if (slot.dataset.modalBound) {
@@ -9178,6 +10200,7 @@
                 slot.removeAttribute('role');
                 slot.removeAttribute('tabindex');
             });
+            showcaseGrid.dataset.showcaseAssigned = String(assignedCount);
         }
 
         function renderShowcase(projectsOverride) {
@@ -9698,6 +10721,23 @@
             featuredLoopBoundNode = null;
             featuredLoopIndex = 0;
             featuredLoopCount = featuredList.length;
+
+            if (!featuredList.length) {
+                const fallbackMedia = getSectionAssignedMedia('featured.defaultFallback');
+                if (fallbackMedia?.url) {
+                    featuredList = [{
+                        id: `featured_fallback_${Date.now()}`,
+                        title: 'Featured Highlight',
+                        description: 'Assigned from Premium Media Library.',
+                        category: 'featured',
+                        mediaSrc: fallbackMedia.url,
+                        mediaType: fallbackMedia.type || 'image',
+                        thumbSrc: '',
+                        createdAt: new Date().toISOString()
+                    }];
+                    featuredLoopCount = 1;
+                }
+            }
 
             if (!featuredList.length) {
                 featuredBento.innerHTML = `
@@ -11197,32 +12237,38 @@
 
         initCustomSelect(popupService);
 
-        const sharePortfolioFab = document.getElementById('sharePortfolioFab');
-        const sharePortfolioToast = document.getElementById('sharePortfolioToast');
-        const portfolioShareUrl = 'https://hailifu.github.io/Hailifu_Website/';
-        let sharePortfolioToastTimer = null;
+        const siteShareButtons = Array.from(document.querySelectorAll('[data-site-share]'));
+        const siteShareSnackbar = document.getElementById('siteShareSnackbar');
+        const siteShareUrl = primarySiteUrl;
+        let siteShareSnackbarTimer = null;
 
-        function showSharePortfolioToast(message) {
-            if (!sharePortfolioToast) return;
-            sharePortfolioToast.textContent = message || 'Link Copied!';
-            sharePortfolioToast.classList.add('active');
-            if (sharePortfolioToastTimer) clearTimeout(sharePortfolioToastTimer);
-            sharePortfolioToastTimer = setTimeout(() => {
-                sharePortfolioToast.classList.remove('active');
+        function showSiteShareSnackbar(message) {
+            const text = String(message || 'Link Copied').trim() || 'Link Copied';
+            if (!siteShareSnackbar) {
+                showReviewShareToast(text);
+                return;
+            }
+            siteShareSnackbar.textContent = text;
+            siteShareSnackbar.classList.remove('active');
+            void siteShareSnackbar.offsetWidth;
+            siteShareSnackbar.classList.add('active');
+            if (siteShareSnackbarTimer) clearTimeout(siteShareSnackbarTimer);
+            siteShareSnackbarTimer = setTimeout(() => {
+                siteShareSnackbar.classList.remove('active');
             }, 1600);
         }
 
-        async function copyPortfolioUrl() {
+        async function copySiteShareUrl() {
             try {
                 if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-                    await navigator.clipboard.writeText(portfolioShareUrl);
+                    await navigator.clipboard.writeText(siteShareUrl);
                     return true;
                 }
             } catch {}
 
             try {
                 const input = document.createElement('input');
-                input.value = portfolioShareUrl;
+                input.value = siteShareUrl;
                 input.setAttribute('readonly', '');
                 input.style.position = 'fixed';
                 input.style.left = '-9999px';
@@ -11237,32 +12283,29 @@
             }
         }
 
-        function isLikelyMobile() {
-            const ua = navigator.userAgent || '';
-            return /android|iphone|ipad|ipod|mobile/i.test(ua);
-        }
-
-        async function handleSharePortfolioClick(e) {
+        async function handleSiteShareClick(e) {
             if (e && typeof e.preventDefault === 'function') e.preventDefault();
+            const payload = {
+                title: 'HAILIFU | Brilliant Installation',
+                text: "Check out Accra's premier CCTV and Electrical installation experts. Experience the Brilliant standard.",
+                url: siteShareUrl
+            };
 
-            const canNativeShare = typeof navigator.share === 'function' && isLikelyMobile();
-            if (canNativeShare) {
+            if (typeof navigator.share === 'function') {
                 try {
-                    await navigator.share({
-                        title: 'Hailifu Portfolio',
-                        text: 'Check out the Hailifu portfolio.',
-                        url: portfolioShareUrl
-                    });
+                    await navigator.share(payload);
                     return;
-                } catch {}
+                } catch (error) {
+                    if (error && error.name === 'AbortError') return;
+                }
             }
 
-            const copied = await copyPortfolioUrl();
-            showSharePortfolioToast(copied ? 'Link Copied!' : 'Copy failed');
+            const copied = await copySiteShareUrl();
+            showSiteShareSnackbar(copied ? 'Link Copied' : 'Copy failed');
         }
 
-        [sharePortfolioFab].filter(Boolean).forEach((btn) => {
-            btn.addEventListener('click', handleSharePortfolioClick);
+        siteShareButtons.forEach((btn) => {
+            btn.addEventListener('click', handleSiteShareClick);
         });
 
         function setQuoteService(serviceKey) {
@@ -11549,16 +12592,17 @@
                 }, 0);
             }, { passive: true });
 
-            showcaseGrid.addEventListener('click', (e) => {
-                const card = e.target.closest('.showcase-item');
-                if (!card || !showcaseGrid.contains(card)) return;
-                if (suppressShowcaseTap) {
-                    e.preventDefault();
-                    return;
-                }
-                e.preventDefault();
-                openProjectModalFromItem(card);
-            });
+            // Disabled - replaced with photo gallery modal
+            // showcaseGrid.addEventListener('click', (e) => {
+            //     const card = e.target.closest('.showcase-item');
+            //     if (!card || !showcaseGrid.contains(card)) return;
+            //     if (suppressShowcaseTap) {
+            //         e.preventDefault();
+            //         return;
+            //     }
+            //     e.preventDefault();
+            //     openProjectModalFromItem(card);
+            // });
         }
 
         document.querySelectorAll('#showcase .showcase-grid .showcase-item').forEach(item => item.classList.add('is-visible'));
@@ -11798,7 +12842,11 @@
         let filteredPhotos = [];
 
         function openPhotoGallery(project) {
-            if (!project || !photoGalleryModal) return;
+            console.log('[Gallery] openPhotoGallery called with project:', project);
+            if (!project || !photoGalleryModal) {
+                console.log('[Gallery] Cannot open - missing project or modal');
+                return;
+            }
 
             // Set title and subtitle
             galleryTitle.textContent = project.title || 'Project Gallery';
@@ -11988,6 +13036,10 @@
         }
 
         function initPhotoGallery() {
+            console.log('[Gallery] Initializing photo gallery...');
+            console.log('[Gallery] Modal element:', photoGalleryModal);
+            console.log('[Gallery] Grid element:', galleryGrid);
+
             // Close button
             if (galleryCloseBtn) {
                 galleryCloseBtn.addEventListener('click', closePhotoGallery);
@@ -12043,9 +13095,11 @@
 
             // Add click handlers to showcase items
             const showcaseItems = document.querySelectorAll('.showcase-item');
+            console.log('[Gallery] Found showcase items:', showcaseItems.length);
             showcaseItems.forEach(item => {
                 item.style.cursor = 'pointer';
                 item.addEventListener('click', () => {
+                    console.log('[Gallery] Showcase item clicked');
                     const category = item.dataset.category;
                     const title = item.querySelector('.showcase-title')?.textContent || 'Project';
                     const description = item.querySelector('.showcase-description')?.textContent || '';
@@ -12058,21 +13112,35 @@
                 });
             });
 
-            // Action buttons (placeholder functionality)
+            // Action buttons
             const manageBtn = document.getElementById('galleryManageBtn');
             const addBtn = document.getElementById('galleryAddBtn');
 
             if (manageBtn) {
                 manageBtn.addEventListener('click', () => {
-                    console.log('[HAILIFU] Manage photos clicked');
-                    // TODO: Implement photo management
+                    console.log('[Gallery] Manage photos clicked');
+                    alert('Photo management feature coming soon!\n\nThis will allow you to:\n- Delete photos\n- Reorder photos\n- Edit photo captions\n- Manage collections');
                 });
             }
 
             if (addBtn) {
                 addBtn.addEventListener('click', () => {
-                    console.log('[HAILIFU] Add photo clicked');
-                    // TODO: Implement photo upload
+                    console.log('[Gallery] Add photo clicked');
+                    // Create a file input
+                    const fileInput = document.createElement('input');
+                    fileInput.type = 'file';
+                    fileInput.accept = 'image/*,video/*';
+                    fileInput.multiple = true;
+
+                    fileInput.addEventListener('change', (e) => {
+                        const files = e.target.files;
+                        if (files && files.length > 0) {
+                            console.log('[Gallery] Selected files:', files.length);
+                            alert(`Selected ${files.length} file(s) for upload.\n\nPhoto upload feature coming soon!\n\nThis will upload your photos to Cloudinary and add them to the gallery.`);
+                        }
+                    });
+
+                    fileInput.click();
                 });
             }
         }
@@ -12083,6 +13151,57 @@
         } else {
             initPhotoGallery();
         }
+
+        // ── Google Business-style Review Modal ──────────────────────────
+        (function initGoogleStyleReview() {
+            const starContainer = document.getElementById('googleStarRating');
+            const ratingInput = document.getElementById('reviewRatingInput');
+            if (!starContainer || !ratingInput) return;
+
+            const stars = starContainer.querySelectorAll('.google-star');
+
+            function updateStars(selectedRating) {
+                stars.forEach(star => {
+                    const r = parseInt(star.dataset.rating);
+                    star.setAttribute('aria-checked', r <= selectedRating ? 'true' : 'false');
+                });
+            }
+
+            stars.forEach(star => {
+                star.addEventListener('click', () => {
+                    const rating = parseInt(star.dataset.rating);
+                    ratingInput.value = rating;
+                    updateStars(rating);
+                });
+
+                star.addEventListener('mouseenter', () => {
+                    const hoverRating = parseInt(star.dataset.rating);
+                    stars.forEach(s => {
+                        const r = parseInt(s.dataset.rating);
+                        s.setAttribute('aria-checked', r <= hoverRating ? 'true' : 'false');
+                    });
+                });
+            });
+
+            starContainer.addEventListener('mouseleave', () => {
+                const current = parseInt(ratingInput.value) || 0;
+                updateStars(current);
+            });
+
+            // Initialize all stars as unchecked
+            updateStars(0);
+
+            // Google-style pill buttons for "Did you use this business?"
+            const usedBtns = document.querySelectorAll('[data-review-used]');
+            const usedInput = document.getElementById('reviewUsedInput');
+            usedBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    usedBtns.forEach(b => b.setAttribute('aria-pressed', 'false'));
+                    btn.setAttribute('aria-pressed', 'true');
+                    if (usedInput) usedInput.value = btn.dataset.reviewUsed;
+                });
+            });
+        })();
 
         });
 
