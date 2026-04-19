@@ -3153,13 +3153,6 @@
                 featured: true,
                 showcase: true,
                 services: true,
-                hero: false,
-                integrity: false,
-                showInFeatured: true,
-                showInShowcase: true,
-                showInServices: true,
-                showInHero: false,
-                showInIntegrity: false,
                 isStarred: false,
                 isFeatured: false
             };
@@ -5760,8 +5753,7 @@
                                     <h2><i class="fab fa-google"></i> Google Business Reviews</h2>
                                     <div class="google-business-admin-status">
                                         <button class="google-business-status" id="googleBusinessStatusBtn" type="button" aria-pressed="false">SYNC PENDING</button>
-                                        <button class="admin-action-btn" id="refreshReviewFeedBtn" type="button" style="margin-top:10px; width: auto; font-size: 0.8rem;"><i class="fas fa-sync-alt"></i> Refresh Feed</button>
-                                        <p id="googleBusinessMessage" style="margin-top:10px;">Connect the Google Business feed to stream verified reviews here.</p>
+                                        <p id="googleBusinessMessage">Connect the Google Business feed to stream verified reviews here.</p>
                                     </div>
                                 </section>
                                 <section class="admin-data-section admin-section--review-auth">
@@ -6311,7 +6303,7 @@
 
             adminBackdrop = document.getElementById('adminBackdrop');
             adminToggle = document.getElementById('adminToggle');
-            adminTabs = Array.from(document.querySelectorAll('.admin-tab, .admin-sidebar-item'));
+            adminTabs = Array.from(document.querySelectorAll('.admin-tab'));
             adminTabPanels = Array.from(document.querySelectorAll('.admin-tab-panel'));
             reviewsRequireApproval = document.getElementById('reviewsRequireApproval');
             pendingReviewsGrid = document.getElementById('pendingReviewsGrid');
@@ -6382,21 +6374,6 @@
 
             if (adminToggle) {
                 adminToggle.addEventListener('click', haltDataSync);
-            }
-
-            const refreshReviewBtn = document.getElementById('refreshReviewFeedBtn');
-            if (refreshReviewBtn) {
-                refreshReviewBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    refreshReviewBtn.disabled = true;
-                    refreshReviewBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
-                    refreshLiveReviewSection();
-                    setTimeout(() => {
-                        refreshReviewBtn.disabled = false;
-                        refreshReviewBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh Feed';
-                        showAdminMediaToast('Review feed refreshed', 'success');
-                    }, 1500);
-                });
             }
 
             if (adminBackdrop) {
@@ -6831,30 +6808,6 @@
                             setProjectSurfaceMedia(nextProject, surface, selected);
                             nextProject.showInServices = true;
                             nextProject.services = true;
-                        } else if (surface === 'hero') {
-                            nextProject.showInHero = true;
-                            nextProject.hero = true;
-                            // Clear hero from other projects
-                            projects.forEach((p, pIdx) => {
-                                if (pIdx !== idx) {
-                                    p.showInHero = false;
-                                    p.hero = false;
-                                }
-                            });
-                            try { initHeroVideo(selected.mediaSrc); } catch {}
-                            toastMessage = 'Set as Hero Background';
-                        } else if (surface === 'integrity') {
-                            nextProject.showInIntegrity = true;
-                            nextProject.integrity = true;
-                            // Clear integrity from other projects
-                            projects.forEach((p, pIdx) => {
-                                if (pIdx !== idx) {
-                                    p.showInIntegrity = false;
-                                    p.integrity = false;
-                                }
-                            });
-                            try { loadIntegrityImage(selected.mediaSrc); } catch {}
-                            toastMessage = 'Set as Integrity Media';
                         }
 
                         const rerenderAfterSurfaceChange = (projectState, surfaceKey) => {
@@ -6875,9 +6828,6 @@
                             }
                             if (surfaceKey === 'services') {
                                 renderServices();
-                            }
-                            if (surfaceKey === 'hero' || surfaceKey === 'integrity') {
-                                renderProjects();
                             }
                         };
 
@@ -7152,48 +7102,10 @@
                         return;
                     }
 
-                    const tabBtn = e.target.closest('.admin-tab, .admin-sidebar-item');
+                    const tabBtn = e.target.closest('.admin-tab');
                     if (tabBtn) {
                         e.preventDefault();
                         setAdminTab(tabBtn.dataset.adminTab);
-                        return;
-                    }
-
-                    const uploadBtnEl = e.target.closest('#uploadBtn');
-                    if (uploadBtnEl) {
-                        e.preventDefault();
-                        saveProjectFromQueue();
-                        return;
-                    }
-
-                    const addGalleryBtnEl = e.target.closest('#addGalleryItemBtn');
-                    if (addGalleryBtnEl) {
-                        e.preventDefault();
-                        addMediaFromInputs();
-                        return;
-                    }
-
-                    const clearGalleryBtnEl = e.target.closest('#clearGalleryBtn');
-                    if (clearGalleryBtnEl) {
-                        e.preventDefault();
-                        clearGalleryQueueState();
-                        return;
-                    }
-
-                    const mediaTypeBtnEl = e.target.closest('.media-btn');
-                    if (mediaTypeBtnEl) {
-                        e.preventDefault();
-                        const type = mediaTypeBtnEl.dataset.type || 'image';
-                        mediaTypeButtons.forEach((b) => b.classList.toggle('active', b === mediaTypeBtnEl));
-                        selectedMediaType = type;
-                        return;
-                    }
-
-                    const integrityBtnEl = e.target.closest('.integrity-graphic-btn');
-                    if (integrityBtnEl) {
-                        e.preventDefault();
-                        // The file input click is handled by bindIntegrityMediaUploader
-                        // but we want to make sure we don't trigger other things.
                         return;
                     }
 
@@ -7275,30 +7187,6 @@
                         renderPublicReviews();
                         refreshOverview();
                         refreshLiveReviewSection();
-                        return;
-                    }
-
-                    const assignMediaBtn = e.target.closest('[data-media-assign]');
-                    if (assignMediaBtn) {
-                        e.preventDefault();
-                        const id = String(assignMediaBtn.getAttribute('data-media-assign') || '').trim();
-                        assignMediaToSection(getCurrentSectionSlotKey(), id).then(() => {
-                            showAdminMediaToast('Media assigned to section.', 'success');
-                        }).catch((error) => {
-                            showAdminMediaToast(String(error?.message || error || 'Assign failed'), 'error');
-                        });
-                        return;
-                    }
-
-                    const deleteMediaBtn = e.target.closest('[data-media-delete]');
-                    if (deleteMediaBtn) {
-                        e.preventDefault();
-                        const id = String(deleteMediaBtn.getAttribute('data-media-delete') || '').trim();
-                        removeMediaLibraryRecord(id).then(() => {
-                            showAdminMediaToast('Media deleted.', 'success');
-                        }).catch((error) => {
-                            showAdminMediaToast(String(error?.message || error || 'Delete failed'), 'error');
-                        });
                     }
                 });
             }
@@ -7315,15 +7203,12 @@
             startFirestoreReviewAuthSync();
             if (canAccessReviewModeration()) startFirestorePendingReviewsSync();
             syncReviewAuthUiState();
-            if (adminHideTimer) {
-                clearTimeout(adminHideTimer);
-                adminHideTimer = null;
-            }
             if (adminBackdrop) {
                 adminBackdrop.classList.add('active');
                 adminBackdrop.setAttribute('aria-hidden', 'false');
             }
             if (adminPanel) {
+                adminPanel.classList.remove('admin-login-modal');
                 adminPanel.style.display = 'grid';
                 adminPanel.style.opacity = '1';
                 void adminPanel.offsetWidth;
@@ -7410,6 +7295,11 @@
             }
         }
 
+        const ghostActivationWindowMs = 500;
+        const ghostActivationClicksRequired = 3;
+        let ghostActivationClicks = [];
+        let ghostActivationFallbackTimer = null;
+
         consumeAdminSecretKeyFromUrl();
         updateAdminEntryButtonVisibility();
 
@@ -7419,16 +7309,52 @@
                 e.preventDefault();
                 e.stopPropagation();
 
-                // Logo triple-click for admin access removed.
-                // Logo now only handles review identity tap.
-                void (async () => {
-                    const result = await handleLogoIdentityTap({ openReviewModalIfNeeded: true });
-                    if (result && result.redirected) return;
-                    const hasIdentity = !!(result && result.identity && result.identity.email);
-                    if (!hasIdentity && !reviewModal?.classList?.contains('active')) {
-                        navigateToAdminTriggerFallback();
+                if (reviewModal && reviewModal.classList.contains('active')) {
+                    if (ghostActivationFallbackTimer) {
+                        clearTimeout(ghostActivationFallbackTimer);
+                        ghostActivationFallbackTimer = null;
                     }
-                })();
+                    ghostActivationClicks = [];
+
+                    void (async () => {
+                        await handleLogoIdentityTap({ openReviewModalIfNeeded: false });
+                    })();
+                    return;
+                }
+
+                const now = Date.now();
+                ghostActivationClicks = ghostActivationClicks.filter((stamp) => now - stamp <= ghostActivationWindowMs);
+                ghostActivationClicks.push(now);
+
+                if (ghostActivationFallbackTimer) {
+                    clearTimeout(ghostActivationFallbackTimer);
+                    ghostActivationFallbackTimer = null;
+                }
+
+                if (ghostActivationClicks.length >= ghostActivationClicksRequired) {
+                    ghostActivationClicks = [];
+                    const granted = activateAdminFromGhostTrigger(ghostTriggerNode);
+                    if (!granted) return;
+                    updateAdminEntryButtonVisibility();
+                    if (adminPanel && adminPanel.classList.contains('active')) {
+                        return;
+                    }
+                    initDataSync();
+                    return;
+                }
+
+                ghostActivationFallbackTimer = window.setTimeout(() => {
+                    ghostActivationClicks = [];
+                    ghostActivationFallbackTimer = null;
+                    void (async () => {
+                        const result = await handleLogoIdentityTap({ openReviewModalIfNeeded: true });
+                        if (result && result.redirected) return;
+                        const hasIdentity = !!(result && result.identity && result.identity.email);
+                        if (!hasIdentity && !reviewModal?.classList?.contains('active')) {
+                            navigateToAdminTriggerFallback();
+                        }
+                    })();
+                }, ghostActivationWindowMs + 20);
             });
         }
 
@@ -8274,8 +8200,6 @@
                 const featuredBtnClass = featuredMediaKeys.has(mediaKey) ? 'media-surface-btn is-active' : 'media-surface-btn';
                 const showcaseBtnClass = showcaseMediaKey && showcaseMediaKey === mediaKey ? 'media-surface-btn is-active' : 'media-surface-btn';
                 const servicesBtnClass = servicesMediaKey && servicesMediaKey === mediaKey ? 'media-surface-btn is-active' : 'media-surface-btn';
-                const heroBtnClass = project?.showInHero && project?.mediaSrc === mediaSrc ? 'media-surface-btn is-active' : 'media-surface-btn';
-                const integrityBtnClass = project?.showInIntegrity && project?.mediaSrc === mediaSrc ? 'media-surface-btn is-active' : 'media-surface-btn';
 
                 const typeBadge = mediaType === 'video'
                     ? '<div class="project-media-badge"><i class="fas fa-film"></i> Video</div>'
@@ -8309,11 +8233,9 @@
                             <div class="project-title">${safeTitle}</div>
                             <div class="project-media-caption">${safeCategory} - ${index + 1}/${total}</div>
                             <div class="media-surface-actions">
-                                <button class="${featuredBtnClass}" type="button" data-apply-media-surface="featured" data-apply-project-id="${projectId}" data-apply-media-key="${safeMediaKey}">Featured</button>
-                                <button class="${showcaseBtnClass}" type="button" data-apply-media-surface="showcase" data-apply-project-id="${projectId}" data-apply-media-key="${safeMediaKey}">Showcase</button>
-                                <button class="${servicesBtnClass}" type="button" data-apply-media-surface="services" data-apply-project-id="${projectId}" data-apply-media-key="${safeMediaKey}">Services</button>
-                                <button class="${heroBtnClass}" type="button" data-apply-media-surface="hero" data-apply-project-id="${projectId}" data-apply-media-key="${safeMediaKey}">Hero BG</button>
-                                <button class="${integrityBtnClass}" type="button" data-apply-media-surface="integrity" data-apply-project-id="${projectId}" data-apply-media-key="${safeMediaKey}">Integrity</button>
+                                <button class="${featuredBtnClass}" type="button" data-apply-media-surface="featured" data-apply-project-id="${projectId}" data-apply-media-key="${safeMediaKey}">Featured Loop</button>
+                                <button class="${showcaseBtnClass}" type="button" data-apply-media-surface="showcase" data-apply-project-id="${projectId}" data-apply-media-key="${safeMediaKey}">Showcase BG</button>
+                                <button class="${servicesBtnClass}" type="button" data-apply-media-surface="services" data-apply-project-id="${projectId}" data-apply-media-key="${safeMediaKey}">Services BG</button>
                             </div>
                         </div>
                     </div>
@@ -8341,12 +8263,6 @@
                     if (!mediaKey) return count;
                     return count + (getDirectSurfaceMediaKey(entry.project, 'services') === mediaKey ? 1 : 0);
                 }, 0);
-                const heroAssigned = mediaEntries.reduce((count, entry) => {
-                    return count + (entry.project?.showInHero && getMediaKey(entry.media) === getMediaKey(entry.project) ? 1 : 0);
-                }, 0);
-                const integrityAssigned = mediaEntries.reduce((count, entry) => {
-                    return count + (entry.project?.showInIntegrity && getMediaKey(entry.media) === getMediaKey(entry.project) ? 1 : 0);
-                }, 0);
                 const cards = mediaEntries.map((entry) => buildMediaCard(entry)).join('');
                 const projectRecords = projectIds.size;
                 const recordsChip = projectRecords > 1
@@ -8365,8 +8281,6 @@
                                 <span class="admin-project-group-chip">Featured ${featuredAssigned}</span>
                                 <span class="admin-project-group-chip">Showcase ${showcaseAssigned}</span>
                                 <span class="admin-project-group-chip">Services ${servicesAssigned}</span>
-                                <span class="admin-project-group-chip">Hero ${heroAssigned}</span>
-                                <span class="admin-project-group-chip">Integrity ${integrityAssigned}</span>
                             </div>
                         </header>
                         <div class="admin-project-group-grid">${cards}</div>
@@ -8659,7 +8573,7 @@
         };
 
         const toDisplayReviewDate = (value) => formatTechnicalDate(value);
-        const formatTrustCounter = (value) => String(Math.max(0, Math.round(Number(value) || 0))) + '+';
+        const formatTrustCounter = (value) => String(Math.max(0, Math.round(Number(value) || 0)));
         const drawMergedReviewCounter = () => {};
         const setMergedReviewCounter = (nextTotal, opts = {}) => {
             const safeNext = Math.max(0, Math.round(Number(nextTotal) || 0));
