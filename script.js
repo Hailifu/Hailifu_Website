@@ -12901,6 +12901,92 @@
             });
         })();
 
+        // --- Google Places API Integration (SAB Logic: No Map) ---
+        const GOOGLE_PLACE_ID = 'ChIJyZ8YI4_E348RS_Xz7N_CSh4';
+
+        function initGoogleReviews() {
+            const grid = document.getElementById('google-reviews-grid');
+            if (!grid) return;
+
+            // Initialize the Places Service with a dummy element (SAB logic - no map display)
+            const service = new google.maps.places.PlacesService(document.createElement('div'));
+
+            const request = {
+                placeId: GOOGLE_PLACE_ID,
+                fields: ['reviews', 'rating', 'user_ratings_total']
+            };
+
+            service.getDetails(request, (place, status) => {
+                if (status === google.maps.places.PlacesServiceStatus.OK && place) {
+                    if (place.reviews && place.reviews.length > 0) {
+                        renderGoogleReviews(place.reviews);
+                    } else {
+                        grid.innerHTML = '<p class="error-message">No reviews found for this location.</p>';
+                    }
+                    updateReviewStats(place.rating, place.user_ratings_total);
+                } else {
+                    grid.innerHTML = '<p class="error-message">Failed to load live reviews. Please try again later.</p>';
+                    console.error('Google Places API error:', status);
+                }
+            });
+        }
+
+        function renderGoogleReviews(reviews) {
+            const grid = document.getElementById('google-reviews-grid');
+            if (!grid) return;
+
+            grid.innerHTML = reviews.map(review => {
+                const rating = Math.round(review.rating || 5);
+                const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+                const date = new Date(review.time * 1000).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+
+                return `
+                    <article class="google-review-card animate-on-scroll">
+                        <div class="google-review-source">
+                            <i class="fab fa-google"></i>
+                        </div>
+                        <div class="google-review-header">
+                            <img src="${review.profile_photo_url}" alt="${review.author_name}" class="google-reviewer-avatar" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(review.author_name)}&background=FF8C00&color=fff'">
+                            <div class="google-reviewer-info">
+                                <span class="google-reviewer-name">${review.author_name}</span>
+                                <span class="google-review-date">${date}</span>
+                            </div>
+                        </div>
+                        <div class="google-review-stars">${stars}</div>
+                        <p class="google-review-text">${review.text}</p>
+                    </article>
+                `;
+            }).join('');
+        }
+
+        function updateReviewStats(rating, total) {
+            const avgEl = document.getElementById('reviewAvgRating');
+            const totalEl = document.getElementById('reviewTotalReports');
+            const ratingNumber = document.getElementById('googleRatingNumber');
+            const reviewCount = document.getElementById('googleReviewCount');
+            
+            const formattedRating = rating ? rating.toFixed(1) : '5.0';
+            const formattedTotal = total ? total.toLocaleString() : '100+';
+
+            if (avgEl) avgEl.textContent = formattedRating;
+            if (totalEl) totalEl.textContent = formattedTotal;
+            if (ratingNumber) ratingNumber.textContent = formattedRating;
+            if (reviewCount) reviewCount.textContent = `${formattedTotal} Verified Reviews`;
+        }
+
+        // Execute activation
+        if (window.google && window.google.maps) {
+            initGoogleReviews();
+        } else {
+            window.addEventListener('load', () => {
+                if (window.google && window.google.maps) initGoogleReviews();
+            });
+        }
+
         });
 
 

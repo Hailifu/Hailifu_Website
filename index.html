@@ -48,6 +48,7 @@
     <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://accounts.google.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBf0-nHMqu_ojZ1Ls-CEIHCXyiCnkNbRCY&libraries=places"></script>
 
         <link rel="stylesheet" href="/style.css?v=20260226w">
         <style>
@@ -1047,109 +1048,100 @@
                 </div>
             </div>
 
-            <div id="featurable-0f80d7d2-80a5-4d40-b001-699eb6a5a3d6" data-featurable-async data-featurable-place-id="hailifu-brilliant-installation" data-hailifu-place-id="hailifu-brilliant-installation" class="featurable-data-proxy" aria-hidden="true"></div>
-            
-            <div class="modern-review-grid">
-                <!-- Review Stats Card -->
-                <div class="review-stats-card animate-on-scroll">
-                    <div class="review-stats-header">
-                        <div class="google-logo-large">
-                            <i class="fab fa-google"></i>
-                        </div>
-                        <div class="rating-info">
-                            <div class="rating-number-large" id="googleRatingNumber">--</div>
-                            <div class="rating-stars-large">★★★★★</div>
-                            <div class="review-count-large" id="googleReviewCount">Loading verified reviews...</div>
-                        </div>
-                    </div>
-                    
-                    <div class="review-metrics">
-                        <div class="metric-row">
-                            <span class="metric-label">5</span>
-                            <div class="metric-bar">
-                                <div class="metric-fill" style="width: 100%"></div>
-                            </div>
-                            <span class="metric-value">★★★★★</span>
-                        </div>
-                        <div class="metric-row">
-                            <span class="metric-label">4</span>
-                            <div class="metric-bar">
-                                <div class="metric-fill" style="width: 0%"></div>
-                            </div>
-                            <span class="metric-value">★★★★</span>
-                        </div>
-                        <div class="metric-row">
-                            <span class="metric-label">3</span>
-                            <div class="metric-bar">
-                                <div class="metric-fill" style="width: 0%"></div>
-                            </div>
-                            <span class="metric-value">★★★</span>
-                        </div>
-                        <div class="metric-row">
-                            <span class="metric-label">2</span>
-                            <div class="metric-bar">
-                                <div class="metric-fill" style="width: 0%"></div>
-                            </div>
-                            <span class="metric-value">★★</span>
-                        </div>
-                        <div class="metric-row">
-                            <span class="metric-label">1</span>
-                            <div class="metric-bar">
-                                <div class="metric-fill" style="width: 0%"></div>
-                            </div>
-                            <span class="metric-value">★</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Customer Reviews Panel -->
-                <div class="hailifu-review-panel animate-on-scroll" id="reviews-feed">
-                    <div class="hailifu-review-header">
-                        <h3 id="reviewsHeadline">Live Rating | Live Verified Reviews</h3>
-                        <div class="hailifu-review-stars">★★★★★</div>
-                    </div>
-
-                    <div class="review-terminal" id="reviewTerminal">
-                        <div class="review-terminal-header">
-                            <div class="review-terminal-labels">
-                                <span class="review-terminal-label">Review Terminal</span>
-                                <span class="review-terminal-subtitle">Google Business Feed</span>
-                            </div>
-                            <div class="review-terminal-controls">
-                                <button type="button" class="review-terminal-btn" data-review-terminal-prev>
-                                    <i class="fas fa-chevron-left"></i>
-                                    PREV
-                                </button>
-                                <button type="button" class="review-terminal-btn" data-review-terminal-next>
-                                    NEXT
-                                    <i class="fas fa-chevron-right"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <article class="hailifu-review-card review-card review-terminal-card is-fading" data-rating="5">
-                            <div class="hailifu-review-card-header">
-                                <div class="hailifu-review-meta">
-                                    <span class="review-source-icon" aria-hidden="true"><i class="fab fa-google"></i></span>
-                                    <span class="field-report-label">Field Report</span>
-                                    <span class="hailifu-reviewer" id="reviewTerminalName">Shaibu Salifu</span>
-                                    <span class="review-verified">Verified</span>
-                                </div>
-                                <span class="hailifu-review-score" id="reviewTerminalStars">★★★★★</span>
-                            </div>
-                            <p id="reviewTerminalText">"I really love their work always on time, their work is neat and they are humble"</p>
-                            <div class="owner-reply" id="reviewTerminalOwner">
-                                <span class="owner-reply-label">SYSTEM_RESPONSE</span>
-                                <p id="reviewTerminalResponse">Thanks for the 5 stars, We're glad you had a great experience. See you next time</p>
-                            </div>
-                        </article>
-                    </div>
- 
-                    <a class="hailifu-review-link" href="https://g.page/r/CdsiXmzUDUmjEAE/review" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">
-                        <i class="fab fa-google"></i>
-                        View All Reviews on Google
-                    </a>
+            <!-- Dynamic Reviews Grid -->
+            <div id="google-reviews-grid" class="google-reviews-grid">
+                <!-- Reviews will be dynamically rendered here -->
+                <div class="loading-reviews">
+                    <div class="spinner"></div>
+                    <p>Fetching live verified reviews...</p>
                 </div>
             </div>
+
+            <style>
+                .google-reviews-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                    gap: 20px;
+                    margin-top: 40px;
+                }
+                .google-review-card {
+                    background: #000000;
+                    border: 1px solid rgba(255, 140, 0, 0.2);
+                    border-radius: 12px;
+                    padding: 24px;
+                    transition: transform 0.3s ease, box-shadow 0.3s ease;
+                    position: relative;
+                    overflow: hidden;
+                }
+                .google-review-card:hover {
+                    transform: translateY(-5px);
+                    box-shadow: 0 10px 30px rgba(255, 140, 0, 0.1);
+                    border-color: #FF8C00;
+                }
+                .google-review-header {
+                    display: flex;
+                    align-items: center;
+                    margin-bottom: 16px;
+                }
+                .google-reviewer-avatar {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    margin-right: 12px;
+                    object-fit: cover;
+                }
+                .google-reviewer-info {
+                    flex: 1;
+                }
+                .google-reviewer-name {
+                    color: #FFFFFF;
+                    font-weight: 600;
+                    font-size: 1rem;
+                    display: block;
+                }
+                .google-review-date {
+                    color: rgba(255, 255, 255, 0.5);
+                    font-size: 0.8rem;
+                }
+                .google-review-stars {
+                    color: #FF8C00;
+                    font-size: 1.1rem;
+                    margin-bottom: 12px;
+                }
+                .google-review-text {
+                    color: rgba(255, 255, 255, 0.8);
+                    font-size: 0.95rem;
+                    line-height: 1.6;
+                    margin-bottom: 16px;
+                }
+                .google-review-source {
+                    position: absolute;
+                    top: 24px;
+                    right: 24px;
+                    color: #FF8C00;
+                    opacity: 0.5;
+                }
+                .loading-reviews {
+                    grid-column: 1 / -1;
+                    text-align: center;
+                    padding: 60px;
+                    color: #FF8C00;
+                }
+                .spinner {
+                    width: 40px;
+                    height: 40px;
+                    border: 3px solid rgba(255, 140, 0, 0.1);
+                    border-top: 3px solid #FF8C00;
+                    border-radius: 50%;
+                    margin: 0 auto 20px;
+                    animation: spin 1s linear infinite;
+                }
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            </style>
+
 
             <div class="featured-reviews-feed">
                 <div class="featured-reviews-header">
