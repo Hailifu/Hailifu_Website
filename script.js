@@ -12940,27 +12940,61 @@
             const grid = document.getElementById('google-reviews-grid');
             if (!grid) return;
 
-            // Initialize the Places Service with a dummy element (SAB logic - no map display)
-            const service = new google.maps.places.PlacesService(document.createElement('div'));
-
-            const request = {
-                placeId: GOOGLE_PLACE_ID,
-                fields: ['reviews', 'rating', 'user_ratings_total']
-            };
-
-            service.getDetails(request, (place, status) => {
-                if (status === google.maps.places.PlacesServiceStatus.OK && place) {
-                    if (place.reviews && place.reviews.length > 0) {
-                        renderGoogleReviews(place.reviews);
-                    } else {
-                        grid.innerHTML = '<p class="error-message">No reviews found for this location.</p>';
-                    }
-                    updateReviewStats(place.rating, place.user_ratings_total);
-                } else {
-                    grid.innerHTML = '<p class="error-message">Failed to load live reviews. Please try again later.</p>';
-                    console.error('Google Places API error:', status);
+            // --- Timeout & Fallback Logic ---
+            let apiResolved = false;
+            const fallbackTimeout = setTimeout(() => {
+                if (!apiResolved) {
+                    renderGoogleFallbackUI('API Timeout: Handshake latency detected.');
                 }
-            });
+            }, 5000);
+
+            function renderGoogleFallbackUI(reason) {
+                console.warn('[HAILIFU] Google Reviews Fallback:', reason);
+                grid.innerHTML = `
+                    <div class="google-fallback-ui animate-on-scroll">
+                        <i class="fab fa-google" style="font-size: 2rem; color: #FF8C00; margin-bottom: 15px;"></i>
+                        <p>We're having trouble loading live reviews right now.</p>
+                        <a href="https://g.page/r/CdsiXmzUDUmjEAE/review" target="_blank" class="hailifu-review-link" style="margin-top: 15px; display: inline-flex;">
+                            View Verified Reviews on Google
+                        </a>
+                    </div>
+                `;
+                // Set default stats if they are still '--'
+                const avgEl = document.getElementById('reviewAvgRating');
+                const totalEl = document.getElementById('reviewTotalReports');
+                if (avgEl && avgEl.textContent === '--') avgEl.textContent = '5.0';
+                if (totalEl && totalEl.textContent === '--') totalEl.textContent = '100+';
+            }
+
+            try {
+                // Initialize the Places Service with a dummy element (SAB logic - no map display)
+                const service = new google.maps.places.PlacesService(document.createElement('div'));
+
+                const request = {
+                    placeId: GOOGLE_PLACE_ID,
+                    fields: ['reviews', 'rating', 'user_ratings_total']
+                };
+
+                service.getDetails(request, (place, status) => {
+                    apiResolved = true;
+                    clearTimeout(fallbackTimeout);
+
+                    if (status === google.maps.places.PlacesServiceStatus.OK && place) {
+                        if (place.reviews && place.reviews.length > 0) {
+                            renderGoogleReviews(place.reviews);
+                        } else {
+                            renderGoogleFallbackUI('No reviews found.');
+                        }
+                        updateReviewStats(place.rating, place.user_ratings_total);
+                    } else {
+                        renderGoogleFallbackUI(`Google API Status: ${status}`);
+                    }
+                });
+            } catch (err) {
+                apiResolved = true;
+                clearTimeout(fallbackTimeout);
+                renderGoogleFallbackUI(`Service Error: ${err.message}`);
+            }
         }
 
         function renderGoogleReviews(reviews) {
