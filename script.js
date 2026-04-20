@@ -12979,6 +12979,22 @@
                     apiResolved = true;
                     clearTimeout(fallbackTimeout);
 
+                    // --- Live-API-Debugger: Diagnostic Logs ---
+                    console.group('[HAILIFU] Live-API-Debugger: Google Places Handshake');
+                    console.log('Status Code:', status);
+                    console.log('Place Payload:', place);
+                    
+                    if (status === 'OVER_QUERY_LIMIT') {
+                        console.error('CRITICAL: Billing quota exceeded or rapid requests. Check Google Cloud Console Billing.');
+                    } else if (status === 'REQUEST_DENIED') {
+                        console.error('CRITICAL: API Key rejected. Check Referrer Restrictions in GCP (hailifugh.com must be allowed).');
+                    } else if (status === 'INVALID_REQUEST') {
+                        console.error('CRITICAL: Place ID mismatch or malformed request parameters.');
+                    } else if (status === 'NOT_FOUND') {
+                        console.error('CRITICAL: The Place ID "ChIJyZ8YI4_E348RS_Xz7N_CSh4" was not found in the Google database.');
+                    }
+                    console.groupEnd();
+
                     if (status === google.maps.places.PlacesServiceStatus.OK && place) {
                         if (place.reviews && place.reviews.length > 0) {
                             renderGoogleReviews(place.reviews);
