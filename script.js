@@ -12936,7 +12936,7 @@
         // --- Google Places API Integration (SAB Logic: No Map) ---
         const GOOGLE_PLACE_ID = 'ChIJyZ8YI4_E348RS_Xz7N_CSh4';
 
-        function initGoogleReviews() {
+        async function initGoogleReviews() {
             const grid = document.getElementById('google-reviews-grid');
             if (!grid) return;
 
@@ -12967,8 +12967,11 @@
             }
 
             try {
+                // Modern Library Loading Pattern
+                const { PlacesService } = await google.maps.importLibrary("places");
+                
                 // Initialize the Places Service with a dummy element (SAB logic - no map display)
-                const service = new google.maps.places.PlacesService(document.createElement('div'));
+                const service = new PlacesService(document.createElement('div'));
 
                 const request = {
                     placeId: GOOGLE_PLACE_ID,
@@ -13009,6 +13012,11 @@
             } catch (err) {
                 apiResolved = true;
                 clearTimeout(fallbackTimeout);
+                
+                if (err.message && err.message.includes('ApiNotActivatedMapError')) {
+                    console.error('CRITICAL: ApiNotActivatedMapError detected. You must enable "Places API (New)" and "Maps JavaScript API" in the Google Cloud Console for project "hailifu-website".');
+                }
+                
                 renderGoogleFallbackUI(`Service Error: ${err.message}`);
             }
         }
@@ -13061,13 +13069,7 @@
         }
 
         // Execute activation
-        if (window.google && window.google.maps) {
-            initGoogleReviews();
-        } else {
-            window.addEventListener('load', () => {
-                if (window.google && window.google.maps) initGoogleReviews();
-            });
-        }
+        initGoogleReviews();
 
         });
 
