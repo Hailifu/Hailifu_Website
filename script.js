@@ -9099,6 +9099,7 @@
                 const safeName = toSafeReviewerName(review.name);
                 const name = escapeHTML(safeName);
                 const nameClass = isFallbackReviewerName(safeName) ? 'review-name is-verified-name' : 'review-name';
+                const authorImage = review.authorImage || review.profile_photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(safeName)}&background=FF8C00&color=fff`;
                 const comment = escapeHTML(review.comment);
                 const date = escapeHTML(toDisplayReviewDate(review.date));
                 const meta = escapeHTML(review.meta);
@@ -9118,9 +9119,12 @@
                     <article class="review-card">
                         <div class="review-card-header">
                             <div class="review-meta">
-                                <span class="${nameClass}">${name}</span>
-                                ${metaLine}
-                                <span class="review-date">${date}</span>
+                                <img src="${authorImage}" alt="${name}" class="reviewer-avatar" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(safeName)}&background=FF8C00&color=fff'">
+                                <div>
+                                    <span class="${nameClass}">${name}</span>
+                                    ${metaLine}
+                                    <span class="review-date">${date}</span>
+                                </div>
                             </div>
                             <div class="review-stars">${stars}</div>
                         </div>
@@ -9341,7 +9345,7 @@
                 const ownerReply = escapeHTML(String(review.ownerReply || '').trim());
                 const source = escapeHTML(review.source || REVIEW_SOURCE_GOOGLE);
                 const stars = buildStarText(review.rating);
-                const authorImage = toSafeImageUrl(review.authorImage);
+                const authorImage = review.authorImage || review.profile_photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(rawName)}&background=FF8C00&color=fff`;
                 const nativeBadge = review.isNative && review.verified
                     ? '<span class="native-verified-badge" title="Native review approved in admin panel">Verified</span>'
                     : '';
@@ -9355,6 +9359,7 @@
                         </button>
                         <div class="featured-review-meta">
                             <div class="featured-review-identity">
+                                <img src="${authorImage}" alt="${name}" class="reviewer-avatar" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(rawName)}&background=FF8C00&color=fff'">
                                 <div class="featured-review-meta-copy">
                                     <span class="review-source">${source}</span>
                                     <div class="reviewer-name-row">
