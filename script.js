@@ -7627,6 +7627,33 @@
             }
         }
 
+        function deleteProjectById(projectId) {
+            if (!projectId) return;
+            const projects = getProjects();
+            const filteredProjects = projects.filter((p) => String(p?.id || '') !== String(projectId));
+
+            // 1. Update local storage
+            saveProjects(filteredProjects);
+
+            // 2. Immediate UI Update
+            renderProjects();
+
+            // 3. Remove from cloud databases
+            if (typeof removeProjectInFirebase === 'function' && firebaseIsReady()) {
+                removeProjectInFirebase(projectId).catch(() => {
+                    console.warn('[HAILIFU] Firebase removal failed for:', projectId);
+                });
+            }
+
+            if (typeof deleteProjectInSupabase === 'function') {
+                deleteProjectInSupabase(projectId).catch(() => {
+                    console.warn('[HAILIFU] Supabase removal failed for:', projectId);
+                });
+            }
+
+            showAdminMediaToast('Project and all its media removed', 'success');
+        }
+
         function migrateLegacyProjectsToMediaLibrary() {
             const projects = getProjects();
             if (!Array.isArray(projects) || !projects.length) return;
