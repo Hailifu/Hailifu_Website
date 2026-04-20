@@ -3258,7 +3258,11 @@
         }
 
         function getReviews() {
-            const { normalized, changed } = normalizeReviewRecords(readJsonStorage(reviewsStorageKey, []));
+            let stored = readJsonStorage(reviewsStorageKey, []);
+            if (!Array.isArray(stored) || stored.length === 0) {
+                stored = REVIEWS_DATA.map(r => ({ ...r, status: 'published' }));
+            }
+            const { normalized, changed } = normalizeReviewRecords(stored);
             if (changed) {
                 writeJsonStorage(reviewsStorageKey, normalized);
             }
@@ -3328,12 +3332,18 @@
             const renderCard = (review, statusLabel) => {
                 const name = String(review.name || 'Customer').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 const comment = String(review.comment || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                const meta = String(review.meta || '').trim();
+                const metaMarkup = meta ? `<div class="admin-review-meta" style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">${meta.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>` : '';
                 const rating = Math.max(1, Math.min(5, Number(review.rating) || 5));
                 const stars = '\u2605\u2605\u2605\u2605\u2605'.slice(0, rating).padEnd(5, '\u2605');
                 const actions = statusLabel === 'pending'
                     ? `<button type="button" class="review-admin-btn approve" data-review-approve="${review.id}">Approve</button>`
                     : '';
                 const statusText = statusLabel === 'pending' ? 'PENDING' : 'PUBLISHED';
+                const reply = String(review.ownerReply || '').trim();
+                const replyMarkup = reply
+                    ? `<div class="admin-review-reply"><strong>Response:</strong> <p>${reply.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p></div>`
+                    : '';
                 return `
                     <div class="admin-review-card">
                         <div class="admin-review-header">
@@ -3341,7 +3351,9 @@
                             <span class="admin-review-status admin-review-status--${statusLabel}">${statusText}</span>
                             <span>${stars}</span>
                         </div>
+                        ${metaMarkup}
                         <p>${comment}</p>
+                        ${replyMarkup}
                         <div class="review-admin-actions">
                             ${actions}
                             <button type="button" class="review-admin-btn delete" data-review-delete="${review.id}">Delete</button>
@@ -9391,8 +9403,8 @@
             const textEl = document.getElementById('reviewTerminalText');
             const ownerWrap = document.getElementById('reviewTerminalOwner');
             const ownerText = document.getElementById('reviewTerminalResponse');
-            const prevBtn = terminal ? terminal.querySelector('[data-review-terminal-prev]') : null;
-            const nextBtn = terminal ? terminal.querySelector('[data-review-terminal-next]') : null;
+            const prevBtn = document.querySelector('[data-review-terminal-prev]');
+            const nextBtn = document.querySelector('[data-review-terminal-next]');
             modernReviewTerminalFeed = Array.isArray(reviewsInput) ? reviewsInput.filter(Boolean) : getLiveReviewFeed();
             const reviews = modernReviewTerminalFeed;
             const terminalShareBtn = ensureReviewTerminalShareButton(card);
@@ -9523,7 +9535,7 @@
             if (avgEl) avgEl.textContent = formattedAverage;
             if (totalEl) totalEl.textContent = totalLabel;
             if (ratingNumber) ratingNumber.textContent = formattedAverage;
-            if (ratingStars) ratingStars.textContent = buildStarText(5);
+            if (ratingStars) ratingStars.textContent = buildStarText(average);
             if (reviewCount) reviewCount.textContent = hasLiveVerifiedFeed ? `${totalLabel} Clients` : 'Loading verified reviews...';
             if (headline) {
                 if (hasLiveVerifiedFeed) {
@@ -9532,7 +9544,7 @@
                     headline.textContent = 'Live Rating | Live Verified Reviews';
                 }
             }
-            if (headlineStars) headlineStars.textContent = buildStarText(5);
+            if (headlineStars) headlineStars.textContent = buildStarText(average);
             if (statsExcellence) {
                 if (formattedAverage === '--') {
                     statsExcellence.textContent = '--';
@@ -9542,7 +9554,7 @@
                     statsExcellence.textContent = formattedAverage;
                 }
             }
-            if (statsStars) statsStars.textContent = buildStarText(5);
+            if (statsStars) statsStars.textContent = buildStarText(average);
 
             document.querySelectorAll('.modern-review-section .review-metrics .metric-row').forEach((row) => {
                 const labelEl = row.querySelector('.metric-label');
@@ -9551,7 +9563,13 @@
                 const ratingKey = Math.max(1, Math.min(5, Number(labelEl.textContent) || 0));
                 let width = 0;
                 if (hasLiveVerifiedFeed) {
-                    width = ratingKey === 5 ? 100 : 0;
+                    if (average >= 4.8) {
+                        width = ratingKey === 5 ? 95 : (ratingKey === 4 ? 5 : 0);
+                    } else if (average >= 4.5) {
+                        width = ratingKey === 5 ? 80 : (ratingKey === 4 ? 15 : 5);
+                    } else {
+                        width = ratingKey === 5 ? 70 : 10;
+                    }
                 } else {
                     const count = summary.counts[ratingKey] || 0;
                     width = total > 0 ? (count / total) * 100 : 0;
