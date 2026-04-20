@@ -6930,108 +6930,6 @@
 
             bindIntegrityMediaUploader('integrityGraphicBtn', 'integrityImageInput', 'integrityUploadProgress', 'integrityUploadProgressFill');
             bindIntegrityMediaUploader('integrityMediaBtnProjects', 'integrityMediaInputProjects', 'integrityMediaUploadProgressProjects', 'integrityMediaUploadProgressFillProjects');
-<<<<<<< HEAD
-=======
-
-            if (adminPanel) {
-                adminPanel.addEventListener('click', (e) => {
-                    const closeBtn = e.target.closest('#adminToggle, .admin-toggle');
-                    if (closeBtn) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        haltDataSync();
-                        return;
-                    }
-
-                    const tabBtn = e.target.closest('.admin-tab, .admin-sidebar-item');
-                    if (tabBtn) {
-                        e.preventDefault();
-                        setAdminTab(tabBtn.dataset.adminTab);
-                        return;
-                    }
-
-                    const leadDeleteBtn = e.target.closest('[data-lead-delete]');
-                    if (leadDeleteBtn) {
-                        e.preventDefault();
-                        const leadId = leadDeleteBtn.getAttribute('data-lead-delete');
-                        deleteLeadById(leadId);
-                        return;
-                    }
-
-                    const approveBtn = e.target.closest('[data-review-approve]');
-                    if (approveBtn) {
-                        e.preventDefault();
-                        const id = approveBtn.getAttribute('data-review-approve');
-                        if (!canAccessReviewModeration()) {
-                            showAdminMediaToast('Complete Triple-Click Handshake and Firebase login first.', 'warning');
-                            return;
-                        }
-                        if (hasFirestoreReviewRuntime() && canAccessReviewModeration()) {
-                            updateReviewStatusInFirestore(id, 'published')
-                                .then(() => {
-                                    showAdminMediaToast('Review published.', 'success');
-                                })
-                                .catch((error) => {
-                                    const message = String(error?.message || 'Failed to publish review').replace(/^Firebase:\s*/i, '');
-                                    showAdminMediaToast(message, 'error');
-                                });
-                            return;
-                        }
-
-                        const reviews = getReviews();
-                        const idx = reviews.findIndex((r) => r.id === id);
-                        if (idx >= 0) {
-                            reviews[idx].status = 'published';
-                            saveReviews(reviews);
-                            if (hasFirestoreReviewRuntime()) {
-                                upsertReviewInFirestore(reviews[idx]).catch(() => {});
-                            }
-                            if (firebaseIsReady()) {
-                                upsertReviewInFirebase(reviews[idx]).catch(() => {});
-                            }
-                            renderAdminReviews();
-                            renderPublicReviews();
-                            refreshOverview();
-                            refreshLiveReviewSection();
-                        }
-                        return;
-                    }
-
-                    const deleteBtn = e.target.closest('[data-review-delete]');
-                    if (deleteBtn) {
-                        e.preventDefault();
-                        const id = deleteBtn.getAttribute('data-review-delete');
-                        if (!canAccessReviewModeration()) {
-                            showAdminMediaToast('Complete Triple-Click Handshake and Firebase login first.', 'warning');
-                            return;
-                        }
-                        if (hasFirestoreReviewRuntime() && canAccessReviewModeration()) {
-                            removeReviewInFirestore(id)
-                                .then(() => {
-                                    showAdminMediaToast('Review deleted.', 'success');
-                                })
-                                .catch((error) => {
-                                    const message = String(error?.message || 'Failed to delete review').replace(/^Firebase:\s*/i, '');
-                                    showAdminMediaToast(message, 'error');
-                                });
-                            return;
-                        }
-                        const reviews = getReviews().filter((r) => r.id !== id);
-                        saveReviews(reviews);
-                        if (hasFirestoreReviewRuntime()) {
-                            removeReviewInFirestore(id).catch(() => {});
-                        }
-                        if (firebaseIsReady()) {
-                            removeReviewInFirebase(id).catch(() => {});
-                        }
-                        renderAdminReviews();
-                        renderPublicReviews();
-                        refreshOverview();
-                        refreshLiveReviewSection();
-                    }
-                });
-            }
->>>>>>> b6061ec (Deployment: Syncing root assets and brand styles)
         }
 
         function initDataSync() {
@@ -7050,10 +6948,7 @@
                 adminBackdrop.setAttribute('aria-hidden', 'false');
             }
             if (adminPanel) {
-<<<<<<< HEAD
                 adminPanel.classList.remove('admin-login-modal');
-=======
->>>>>>> b6061ec (Deployment: Syncing root assets and brand styles)
                 adminPanel.style.display = 'grid';
                 adminPanel.style.opacity = '1';
                 void adminPanel.offsetWidth;
