@@ -696,6 +696,20 @@
         const defaultRemoteConfigPublicId = 'hailifu_site_config';
         const leadsStorageKey = 'hailifu_leads';
         const reviewsStorageKey = 'hailifu_reviews';
+        const deletedReviewsStorageKey = 'hailifu_deleted_reviews';
+
+        function getDeletedReviewIds() {
+            return readJsonStorage(deletedReviewsStorageKey, []);
+        }
+
+        function recordDeletedReviewId(id) {
+            const ids = getDeletedReviewIds();
+            const targetId = String(id || '').trim();
+            if (targetId && !ids.includes(targetId)) {
+                ids.push(targetId);
+                writeJsonStorage(deletedReviewsStorageKey, ids);
+            }
+        }
         const projectsStorageKey = 'hailifu_projects';
         const deletedProjectsStorageKey = 'hailifu_deleted_project_ids';
         const mediaLibraryStorageKey = 'hailifu_media_library';
@@ -5468,46 +5482,54 @@
             const markup = `
                 <div class="admin-backdrop" id="adminBackdrop" aria-hidden="true"></div>
                 <div class="admin-panel" id="adminPanel" aria-hidden="true" style="display: none; opacity: 0;">
-                    <nav class="admin-sidebar">
-                        <div class="admin-sidebar-brand">
-                            <img src="./logo.webp" alt="Hailifu" class="admin-sidebar-logo">
-                            <span class="admin-sidebar-title">HAILIFU</span>
-                        </div>
-                        <ul class="admin-sidebar-nav">
-                            <li class="admin-sidebar-item active" data-admin-tab="overview">
-                                <i class="fas fa-gauge-high"></i> <span>Dashboard</span>
-                            </li>
-                            <li class="admin-sidebar-item" data-admin-tab="leads">
-                                <i class="fas fa-id-card"></i> <span>Leads</span>
-                            </li>
-                            <li class="admin-sidebar-item" data-admin-tab="projects">
-                                <i class="fas fa-images"></i> <span>Projects</span>
-                            </li>
-                            <li class="admin-sidebar-item" data-admin-tab="media">
-                                <i class="fas fa-photo-film"></i> <span>Media</span>
-                            </li>
-                            <li class="admin-sidebar-item" data-admin-tab="sections">
-                                <i class="fas fa-sitemap"></i> <span>Sections</span>
-                            </li>
-                            <li class="admin-sidebar-item" data-admin-tab="reviews">
-                                <i class="fas fa-star"></i> <span>Reviews</span>
-                            </li>
-                        </ul>
-                        <div class="admin-sidebar-footer">
-                            <div class="admin-sidebar-status" role="status" aria-live="polite">
-                                <span class="status-pulse" aria-hidden="true"></span>
-                                <span>System Online</span>
+                        <nav class="admin-sidebar">
+                            <div class="admin-sidebar-brand">
+                                <div class="admin-brand-logo">H</div>
+                                <div class="admin-brand-text">
+                                    <span class="admin-brand-name">HAILIFU</span>
+                                    <span class="admin-brand-tagline">Brilliant Installation</span>
+                                </div>
                             </div>
-                            <button class="admin-sidebar-close" id="adminToggle" type="button" aria-label="Close admin panel">
-                                <i class="fas fa-arrow-left"></i> <span>Exit</span>
-                            </button>
-                        </div>
-                    </nav>
+                            <ul class="admin-sidebar-nav">
+                                <li class="admin-sidebar-item active" data-admin-tab="overview">
+                                    <i class="fas fa-chart-line"></i> <span>Dashboard</span>
+                                </li>
+                                <li class="admin-sidebar-item" data-admin-tab="leads">
+                                    <i class="fas fa-inbox"></i> <span>Leads</span>
+                                </li>
+                                <li class="admin-sidebar-item" data-admin-tab="projects">
+                                    <i class="fas fa-project-diagram"></i> <span>Projects</span>
+                                </li>
+                                <li class="admin-sidebar-item" data-admin-tab="media">
+                                    <i class="fas fa-cloud-upload-alt"></i> <span>Media Library</span>
+                                </li>
+                                <li class="admin-sidebar-item" data-admin-tab="sections">
+                                    <i class="fas fa-layer-group"></i> <span>Site Sections</span>
+                                </li>
+                                <li class="admin-sidebar-item" data-admin-tab="reviews">
+                                    <i class="fas fa-star-half-alt"></i> <span>Reviews</span>
+                                </li>
+                            </ul>
+                            <div class="admin-sidebar-footer">
+                                <button class="admin-exit-btn" id="adminToggle" type="button">
+                                    <i class="fas fa-sign-out-alt"></i> <span>Exit Portal</span>
+                                </button>
+                            </div>
+                        </nav>
                     <main class="admin-main">
                         <header class="admin-main-header">
-                            <h1 id="adminMainTitle">System Overview</h1>
+                            <div class="admin-header-left">
+                                <h1 id="adminMainTitle">Dashboard</h1>
+                                <p class="admin-header-subtitle" id="adminMainSubtitle">System Overview</p>
+                            </div>
                             <div class="admin-main-header-right">
-                                <span class="admin-portal-badge">Admin Portal</span>
+                                <div class="admin-user-profile">
+                                    <div class="admin-user-info">
+                                        <span class="admin-user-name">Administrator</span>
+                                        <span class="admin-user-role">System Root</span>
+                                    </div>
+                                    <div class="admin-user-avatar">H</div>
+                                </div>
                             </div>
                         </header>
                         <div class="admin-main-content">
@@ -6544,6 +6566,7 @@
                     }
                     const reviews = getReviews().filter((r) => r.id !== id);
                     saveReviews(reviews);
+                    recordDeletedReviewId(id);
                     if (hasFirestoreReviewRuntime()) {
                         removeReviewInFirestore(id).catch(() => {});
                     }
@@ -8720,8 +8743,11 @@
                 review.businessResponse
             ) || 'Thank you for your feedback. We appreciate your support.';
             const reviewEmail = extractReviewEmail(review);
+            const id = String(review.id || review.reviewId || review.review_id || review.externalId || '').trim()
+                || `google_${hashText(`${name}|${safeComment}`)}`;
 
             return {
+                id,
                 name,
                 rating,
                 comment: safeComment,
@@ -8909,11 +8935,14 @@
         const getLiveReviewFeed = () => {
             const googleFeed = getGoogleSyncedReviewFeed();
             const nativeFeed = getNativePublishedReviewFeed();
+            const deletedIds = getDeletedReviewIds();
             const output = [];
             const seen = new Set();
 
             const appendReview = (review) => {
                 if (!review || typeof review !== 'object') return;
+                const id = String(review.id || '').trim();
+                if (id && deletedIds.includes(id)) return;
                 const identityTokens = getReviewIdentityCandidates(review);
                 const isDuplicate = identityTokens.some((token) => seen.has(token));
                 if (isDuplicate) return;
@@ -9286,11 +9315,6 @@
                 const source = escapeHTML(review.source || REVIEW_SOURCE_GOOGLE);
                 const stars = buildStarText(review.rating);
                 const authorImage = toSafeImageUrl(review.authorImage);
-                const avatarSrc = authorImage || REVIEW_AVATAR_PLACEHOLDER_SRC;
-                const avatarAlt = authorImage ? `${rawName} profile photo` : `${rawName} profile icon`;
-                const avatarClass = authorImage ? 'featured-review-avatar' : 'featured-review-avatar featured-review-avatar--placeholder';
-                const crossoriginAttr = shouldUseAnonymousCrossoriginForReviewImage(avatarSrc) ? ' crossorigin="anonymous"' : '';
-                const avatarMarkup = `<img class="${avatarClass}" src="${escapeHTML(avatarSrc)}" alt="${escapeHTML(avatarAlt)}" loading="lazy" decoding="async" referrerpolicy="no-referrer"${crossoriginAttr} onerror="this.onerror=null; this.src='${REVIEW_AVATAR_PLACEHOLDER_SRC}';">`;
                 const nativeBadge = review.isNative && review.verified
                     ? '<span class="native-verified-badge" title="Native review approved in admin panel">Verified</span>'
                     : '';
@@ -9304,7 +9328,6 @@
                         </button>
                         <div class="featured-review-meta">
                             <div class="featured-review-identity">
-                                ${avatarMarkup}
                                 <div class="featured-review-meta-copy">
                                     <span class="review-source">${source}</span>
                                     <div class="reviewer-name-row">
@@ -9419,26 +9442,8 @@
 
                 const reviewerName = toSafeReviewerName(review.name || VERIFIED_REVIEWER_NAME);
                 const reviewText = String(review.comment || '').trim();
-                const authorImage = toSafeImageUrl(review.authorImage);
-                const avatarSrc = authorImage || REVIEW_AVATAR_PLACEHOLDER_SRC;
                 const isNativeReview = Boolean(review.isNative);
                 const verifiedBadgeEl = card.querySelector('.review-verified');
-
-                if (avatarEl) {
-                    if (shouldUseAnonymousCrossoriginForReviewImage(avatarSrc)) {
-                        avatarEl.crossOrigin = 'anonymous';
-                    } else {
-                        avatarEl.removeAttribute('crossorigin');
-                    }
-                    avatarEl.src = avatarSrc;
-                    avatarEl.alt = authorImage ? `${reviewerName} profile photo` : `${reviewerName} profile icon`;
-                    avatarEl.referrerPolicy = 'no-referrer';
-                    avatarEl.classList.toggle('hailifu-review-avatar--placeholder', !authorImage);
-                    avatarEl.onerror = function handleReviewAvatarError() {
-                        this.onerror = null;
-                        this.src = REVIEW_AVATAR_PLACEHOLDER_SRC;
-                    };
-                }
 
                 nameEl.textContent = reviewerName;
                 nameEl.classList.toggle('is-verified-name', isFallbackReviewerName(reviewerName));
