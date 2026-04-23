@@ -6771,9 +6771,107 @@
                     }, 1500);
                     return;
                 }
+
+                const mediaAssignBtn = e.target.closest('[data-media-assign]');
+                if (mediaAssignBtn) {
+                    e.preventDefault();
+                    const mediaId = mediaAssignBtn.getAttribute('data-media-assign');
+                    const slot = getCurrentSectionSlotKey();
+                    assignMediaToSection(slot, mediaId)
+                        .then(() => {
+                            showAdminMediaToast(`Media assigned to ${slot}`, 'success');
+                            applySectionMediaAssignments();
+                        })
+                        .catch((err) => showAdminMediaToast(`Assign failed: ${err.message}`, 'error'));
+                    return;
+                }
+
+                const mediaDeleteBtn = e.target.closest('[data-media-delete]');
+                if (mediaDeleteBtn) {
+                    e.preventDefault();
+                    const mediaId = mediaDeleteBtn.getAttribute('data-media-delete');
+                    if (confirm('Are you sure you want to delete this media asset from the library? This will also remove it from any assigned sections.')) {
+                        removeMediaLibraryRecord(mediaId)
+                            .then(() => {
+                                showAdminMediaToast('Media asset removed', 'success');
+                                applySectionMediaAssignments();
+                            })
+                            .catch((err) => showAdminMediaToast(`Delete failed: ${err.message}`, 'error'));
+                    }
+                    return;
+                }
             });
 
-            if (reviewsRequireApproval) {
+            if (sectionSlotSelect) {
+                 sectionSlotSelect.addEventListener('change', () => renderMediaLibraryAndSections());
+             }
+
+             if (mediaLibrarySearch) {
+                 mediaLibrarySearch.addEventListener('input', () => renderMediaLibraryAndSections());
+             }
+
+             if (mediaLibraryRefreshBtn) {
+                 mediaLibraryRefreshBtn.addEventListener('click', () => {
+                     renderMediaLibraryAndSections();
+                     showAdminMediaToast('Media library refreshed', 'success');
+                 });
+             }
+
+             if (mediaLibraryUploadBtn && mediaLibraryFileInput) {
+                 mediaLibraryUploadBtn.addEventListener('click', () => mediaLibraryFileInput.click());
+                 mediaLibraryFileInput.addEventListener('change', function() {
+                     if (!this.files || !this.files.length) return;
+                     uploadMediaLibraryFiles(this.files)
+                         .then(() => {
+                             this.value = '';
+                             showAdminMediaToast('Media uploaded to library', 'success');
+                         })
+                         .catch((err) => {
+                             alert(String(err?.message || err || 'Upload failed'));
+                         });
+                 });
+             }
+
+             if (mediaLibraryLinkBtn && mediaLibraryUrlInput) {
+                 mediaLibraryLinkBtn.addEventListener('click', () => {
+                     const url = String(mediaLibraryUrlInput.value || '').trim();
+                     if (!url) {
+                         alert('Enter a valid media URL first.');
+                         return;
+                     }
+                     const type = mediaTypeFromUrl(url);
+                     const record = {
+                         id: `media_link_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                         title: 'Linked Media',
+                         url,
+                         type,
+                         provider: 'external',
+                         createdAt: new Date().toISOString()
+                     };
+                     upsertMediaLibraryRecord(record)
+                         .then(() => {
+                             mediaLibraryUrlInput.value = '';
+                             showAdminMediaToast('Media link added to library', 'success');
+                         })
+                         .catch((err) => {
+                             alert(String(err?.message || err || 'Failed to add link'));
+                         });
+                 });
+             }
+
+             if (sectionsClearSlotBtn) {
+                 sectionsClearSlotBtn.addEventListener('click', () => {
+                     const slot = getCurrentSectionSlotKey();
+                     assignMediaToSection(slot, null)
+                         .then(() => {
+                             showAdminMediaToast(`Slot ${slot} cleared`, 'success');
+                             applySectionMediaAssignments();
+                         })
+                         .catch((err) => showAdminMediaToast(`Clear failed: ${err.message}`, 'error'));
+                 });
+             }
+
+             if (reviewsRequireApproval) {
                 const settings = getReviewSettings();
                 reviewsRequireApproval.checked = !!settings.requireApproval;
                 reviewsRequireApproval.addEventListener('change', () => {
