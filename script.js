@@ -5473,8 +5473,13 @@
         }
 
         function activateAdminFromGhostTrigger(sourceNode = null) {
-            const granted = adminGatekeeper.authorizeFromSecretKey();
-            if (!granted) return false;
+            console.log('[Admin] Ghost trigger activation requested');
+            const granted = adminGatekeeper.grantVisibility();
+            if (!granted) {
+                console.error('[Admin] Visibility grant failed');
+                return false;
+            }
+            console.log('[Admin] Visibility granted, pulsing success');
             adminGatekeeper.pulseSuccess(sourceNode);
             return true;
         }
@@ -6845,11 +6850,14 @@
         // Bind handshake to both the image and the ghost button
         [adminTrigger, ghostAdminTrigger].forEach(triggerNode => {
             if (!triggerNode) return;
+            console.log('[Admin] Binding trigger node:', triggerNode.id || triggerNode.className);
             triggerNode.addEventListener('click', (e) => {
+                console.log('[Admin] Logo click detected');
                 e.preventDefault();
                 e.stopPropagation();
 
                 if (reviewModal && reviewModal.classList.contains('active')) {
+                    console.log('[Admin] Review modal active, bypassing handshake');
                     if (ghostActivationFallbackTimer) {
                         clearTimeout(ghostActivationFallbackTimer);
                         ghostActivationFallbackTimer = null;
@@ -6865,6 +6873,7 @@
                 const now = Date.now();
                 ghostActivationClicks = ghostActivationClicks.filter((stamp) => now - stamp <= ghostActivationWindowMs);
                 ghostActivationClicks.push(now);
+                console.log(`[Admin] Clicks in window: ${ghostActivationClicks.length}/${ghostActivationClicksRequired}`);
 
                 if (ghostActivationFallbackTimer) {
                     clearTimeout(ghostActivationFallbackTimer);
@@ -6872,11 +6881,16 @@
                 }
 
                 if (ghostActivationClicks.length >= ghostActivationClicksRequired) {
+                    console.log('[Admin] Handshake successful! Activating...');
                     ghostActivationClicks = [];
                     const granted = activateAdminFromGhostTrigger(triggerNode);
-                    if (!granted) return;
+                    if (!granted) {
+                        console.error('[Admin] Activation failed: Secret key not authorized');
+                        return;
+                    }
                     updateAdminEntryButtonVisibility();
                     if (adminPanel && adminPanel.classList.contains('active')) {
+                        console.log('[Admin] Panel already active');
                         return;
                     }
                     initDataSync();
@@ -6884,6 +6898,7 @@
                 }
 
                 ghostActivationFallbackTimer = window.setTimeout(() => {
+                    console.log('[Admin] Handshake timed out, falling back to identity/fallback');
                     ghostActivationClicks = [];
                     ghostActivationFallbackTimer = null;
                     void (async () => {
