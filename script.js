@@ -5437,7 +5437,8 @@
                 authorizeFromSecretKey,
                 grantVisibility,
                 hasVisibilityGrant,
-                pulseSuccess
+                pulseSuccess,
+                clearPersistedVisibilityGrant
             };
         })();
 
@@ -5472,7 +5473,7 @@
         }
 
         function activateAdminFromGhostTrigger(sourceNode = null) {
-            const granted = adminGatekeeper.grantVisibility();
+            const granted = adminGatekeeper.authorizeFromSecretKey();
             if (!granted) return false;
             adminGatekeeper.pulseSuccess(sourceNode);
             return true;
@@ -7329,6 +7330,14 @@
             if (adminPanel && adminPanel.classList.contains('active')) {
                 e.preventDefault();
                 e.stopPropagation();
+                
+                // Clear admin visibility grant on logout
+                if (closeBtn.id === 'adminToggle' || closeBtn.classList.contains('admin-exit-btn')) {
+                    adminGatekeeper.clearPersistedVisibilityGrant();
+                    updateAdminEntryButtonVisibility();
+                    pushAdminLog('Admin session terminated. Visibility grant revoked.');
+                }
+                
                 haltDataSync();
             }
         });
