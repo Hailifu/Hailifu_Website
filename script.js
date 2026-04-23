@@ -6439,79 +6439,74 @@
             adminToggle = document.getElementById('adminToggle');
             adminTabs = Array.from(document.querySelectorAll('.admin-tab, .admin-sidebar-item'));
             adminTabPanels = Array.from(document.querySelectorAll('.admin-tab-panel'));
-            reviewsRequireApproval = document.getElementById('reviewsRequireApproval');
-            pendingReviewsGrid = document.getElementById('pendingReviewsGrid');
-            publishedReviewsGrid = document.getElementById('publishedReviewsGrid');
-            reviewAuthForm = document.getElementById('reviewAuthForm');
-            reviewAuthEmailInput = document.getElementById('reviewAuthEmail');
-            reviewAuthPasswordInput = document.getElementById('reviewAuthPassword');
-            reviewAuthStatus = document.getElementById('reviewAuthStatus');
-            reviewAuthLoginBtn = document.getElementById('reviewAuthLoginBtn');
-            reviewAuthLogoutBtn = document.getElementById('reviewAuthLogoutBtn');
-            reviewModerationShell = document.getElementById('reviewModerationShell');
+            
+            // Stats
             overviewTotalLeads = document.getElementById('overviewTotalLeads');
             overviewRecentReviews = document.getElementById('overviewRecentReviews');
             overviewReach = document.getElementById('overviewReach');
-            overviewLeadsList = document.getElementById('overviewLeadsList');
+            
+            // Interest Analytics
             interestCctv = document.getElementById('interestCctv');
             interestElectrical = document.getElementById('interestElectrical');
             interestGates = document.getElementById('interestGates');
+            interestSolar = document.getElementById('interestSolar');
             interestAirconditioning = document.getElementById('interestAirconditioning');
             interestBlindcurtain = document.getElementById('interestBlindcurtain');
+            
             interestCctvCount = document.getElementById('interestCctvCount');
             interestElectricalCount = document.getElementById('interestElectricalCount');
             interestGatesCount = document.getElementById('interestGatesCount');
+            interestSolarCount = document.getElementById('interestSolarCount');
             interestAirconditioningCount = document.getElementById('interestAirconditioningCount');
             interestBlindcurtainCount = document.getElementById('interestBlindcurtainCount');
+
+            // Lead Management
             leadsGrid = document.getElementById('leadsGrid');
             leadsSearch = document.getElementById('leadsSearch');
             leadsRefreshBtn = document.getElementById('leadsRefreshBtn');
+            
+            // Logs
             adminLogsContainer = document.getElementById('adminLogsContainer');
             adminClearLogsBtn = document.getElementById('adminClearLogsBtn');
+            
+            // Project Manager
             projectsGrid = document.getElementById('projectsGrid');
             uploadBtn = document.getElementById('uploadBtn');
-            uploadProgress = document.getElementById('uploadProgress');
-            uploadProgressFill = document.getElementById('uploadProgressFill');
-            uploadProgressText = document.getElementById('uploadProgressText');
-            cloudinaryPresetInput = document.getElementById('cloudinaryPreset');
-            firebaseConfigInput = document.getElementById('firebaseConfig');
-            firebaseProjectsPathInput = document.getElementById('firebaseProjectsPath');
-            firebaseSettingsPathInput = document.getElementById('firebaseSettingsPath');
-            remoteConfigPublicIdInput = document.getElementById('remoteConfigPublicId');
-            remoteConfigUrlInput = document.getElementById('remoteConfigUrl');
-            setAsHeroToggle = document.getElementById('setAsHeroToggle');
             projectTitle = document.getElementById('projectTitle');
             projectCategory = document.getElementById('projectCategory');
             projectDescription = document.getElementById('projectDescription');
             projectFile = document.getElementById('projectFile');
-            projectMediaUrl = document.getElementById('projectMediaUrl');
             fileUploadArea = document.getElementById('fileUploadArea');
             galleryQueue = document.getElementById('galleryQueue');
-            addGalleryItemBtn = document.getElementById('addGalleryItemBtn');
-            clearGalleryBtn = document.getElementById('clearGalleryBtn');
-            mediaTypeButtons = Array.from(document.querySelectorAll('.media-btn'));
+            
+            // Media Library
             mediaLibrarySearch = document.getElementById('mediaLibrarySearch');
             mediaLibraryRefreshBtn = document.getElementById('mediaLibraryRefreshBtn');
             mediaLibraryUploadArea = document.getElementById('mediaLibraryUploadArea');
             mediaLibraryFileInput = document.getElementById('mediaLibraryFileInput');
             mediaLibraryUploadBtn = document.getElementById('mediaLibraryUploadBtn');
-            mediaLibraryLinkBtn = document.getElementById('mediaLibraryLinkBtn');
-            mediaLibraryUrlInput = document.getElementById('mediaLibraryUrlInput');
             mediaLibraryGrid = document.getElementById('mediaLibraryGrid');
-            mediaLibraryProgress = document.getElementById('mediaLibraryProgress');
-            mediaLibraryProgressFill = document.getElementById('mediaLibraryProgressFill');
-            mediaLibraryProgressText = document.getElementById('mediaLibraryProgressText');
-            sectionSlotSelect = document.getElementById('sectionSlotSelect');
-            sectionsClearSlotBtn = document.getElementById('sectionsClearSlotBtn');
-            sectionsCurrentAssignment = document.getElementById('sectionsCurrentAssignment');
-            sectionsMediaPicker = document.getElementById('sectionsMediaPicker');
 
-            adminLazyLoop = document.getElementById('adminLazyLoop');
-            adminLazyLoopTrack = document.getElementById('adminLazyLoopTrack');
-            adminLazyLoopDots = document.getElementById('adminLazyLoopDots');
+            // Site Control
+            const saveSeoBtn = document.getElementById('saveSeoBtn');
+            const saveThemeBtn = document.getElementById('saveThemeBtn');
+            const saveConfigBtn = document.getElementById('saveConfigBtn');
+
+            // Review Moderation
+            reviewsRequireApproval = document.getElementById('reviewsRequireApproval');
+            pendingReviewsGrid = document.getElementById('pendingReviewsGrid');
+            publishedReviewsGrid = document.getElementById('publishedReviewsGrid');
 
             if (adminPanel.dataset.listenersBound) return;
             adminPanel.dataset.listenersBound = 'true';
+
+            // Sidebar Tab Switching
+            adminTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabKey = tab.dataset.adminTab;
+                    if (tabKey) setAdminTab(tabKey);
+                });
+            });
 
             if (adminBackdrop) {
                 adminBackdrop.addEventListener('click', haltDataSync);
@@ -6524,49 +6519,41 @@
                 renderAdminLogs();
             });
 
+            if (uploadBtn) uploadBtn.addEventListener('click', handleProjectUpload);
+            
+            // File upload area handlers
+            if (fileUploadArea) {
+                fileUploadArea.addEventListener('click', () => projectFile && projectFile.click());
+                fileUploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    fileUploadArea.classList.add('dragover');
+                });
+                fileUploadArea.addEventListener('dragleave', () => fileUploadArea.classList.remove('dragover'));
+                fileUploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    fileUploadArea.classList.remove('dragover');
+                    if (e.dataTransfer.files.length) {
+                        handleProjectFileSelection(e.dataTransfer.files);
+                    }
+                });
+            }
+
+            if (projectFile) {
+                projectFile.addEventListener('change', (e) => {
+                    if (e.target.files.length) handleProjectFileSelection(e.target.files);
+                });
+            }
+
             adminPanel.addEventListener('click', (e) => {
-                const closeBtn = e.target.closest('#adminToggle, .admin-sidebar-close, .admin-toggle');
+                const closeBtn = e.target.closest('#adminToggle, .admin-exit-btn');
                 if (closeBtn) {
                     e.preventDefault();
                     e.stopPropagation();
+                    if (closeBtn.id === 'adminToggle' || closeBtn.classList.contains('admin-exit-btn')) {
+                        adminGatekeeper.clearPersistedVisibilityGrant();
+                        updateAdminEntryButtonVisibility();
+                    }
                     haltDataSync();
-                    return;
-                }
-
-                const tabBtn = e.target.closest('.admin-tab, .admin-sidebar-item');
-                if (tabBtn) {
-                    e.preventDefault();
-                    setAdminTab(tabBtn.dataset.adminTab);
-                    return;
-                }
-
-                const uploadBtnEl = e.target.closest('#uploadBtn');
-                if (uploadBtnEl) {
-                    e.preventDefault();
-                    saveProjectFromQueue();
-                    return;
-                }
-
-                const addGalleryBtnEl = e.target.closest('#addGalleryItemBtn');
-                if (addGalleryBtnEl) {
-                    e.preventDefault();
-                    addMediaFromInputs();
-                    return;
-                }
-
-                const clearGalleryBtnEl = e.target.closest('#clearGalleryBtn');
-                if (clearGalleryBtnEl) {
-                    e.preventDefault();
-                    clearGalleryQueueState();
-                    return;
-                }
-
-                const mediaTypeBtnEl = e.target.closest('.media-btn');
-                if (mediaTypeBtnEl) {
-                    e.preventDefault();
-                    const type = mediaTypeBtnEl.dataset.type || 'image';
-                    mediaTypeButtons.forEach((b) => b.classList.toggle('active', b === mediaTypeBtnEl));
-                    selectedMediaType = type;
                     return;
                 }
 
@@ -6602,17 +6589,9 @@
                     const idx = reviews.findIndex((r) => r.id === id);
                     if (idx >= 0) {
                         reviews[idx].status = 'published';
-                        saveReviews(reviews);
-                        if (hasFirestoreReviewRuntime()) {
-                            upsertReviewInFirestore(reviews[idx]).catch(() => {});
-                        }
-                        if (firebaseIsReady()) {
-                            upsertReviewInFirebase(reviews[idx]).catch(() => {});
-                        }
+                        writeJsonStorage(reviewsStorageKey, reviews);
                         renderAdminReviews();
-                        renderPublicReviews();
-                        refreshOverview();
-                        refreshLiveReviewSection();
+                        showAdminMediaToast('Review published locally.', 'success');
                     }
                     return;
                 }
@@ -6626,7 +6605,7 @@
                         return;
                     }
                     if (hasFirestoreReviewRuntime() && canAccessReviewModeration()) {
-                        removeReviewInFirestore(id)
+                        deleteReviewInFirestore(id)
                             .then(() => {
                                 showAdminMediaToast('Review deleted.', 'success');
                             })
@@ -6636,208 +6615,19 @@
                             });
                         return;
                     }
-                    const reviews = getReviews().filter((r) => r.id !== id);
-                    saveReviews(reviews);
-                    recordDeletedReviewId(id);
-                    if (hasFirestoreReviewRuntime()) {
-                        removeReviewInFirestore(id).catch(() => {});
-                    }
-                    if (firebaseIsReady()) {
-                        removeReviewInFirebase(id).catch(() => {});
-                    }
-                    renderAdminReviews();
-                    renderPublicReviews();
-                    refreshOverview();
-                    refreshLiveReviewSection();
-                    return;
-                }
 
-                const applySurfaceBtn = e.target.closest('[data-apply-media-surface][data-apply-project-id][data-apply-media-key]');
-                if (applySurfaceBtn) {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    const surface = String(applySurfaceBtn.getAttribute('data-apply-media-surface') || '').trim().toLowerCase();
-                    const projectId = String(applySurfaceBtn.getAttribute('data-apply-project-id') || '').trim();
-                    const mediaKey = String(applySurfaceBtn.getAttribute('data-apply-media-key') || '').trim();
-                    if (!surface || !projectId || !mediaKey) return;
-
-                    const projects = getProjects();
-                    const idx = projects.findIndex((p) => String(p?.id || '') === projectId);
-                    if (idx < 0) return;
-
-                    const originalProject = { ...projects[idx] };
-                    const allMedia = coerceProjectMediaItems(originalProject);
-                    const selected = allMedia.find((item) => getMediaKey(item) === mediaKey);
-                    if (!selected) return;
-
-                    const nextProject = { ...originalProject };
-                    let toastMessage = 'Media placement updated';
-
-                    if (surface === 'featured') {
-                        const featuredToggle = toggleProjectSurfaceMedia(nextProject, surface, selected);
-                        const hasFeaturedItems = Array.isArray(featuredToggle.list) && featuredToggle.list.length > 0;
-                        nextProject.showInFeatured = hasFeaturedItems;
-                        nextProject.featured = hasFeaturedItems;
-                        toastMessage = featuredToggle.added
-                            ? 'Added to Featured Loop'
-                            : 'Removed from Featured Loop';
-                    } else if (surface === 'showcase') {
-                        setProjectSurfaceMedia(nextProject, surface, selected);
-                        nextProject.showInShowcase = true;
-                        nextProject.showcase = true;
-                    } else if (surface === 'services') {
-                        setProjectSurfaceMedia(nextProject, surface, selected);
-                        nextProject.showInServices = true;
-                        nextProject.services = true;
-                    } else if (surface === 'hero') {
-                        nextProject.showInHero = true;
-                        nextProject.hero = true;
-                        // Clear hero from other projects
-                        projects.forEach((p, pIdx) => {
-                            if (pIdx !== idx) {
-                                p.showInHero = false;
-                                p.hero = false;
-                            }
-                        });
-                        try { initHeroVideo(selected.mediaSrc); } catch {}
-                        toastMessage = 'Set as Hero Background';
-                    } else if (surface === 'integrity') {
-                        nextProject.showInIntegrity = true;
-                        nextProject.integrity = true;
-                        // Clear integrity from other projects
-                        projects.forEach((p, pIdx) => {
-                            if (pIdx !== idx) {
-                                p.showInIntegrity = false;
-                                p.integrity = false;
-                            }
-                        });
-                        try { loadIntegrityImage(selected.mediaSrc); } catch {}
-                        toastMessage = 'Set as Integrity Media';
-                    }
-
-                    const rerenderAfterSurfaceChange = (projectState, surfaceKey) => {
-                        renderProjects();
-                        if (surfaceKey === 'featured') {
-                            scheduleFeaturedRender(projectState, false);
-                            return;
-                        }
-                        if (surfaceKey === 'showcase') {
-                            const showcaseProjects = projectState.filter((p) => p && isVisibilityEnabled(p, 'showInShowcase', 'showcase'));
-                            renderShowcase(showcaseProjects);
-                            const activeFilter = document.querySelector('.showcase-filters .filter-btn.active');
-                            if (typeof filterProjects === 'function') {
-                                if (activeFilter) filterProjects(activeFilter.dataset.filter || 'all');
-                                else updateShowcaseEmptyState('all');
-                            }
-                            return;
-                        }
-                        if (surfaceKey === 'services') {
-                            renderServices();
-                        }
-                        if (surfaceKey === 'hero' || surfaceKey === 'integrity') {
-                            renderProjects();
-                        }
-                    };
-
-                    projects[idx] = nextProject;
-                    saveProjects(projects);
-                    rerenderAfterSurfaceChange(projects, surface);
-                    showAdminMediaToast(toastMessage, 'success');
-
-                    if (firebaseIsReady()) {
-                        upsertProjectInFirebase(nextProject).catch(() => {
-                            projects[idx] = originalProject;
-                            saveProjects(projects);
-                            rerenderAfterSurfaceChange(projects, surface);
-                            showAdminMediaToast('Save failed. Please retry.', 'error');
-                        });
-                    } else {
-                        const preset = getCloudinaryPresetValue();
-                        if (preset) {
-                            persistCloudinaryPreset();
-                            const nextConfig = {
-                                ...(remoteConfigState && typeof remoteConfigState === 'object' ? remoteConfigState : {}),
-                                updatedAt: new Date().toISOString(),
-                                projects
-                            };
-                            uploadRemoteConfig(nextConfig, preset)
-                                .then(() => {
-                                    remoteConfigState = nextConfig;
-                                })
-                                .catch(() => {
-                                    showAdminMediaToast('Remote config save failed.', 'error');
-                                });
-                        }
+                    const reviews = getReviews();
+                    const idx = reviews.findIndex((r) => r.id === id);
+                    if (idx >= 0) {
+                        reviews.splice(idx, 1);
+                        writeJsonStorage(reviewsStorageKey, reviews);
+                        renderAdminReviews();
+                        showAdminMediaToast('Review deleted locally.', 'success');
                     }
                     return;
                 }
 
-                const deleteMediaBtn = e.target.closest('[data-delete-media-project-id][data-delete-media-key]');
-                if (deleteMediaBtn) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const projectId = deleteMediaBtn.getAttribute('data-delete-media-project-id');
-                    const mediaKey = deleteMediaBtn.getAttribute('data-delete-media-key');
-                    if (!projectId || !mediaKey) return;
-
-                    const projects = getProjects();
-                    const idx = projects.findIndex((p) => String(p?.id || '') === projectId);
-                    if (idx < 0) return;
-
-                    const originalProject = { ...projects[idx] };
-                    const nextProject = { ...originalProject };
-                    const allMedia = coerceProjectMediaItems(nextProject);
-                    const nextMedia = allMedia.filter((item) => getMediaKey(item) !== mediaKey);
-
-                    if (nextMedia.length === 0) {
-                        if (!confirm('This is the last media item. Deleting it will remove the entire project. Continue?')) return;
-                        deleteProjectById(projectId);
-                        return;
-                    }
-
-                    nextProject.mediaItems = nextMedia;
-                    nextProject.mediaIds = nextMedia.map((m) => getMediaKey(m));
-
-                    // If primary media was deleted, pick the first remaining one
-                    if (getMediaKey(nextProject) === mediaKey) {
-                        const first = nextMedia[0];
-                        nextProject.mediaSrc = first.mediaSrc || first.src || '';
-                        nextProject.thumbSrc = first.thumbSrc || first.thumb || '';
-                        nextProject.mediaType = first.mediaType || first.type || 'image';
-                    }
-
-                    projects[idx] = nextProject;
-                    saveProjects(projects);
-                    renderProjects();
-                    showAdminMediaToast('Media item removed', 'success');
-
-                    if (firebaseIsReady()) {
-                        upsertProjectInFirebase(nextProject).catch(() => {
-                            projects[idx] = originalProject;
-                            saveProjects(projects);
-                            renderProjects();
-                            showAdminMediaToast('Delete failed. Please retry.', 'error');
-                        });
-                    }
-                    return;
-                }
-
-                const refreshReviewBtn = e.target.closest('#refreshReviewFeedBtn');
-                if (refreshReviewBtn) {
-                    e.preventDefault();
-                    refreshReviewBtn.disabled = true;
-                    const originalHtml = refreshReviewBtn.innerHTML;
-                    refreshReviewBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
-                    refreshLiveReviewSection();
-                    setTimeout(() => {
-                        refreshReviewBtn.disabled = false;
-                        refreshReviewBtn.innerHTML = originalHtml;
-                        showAdminMediaToast('Review feed refreshed', 'success');
-                    }, 1500);
-                    return;
-                }
-
+                // Media Assignment
                 const mediaAssignBtn = e.target.closest('[data-media-assign]');
                 if (mediaAssignBtn) {
                     e.preventDefault();
@@ -6852,286 +6642,122 @@
                     return;
                 }
 
-                const mediaDeleteBtn = e.target.closest('[data-media-delete]');
-                if (mediaDeleteBtn) {
+                // Project Actions
+                const deleteProjectBtn = e.target.closest('[data-project-delete]');
+                if (deleteProjectBtn) {
                     e.preventDefault();
-                    const mediaId = mediaDeleteBtn.getAttribute('data-media-delete');
-                    if (confirm('Are you sure you want to delete this media asset from the library? This will also remove it from any assigned sections.')) {
-                        removeMediaLibraryRecord(mediaId)
-                            .then(() => {
-                                showAdminMediaToast('Media asset removed', 'success');
-                                applySectionMediaAssignments();
-                            })
-                            .catch((err) => showAdminMediaToast(`Delete failed: ${err.message}`, 'error'));
+                    const projectId = deleteProjectBtn.getAttribute('data-project-delete');
+                    if (confirm('Permanently delete this project?')) {
+                        deleteProjectById(projectId);
                     }
+                    return;
+                }
+
+                const editProjectBtn = e.target.closest('[data-project-edit]');
+                if (editProjectBtn) {
+                    e.preventDefault();
+                    const projectId = editProjectBtn.getAttribute('data-project-edit');
+                    const project = getProjects().find((p) => String(p?.id || '') === projectId);
+                    if (project) populateProjectForm(project);
                     return;
                 }
             });
 
-            if (sectionSlotSelect) {
-                 sectionSlotSelect.addEventListener('change', () => renderMediaLibraryAndSections());
-             }
+            // Additional Listeners
+            if (sectionSlotSelect) sectionSlotSelect.addEventListener('change', () => renderMediaLibraryAndSections());
+            if (mediaLibrarySearch) mediaLibrarySearch.addEventListener('input', () => renderMediaLibraryAndSections());
+            if (mediaLibraryRefreshBtn) mediaLibraryRefreshBtn.addEventListener('click', () => {
+                renderMediaLibraryAndSections();
+                showAdminMediaToast('Media library refreshed', 'success');
+            });
 
-             if (mediaLibrarySearch) {
-                 mediaLibrarySearch.addEventListener('input', () => renderMediaLibraryAndSections());
-             }
+            if (mediaLibraryUploadBtn && mediaLibraryFileInput) {
+                mediaLibraryUploadBtn.addEventListener('click', () => mediaLibraryFileInput.click());
+                mediaLibraryFileInput.addEventListener('change', function() {
+                    if (!this.files || !this.files.length) return;
+                    uploadMediaLibraryFiles(this.files)
+                        .then(() => {
+                            this.value = '';
+                            showAdminMediaToast('Media uploaded to library', 'success');
+                        })
+                        .catch((err) => alert(String(err?.message || err || 'Upload failed')));
+                });
+            }
 
-             if (mediaLibraryRefreshBtn) {
-                 mediaLibraryRefreshBtn.addEventListener('click', () => {
-                     renderMediaLibraryAndSections();
-                     showAdminMediaToast('Media library refreshed', 'success');
-                 });
-             }
+            if (sectionsClearSlotBtn) {
+                sectionsClearSlotBtn.addEventListener('click', () => {
+                    const slot = getCurrentSectionSlotKey();
+                    assignMediaToSection(slot, null)
+                        .then(() => {
+                            showAdminMediaToast(`Slot ${slot} cleared`, 'success');
+                            applySectionMediaAssignments();
+                        })
+                        .catch((err) => showAdminMediaToast(`Clear failed: ${err.message}`, 'error'));
+                });
+            }
 
-             if (mediaLibraryUploadBtn && mediaLibraryFileInput) {
-                 mediaLibraryUploadBtn.addEventListener('click', () => mediaLibraryFileInput.click());
-                 mediaLibraryFileInput.addEventListener('change', function() {
-                     if (!this.files || !this.files.length) return;
-                     uploadMediaLibraryFiles(this.files)
-                         .then(() => {
-                             this.value = '';
-                             showAdminMediaToast('Media uploaded to library', 'success');
-                         })
-                         .catch((err) => {
-                             alert(String(err?.message || err || 'Upload failed'));
-                         });
-                 });
-             }
-
-             if (mediaLibraryLinkBtn && mediaLibraryUrlInput) {
-                 mediaLibraryLinkBtn.addEventListener('click', () => {
-                     const url = String(mediaLibraryUrlInput.value || '').trim();
-                     if (!url) {
-                         alert('Enter a valid media URL first.');
-                         return;
-                     }
-                     const type = mediaTypeFromUrl(url);
-                     const record = {
-                         id: `media_link_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-                         title: 'Linked Media',
-                         url,
-                         type,
-                         provider: 'external',
-                         createdAt: new Date().toISOString()
-                     };
-                     upsertMediaLibraryRecord(record)
-                         .then(() => {
-                             mediaLibraryUrlInput.value = '';
-                             showAdminMediaToast('Media link added to library', 'success');
-                         })
-                         .catch((err) => {
-                             alert(String(err?.message || err || 'Failed to add link'));
-                         });
-                 });
-             }
-
-             if (sectionsClearSlotBtn) {
-                 sectionsClearSlotBtn.addEventListener('click', () => {
-                     const slot = getCurrentSectionSlotKey();
-                     assignMediaToSection(slot, null)
-                         .then(() => {
-                             showAdminMediaToast(`Slot ${slot} cleared`, 'success');
-                             applySectionMediaAssignments();
-                         })
-                         .catch((err) => showAdminMediaToast(`Clear failed: ${err.message}`, 'error'));
-                 });
-             }
-
-             if (reviewsRequireApproval) {
-                const settings = getReviewSettings();
-                reviewsRequireApproval.checked = !!settings.requireApproval;
+            if (reviewsRequireApproval) {
                 reviewsRequireApproval.addEventListener('change', () => {
                     saveReviewSettings({ requireApproval: !!reviewsRequireApproval.checked });
                 });
             }
 
-            if (reviewAuthForm) {
-                reviewAuthForm.addEventListener('submit', handleReviewAuthLoginSubmit);
+            // Site Control Button Listeners
+            if (saveSeoBtn) {
+                saveSeoBtn.addEventListener('click', () => {
+                    const title = document.getElementById('siteTitleInput').value;
+                    const desc = document.getElementById('metaDescInput').value;
+                    const keywords = document.getElementById('metaKeywordsInput').value;
+                    document.title = title;
+                    const metaDesc = document.querySelector('meta[name="description"]');
+                    if (metaDesc) metaDesc.setAttribute('content', desc);
+                    const metaKeywords = document.querySelector('meta[name="keywords"]');
+                    if (metaKeywords) metaKeywords.setAttribute('content', keywords);
+                    pushAdminLog('SEO metadata updated');
+                    showAdminMediaToast('SEO settings saved!', 'success');
+                });
             }
-            if (reviewAuthLogoutBtn) {
-                reviewAuthLogoutBtn.addEventListener('click', handleReviewAuthLogoutClick);
-            }
-            syncReviewAuthUiState();
 
-            if (cloudinaryPresetInput) {
-                const stored = String(readJsonStorage(cloudinaryPresetStorageKey, '') || '').trim();
-                if (!cloudinaryPresetInput.value) {
-                    cloudinaryPresetInput.value = stored || defaultCloudinaryUnsignedPreset;
+            if (saveThemeBtn) {
+                saveThemeBtn.addEventListener('click', () => {
+                    const primary = document.getElementById('primaryColorPicker').value;
+                    const accent = document.getElementById('accentColorPicker').value;
+                    applyPremiumBranding({ primary, accent });
+                    showAdminMediaToast('Branding applied!', 'success');
+                });
+            }
+        }
+
+        function normalizeLeadRecords(leads) {
+            const source = Array.isArray(leads) ? leads : [];
+            let changed = false;
+            const normalized = source.map((entry, idx) => {
+                if (!entry || typeof entry !== 'object') {
+                    changed = true;
+                    return null;
                 }
-                cloudinaryPresetInput.addEventListener('change', persistCloudinaryPreset);
-                cloudinaryPresetInput.addEventListener('blur', persistCloudinaryPreset);
-            }
-
-            if (firebaseConfigInput) {
-                const stored = readFirebaseConfig();
-                if (!firebaseConfigInput.value && stored) {
-                    try { firebaseConfigInput.value = JSON.stringify(stored); } catch {}
-                }
-                const persist = () => {
-                    const ok = persistFirebaseConfigFromText(firebaseConfigInput.value);
-                    if (!ok) {
-                        alert('Firebase config must be valid JSON.');
-                        return;
-                    }
-                    resetFirebaseRuntime();
-                    startServerlessProjectsSync();
+                const existingId = String(entry.id || '').trim();
+                const fallbackSeed = [
+                    entry.createdAt,
+                    entry.service,
+                    entry.serviceLabel,
+                    entry.name,
+                    entry.phone,
+                    entry.location,
+                    entry.serviceAnswer,
+                    idx
+                ].map((value) => String(value || '').trim()).join('|');
+                const id = existingId || `lead_${hashText(fallbackSeed)}`;
+                if (!existingId) changed = true;
+                return {
+                    ...entry,
+                    id
                 };
-                firebaseConfigInput.addEventListener('change', persist);
-                firebaseConfigInput.addEventListener('blur', persist);
-            }
+            }).filter(Boolean);
+            return { normalized, changed };
+        }
 
-            if (firebaseProjectsPathInput) {
-                const stored = String(readJsonStorage(firebaseProjectsPathStorageKey, '') || '').trim();
-                if (!firebaseProjectsPathInput.value) firebaseProjectsPathInput.value = stored || defaultFirebaseProjectsPath;
-                const persist = () => {
-                    persistFirebaseProjectsPath(firebaseProjectsPathInput.value);
-                    resetFirebaseRuntime();
-                    startServerlessProjectsSync();
-                };
-                firebaseProjectsPathInput.addEventListener('change', persist);
-                firebaseProjectsPathInput.addEventListener('blur', persist);
-            }
 
-            if (firebaseSettingsPathInput) {
-                const stored = String(readJsonStorage(firebaseSettingsPathStorageKey, '') || '').trim();
-                if (!firebaseSettingsPathInput.value) firebaseSettingsPathInput.value = stored || defaultFirebaseSettingsPath;
-                const persist = () => {
-                    persistFirebaseSettingsPath(firebaseSettingsPathInput.value);
-                    resetFirebaseRuntime();
-                    startServerlessProjectsSync();
-                };
-                firebaseSettingsPathInput.addEventListener('change', persist);
-                firebaseSettingsPathInput.addEventListener('blur', persist);
-            }
-
-            if (remoteConfigPublicIdInput) {
-                const stored = String(readJsonStorage(remoteConfigPublicIdStorageKey, '') || '').trim();
-                remoteConfigPublicIdInput.value = stored;
-                remoteConfigPublicIdInput.addEventListener('change', () => setRemoteConfigPublicId(remoteConfigPublicIdInput.value));
-                remoteConfigPublicIdInput.addEventListener('blur', () => setRemoteConfigPublicId(remoteConfigPublicIdInput.value));
-            }
-
-            if (remoteConfigUrlInput) {
-                const stored = String(readJsonStorage(remoteConfigUrlStorageKey, '') || '').trim();
-                if (stored && !remoteConfigUrlInput.value) remoteConfigUrlInput.value = stored;
-                remoteConfigUrlInput.addEventListener('change', () => setRemoteConfigUrl(remoteConfigUrlInput.value));
-                remoteConfigUrlInput.addEventListener('blur', () => setRemoteConfigUrl(remoteConfigUrlInput.value));
-            }
-
-            if (fileUploadArea && projectFile) {
-                try {
-                    projectFile.setAttribute('accept', 'image/*,video/*');
-                    if (!projectFile.hasAttribute('capture')) {
-                        projectFile.setAttribute('capture', 'environment');
-                    }
-                    if (projectFile.style && String(projectFile.style.display || '').toLowerCase() === 'none') {
-                        projectFile.style.display = '';
-                    }
-                    projectFile.style.position = 'absolute';
-                    projectFile.style.left = '-9999px';
-                    projectFile.style.width = '1px';
-                    projectFile.style.height = '1px';
-                    projectFile.style.opacity = '0';
-                } catch {}
-
-                const openPicker = () => {
-                    try {
-                        projectFile.focus();
-                        projectFile.click();
-                    } catch {}
-                };
-
-                fileUploadArea.addEventListener('click', openPicker);
-
-                projectFile.addEventListener('change', () => {
-                    try {
-                        const f = projectFile?.files?.[0];
-                        console.log('Mobile file selected:', {
-                            name: f?.name,
-                            type: f?.type,
-                            size: f?.size
-                        });
-                    } catch {
-                        console.log('Mobile file selected');
-                    }
-                });
-
-                fileUploadArea.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    fileUploadArea.classList.add('dragover');
-                });
-                fileUploadArea.addEventListener('dragleave', () => fileUploadArea.classList.remove('dragover'));
-                fileUploadArea.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    fileUploadArea.classList.remove('dragover');
-                    if (e.dataTransfer?.files?.[0]) {
-                        projectFile.files = e.dataTransfer.files;
-                        try { projectFile.dispatchEvent(new Event('change', { bubbles: true })); } catch {}
-                    }
-                });
-            }
-
-            renderMediaLibraryAndSections();
-
-            function bindIntegrityMediaUploader(buttonId, inputId, progressId, progressFillId) {
-                const triggerBtn = document.getElementById(buttonId);
-                const fileInput = document.getElementById(inputId);
-                const progressWrap = document.getElementById(progressId);
-                const progressFill = document.getElementById(progressFillId);
-                if (!triggerBtn || !fileInput) return;
-                if (fileInput.dataset.boundIntegrityUploader === '1') return;
-                fileInput.dataset.boundIntegrityUploader = '1';
-
-                triggerBtn.addEventListener('click', () => { fileInput.click(); });
-                fileInput.addEventListener('change', function() {
-                    const file = this.files?.[0];
-                    const isImage = Boolean(file && file.type && file.type.startsWith('image/'));
-                    const isVideo = Boolean(file && file.type && file.type.startsWith('video/'));
-                    if (!file || (!isImage && !isVideo)) {
-                        this.value = '';
-                        return;
-                    }
-
-                    const preset = getCloudinaryPresetValue();
-                    if (!preset) {
-                        alert('Enter Cloudinary preset in Projects tab first.');
-                        this.value = '';
-                        return;
-                    }
-
-                    if (progressWrap) {
-                        progressWrap.style.display = 'block';
-                        progressWrap.setAttribute('aria-hidden', 'false');
-                    }
-                    if (progressFill) progressFill.style.width = '0%';
-
-                    cloudinaryUnsignedUpload(file, {
-                        preset,
-                        resourceType: 'auto',
-                        folder: 'hailifu',
-                        onProgress: (pct) => {
-                            if (progressFill) progressFill.style.width = `${pct}%`;
-                        }
-                    }).then((payload) => {
-                        const url = normalizeIntegrityMediaPath(String(payload?.secure_url || '').trim());
-                        if (!url) throw new Error('Upload failed');
-                        setIntegrityImageUrlLocal(url);
-                        loadIntegrityImage(url);
-                        if (firebaseIsReady()) return setFirebaseIntegrityImageUrl(url);
-                    }).then(() => {
-                        fileInput.value = '';
-                        showAdminMediaToast('Integrity media updated', 'success');
-                    }).catch((err) => {
-                        alert(String(err?.message || err || 'Upload failed'));
-                    }).finally(() => {
-                        if (progressWrap) {
-                            progressWrap.style.display = 'none';
-                            progressWrap.setAttribute('aria-hidden', 'true');
-                        }
-                        if (progressFill) progressFill.style.width = '0%';
-                    });
-                });
-            }
 
             bindIntegrityMediaUploader('integrityGraphicBtn', 'integrityImageInput', 'integrityUploadProgress', 'integrityUploadProgressFill');
             bindIntegrityMediaUploader('integrityMediaBtnProjects', 'integrityMediaInputProjects', 'integrityMediaUploadProgressProjects', 'integrityMediaUploadProgressFillProjects');
@@ -7151,10 +6777,11 @@
             if (adminBackdrop) {
                 adminBackdrop.classList.add('active');
                 adminBackdrop.setAttribute('aria-hidden', 'false');
+                adminBackdrop.style.display = 'block';
+                adminBackdrop.style.opacity = '1';
             }
             if (adminPanel) {
-                adminPanel.classList.remove('admin-login-modal');
-                adminPanel.style.display = 'grid';
+                adminPanel.style.display = 'flex';
                 adminPanel.style.opacity = '1';
                 void adminPanel.offsetWidth;
                 adminPanel.classList.add('active');
@@ -7240,7 +6867,7 @@
             }
         }
 
-        const ghostActivationWindowMs = 500;
+        const ghostActivationWindowMs = 800;
         const ghostActivationClicksRequired = 3;
         let ghostActivationClicks = [];
         let ghostActivationFallbackTimer = null;
@@ -7248,9 +6875,10 @@
         consumeAdminSecretKeyFromUrl();
         updateAdminEntryButtonVisibility();
 
-        const ghostTriggerNode = ghostAdminTrigger || adminTrigger;
-        if (ghostTriggerNode) {
-            ghostTriggerNode.addEventListener('click', (e) => {
+        // Bind handshake to both the image and the ghost button
+        [adminTrigger, ghostAdminTrigger].forEach(triggerNode => {
+            if (!triggerNode) return;
+            triggerNode.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -7278,7 +6906,7 @@
 
                 if (ghostActivationClicks.length >= ghostActivationClicksRequired) {
                     ghostActivationClicks = [];
-                    const granted = activateAdminFromGhostTrigger(ghostTriggerNode);
+                    const granted = activateAdminFromGhostTrigger(triggerNode);
                     if (!granted) return;
                     updateAdminEntryButtonVisibility();
                     if (adminPanel && adminPanel.classList.contains('active')) {
@@ -7299,9 +6927,9 @@
                             navigateToAdminTriggerFallback();
                         }
                     })();
-                }, ghostActivationWindowMs + 20);
+                }, ghostActivationWindowMs + 50);
             });
-        }
+        });
 
         if (adminEntryBtn) {
             adminEntryBtn.addEventListener('click', (e) => {
