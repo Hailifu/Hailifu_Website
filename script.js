@@ -6857,18 +6857,61 @@
             try {
                 const url = new URL(window.location.href);
                 const incoming = String(url.searchParams.get(adminSecretParamKey) || '').trim();
+                
+                // Expose a helper for the user to manually trigger if URL fails
+                window.hailifuAdmin = {
+                    activate: () => {
+                        seedOpsLayer();
+                        initDataSync();
+                        updateAdminEntryButtonVisibility();
+                        return 'Activation triggered';
+                    },
+                    status: () => ({
+                        hasGrant: hasAdminVisibilityAccess(),
+                        panel: !!adminPanel,
+                        backdrop: !!adminBackdrop
+                    })
+                };
+
                 if (!incoming) return false;
-                const isValid = incoming === adminSecretParamValue;
-                if (!isValid) return false;
-                scrubAdminSecretFromUrl();
-                const granted = adminGatekeeper.authorizeFromSecretKey();
-                if (granted) {
-                    adminGatekeeper.pulseSuccess(ghostAdminTrigger || adminTrigger || null);
-                    // Open the admin panel immediately
-                    initDataSync();
+                
+                if (incoming === adminSecretParamValue) {
+                    console.log('[Admin] Secret key detected. Activating...');
+                    scrubAdminSecretFromUrl();
+                    const granted = adminGatekeeper.authorizeFromSecretKey();
+                    
+                    if (granted) {
+                        showAdminMediaToast('Admin Access Granted', 'success');
+                        
+                        // Execute multiple times with small delays to overcome any DOM race conditions
+                        const activate = () => {
+                            seedOpsLayer();
+                            initDataSync();
+                            updateAdminEntryButtonVisibility();
+                            
+                            if (adminPanel) {
+                                adminPanel.style.display = 'flex';
+                                adminPanel.style.opacity = '1';
+                                adminPanel.classList.add('active');
+                                adminPanel.setAttribute('aria-hidden', 'false');
+                            }
+                            if (adminBackdrop) {
+                                adminBackdrop.style.display = 'block';
+                                adminBackdrop.style.opacity = '1';
+                                adminBackdrop.classList.add('active');
+                                adminBackdrop.setAttribute('aria-hidden', 'false');
+                            }
+                        };
+
+                        activate();
+                        setTimeout(activate, 100);
+                        setTimeout(activate, 500);
+                    }
+                    return granted;
                 }
-                return granted;
-            } catch {
+                return false;
+            } catch (err) {
+                console.error('[Admin] Error:', err);
                 return false;
             }
         }
@@ -12832,5 +12875,6 @@
 
         // Execute activation
         initGoogleReviews();
+    });
 
 
