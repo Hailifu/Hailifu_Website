@@ -6698,6 +6698,70 @@
                     if (colorValue) colorValue.textContent = e.target.value.toUpperCase();
                 });
             }
+
+            // Bind integrity media uploaders
+            bindIntegrityMediaUploader('integrityGraphicBtn', 'integrityImageInput', 'integrityUploadProgress', 'integrityUploadProgressFill');
+            bindIntegrityMediaUploader('integrityMediaBtnProjects', 'integrityMediaInputProjects', 'integrityMediaUploadProgressProjects', 'integrityMediaUploadProgressFillProjects');
+        }
+
+        function bindIntegrityMediaUploader(buttonId, inputId, progressId, progressFillId) {
+            const triggerBtn = document.getElementById(buttonId);
+            const fileInput = document.getElementById(inputId);
+            const progressWrap = document.getElementById(progressId);
+            const progressFill = document.getElementById(progressFillId);
+            if (!triggerBtn || !fileInput) return;
+            if (fileInput.dataset.boundIntegrityUploader === '1') return;
+            fileInput.dataset.boundIntegrityUploader = '1';
+
+            triggerBtn.addEventListener('click', () => { fileInput.click(); });
+            fileInput.addEventListener('change', function() {
+                const file = this.files?.[0];
+                const isImage = Boolean(file && file.type && file.type.startsWith('image/'));
+                const isVideo = Boolean(file && file.type && file.type.startsWith('video/'));
+                if (!file || (!isImage && !isVideo)) {
+                    this.value = '';
+                    return;
+                }
+
+                const preset = getCloudinaryPresetValue();
+                if (!preset) {
+                    alert('Enter Cloudinary preset in Site Control tab first.');
+                    this.value = '';
+                    return;
+                }
+
+                if (progressWrap) {
+                    progressWrap.style.display = 'block';
+                    progressWrap.setAttribute('aria-hidden', 'false');
+                }
+                if (progressFill) progressFill.style.width = '0%';
+
+                cloudinaryUnsignedUpload(file, {
+                    preset,
+                    resourceType: 'auto',
+                    folder: 'hailifu',
+                    onProgress: (pct) => {
+                        if (progressFill) progressFill.style.width = `${pct}%`;
+                    }
+                }).then((payload) => {
+                    const url = normalizeIntegrityMediaPath(String(payload?.secure_url || '').trim());
+                    if (!url) throw new Error('Upload failed');
+                    setIntegrityImageUrlLocal(url);
+                    loadIntegrityImage(url);
+                    if (firebaseIsReady()) return setFirebaseIntegrityImageUrl(url);
+                }).then(() => {
+                    fileInput.value = '';
+                    showAdminMediaToast('Integrity media updated', 'success');
+                }).catch((err) => {
+                    alert(String(err?.message || err || 'Upload failed'));
+                }).finally(() => {
+                    if (progressWrap) {
+                        progressWrap.style.display = 'none';
+                        progressWrap.setAttribute('aria-hidden', 'true');
+                    }
+                    if (progressFill) progressFill.style.width = '0%';
+                });
+            });
         }
 
         function normalizeLeadRecords(leads) {
@@ -6727,12 +6791,6 @@
                 };
             }).filter(Boolean);
             return { normalized, changed };
-        }
-
-
-
-            bindIntegrityMediaUploader('integrityGraphicBtn', 'integrityImageInput', 'integrityUploadProgress', 'integrityUploadProgressFill');
-            bindIntegrityMediaUploader('integrityMediaBtnProjects', 'integrityMediaInputProjects', 'integrityMediaUploadProgressProjects', 'integrityMediaUploadProgressFillProjects');
         }
 
         function initDataSync() {
@@ -12869,7 +12927,5 @@
 
         // Execute activation
         initGoogleReviews();
-
-        });
 
 
