@@ -3192,6 +3192,12 @@
                     }
                     await addProjectInFirebase(project);
                     alert('Project Saved Successfully!');
+                    
+                    // Trigger immediate local update for Firebase users
+                    if (typeof firebaseProjectsState !== 'undefined' && Array.isArray(firebaseProjectsState)) {
+                        firebaseProjectsState.unshift(project);
+                        loadProjects();
+                    }
                 } else {
                     project.id = `p_${Date.now()}`;
                     const projects = getProjects();
@@ -7545,68 +7551,76 @@
                 records = merged;
             }
 
-            return records.map((project, idx) => {
-                const base = stripProjectQuoteFields(project);
-                const mediaLibraryMap = getMediaLibraryMap();
-                const visibility = normalizeVisibilityFlags(base);
-                const rawMediaSrc = String(base?.mediaSrc || base?.imageUrl || base?.mediaUrl || '').trim();
-                const rawThumbSrc = String(base?.thumbSrc || base?.thumbnailUrl || base?.thumbUrl || '').trim();
-                const showcaseSurfaceSrc = normalizeProjectMediaPath(String(base?.showcaseMediaSrc || '').trim());
-                const servicesSurfaceSrc = normalizeProjectMediaPath(String(base?.servicesMediaSrc || '').trim());
-                const featuredSurfaceSrc = normalizeProjectMediaPath(String(base?.featuredMediaSrc || '').trim());
-                const hasMediaList = Array.isArray(base?.mediaItems) && base.mediaItems.length > 0;
-                const hasGalleryList = Array.isArray(base?.gallery) && base.gallery.length > 0;
-                let mediaSrc = normalizeProjectMediaPath(rawMediaSrc);
-                const thumbSrc = normalizeProjectMediaPath(rawThumbSrc);
-                const fallbackId = String(base?.id || project?.id || mediaSrc || rawMediaSrc || base?.title || `local-${idx}`).trim();
-                const fallbackMedia = DEFAULT_PROJECT_MEDIA_BY_ID[fallbackId];
-                const hasAnyStructuredMedia = Boolean(
-                    mediaSrc ||
-                    showcaseSurfaceSrc ||
-                    servicesSurfaceSrc ||
-                    featuredSurfaceSrc ||
-                    hasMediaList ||
-                    hasGalleryList
-                );
+            const sorted = records
+                .map((project, idx) => {
+                    const base = stripProjectQuoteFields(project);
+                    const mediaLibraryMap = getMediaLibraryMap();
+                    const visibility = normalizeVisibilityFlags(base);
+                    const rawMediaSrc = String(base?.mediaSrc || base?.imageUrl || base?.mediaUrl || '').trim();
+                    const rawThumbSrc = String(base?.thumbSrc || base?.thumbnailUrl || base?.thumbUrl || '').trim();
+                    const showcaseSurfaceSrc = normalizeProjectMediaPath(String(base?.showcaseMediaSrc || '').trim());
+                    const servicesSurfaceSrc = normalizeProjectMediaPath(String(base?.servicesMediaSrc || '').trim());
+                    const featuredSurfaceSrc = normalizeProjectMediaPath(String(base?.featuredMediaSrc || '').trim());
+                    const hasMediaList = Array.isArray(base?.mediaItems) && base.mediaItems.length > 0;
+                    const hasGalleryList = Array.isArray(base?.gallery) && base.gallery.length > 0;
+                    let mediaSrc = normalizeProjectMediaPath(rawMediaSrc);
+                    const thumbSrc = normalizeProjectMediaPath(rawThumbSrc);
+                    const fallbackId = String(base?.id || project?.id || mediaSrc || rawMediaSrc || base?.title || `local-${idx}`).trim();
+                    const fallbackMedia = DEFAULT_PROJECT_MEDIA_BY_ID[fallbackId];
+                    const hasAnyStructuredMedia = Boolean(
+                        mediaSrc ||
+                        showcaseSurfaceSrc ||
+                        servicesSurfaceSrc ||
+                        featuredSurfaceSrc ||
+                        hasMediaList ||
+                        hasGalleryList
+                    );
 
-                if (!hasAnyStructuredMedia) {
-                    if (fallbackMedia && fallbackMedia.mediaSrc) {
-                        mediaSrc = normalizeProjectMediaPath(fallbackMedia.mediaSrc);
+                    if (!hasAnyStructuredMedia) {
+                        if (fallbackMedia && fallbackMedia.mediaSrc) {
+                            mediaSrc = normalizeProjectMediaPath(fallbackMedia.mediaSrc);
+                        }
+                        if (!mediaSrc) {
+                            const label = String(base?.title || base?.name || base?.category || 'HAILIFU').trim();
+                            mediaSrc = getHailifuPlaceholderDataUri(label || 'HAILIFU');
+                        }
                     }
-                    if (!mediaSrc) {
-                        const label = String(base?.title || base?.name || base?.category || 'HAILIFU').trim();
-                        mediaSrc = getHailifuPlaceholderDataUri(label || 'HAILIFU');
-                    }
-                }
 
-                const mediaType = String(base?.mediaType || (mediaSrc && /\.(mp4|webm|mov)(\?|#|$)/i.test(mediaSrc) ? 'video' : 'image') || 'image').trim().toLowerCase() || 'image';
-                const mediaIds = Array.isArray(base?.mediaIds) ? base.mediaIds.map((id) => String(id || '').trim()).filter(Boolean) : [];
-                const mediaItemsFromIds = mediaIds
-                    .map((id) => mediaLibraryMap[id])
-                    .filter(Boolean)
-                    .map((entry) => normalizeMediaItem({
-                        mediaSrc: entry.url,
-                        mediaType: entry.type,
-                        thumbSrc: ''
-                    }))
-                    .filter(Boolean);
+                    const mediaType = String(base?.mediaType || (mediaSrc && /\.(mp4|webm|mov)(\?|#|$)/i.test(mediaSrc) ? 'video' : 'image') || 'image').trim().toLowerCase() || 'image';
+                    const mediaIds = Array.isArray(base?.mediaIds) ? base.mediaIds.map((id) => String(id || '').trim()).filter(Boolean) : [];
+                    const mediaItemsFromIds = mediaIds
+                        .map((id) => mediaLibraryMap[id])
+                        .filter(Boolean)
+                        .map((entry) => normalizeMediaItem({
+                            mediaSrc: entry.url,
+                            mediaType: entry.type,
+                            thumbSrc: ''
+                        }))
+                        .filter(Boolean);
 
-                const mediaItemsExisting = Array.isArray(base?.mediaItems) ? base.mediaItems : [];
-                const mergedMediaItems = normalizeMediaCollection([...mediaItemsFromIds, ...mediaItemsExisting]);
-                const primaryFromMediaIds = mergedMediaItems[0] || null;
-                return {
-                    ...base,
-                    id: fallbackId,
-                    mediaSrc: primaryFromMediaIds?.mediaSrc || mediaSrc,
-                    thumbSrc: primaryFromMediaIds?.thumbSrc || thumbSrc,
-                    mediaType: primaryFromMediaIds?.mediaType || mediaType,
-                    mediaItems: mergedMediaItems.length ? mergedMediaItems : mediaItemsExisting,
-                    mediaIds,
-                    ...visibility,
-                    isStarred: Boolean(project?.isStarred),
-                    isFeatured: Boolean(project?.isFeatured)
-                };
-            });
+                    const mediaItemsExisting = Array.isArray(base?.mediaItems) ? base.mediaItems : [];
+                    const mergedMediaItems = normalizeMediaCollection([...mediaItemsFromIds, ...mediaItemsExisting]);
+                    const primaryFromMediaIds = mergedMediaItems[0] || null;
+
+                    const timestamp = Number(base?.timestamp) || (Date.parse(base?.createdAt || '') || 0);
+
+                    return {
+                        ...base,
+                        id: fallbackId,
+                        mediaSrc: primaryFromMediaIds?.mediaSrc || mediaSrc,
+                        thumbSrc: primaryFromMediaIds?.thumbSrc || thumbSrc,
+                        mediaType: primaryFromMediaIds?.mediaType || mediaType,
+                        mediaItems: mergedMediaItems.length ? mergedMediaItems : mediaItemsExisting,
+                        mediaIds,
+                        ...visibility,
+                        isStarred: Boolean(project?.isStarred),
+                        isFeatured: Boolean(project?.isFeatured),
+                        timestamp
+                    };
+                })
+                .sort((a, b) => (Number(b.timestamp) || 0) - (Number(a.timestamp) || 0));
+
+            return sorted;
         }
 
         function saveProjects(projects) {
