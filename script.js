@@ -5471,18 +5471,6 @@
             adminBindingsReady = false;
         }
 
-        function activateAdminFromGhostTrigger(sourceNode = null) {
-            console.log('[Admin] Ghost trigger activation requested');
-            const granted = adminGatekeeper.grantVisibility();
-            if (!granted) {
-                console.error('[Admin] Visibility grant failed');
-                return false;
-            }
-            console.log('[Admin] Visibility granted, pulsing success');
-            adminGatekeeper.pulseSuccess(sourceNode);
-            return true;
-        }
-
         function seedOpsLayer() {
             if (adminPanel) return adminPanel;
             const existingBackdrop = document.getElementById('adminBackdrop');
@@ -6874,56 +6862,19 @@
                 if (!isValid) return false;
                 scrubAdminSecretFromUrl();
                 const granted = adminGatekeeper.authorizeFromSecretKey();
-                if (granted) adminGatekeeper.pulseSuccess(ghostAdminTrigger || adminTrigger || null);
+                if (granted) {
+                    adminGatekeeper.pulseSuccess(ghostAdminTrigger || adminTrigger || null);
+                    // Open the admin panel immediately
+                    initDataSync();
+                }
                 return granted;
             } catch {
                 return false;
             }
         }
 
-        const ghostActivationWindowMs = 500;
-        const ghostActivationClicksRequired = 3;
-        let ghostActivationClicks = [];
-
         consumeAdminSecretKeyFromUrl();
         updateAdminEntryButtonVisibility();
-
-        // Bind handshake to both the image and the ghost button
-        [adminTrigger, ghostAdminTrigger].forEach(triggerNode => {
-            if (!triggerNode) return;
-            console.log('[Admin] Binding trigger node:', triggerNode.id || triggerNode.className);
-            triggerNode.addEventListener('click', (e) => {
-                console.log('[Admin] Logo click detected');
-                
-                // We no longer call e.preventDefault() or e.stopPropagation() here
-                // to allow the logo to respond immediately (as a home/scroll link).
-                // The handshake logic runs in the background.
-
-                const now = Date.now();
-                ghostActivationClicks = ghostActivationClicks.filter((stamp) => now - stamp <= ghostActivationWindowMs);
-                ghostActivationClicks.push(now);
-                console.log(`[Admin] Clicks in window: ${ghostActivationClicks.length}/${ghostActivationClicksRequired}`);
-
-                if (ghostActivationClicks.length >= ghostActivationClicksRequired) {
-                    console.log('[Admin] Handshake successful! Activating...');
-                    e.preventDefault();
-                    e.stopPropagation();
-                    ghostActivationClicks = [];
-                    const granted = activateAdminFromGhostTrigger(triggerNode);
-                    if (!granted) {
-                        console.error('[Admin] Activation failed: Secret key not authorized');
-                        return;
-                    }
-                    updateAdminEntryButtonVisibility();
-                    if (adminPanel && adminPanel.classList.contains('active')) {
-                        console.log('[Admin] Panel already active');
-                        return;
-                    }
-                    initDataSync();
-                    return;
-                }
-            });
-        });
 
         if (adminEntryBtn) {
             adminEntryBtn.addEventListener('click', (e) => {
