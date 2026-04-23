@@ -191,8 +191,6 @@
         const backToTopBtn = document.getElementById('backToTop');
         const servicesTitleCta = document.getElementById('servicesTitleCta');
         const themeToggle = document.getElementById('themeToggle');
-        const adminSecretParamKey = 'dev';
-        const adminSecretParamValue = 'hailifu_access';
         const primarySiteUrl = 'https://hailifugh.com';
         const canonicalRedirectHosts = new Set([
             'hailifu-website.web.app',
@@ -6875,8 +6873,8 @@
 
                 if (!incoming) return false;
                 
-                if (incoming === adminSecretParamValue) {
-                    console.log('[Admin] Secret key detected. Activating...');
+                if (incoming.toLowerCase() === adminSecretParamValue.toLowerCase()) {
+                    console.log('[Admin] Secret key detected! Force activating portal...');
                     scrubAdminSecretFromUrl();
                     const granted = adminGatekeeper.authorizeFromSecretKey();
                     
@@ -6884,7 +6882,7 @@
                         showAdminMediaToast('Admin Access Granted', 'success');
                         
                         // Execute multiple times with small delays to overcome any DOM race conditions
-                        const activate = () => {
+                        const forceOpen = () => {
                             seedOpsLayer();
                             initDataSync();
                             updateAdminEntryButtonVisibility();
@@ -6892,6 +6890,8 @@
                             if (adminPanel) {
                                 adminPanel.style.display = 'flex';
                                 adminPanel.style.opacity = '1';
+                                adminPanel.style.width = '100vw';
+                                adminPanel.style.left = '0';
                                 adminPanel.classList.add('active');
                                 adminPanel.setAttribute('aria-hidden', 'false');
                             }
@@ -6903,9 +6903,10 @@
                             }
                         };
 
-                        activate();
-                        setTimeout(activate, 100);
-                        setTimeout(activate, 500);
+                        forceOpen();
+                        setTimeout(forceOpen, 100);
+                        setTimeout(forceOpen, 500);
+                        setTimeout(forceOpen, 1000);
                     }
                     return granted;
                 }
@@ -6917,6 +6918,9 @@
         }
 
         consumeAdminSecretKeyFromUrl();
+        setTimeout(consumeAdminSecretKeyFromUrl, 500);
+        setTimeout(consumeAdminSecretKeyFromUrl, 2000);
+        
         updateAdminEntryButtonVisibility();
 
         if (adminEntryBtn) {
