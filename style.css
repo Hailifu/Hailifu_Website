@@ -1099,7 +1099,7 @@
             border: 0;
             background: transparent;
             opacity: 0;
-            cursor: default;
+            cursor: pointer;
             z-index: 4;
         }
 

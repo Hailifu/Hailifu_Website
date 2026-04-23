@@ -184,7 +184,6 @@
         const adminTrigger = document.getElementById('admin-trigger');
         const ghostAdminTrigger = document.getElementById('ghostAdminTrigger');
         const adminEntryBtn = document.getElementById('adminEntryBtn');
-        const adminLogoLink = document.getElementById('headerLogo');
         const heroQuoteBtn = document.getElementById('heroQuoteBtn');
         const heroVideo = document.getElementById('heroVideo');
         const heroFallbackImage = document.getElementById('heroFallbackImage');
@@ -6847,21 +6846,6 @@
             }
         }
 
-        function navigateToAdminTriggerFallback() {
-            if (!adminLogoLink) return;
-            const href = adminLogoLink.getAttribute('href') || '#hero';
-            if (href.startsWith('#')) {
-                const target = document.querySelector(href);
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth' });
-                } else {
-                    window.location.hash = href;
-                }
-                return;
-            }
-            window.location.href = href;
-        }
-
         function updateAdminEntryButtonVisibility() {
             const visible = hasAdminVisibilityAccess();
             if (adminEntryBtn) {
@@ -6897,10 +6881,9 @@
             }
         }
 
-        const ghostActivationWindowMs = 800;
+        const ghostActivationWindowMs = 500;
         const ghostActivationClicksRequired = 3;
         let ghostActivationClicks = [];
-        let ghostActivationFallbackTimer = null;
 
         consumeAdminSecretKeyFromUrl();
         updateAdminEntryButtonVisibility();
@@ -6911,35 +6894,20 @@
             console.log('[Admin] Binding trigger node:', triggerNode.id || triggerNode.className);
             triggerNode.addEventListener('click', (e) => {
                 console.log('[Admin] Logo click detected');
-                e.preventDefault();
-                e.stopPropagation();
-
-                if (reviewModal && reviewModal.classList.contains('active')) {
-                    console.log('[Admin] Review modal active, bypassing handshake');
-                    if (ghostActivationFallbackTimer) {
-                        clearTimeout(ghostActivationFallbackTimer);
-                        ghostActivationFallbackTimer = null;
-                    }
-                    ghostActivationClicks = [];
-
-                    void (async () => {
-                        await handleLogoIdentityTap({ openReviewModalIfNeeded: false });
-                    })();
-                    return;
-                }
+                
+                // We no longer call e.preventDefault() or e.stopPropagation() here
+                // to allow the logo to respond immediately (as a home/scroll link).
+                // The handshake logic runs in the background.
 
                 const now = Date.now();
                 ghostActivationClicks = ghostActivationClicks.filter((stamp) => now - stamp <= ghostActivationWindowMs);
                 ghostActivationClicks.push(now);
                 console.log(`[Admin] Clicks in window: ${ghostActivationClicks.length}/${ghostActivationClicksRequired}`);
 
-                if (ghostActivationFallbackTimer) {
-                    clearTimeout(ghostActivationFallbackTimer);
-                    ghostActivationFallbackTimer = null;
-                }
-
                 if (ghostActivationClicks.length >= ghostActivationClicksRequired) {
                     console.log('[Admin] Handshake successful! Activating...');
+                    e.preventDefault();
+                    e.stopPropagation();
                     ghostActivationClicks = [];
                     const granted = activateAdminFromGhostTrigger(triggerNode);
                     if (!granted) {
@@ -6954,20 +6922,6 @@
                     initDataSync();
                     return;
                 }
-
-                ghostActivationFallbackTimer = window.setTimeout(() => {
-                    console.log('[Admin] Handshake timed out, falling back to identity/fallback');
-                    ghostActivationClicks = [];
-                    ghostActivationFallbackTimer = null;
-                    void (async () => {
-                        const result = await handleLogoIdentityTap({ openReviewModalIfNeeded: true });
-                        if (result && result.redirected) return;
-                        const hasIdentity = !!(result && result.identity && result.identity.email);
-                        if (!hasIdentity && !reviewModal?.classList?.contains('active')) {
-                            navigateToAdminTriggerFallback();
-                        }
-                    })();
-                }, ghostActivationWindowMs + 50);
             });
         });
 
