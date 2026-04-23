@@ -5843,7 +5843,6 @@
             document.body.insertAdjacentHTML('beforeend', markup);
             adminBackdrop = document.getElementById('adminBackdrop');
             adminPanel = document.getElementById('adminPanel');
-            setupPremiumEventListeners();
             return adminPanel;
         }
 
@@ -6102,46 +6101,6 @@
             document.documentElement.style.setProperty('--brand-primary', branding.primary);
             writeJsonStorage('hailifu_branding', branding);
             pushAdminLog('System branding updated successfully');
-        }
-
-        function setupPremiumEventListeners() {
-            const saveSeoBtn = document.getElementById('saveSeoBtn');
-            const saveThemeBtn = document.getElementById('saveThemeBtn');
-            const primaryColorPicker = document.getElementById('primaryColorPicker');
-
-            if (saveSeoBtn) {
-                saveSeoBtn.addEventListener('click', () => {
-                    const title = document.getElementById('siteTitleInput').value;
-                    const desc = document.getElementById('metaDescInput').value;
-                    const keywords = document.getElementById('metaKeywordsInput').value;
-                    
-                    document.title = title;
-                    const metaDesc = document.querySelector('meta[name="description"]');
-                    if (metaDesc) metaDesc.setAttribute('content', desc);
-                    
-                    const metaKeywords = document.querySelector('meta[name="keywords"]');
-                    if (metaKeywords) metaKeywords.setAttribute('content', keywords);
-                    
-                    pushAdminLog('SEO metadata updated');
-                    alert('SEO settings saved successfully!');
-                });
-            }
-
-            if (saveThemeBtn) {
-                saveThemeBtn.addEventListener('click', () => {
-                    const primary = document.getElementById('primaryColorPicker').value;
-                    const accent = document.getElementById('accentColorPicker').value;
-                    applyPremiumBranding({ primary, accent });
-                    alert('Branding applied successfully!');
-                });
-            }
-
-            if (primaryColorPicker) {
-                primaryColorPicker.addEventListener('input', (e) => {
-                    const colorValue = e.target.nextElementSibling;
-                    if (colorValue) colorValue.textContent = e.target.value.toUpperCase();
-                });
-            }
         }
 
         function setMediaLibraryProgress(state) {
@@ -6491,6 +6450,7 @@
             const saveSeoBtn = document.getElementById('saveSeoBtn');
             const saveThemeBtn = document.getElementById('saveThemeBtn');
             const saveConfigBtn = document.getElementById('saveConfigBtn');
+            const primaryColorPicker = document.getElementById('primaryColorPicker');
 
             // Review Moderation
             reviewsRequireApproval = document.getElementById('reviewsRequireApproval');
@@ -6724,6 +6684,13 @@
                     const accent = document.getElementById('accentColorPicker').value;
                     applyPremiumBranding({ primary, accent });
                     showAdminMediaToast('Branding applied!', 'success');
+                });
+            }
+
+            if (primaryColorPicker) {
+                primaryColorPicker.addEventListener('input', (e) => {
+                    const colorValue = e.target.nextElementSibling;
+                    if (colorValue) colorValue.textContent = e.target.value.toUpperCase();
                 });
             }
         }
