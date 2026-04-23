@@ -1,6 +1,7 @@
-        const REVIEWS_DATA = [
-            {
-                name: 'Daouda',
+(() => {
+    const REVIEWS_DATA = [
+        {
+            name: 'Daouda',
                 meta: '1 review | 0 photos',
                 date: '2 weeks ago',
                 rating: 5,
@@ -177,9 +178,31 @@
             }
         ];
 
-
-
         document.addEventListener('DOMContentLoaded', () => {
+        let adminLogs = [];
+        
+        function pushAdminLog(message, status = 'OK') {
+            const time = new Date().toTimeString().split(' ')[0];
+            if (!Array.isArray(adminLogs)) adminLogs = [];
+            adminLogs.unshift({ time, message, status });
+            if (adminLogs.length > 50) adminLogs.pop();
+            if (typeof renderAdminLogs === 'function') renderAdminLogs();
+        }
+
+        function renderAdminLogs() {
+            const container = document.getElementById('adminLogsContainer');
+            if (!container) return;
+            if (!Array.isArray(adminLogs) || adminLogs.length === 0) {
+                container.innerHTML = '<div class="admin-empty">No activity logs yet.</div>';
+                return;
+            }
+            container.innerHTML = adminLogs.map((log) => {
+                let dotClass = 'log-dot';
+                if (log.status === 'PASS' || log.status === 'LIVE' || log.status === 'OK') dotClass += ' log-dot--success';
+                return `<div class="log-row"><span class="log-time">${log.time}</span><span class="log-message">${log.message}</span><span class="log-status"><span class="${dotClass}" aria-hidden="true"></span>${log.status}</span></div>`;
+            }).join('');
+        }
+
         const featuredBento = document.getElementById('featuredBento');
         const adminTrigger = document.getElementById('admin-trigger');
         const ghostAdminTrigger = document.getElementById('ghostAdminTrigger');
@@ -192,6 +215,10 @@
         const servicesTitleCta = document.getElementById('servicesTitleCta');
         const themeToggle = document.getElementById('themeToggle');
         const primarySiteUrl = 'https://hailifugh.com';
+        
+        const adminSecretParamKey = 'dev';
+        const adminSecretParamValue = 'hailifu_access';
+        
         const canonicalRedirectHosts = new Set([
             'hailifu-website.web.app',
             'hailifu-website.firebaseapp.com'
@@ -3390,28 +3417,6 @@
                 : '<div class="admin-empty">No published reviews.</div>';
         }
 
-        let adminLogs = [];
-
-        function pushAdminLog(message, status = 'OK') {
-            const time = new Date().toTimeString().split(' ')[0];
-            adminLogs.unshift({ time, message, status });
-            if (adminLogs.length > 50) adminLogs.pop();
-            renderAdminLogs();
-        }
-
-        function renderAdminLogs() {
-            if (!adminLogsContainer) return;
-            if (adminLogs.length === 0) {
-                adminLogsContainer.innerHTML = '<div class="admin-empty">No activity logs yet.</div>';
-                return;
-            }
-            adminLogsContainer.innerHTML = adminLogs.map((log) => {
-                let dotClass = 'log-dot';
-                if (log.status === 'PASS' || log.status === 'LIVE' || log.status === 'OK') dotClass += ' log-dot--success';
-                return `<div class="log-row"><span class="log-time">${log.time}</span><span class="log-message">${log.message}</span><span class="log-status"><span class="${dotClass}" aria-hidden="true"></span>${log.status}</span></div>`;
-            }).join('');
-        }
-
         function refreshOverview() {
             if (overviewTotalLeads) overviewTotalLeads.textContent = String(getLeads().length);
             const localPending = getReviews().filter((review) => review.status === 'pending').length;
@@ -6090,7 +6095,9 @@
             document.documentElement.style.setProperty('--orange', branding.primary);
             document.documentElement.style.setProperty('--brand-primary', branding.primary);
             writeJsonStorage('hailifu_branding', branding);
-            pushAdminLog('System branding updated successfully');
+            if (typeof pushAdminLog === 'function') {
+                pushAdminLog('System branding updated successfully');
+            }
         }
 
         function setMediaLibraryProgress(state) {
@@ -6447,7 +6454,10 @@
             pendingReviewsGrid = document.getElementById('pendingReviewsGrid');
             publishedReviewsGrid = document.getElementById('publishedReviewsGrid');
 
-            if (adminPanel.dataset.listenersBound) return;
+            if (adminPanel.dataset.listenersBound) {
+                if (typeof renderAdminLogs === 'function') renderAdminLogs();
+                return;
+            }
             adminPanel.dataset.listenersBound = 'true';
 
             // Sidebar Tab Switching
@@ -6465,9 +6475,15 @@
             if (leadsSearch) leadsSearch.addEventListener('input', () => renderLeads());
             if (leadsRefreshBtn) leadsRefreshBtn.addEventListener('click', () => renderLeads());
             if (adminClearLogsBtn) adminClearLogsBtn.addEventListener('click', () => {
-                adminLogs = [];
-                renderAdminLogs();
+                if (Array.isArray(adminLogs)) adminLogs = [];
+                if (typeof renderAdminLogs === 'function') renderAdminLogs();
             });
+
+            function handleProjectUpload() {
+                console.log('[Admin] Project upload triggered');
+                // Placeholder for project upload logic
+                showAdminMediaToast('Project upload logic not yet fully implemented', 'info');
+            }
 
             if (uploadBtn) uploadBtn.addEventListener('click', handleProjectUpload);
             
@@ -6502,7 +6518,14 @@
                     if (closeBtn.id === 'adminToggle' || closeBtn.classList.contains('admin-exit-btn')) {
                         adminGatekeeper.clearPersistedVisibilityGrant();
                         updateAdminEntryButtonVisibility();
+                        pushAdminLog('Admin session terminated. Visibility grant revoked.');
                     }
+                    haltDataSync();
+                    return;
+                }
+
+                const closeBackdropBtn = e.target.closest('.admin-backdrop');
+                if (closeBackdropBtn) {
                     haltDataSync();
                     return;
                 }
@@ -6527,10 +6550,12 @@
                         updateReviewStatusInFirestore(id, 'published')
                             .then(() => {
                                 showAdminMediaToast('Review published.', 'success');
+                                pushAdminLog(`Review ${id} published to Firestore`);
                             })
                             .catch((error) => {
                                 const message = String(error?.message || 'Failed to publish review').replace(/^Firebase:\s*/i, '');
                                 showAdminMediaToast(message, 'error');
+                                pushAdminLog(`Failed to publish review ${id}: ${message}`);
                             });
                         return;
                     }
@@ -6542,6 +6567,7 @@
                         writeJsonStorage(reviewsStorageKey, reviews);
                         renderAdminReviews();
                         showAdminMediaToast('Review published locally.', 'success');
+                        pushAdminLog(`Review ${id} published locally`);
                     }
                     return;
                 }
@@ -6551,17 +6577,19 @@
                     e.preventDefault();
                     const id = deleteBtn.getAttribute('data-review-delete');
                     if (!canAccessReviewModeration()) {
-                        showAdminMediaToast('Complete Triple-Click Handshake and Firebase login first.', 'warning');
+                        showAdminMediaToast('Complete Handshake first.', 'warning');
                         return;
                     }
                     if (hasFirestoreReviewRuntime() && canAccessReviewModeration()) {
                         deleteReviewInFirestore(id)
                             .then(() => {
                                 showAdminMediaToast('Review deleted.', 'success');
+                                pushAdminLog(`Review ${id} deleted from Firestore`);
                             })
                             .catch((error) => {
                                 const message = String(error?.message || 'Failed to delete review').replace(/^Firebase:\s*/i, '');
                                 showAdminMediaToast(message, 'error');
+                                pushAdminLog(`Failed to delete review ${id}: ${message}`);
                             });
                         return;
                     }
@@ -6573,6 +6601,7 @@
                         writeJsonStorage(reviewsStorageKey, reviews);
                         renderAdminReviews();
                         showAdminMediaToast('Review deleted locally.', 'success');
+                        pushAdminLog(`Review ${id} deleted locally`);
                     }
                     return;
                 }
@@ -6844,6 +6873,7 @@
         function scrubAdminSecretFromUrl() {
             try {
                 const url = new URL(window.location.href);
+                if (typeof adminSecretParamKey === 'undefined') return;
                 if (!url.searchParams.has(adminSecretParamKey)) return;
                 url.searchParams.delete(adminSecretParamKey);
                 const nextUrl = `${url.pathname}${url.search}${url.hash}`;
@@ -6854,13 +6884,16 @@
         function consumeAdminSecretKeyFromUrl() {
             try {
                 const url = new URL(window.location.href);
+                if (typeof adminSecretParamKey === 'undefined' || typeof adminSecretParamValue === 'undefined') {
+                    return false;
+                }
                 const incoming = String(url.searchParams.get(adminSecretParamKey) || '').trim();
                 
                 // Expose a helper for the user to manually trigger if URL fails
                 window.hailifuAdmin = {
                     activate: () => {
-                        seedOpsLayer();
-                        initDataSync();
+                        if (typeof seedOpsLayer === 'function') seedOpsLayer();
+                        if (typeof initDataSync === 'function') initDataSync();
                         updateAdminEntryButtonVisibility();
                         return 'Activation triggered';
                     },
@@ -6880,11 +6913,14 @@
                     
                     if (granted) {
                         showAdminMediaToast('Admin Access Granted', 'success');
+                        if (typeof pushAdminLog === 'function') {
+                            pushAdminLog('Admin access authorized via URL parameter', 'OK');
+                        }
                         
                         // Execute multiple times with small delays to overcome any DOM race conditions
                         const forceOpen = () => {
-                            seedOpsLayer();
-                            initDataSync();
+                            if (typeof seedOpsLayer === 'function') seedOpsLayer();
+                            if (typeof initDataSync === 'function') initDataSync();
                             updateAdminEntryButtonVisibility();
                             
                             if (adminPanel) {
@@ -6917,11 +6953,14 @@
             }
         }
 
-        consumeAdminSecretKeyFromUrl();
-        setTimeout(consumeAdminSecretKeyFromUrl, 500);
-        setTimeout(consumeAdminSecretKeyFromUrl, 2000);
-        
         updateAdminEntryButtonVisibility();
+
+        // Run activation check
+        if (typeof consumeAdminSecretKeyFromUrl === 'function') {
+            consumeAdminSecretKeyFromUrl();
+            setTimeout(consumeAdminSecretKeyFromUrl, 500);
+            setTimeout(consumeAdminSecretKeyFromUrl, 2000);
+        }
 
         if (adminEntryBtn) {
             adminEntryBtn.addEventListener('click', (e) => {
@@ -12879,6 +12918,9 @@
 
         // Execute activation
         initGoogleReviews();
+        
+        if (typeof bumpPageLoads === 'function') bumpPageLoads();
     });
+})();
 
 
