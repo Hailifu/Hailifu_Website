@@ -8396,7 +8396,10 @@
         };
 
         const toDisplayReviewDate = (value) => formatTechnicalDate(value);
-        const formatTrustCounter = (value) => String(Math.max(0, Math.round(Number(value) || 0)));
+        const formatTrustCounter = (value) => {
+            const num = Math.max(0, Math.round(Number(value) || 0));
+            return num > 0 ? `${num}+` : '--';
+        };
         const drawMergedReviewCounter = () => {};
         const setMergedReviewCounter = (nextTotal, opts = {}) => {
             const safeNext = Math.max(0, Math.round(Number(nextTotal) || 0));
@@ -13060,7 +13063,7 @@
             const reviewCount = document.getElementById('googleReviewCount');
             
             const formattedRating = rating ? rating.toFixed(1) : '5.0';
-            const formattedTotal = total ? total.toLocaleString() : '100+';
+            const formattedTotal = total ? `${total.toLocaleString()}+` : '100+';
 
             if (avgEl) avgEl.textContent = formattedRating;
             if (totalEl) totalEl.textContent = formattedTotal;
