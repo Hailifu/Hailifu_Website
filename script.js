@@ -5597,7 +5597,7 @@
                         renderAdminSettings(tmp);
                         break;
                     case 'reviews':
-                        renderAdminReviews(tmp);
+                        renderAdminReviewsV2(tmp);
                         break;
                     default:
                         renderAdminDashboard(tmp);
@@ -5732,7 +5732,7 @@
             `;
         }
 
-        function renderAdminReviews(container) {
+        function renderAdminReviewsV2(container) {
             container.innerHTML = `
                 <div class="admin-v2-section">
                     <div class="section-header-v2">
@@ -6321,13 +6321,18 @@
             adminBackdrop = document.getElementById('adminBackdrop');
             adminToggle = document.getElementById('adminLogoutBtn');
             
-            // Re-bind sidebar navigation
-            document.querySelectorAll('.nav-item').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const tab = e.currentTarget.dataset.adminTab;
+            // Sidebar navigation (delegated, reliable)
+            if (!adminPanel.dataset.navBound) {
+                adminPanel.dataset.navBound = 'true';
+                adminPanel.addEventListener('click', (e) => {
+                    const navBtn = e.target.closest('.nav-item[data-admin-tab]');
+                    if (!navBtn || !adminPanel.contains(navBtn)) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const tab = String(navBtn.dataset.adminTab || '').trim();
                     if (tab) setAdminTab(tab);
                 });
-            });
+            }
 
             // Global Search
             const globalSearch = document.getElementById('adminGlobalSearch');
