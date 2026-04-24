@@ -5487,7 +5487,7 @@
             }
             const markup = `
                 <div class="admin-backdrop" id="adminBackdrop" aria-hidden="true"></div>
-                <div class="admin-panel premium-admin-v2" id="adminPanel" aria-hidden="true" style="display: none; opacity: 0;">
+                <div class="admin-panel premium-admin-v3" id="adminPanel" aria-hidden="true" style="display: none; opacity: 0;">
                     <aside class="admin-sidebar-v2">
                         <div class="sidebar-header">
                             <div class="sidebar-logo">
@@ -5495,7 +5495,7 @@
                             </div>
                             <div class="sidebar-brand">
                                 <h2>HAILIFU</h2>
-                                <span>Premium Hub</span>
+                                <span>Premium Admin</span>
                             </div>
                         </div>
                         <nav class="sidebar-nav">
@@ -5509,18 +5509,18 @@
                                 <i class="fas fa-folder-open"></i> <span>Projects</span>
                             </button>
                             <button class="nav-item" data-admin-tab="media">
-                                <i class="fas fa-cloud-upload-alt"></i> <span>Media</span>
+                                <i class="fas fa-photo-film"></i> <span>Media Library</span>
+                            </button>
+                            <button class="nav-item" data-admin-tab="site-control">
+                                <i class="fas fa-sliders"></i> <span>Site Control</span>
                             </button>
                             <button class="nav-item" data-admin-tab="reviews">
                                 <i class="fas fa-comment-alt"></i> <span>Reviews</span>
                             </button>
-                            <button class="nav-item" data-admin-tab="site-control">
-                                <i class="fas fa-cog"></i> <span>Settings</span>
-                            </button>
                         </nav>
                         <div class="sidebar-footer">
-                            <button class="admin-exit-btn" id="adminToggle" type="button">
-                                <i class="fas fa-sign-out-alt"></i> <span>Exit Portal</span>
+                            <button class="admin-exit-btn" id="adminLogoutBtn" type="button">
+                                <i class="fas fa-right-from-bracket"></i> <span>Logout</span>
                             </button>
                         </div>
                     </aside>
@@ -5528,7 +5528,7 @@
                         <header class="main-header">
                             <div class="header-search">
                                 <i class="fas fa-search"></i>
-                                <input type="text" id="adminGlobalSearch" placeholder="Search anything...">
+                                <input type="text" id="adminGlobalSearch" placeholder="Search leads, projects, media...">
                             </div>
                             <div class="header-user">
                                 <div class="user-status">
@@ -5556,6 +5556,8 @@
             return adminPanel;
         }
 
+        const adminTabCacheV3 = new Map();
+
         function setAdminTab(tabKey) {
             const container = document.getElementById('adminMainContent');
             if (!container) return;
@@ -5568,35 +5570,43 @@
                 item.classList.toggle('active', isActive);
             });
 
-            // Clear container and show loader
-            container.innerHTML = '<div class="admin-loading"><i class="fas fa-circle-notch fa-spin"></i> Initializing module...</div>';
+            const cached = adminTabCacheV3.get(normalizedKey);
+            if (cached) {
+                container.replaceChildren(cached.cloneNode(true));
+                pushAdminLog(`Module loaded (cache): ${normalizedKey.toUpperCase()}`, 'OK');
+                return;
+            }
 
-            // High-performance dynamic rendering
-            setTimeout(() => {
+            container.innerHTML = '<div class="admin-loading"><i class="fas fa-circle-notch fa-spin"></i> Loading...</div>';
+            requestAnimationFrame(() => {
+                const tmp = document.createElement('div');
                 switch (normalizedKey) {
                     case 'overview':
-                        renderAdminDashboard(container);
+                        renderAdminDashboard(tmp);
                         break;
                     case 'leads':
-                        renderAdminLeads(container);
+                        renderAdminLeads(tmp);
                         break;
                     case 'projects':
-                        renderAdminProjects(container);
+                        renderAdminProjects(tmp);
                         break;
                     case 'media':
-                        renderAdminMedia(container);
-                        break;
-                    case 'reviews':
-                        renderAdminReviews(container);
+                        renderAdminMedia(tmp);
                         break;
                     case 'site-control':
-                        renderAdminSettings(container);
+                        renderAdminSettings(tmp);
+                        break;
+                    case 'reviews':
+                        renderAdminReviews(tmp);
                         break;
                     default:
-                        renderAdminDashboard(container);
+                        renderAdminDashboard(tmp);
                 }
+                const node = tmp.firstElementChild ? tmp.firstElementChild : tmp;
+                adminTabCacheV3.set(normalizedKey, node.cloneNode(true));
+                container.replaceChildren(node);
                 pushAdminLog(`Module loaded: ${normalizedKey.toUpperCase()}`, 'PASS');
-            }, 50);
+            });
         }
 
         function renderAdminDashboard(container) {
@@ -6309,7 +6319,7 @@
             if (!adminPanel) return;
 
             adminBackdrop = document.getElementById('adminBackdrop');
-            adminToggle = document.getElementById('adminToggle');
+            adminToggle = document.getElementById('adminLogoutBtn');
             
             // Re-bind sidebar navigation
             document.querySelectorAll('.nav-item').forEach(btn => {
@@ -6336,7 +6346,7 @@
 
             // Click outside to close or exit button
             adminPanel.addEventListener('click', (e) => {
-                const closeBtn = e.target.closest('#adminToggle, .admin-exit-btn');
+                const closeBtn = e.target.closest('#adminLogoutBtn, .admin-exit-btn');
                 if (closeBtn) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -6468,11 +6478,11 @@
             }
 
             adminPanel.addEventListener('click', (e) => {
-                const closeBtn = e.target.closest('#adminToggle, .admin-exit-btn');
+                const closeBtn = e.target.closest('#adminLogoutBtn, .admin-exit-btn');
                 if (closeBtn) {
                     e.preventDefault();
                     e.stopPropagation();
-                    if (closeBtn.id === 'adminToggle' || closeBtn.classList.contains('admin-exit-btn')) {
+                    if (closeBtn.id === 'adminLogoutBtn' || closeBtn.classList.contains('admin-exit-btn')) {
                         adminGatekeeper.clearPersistedVisibilityGrant();
                         updateAdminEntryButtonVisibility();
                         pushAdminLog('Admin session terminated. Visibility grant revoked.');
@@ -6538,7 +6548,7 @@
                         return;
                     }
                     if (hasFirestoreReviewRuntime() && canAccessReviewModeration()) {
-                        deleteReviewInFirestore(id)
+                        removeReviewInFirestore(id)
                             .then(() => {
                                 showAdminMediaToast('Review deleted.', 'success');
                                 pushAdminLog(`Review ${id} deleted from Firestore`);
@@ -6941,14 +6951,14 @@
         });
 
         document.addEventListener('click', (e) => {
-            const closeBtn = e.target.closest('#adminToggle, .admin-toggle');
+            const closeBtn = e.target.closest('#adminLogoutBtn, .admin-toggle, .admin-exit-btn');
             if (!closeBtn) return;
             if (adminPanel && adminPanel.classList.contains('active')) {
                 e.preventDefault();
                 e.stopPropagation();
                 
                 // Clear admin visibility grant on logout
-                if (closeBtn.id === 'adminToggle' || closeBtn.classList.contains('admin-exit-btn')) {
+                if (closeBtn.id === 'adminLogoutBtn' || closeBtn.classList.contains('admin-exit-btn')) {
                     adminGatekeeper.clearPersistedVisibilityGrant();
                     updateAdminEntryButtonVisibility();
                     pushAdminLog('Admin session terminated. Visibility grant revoked.');
