@@ -7241,6 +7241,9 @@
                 adminBackdrop.setAttribute('aria-hidden', 'false');
                 adminBackdrop.style.display = 'block';
                 adminBackdrop.style.opacity = '1';
+                // Restore backdrop filter for blur effect
+                adminBackdrop.style.backdropFilter = '';
+                adminBackdrop.style.webkitBackdropFilter = '';
             }
             if (adminPanel) {
                 adminPanel.style.display = 'flex';
@@ -7262,6 +7265,9 @@
             if (adminBackdrop) {
                 adminBackdrop.classList.remove('active');
                 adminBackdrop.setAttribute('aria-hidden', 'true');
+                // Remove backdrop filter to prevent blur on site after closing
+                adminBackdrop.style.backdropFilter = 'none';
+                adminBackdrop.style.webkitBackdropFilter = 'none';
             }
             if (adminPanel) {
                 adminPanel.classList.remove('active');
