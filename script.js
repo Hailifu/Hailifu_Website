@@ -6401,56 +6401,7 @@
             setAdminLazyLoopIndex(0, { animate: false });
         }
 
-        function setAdminTab(tabKey) {
-            if (!adminTabPanels.length) {
-                adminTabs = Array.from(document.querySelectorAll('.admin-tab, .admin-sidebar-item'));
-                adminTabPanels = Array.from(document.querySelectorAll('.admin-tab-panel'));
-            }
-            const sidebarItems = Array.from(document.querySelectorAll('.admin-sidebar-item'));
-            if (!adminTabPanels.length) return;
-
-            const normalizedKey = String(tabKey || '').trim().toLowerCase();
-            if (!normalizedKey) return;
-
-            pushAdminLog(`Accessing ${normalizedKey.toUpperCase()} control module`);
-
-            const titleMap = { 
-                overview: 'System Overview', 
-                leads: 'Lead Inbox', 
-                projects: 'Gallery Manager', 
-                media: 'Media Library', 
-                'site-control': 'Site Control & Branding',
-                reviews: 'Review Moderation' 
-            };
-            const titleEl = document.getElementById('adminMainTitle');
-            if (titleEl) titleEl.textContent = titleMap[normalizedKey] || 'Dashboard';
-
-            adminTabs.forEach((tab) => {
-                const tabValue = String(tab.dataset.adminTab || '').trim().toLowerCase();
-                tab.classList.toggle('active', tabValue === normalizedKey);
-            });
-            sidebarItems.forEach((item) => {
-                const itemValue = String(item.dataset.adminTab || '').trim().toLowerCase();
-                item.classList.toggle('active', itemValue === normalizedKey);
-            });
-            adminTabPanels.forEach((panel) => {
-                const panelValue = String(panel.dataset.adminPanel || '').trim().toLowerCase();
-                const isActive = panelValue === normalizedKey;
-                panel.classList.toggle('active', isActive);
-                panel.style.display = isActive ? 'block' : 'none';
-            });
-
-            if (normalizedKey === 'overview') {
-                startAdminLazyLoop();
-                refreshOverview();
-            } else {
-                stopAdminLazyLoop();
-            }
-
-            if (normalizedKey === 'site-control') {
-                populateSiteControlForm();
-            }
-        }
+        // Old setAdminTab function removed - replaced by newer version at line 5591 with Supabase integration and premium UI
 
         function populateSiteControlForm() {
             const siteTitleInput = document.getElementById('siteTitleInput');
