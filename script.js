@@ -5729,9 +5729,15 @@
                 const { data, error } = await supabase.from('leads').select('*');
                 if (!error && data) {
                     adminState.data.leads = data;
+                } else if (error) {
+                    console.warn('[Admin] Supabase leads table not found, using localStorage');
+                    // Fallback to localStorage if table doesn't exist
+                    adminState.data.leads = getLeads();
                 }
             } catch (err) {
-                console.error('[Admin] Failed to load leads from Supabase:', err);
+                console.warn('[Admin] Failed to load leads from Supabase, using localStorage:', err);
+                // Fallback to localStorage on error
+                adminState.data.leads = getLeads();
             }
         }
 
