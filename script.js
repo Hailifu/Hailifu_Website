@@ -6040,14 +6040,14 @@
             }
         }
 
-        function editProject(projectId) {
+        window.editProject = function(projectId) {
             // Wrapper function for edit button - for now just log
             console.log('[Admin] Edit project:', projectId);
             pushAdminLog(`Edit project: ${projectId}`, 'INFO');
             // TODO: Implement edit functionality
-        }
+        };
 
-        function deleteProject(projectId) {
+        window.deleteProject = function(projectId) {
             // Wrapper function that calls the existing deleteProjectById
             if (confirm('Are you sure you want to delete this project?')) {
                 deleteProjectById(projectId);
@@ -6057,7 +6057,7 @@
                     renderAdminProjects(container);
                 }
             }
-        }
+        };
 
         function openProjectPreview(projectId) {
             const projects = adminState.data.projects.length ? adminState.data.projects : getProjects();
