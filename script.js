@@ -5596,7 +5596,6 @@
             }
 
             const normalizedKey = String(tabKey || 'overview').trim().toLowerCase();
-            console.log('[Admin] Switching to tab:', normalizedKey);
             
             // Safety function: Force dashboard if tab doesn't exist
             if (!isValidTab(normalizedKey)) {
@@ -5628,7 +5627,6 @@
                     </div>
                 </div>
             `;
-            console.log('[Admin] Loading skeleton set');
 
             requestAnimationFrame(async () => {
                 try {
@@ -5642,18 +5640,14 @@
 
                     updateAdminState('isLoading', true);
                     const tmp = document.createElement('div');
-                    console.log('[Admin] Created temp element, loading data for:', normalizedKey);
 
                     switch (normalizedKey) {
                         case 'overview':
                             renderAdminDashboard(tmp);
                             break;
                         case 'leads':
-                            console.log('[Admin] Loading leads from Supabase...');
                             await loadLeadsFromSupabase();
-                            console.log('[Admin] Leads loaded:', adminState.data.leads);
                             renderAdminLeads(tmp);
-                            console.log('[Admin] Leads rendered, HTML length:', tmp.innerHTML.length);
                             break;
                         case 'projects':
                             await loadProjectsFromSupabase();
@@ -5676,7 +5670,6 @@
                     }
 
                     const node = tmp.firstElementChild ? tmp.firstElementChild : tmp;
-                    console.log('[Admin] Node to render:', node ? 'exists' : 'null', 'children:', node?.children?.length || 0);
                     if (!node || node.children.length === 0) {
                         throw new Error(`No content rendered for tab: ${normalizedKey}`);
                     }
