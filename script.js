@@ -5706,7 +5706,7 @@
                         </div>
                         <h2>Section Under Development</h2>
                         <p>The <strong>${escapeHTML(tabKey)}</strong> section is currently being built.</p>
-                        <button class="admin-btn-premium action-tile" onclick="setAdminTab('overview')">
+                        <button class="admin-btn-premium action-tile" data-action="navigate" data-tab="overview">
                             <i class="fas fa-home"></i> Return to Dashboard
                         </button>
                     </div>
@@ -5866,6 +5866,15 @@
                     </div>
                 </div>
             `;
+
+            // Attach event listeners for dashboard navigation
+            container.addEventListener('click', (e) => {
+                const actionBtn = e.target.closest('[data-action="navigate"]');
+                if (actionBtn) {
+                    setAdminTab(actionBtn.dataset.tab);
+                }
+            });
+
             if (typeof renderAdminLogs === 'function') renderAdminLogs();
             checkSystemHealth();
         }
@@ -5943,19 +5952,13 @@
                             </table>
                         ` : `
                             <div class="empty-state">
-                                <div class="empty-state-icon">
-                                    <i class="fas fa-user-plus"></i>
-                                </div>
-                                <h3>No Leads Yet</h3>
-                                <p>When customers submit inquiries through your website, they will appear here.</p>
-                                <button class="empty-state-action" onclick="setAdminTab('overview')">
-                                    <i class="fas fa-home"></i> Return to Dashboard
-                                </button>
-                            </div>
-                        `}
                     </div>
-                </div>
-            `;
+                    <div class="card-body">
+                        <div class="system-health-widget">
+                            <div class="health-item">
+                                <div class="health-label">
+                                    <i class="fas fa-database"></i>
+                                    <span>Database Connectivity</span>
         }
 
         function updateLeadStatus(leadId, newStatus) {
@@ -7331,7 +7334,12 @@
                         hasGrant: hasAdminVisibilityAccess(),
                         panel: !!adminPanel,
                         backdrop: !!adminBackdrop
-                    })
+                    }),
+                    clearLogs: () => {
+                        if (Array.isArray(adminLogs)) adminLogs = [];
+                        if (typeof renderAdminLogs === 'function') renderAdminLogs();
+                        return 'Logs cleared';
+                    }
                 };
 
                 if (!incoming) return false;
