@@ -6823,6 +6823,11 @@
             if (adminPanel) {
                 adminPanel.classList.remove('active');
                 adminPanel.style.opacity = '0';
+                // Blur any focused element inside the admin panel before hiding
+                const activeElement = document.activeElement;
+                if (activeElement && adminPanel.contains(activeElement)) {
+                    activeElement.blur();
+                }
                 adminPanel.setAttribute('aria-hidden', 'true');
                 if (adminHideTimer) clearTimeout(adminHideTimer);
                 adminHideTimer = window.setTimeout(() => {
