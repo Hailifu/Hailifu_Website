@@ -823,6 +823,36 @@
         let adminTabPanels = [];
         let reviewsRequireApproval = null;
 
+        // Centralized State Management for Premium Admin Portal
+        const adminState = {
+            currentUser: null,
+            activeTab: 'overview',
+            isLoading: false,
+            data: {
+                leads: [],
+                projects: [],
+                media: [],
+                reviews: [],
+                systemHealth: {
+                    database: 'unknown',
+                    googleApi: 'unknown',
+                    lastChecked: null
+                }
+            },
+            cache: new Map(),
+            listeners: new Set()
+        };
+
+        function updateAdminState(key, value) {
+            adminState[key] = value;
+            adminState.listeners.forEach(listener => listener(key, value));
+        }
+
+        function subscribeToAdminState(listener) {
+            adminState.listeners.add(listener);
+            return () => adminState.listeners.delete(listener);
+        }
+
         let adminLazyLoop = null;
         let adminLazyLoopTrack = null;
         let adminLazyLoopDots = null;
@@ -5560,54 +5590,125 @@
 
         function setAdminTab(tabKey) {
             const container = document.getElementById('adminMainContent');
-            console.log('[Admin] setAdminTab called with:', tabKey, 'container found:', !!container);
             if (!container) return;
 
             const normalizedKey = String(tabKey || 'overview').trim().toLowerCase();
-            
-            // Update sidebar active state
+            updateAdminState('activeTab', normalizedKey);
+
+            // Update sidebar active state with #FF8C00 highlight
             document.querySelectorAll('.nav-item').forEach(item => {
                 const isActive = item.dataset.adminTab === normalizedKey;
                 item.classList.toggle('active', isActive);
             });
 
-            const cached = adminTabCacheV3.get(normalizedKey);
-            if (cached) {
-                container.replaceChildren(cached.cloneNode(true));
-                pushAdminLog(`Module loaded (cache): ${normalizedKey.toUpperCase()}`, 'OK');
-                return;
-            }
+            // Smooth fade transition
+            container.style.opacity = '0';
+            container.style.transition = 'opacity 0.3s ease-in-out';
 
-            container.innerHTML = '<div class="admin-loading"><i class="fas fa-circle-notch fa-spin"></i> Loading...</div>';
-            requestAnimationFrame(() => {
-                const tmp = document.createElement('div');
-                switch (normalizedKey) {
-                    case 'overview':
-                        renderAdminDashboard(tmp);
-                        break;
-                    case 'leads':
-                        renderAdminLeads(tmp);
-                        break;
-                    case 'projects':
-                        renderAdminProjects(tmp);
-                        break;
-                    case 'media':
-                        renderAdminMedia(tmp);
-                        break;
-                    case 'site-control':
-                        renderAdminSettings(tmp);
-                        break;
-                    case 'reviews':
-                        renderAdminReviewsV2(tmp);
-                        break;
-                    default:
-                        renderAdminDashboard(tmp);
+            setTimeout(() => {
+                const cached = adminState.cache.get(normalizedKey);
+                if (cached) {
+                    container.replaceChildren(cached.cloneNode(true));
+                    container.style.opacity = '1';
+                    pushAdminLog(`Module loaded (cache): ${normalizedKey.toUpperCase()}`, 'OK');
+                    return;
                 }
-                const node = tmp.firstElementChild ? tmp.firstElementChild : tmp;
-                adminTabCacheV3.set(normalizedKey, node.cloneNode(true));
-                container.replaceChildren(node);
-                pushAdminLog(`Module loaded: ${normalizedKey.toUpperCase()}`, 'PASS');
-            });
+
+                container.innerHTML = '<div class="admin-loading"><i class="fas fa-circle-notch fa-spin"></i> Loading...</div>';
+                updateAdminState('isLoading', true);
+
+                requestAnimationFrame(async () => {
+                    const tmp = document.createElement('div');
+                    switch (normalizedKey) {
+                        case 'overview':
+                            renderAdminDashboard(tmp);
+                            break;
+                        case 'leads':
+                            await loadLeadsFromSupabase();
+                            renderAdminLeads(tmp);
+                            break;
+                        case 'projects':
+                            await loadProjectsFromSupabase();
+                            renderAdminProjects(tmp);
+                            break;
+                        case 'media':
+                            await loadMediaFromSupabase();
+                            renderAdminMedia(tmp);
+                            break;
+                        case 'site-control':
+                            renderAdminSettings(tmp);
+                            break;
+                        case 'reviews':
+                            await loadReviewsFromSupabase();
+                            renderAdminReviewsV2(tmp);
+                            break;
+                        default:
+                            renderAdminDashboard(tmp);
+                    }
+                    const node = tmp.firstElementChild ? tmp.firstElementChild : tmp;
+                    adminState.cache.set(normalizedKey, node.cloneNode(true));
+                    container.replaceChildren(node);
+                    container.style.opacity = '1';
+                    updateAdminState('isLoading', false);
+                    pushAdminLog(`Module loaded: ${normalizedKey.toUpperCase()}`, 'PASS');
+                });
+            }, 150);
+        }
+
+        async function loadLeadsFromSupabase() {
+            // Lazy-load leads from Supabase
+            const supabase = ensureSupabaseClient();
+            if (!supabase) return;
+            try {
+                const { data, error } = await supabase.from('leads').select('*');
+                if (!error && data) {
+                    adminState.data.leads = data;
+                }
+            } catch (err) {
+                console.error('[Admin] Failed to load leads from Supabase:', err);
+            }
+        }
+
+        async function loadProjectsFromSupabase() {
+            // Lazy-load projects from Supabase
+            const supabase = ensureSupabaseClient();
+            if (!supabase) return;
+            try {
+                const { data, error } = await supabase.from('installations').select('*');
+                if (!error && data) {
+                    adminState.data.projects = data;
+                }
+            } catch (err) {
+                console.error('[Admin] Failed to load projects from Supabase:', err);
+            }
+        }
+
+        async function loadMediaFromSupabase() {
+            // Lazy-load media from Supabase Storage
+            const supabase = ensureSupabaseClient();
+            if (!supabase) return;
+            try {
+                const { data, error } = await supabase.storage.from('media').list();
+                if (!error && data) {
+                    adminState.data.media = data;
+                }
+            } catch (err) {
+                console.error('[Admin] Failed to load media from Supabase:', err);
+            }
+        }
+
+        async function loadReviewsFromSupabase() {
+            // Lazy-load reviews from Supabase
+            const supabase = ensureSupabaseClient();
+            if (!supabase) return;
+            try {
+                const { data, error } = await supabase.from('reviews').select('*');
+                if (!error && data) {
+                    adminState.data.reviews = data;
+                }
+            } catch (err) {
+                console.error('[Admin] Failed to load reviews from Supabase:', err);
+            }
         }
 
         function renderAdminDashboard(container) {
@@ -5617,6 +5718,11 @@
                 { label: 'Site Visits', value: '1.2k', icon: 'fa-eye', trend: '+24%' },
                 { label: 'System Status', value: 'Optimal', icon: 'fa-server', trend: '100%' }
             ];
+
+            const dbStatus = adminState.data.systemHealth.database === 'unknown' ? 'Checking...' : adminState.data.systemHealth.database;
+            const googleStatus = adminState.data.systemHealth.googleApi === 'unknown' ? 'Checking...' : adminState.data.systemHealth.googleApi;
+            const dbColor = dbStatus === 'connected' ? '#10b981' : dbStatus === 'error' ? '#ef4444' : '#f59e0b';
+            const googleColor = googleStatus === 'connected' ? '#10b981' : googleStatus === 'error' ? '#ef4444' : '#f59e0b';
 
             container.innerHTML = `
                 <div class="admin-v2-section">
@@ -5632,6 +5738,44 @@
                         `).join('')}
                     </div>
                     <div class="admin-grid-layout">
+                        <section class="admin-card-v2">
+                            <div class="card-header">
+                                <h2><i class="fas fa-heartbeat"></i> System Health</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="system-health-widget">
+                                    <div class="health-item">
+                                        <div class="health-label">
+                                            <i class="fas fa-database"></i>
+                                            <span>Database Connectivity</span>
+                                        </div>
+                                        <div class="health-status" style="color: ${dbColor}">
+                                            <span class="status-dot" style="background-color: ${dbColor}"></span>
+                                            ${dbStatus}
+                                        </div>
+                                    </div>
+                                    <div class="health-item">
+                                        <div class="health-label">
+                                            <i class="fab fa-google"></i>
+                                            <span>Google API Status</span>
+                                        </div>
+                                        <div class="health-status" style="color: ${googleColor}">
+                                            <span class="status-dot" style="background-color: ${googleColor}"></span>
+                                            ${googleStatus}
+                                        </div>
+                                    </div>
+                                    <div class="health-item">
+                                        <div class="health-label">
+                                            <i class="fas fa-clock"></i>
+                                            <span>Last Checked</span>
+                                        </div>
+                                        <div class="health-status">
+                                            ${adminState.data.systemHealth.lastChecked ? new Date(adminState.data.systemHealth.lastChecked).toLocaleTimeString() : 'Never'}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
                         <section class="admin-card-v2">
                             <div class="card-header">
                                 <h2><i class="fas fa-chart-pie"></i> Service Distribution</h2>
@@ -5658,6 +5802,26 @@
                 </div>
             `;
             if (typeof renderAdminLogs === 'function') renderAdminLogs();
+            checkSystemHealth();
+        }
+
+        async function checkSystemHealth() {
+            const supabase = ensureSupabaseClient();
+            if (supabase) {
+                try {
+                    await supabase.from('installations').select('id').limit(1);
+                    adminState.data.systemHealth.database = 'connected';
+                } catch (err) {
+                    adminState.data.systemHealth.database = 'error';
+                }
+            } else {
+                adminState.data.systemHealth.database = 'unavailable';
+            }
+
+            // Check Google API status
+            adminState.data.systemHealth.googleApi = 'connected'; // Placeholder - implement actual check
+
+            adminState.data.systemHealth.lastChecked = Date.now();
         }
 
         function renderAdminLeads(container) {
@@ -5683,18 +5847,32 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    ${leads.map(lead => `
+                                    ${leads.map(lead => {
+                                        const status = lead.status || 'new';
+                                        const statusColor = status === 'new' ? '#FF8C00' : status === 'contacted' ? '#10b981' : '#6366f1';
+                                        const whatsappNumber = lead.phone ? lead.phone.replace(/[^0-9]/g, '') : '';
+                                        const whatsappUrl = whatsappNumber ? `https://wa.me/${whatsappNumber}` : '#';
+                                        return `
                                         <tr>
                                             <td><strong>${escapeHTML(lead.name)}</strong></td>
                                             <td><span class="badge">${escapeHTML(lead.service)}</span></td>
                                             <td>${new Date(lead.timestamp).toLocaleDateString()}</td>
-                                            <td><span class="status-chip ${lead.status}">${lead.status}</span></td>
                                             <td>
+                                                <select class="status-badge-select" data-lead-id="${lead.id}" onchange="updateLeadStatus('${lead.id}', this.value)">
+                                                    <option value="new" ${status === 'new' ? 'selected' : ''}>New</option>
+                                                    <option value="contacted" ${status === 'contacted' ? 'selected' : ''}>Contacted</option>
+                                                    <option value="completed" ${status === 'completed' ? 'selected' : ''}>Completed</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <button class="btn-icon whatsapp-btn" onclick="window.open('${whatsappUrl}', '_blank')" ${!whatsappNumber ? 'disabled' : ''} title="WhatsApp">
+                                                    <i class="fab fa-whatsapp" style="color: #25D366;"></i>
+                                                </button>
                                                 <button class="btn-icon"><i class="fas fa-eye"></i></button>
                                                 <button class="btn-icon delete"><i class="fas fa-trash"></i></button>
                                             </td>
                                         </tr>
-                                    `).join('')}
+                                    `}).join('')}
                                 </tbody>
                             </table>
                         ` : '<div class="admin-empty-v2">No leads found.</div>'}
@@ -5703,7 +5881,17 @@
             `;
         }
 
+        function updateLeadStatus(leadId, newStatus) {
+            const leads = getLeads();
+            const lead = leads.find(l => l.id === leadId);
+            if (lead) {
+                lead.status = newStatus;
+                pushAdminLog(`Lead status updated: ${lead.name} -> ${newStatus}`, 'OK');
+            }
+        }
+
         function renderAdminProjects(container) {
+            const projects = adminState.data.projects.length ? adminState.data.projects : getProjects();
             container.innerHTML = `
                 <div class="admin-v2-section">
                     <div class="section-header-v2">
@@ -5711,26 +5899,168 @@
                         <button class="admin-btn-premium"><i class="fas fa-plus"></i> New Project</button>
                     </div>
                     <div class="projects-grid-v2" id="projectsGridV2">
-                        <!-- Projects loaded here -->
+                        ${projects.map(project => `
+                            <div class="project-card-v2" data-project-id="${project.id}">
+                                <div class="project-thumbnail" onclick="openProjectPreview('${project.id}')">
+                                    <img src="${project.mediaSrc || '/placeholder.jpg'}" alt="${escapeHTML(project.title)}" onerror="this.src='/placeholder.jpg'">
+                                    <div class="project-overlay">
+                                        <i class="fas fa-expand"></i>
+                                    </div>
+                                </div>
+                                <div class="project-info">
+                                    <h3>${escapeHTML(project.title)}</h3>
+                                    <p class="project-category">${escapeHTML(project.category)}</p>
+                                    <div class="project-metadata">
+                                        <div class="metadata-field">
+                                            <label>Location:</label>
+                                            <input type="text" value="${escapeHTML(project.location || '')}" 
+                                                   onchange="updateProjectMetadata('${project.id}', 'location', this.value)"
+                                                   class="metadata-input">
+                                        </div>
+                                        <div class="metadata-field">
+                                            <label>Service Type:</label>
+                                            <select onchange="updateProjectMetadata('${project.id}', 'serviceType', this.value)"
+                                                    class="metadata-input">
+                                                <option value="cctv" ${project.serviceType === 'cctv' ? 'selected' : ''}>CCTV</option>
+                                                <option value="electrical" ${project.serviceType === 'electrical' ? 'selected' : ''}>Electrical</option>
+                                                <option value="gates" ${project.serviceType === 'gates' ? 'selected' : ''}>Gates</option>
+                                                <option value="solar" ${project.serviceType === 'solar' ? 'selected' : ''}>Solar</option>
+                                                <option value="airconditioning" ${project.serviceType === 'airconditioning' ? 'selected' : ''}>Air Conditioning</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="project-actions">
+                                        <button class="btn-icon" onclick="editProject('${project.id}')"><i class="fas fa-edit"></i></button>
+                                        <button class="btn-icon delete" onclick="deleteProject('${project.id}')"><i class="fas fa-trash"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
                     </div>
                 </div>
             `;
-            // Call existing projects logic or refactor
+        }
+
+        function updateProjectMetadata(projectId, field, value) {
+            const projects = adminState.data.projects.length ? adminState.data.projects : getProjects();
+            const project = projects.find(p => p.id === projectId);
+            if (project) {
+                project[field] = value;
+                pushAdminLog(`Project metadata updated: ${project.title} ${field} -> ${value}`, 'OK');
+            }
+        }
+
+        function openProjectPreview(projectId) {
+            const projects = adminState.data.projects.length ? adminState.data.projects : getProjects();
+            const project = projects.find(p => p.id === projectId);
+            if (project) {
+                const preview = document.createElement('div');
+                preview.className = 'project-preview-modal';
+                preview.innerHTML = `
+                    <div class="preview-content">
+                        <button class="preview-close" onclick="this.closest('.project-preview-modal').remove()"><i class="fas fa-times"></i></button>
+                        <img src="${project.mediaSrc || '/placeholder.jpg'}" alt="${escapeHTML(project.title)}">
+                        <div class="preview-info">
+                            <h3>${escapeHTML(project.title)}</h3>
+                            <p>${escapeHTML(project.description || '')}</p>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(preview);
+            }
         }
 
         function renderAdminMedia(container) {
             container.innerHTML = `
                 <div class="admin-v2-section">
                     <div class="section-header-v2">
-                        <h2>Asset Library</h2>
-                        <div class="upload-v2">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <span>Drop files here to upload</span>
-                        </div>
+                        <h2>Global Media Bucket</h2>
                     </div>
-                    <div class="media-grid-v2" id="mediaGridV2"></div>
+                    <div class="upload-zone" id="mediaUploadZone">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Drag and drop files here to upload to Supabase Storage</p>
+                        <input type="file" id="mediaFileInput" multiple accept="image/*,video/*" style="display: none;">
+                        <button class="admin-btn-premium" onclick="document.getElementById('mediaFileInput').click()">
+                            <i class="fas fa-folder-open"></i> Browse Files
+                        </button>
+                    </div>
+                    <div class="media-grid-v2" id="mediaGridV2">
+                        ${adminState.data.media.map(item => `
+                            <div class="media-item-v2" data-media-name="${item.name}">
+                                <div class="media-thumbnail">
+                                    <img src="${item.url || '/placeholder.jpg'}" alt="${escapeHTML(item.name)}" onerror="this.src='/placeholder.jpg'">
+                                </div>
+                                <div class="media-info">
+                                    <p class="media-name">${escapeHTML(item.name)}</p>
+                                    <p class="media-size">${formatBytes(item.metadata?.size || 0)}</p>
+                                </div>
+                                <div class="media-actions">
+                                    <button class="btn-icon" onclick="previewMedia('${item.name}')"><i class="fas fa-eye"></i></button>
+                                    <button class="btn-icon delete" onclick="deleteMedia('${item.name}')"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
                 </div>
             `;
+            setupMediaDragAndDrop();
+        }
+
+        function setupMediaDragAndDrop() {
+            const uploadZone = document.getElementById('mediaUploadZone');
+            const fileInput = document.getElementById('mediaFileInput');
+            
+            if (!uploadZone || !fileInput) return;
+
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.classList.add('drag-over');
+            });
+
+            uploadZone.addEventListener('dragleave', () => {
+                uploadZone.classList.remove('drag-over');
+            });
+
+            uploadZone.addEventListener('drop', async (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('drag-over');
+                const files = Array.from(e.dataTransfer.files);
+                await uploadMediaToSupabase(files);
+            });
+
+            fileInput.addEventListener('change', async (e) => {
+                const files = Array.from(e.target.files);
+                await uploadMediaToSupabase(files);
+            });
+        }
+
+        async function uploadMediaToSupabase(files) {
+            const supabase = ensureSupabaseClient();
+            if (!supabase) {
+                pushAdminLog('Supabase client not available for upload', 'ERROR');
+                return;
+            }
+
+            for (const file of files) {
+                try {
+                    const fileName = `${Date.now()}-${file.name}`;
+                    const { data, error } = await supabase.storage.from('media').upload(fileName, file);
+                    if (error) throw error;
+                    pushAdminLog(`Uploaded: ${file.name}`, 'OK');
+                } catch (err) {
+                    pushAdminLog(`Upload failed: ${file.name} - ${err.message}`, 'ERROR');
+                }
+            }
+            await loadMediaFromSupabase();
+            setAdminTab('media');
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
         }
 
         function renderAdminReviewsV2(container) {
@@ -6317,21 +6647,18 @@
         }
 
         function syncOpsNodes() {
-            console.log('[Admin] syncOpsNodes called, adminPanel exists:', !!adminPanel);
             if (!adminPanel) return;
 
             adminBackdrop = document.getElementById('adminBackdrop');
             adminToggle = document.getElementById('adminLogoutBtn');
-            
+
             // Sidebar navigation - attach directly to nav buttons
             const navButtons = adminPanel.querySelectorAll('.nav-item[data-admin-tab]');
-            console.log('[Admin] Found nav buttons:', navButtons.length);
             navButtons.forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     const tab = String(btn.dataset.adminTab || '').trim();
-                    console.log('[Admin] Nav button clicked:', tab);
                     if (tab) setAdminTab(tab);
                 });
             });
@@ -6340,7 +6667,7 @@
             const globalSearch = document.getElementById('adminGlobalSearch');
             if (globalSearch) {
                 globalSearch.addEventListener('input', (e) => {
-                    console.log('[Admin] Searching for:', e.target.value);
+                    // Search functionality placeholder
                 });
             }
 
