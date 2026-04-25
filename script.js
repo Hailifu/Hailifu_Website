@@ -6323,23 +6323,18 @@
             adminBackdrop = document.getElementById('adminBackdrop');
             adminToggle = document.getElementById('adminLogoutBtn');
             
-            // Sidebar navigation (delegated, reliable)
-            if (!adminPanel.dataset.navBound) {
-                adminPanel.dataset.navBound = 'true';
-                console.log('[Admin] Binding nav click event listener to admin panel');
-                adminPanel.addEventListener('click', (e) => {
-                    const navBtn = e.target.closest('.nav-item[data-admin-tab]');
-                    console.log('[Admin] Nav item clicked:', navBtn, 'tab:', navBtn?.dataset?.adminTab);
-                    if (!navBtn || !adminPanel.contains(navBtn)) return;
+            // Sidebar navigation - attach directly to nav buttons
+            const navButtons = adminPanel.querySelectorAll('.nav-item[data-admin-tab]');
+            console.log('[Admin] Found nav buttons:', navButtons.length);
+            navButtons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    const tab = String(navBtn.dataset.adminTab || '').trim();
-                    console.log('[Admin] Calling setAdminTab with:', tab);
+                    const tab = String(btn.dataset.adminTab || '').trim();
+                    console.log('[Admin] Nav button clicked:', tab);
                     if (tab) setAdminTab(tab);
                 });
-            } else {
-                console.log('[Admin] Nav click event listener already bound');
-            }
+            });
 
             // Global Search
             const globalSearch = document.getElementById('adminGlobalSearch');
