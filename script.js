@@ -6772,15 +6772,19 @@
         }
 
         function syncOpsNodes() {
+            console.log('[Admin] syncOpsNodes called, adminPanel:', !!adminPanel);
             if (!adminPanel) return;
 
             adminBackdrop = document.getElementById('adminBackdrop');
             adminToggle = document.getElementById('adminLogoutBtn');
-
+            
             // Sidebar navigation - attach directly to nav buttons
             const navButtons = adminPanel.querySelectorAll('.nav-item[data-admin-tab]');
-            navButtons.forEach(btn => {
+            console.log('[Admin] Found nav buttons:', navButtons.length);
+            navButtons.forEach((btn, index) => {
+                console.log('[Admin] Attaching listener to button:', btn.dataset.adminTab);
                 btn.addEventListener('click', (e) => {
+                    console.log('[Admin] Nav button clicked:', btn.dataset.adminTab);
                     e.preventDefault();
                     e.stopPropagation();
                     const tab = String(btn.dataset.adminTab || '').trim();
@@ -6810,15 +6814,10 @@
                     e.preventDefault();
                     e.stopPropagation();
                     adminGatekeeper.clearPersistedVisibilityGrant();
-                    updateAdminEntryButtonVisibility();
-                    pushAdminLog('Admin session terminated. Visibility grant revoked.');
                     haltDataSync();
                     return;
                 }
             });
-
-            if (adminPanel.dataset.listenersBound) return;
-            adminPanel.dataset.listenersBound = 'true';
         }
 
         const OLD_UNUSED_SYNC = () => {};
