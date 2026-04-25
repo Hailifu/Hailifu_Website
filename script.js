@@ -5590,7 +5590,10 @@
 
         function setAdminTab(tabKey) {
             const container = document.getElementById('adminMainContent');
-            if (!container) return;
+            if (!container) {
+                console.error('[Admin] Container adminMainContent not found');
+                return;
+            }
 
             const normalizedKey = String(tabKey || 'overview').trim().toLowerCase();
             updateAdminState('activeTab', normalizedKey);
@@ -5601,24 +5604,35 @@
                 item.classList.toggle('active', isActive);
             });
 
-            // Smooth fade transition
-            container.style.opacity = '0';
-            container.style.transition = 'opacity 0.3s ease-in-out';
+            // Ensure container is visible
+            container.style.display = 'block';
+            container.style.visibility = 'visible';
 
-            setTimeout(() => {
-                const cached = adminState.cache.get(normalizedKey);
-                if (cached) {
-                    container.replaceChildren(cached.cloneNode(true));
-                    container.style.opacity = '1';
-                    pushAdminLog(`Module loaded (cache): ${normalizedKey.toUpperCase()}`, 'OK');
-                    return;
-                }
+            // Show loading skeleton
+            container.innerHTML = `
+                <div class="loading-skeleton">
+                    <div class="skeleton-header"></div>
+                    <div class="skeleton-grid">
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                    </div>
+                </div>
+            `;
 
-                container.innerHTML = '<div class="admin-loading"><i class="fas fa-circle-notch fa-spin"></i> Loading...</div>';
-                updateAdminState('isLoading', true);
+            requestAnimationFrame(async () => {
+                try {
+                    const cached = adminState.cache.get(normalizedKey);
+                    if (cached) {
+                        container.replaceChildren(cached.cloneNode(true));
+                        container.style.opacity = '1';
+                        pushAdminLog(`Module loaded (cache): ${normalizedKey.toUpperCase()}`, 'OK');
+                        return;
+                    }
 
-                requestAnimationFrame(async () => {
+                    updateAdminState('isLoading', true);
                     const tmp = document.createElement('div');
+
                     switch (normalizedKey) {
                         case 'overview':
                             renderAdminDashboard(tmp);
@@ -5643,16 +5657,32 @@
                             renderAdminReviewsV2(tmp);
                             break;
                         default:
-                            renderAdminDashboard(tmp);
+                            console.warn(`[Admin] Unknown tab: ${normalizedKey}, redirecting to overview`);
+                            setAdminTab('overview');
+                            return;
                     }
+
                     const node = tmp.firstElementChild ? tmp.firstElementChild : tmp;
+                    if (!node || node.children.length === 0) {
+                        throw new Error(`No content rendered for tab: ${normalizedKey}`);
+                    }
+
                     adminState.cache.set(normalizedKey, node.cloneNode(true));
                     container.replaceChildren(node);
                     container.style.opacity = '1';
                     updateAdminState('isLoading', false);
                     pushAdminLog(`Module loaded: ${normalizedKey.toUpperCase()}`, 'PASS');
-                });
-            }, 150);
+                } catch (err) {
+                    console.error('[Admin] Error loading tab:', err);
+                    container.innerHTML = `
+                        <div class="admin-error">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>Failed to load section. Redirecting to Dashboard...</p>
+                        </div>
+                    `;
+                    setTimeout(() => setAdminTab('overview'), 1500);
+                }
+            });
         }
 
         async function loadLeadsFromSupabase() {
@@ -6041,14 +6071,48 @@
                 return;
             }
 
+            const uploadZone = document.getElementById('mediaUploadZone');
+            if (uploadZone) {
+                uploadZone.innerHTML = `
+                    <div class="upload-progress-container">
+                        ${files.map(file => `
+                            <div class="upload-item" data-file="${file.name}">
+                                <div class="upload-item-info">
+                                    <i class="fas fa-file"></i>
+                                    <span>${escapeHTML(file.name)}</span>
+                                </div>
+                                <div class="upload-progress">
+                                    <div class="upload-progress-bar" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
             for (const file of files) {
                 try {
                     const fileName = `${Date.now()}-${file.name}`;
-                    const { data, error } = await supabase.storage.from('media').upload(fileName, file);
+                    const { data, error } = await supabase.storage.from('media').upload(fileName, file, {
+                        cacheControl: '3600',
+                        upsert: false
+                    });
+                    
+                    // Update progress to 100%
+                    const uploadItem = document.querySelector(`.upload-item[data-file="${file.name}"]`);
+                    if (uploadItem) {
+                        const progressBar = uploadItem.querySelector('.upload-progress-bar');
+                        if (progressBar) progressBar.style.width = '100%';
+                    }
+
                     if (error) throw error;
                     pushAdminLog(`Uploaded: ${file.name}`, 'OK');
                 } catch (err) {
                     pushAdminLog(`Upload failed: ${file.name} - ${err.message}`, 'ERROR');
+                    const uploadItem = document.querySelector(`.upload-item[data-file="${file.name}"]`);
+                    if (uploadItem) {
+                        uploadItem.querySelector('.upload-progress-bar').style.background = '#ef4444';
+                    }
                 }
             }
             await loadMediaFromSupabase();
