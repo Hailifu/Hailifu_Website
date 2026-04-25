@@ -5596,17 +5596,25 @@
             }
 
             const normalizedKey = String(tabKey || 'overview').trim().toLowerCase();
+            
+            // Safety function: Force dashboard if tab doesn't exist
+            if (!isValidTab(normalizedKey)) {
+                console.warn(`[Admin] Invalid tab: ${normalizedKey}, forcing Dashboard`);
+                setAdminTab('overview');
+                return;
+            }
+
             updateAdminState('activeTab', normalizedKey);
 
-            // Update sidebar active state with #FF8C00 highlight
+            // Update sidebar active state with #FF8C00 highlight using class-based toggle
             document.querySelectorAll('.nav-item').forEach(item => {
                 const isActive = item.dataset.adminTab === normalizedKey;
                 item.classList.toggle('active', isActive);
             });
 
-            // Ensure container is visible
-            container.style.display = 'block';
-            container.style.visibility = 'visible';
+            // Class-based toggle for container transitions
+            container.classList.add('loading');
+            container.classList.remove('hidden');
 
             // Show loading skeleton
             container.innerHTML = `
@@ -5625,7 +5633,7 @@
                     const cached = adminState.cache.get(normalizedKey);
                     if (cached) {
                         container.replaceChildren(cached.cloneNode(true));
-                        container.style.opacity = '1';
+                        container.classList.remove('loading');
                         pushAdminLog(`Module loaded (cache): ${normalizedKey.toUpperCase()}`, 'OK');
                         return;
                     }
@@ -5657,9 +5665,8 @@
                             renderAdminReviewsV2(tmp);
                             break;
                         default:
-                            console.warn(`[Admin] Unknown tab: ${normalizedKey}, redirecting to overview`);
-                            setAdminTab('overview');
-                            return;
+                            // Auto-generate premium placeholder for unknown sections
+                            renderPremiumPlaceholder(tmp, normalizedKey);
                     }
 
                     const node = tmp.firstElementChild ? tmp.firstElementChild : tmp;
@@ -5669,7 +5676,7 @@
 
                     adminState.cache.set(normalizedKey, node.cloneNode(true));
                     container.replaceChildren(node);
-                    container.style.opacity = '1';
+                    container.classList.remove('loading');
                     updateAdminState('isLoading', false);
                     pushAdminLog(`Module loaded: ${normalizedKey.toUpperCase()}`, 'PASS');
                 } catch (err) {
@@ -5683,6 +5690,28 @@
                     setTimeout(() => setAdminTab('overview'), 1500);
                 }
             });
+        }
+
+        function isValidTab(tabKey) {
+            const validTabs = ['overview', 'leads', 'projects', 'media', 'site-control', 'reviews'];
+            return validTabs.includes(tabKey);
+        }
+
+        function renderPremiumPlaceholder(container, tabKey) {
+            container.innerHTML = `
+                <div class="admin-v2-section">
+                    <div class="premium-placeholder">
+                        <div class="placeholder-icon">
+                            <i class="fas fa-construction"></i>
+                        </div>
+                        <h2>Section Under Development</h2>
+                        <p>The <strong>${escapeHTML(tabKey)}</strong> section is currently being built.</p>
+                        <button class="admin-btn-premium action-tile" onclick="setAdminTab('overview')">
+                            <i class="fas fa-home"></i> Return to Dashboard
+                        </button>
+                    </div>
+                </div>
+            `;
         }
 
         async function loadLeadsFromSupabase() {
@@ -5905,7 +5934,18 @@
                                     `}).join('')}
                                 </tbody>
                             </table>
-                        ` : '<div class="admin-empty-v2">No leads found.</div>'}
+                        ` : `
+                            <div class="empty-state">
+                                <div class="empty-state-icon">
+                                    <i class="fas fa-user-plus"></i>
+                                </div>
+                                <h3>No Leads Yet</h3>
+                                <p>When customers submit inquiries through your website, they will appear here.</p>
+                                <button class="empty-state-action" onclick="setAdminTab('overview')">
+                                    <i class="fas fa-home"></i> Return to Dashboard
+                                </button>
+                            </div>
+                        `}
                     </div>
                 </div>
             `;
@@ -5926,47 +5966,60 @@
                 <div class="admin-v2-section">
                     <div class="section-header-v2">
                         <h2>Gallery Manager</h2>
-                        <button class="admin-btn-premium"><i class="fas fa-plus"></i> New Project</button>
+                        <button class="admin-btn-premium action-tile"><i class="fas fa-plus"></i> New Project</button>
                     </div>
-                    <div class="projects-grid-v2" id="projectsGridV2">
-                        ${projects.map(project => `
-                            <div class="project-card-v2" data-project-id="${project.id}">
-                                <div class="project-thumbnail" onclick="openProjectPreview('${project.id}')">
-                                    <img src="${project.mediaSrc || '/placeholder.jpg'}" alt="${escapeHTML(project.title)}" onerror="this.src='/placeholder.jpg'">
-                                    <div class="project-overlay">
-                                        <i class="fas fa-expand"></i>
-                                    </div>
-                                </div>
-                                <div class="project-info">
-                                    <h3>${escapeHTML(project.title)}</h3>
-                                    <p class="project-category">${escapeHTML(project.category)}</p>
-                                    <div class="project-metadata">
-                                        <div class="metadata-field">
-                                            <label>Location:</label>
-                                            <input type="text" value="${escapeHTML(project.location || '')}" 
-                                                   onchange="updateProjectMetadata('${project.id}', 'location', this.value)"
-                                                   class="metadata-input">
-                                        </div>
-                                        <div class="metadata-field">
-                                            <label>Service Type:</label>
-                                            <select onchange="updateProjectMetadata('${project.id}', 'serviceType', this.value)"
-                                                    class="metadata-input">
-                                                <option value="cctv" ${project.serviceType === 'cctv' ? 'selected' : ''}>CCTV</option>
-                                                <option value="electrical" ${project.serviceType === 'electrical' ? 'selected' : ''}>Electrical</option>
-                                                <option value="gates" ${project.serviceType === 'gates' ? 'selected' : ''}>Gates</option>
-                                                <option value="solar" ${project.serviceType === 'solar' ? 'selected' : ''}>Solar</option>
-                                                <option value="airconditioning" ${project.serviceType === 'airconditioning' ? 'selected' : ''}>Air Conditioning</option>
-                                            </select>
+                    ${projects.length ? `
+                        <div class="projects-grid-v2" id="projectsGridV2">
+                            ${projects.map(project => `
+                                <div class="project-card-v2" data-project-id="${project.id}">
+                                    <div class="project-thumbnail" onclick="openProjectPreview('${project.id}')">
+                                        <img src="${project.mediaSrc || '/placeholder.jpg'}" alt="${escapeHTML(project.title)}" onerror="this.src='/placeholder.jpg'">
+                                        <div class="project-overlay">
+                                            <i class="fas fa-expand"></i>
                                         </div>
                                     </div>
-                                    <div class="project-actions">
-                                        <button class="btn-icon" onclick="editProject('${project.id}')"><i class="fas fa-edit"></i></button>
-                                        <button class="btn-icon delete" onclick="deleteProject('${project.id}')"><i class="fas fa-trash"></i></button>
+                                    <div class="project-info">
+                                        <h3>${escapeHTML(project.title)}</h3>
+                                        <p class="project-category">${escapeHTML(project.category)}</p>
+                                        <div class="project-metadata">
+                                            <div class="metadata-field">
+                                                <label>Location:</label>
+                                                <input type="text" value="${escapeHTML(project.location || '')}" 
+                                                       onchange="updateProjectMetadata('${project.id}', 'location', this.value)"
+                                                       class="metadata-input">
+                                            </div>
+                                            <div class="metadata-field">
+                                                <label>Service Type:</label>
+                                                <select onchange="updateProjectMetadata('${project.id}', 'serviceType', this.value)"
+                                                        class="metadata-input">
+                                                    <option value="cctv" ${project.serviceType === 'cctv' ? 'selected' : ''}>CCTV</option>
+                                                    <option value="electrical" ${project.serviceType === 'electrical' ? 'selected' : ''}>Electrical</option>
+                                                    <option value="gates" ${project.serviceType === 'gates' ? 'selected' : ''}>Gates</option>
+                                                    <option value="solar" ${project.serviceType === 'solar' ? 'selected' : ''}>Solar</option>
+                                                    <option value="airconditioning" ${project.serviceType === 'airconditioning' ? 'selected' : ''}>Air Conditioning</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="project-actions">
+                                            <button class="btn-icon" onclick="editProject('${project.id}')"><i class="fas fa-edit"></i></button>
+                                            <button class="btn-icon delete" onclick="deleteProject('${project.id}')"><i class="fas fa-trash"></i></button>
+                                        </div>
                                     </div>
                                 </div>
+                            `).join('')}
+                        </div>
+                    ` : `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-images"></i>
                             </div>
-                        `).join('')}
-                    </div>
+                            <h3>No Projects Yet</h3>
+                            <p>Start showcasing your work by adding your first project to the gallery.</p>
+                            <button class="empty-state-action" onclick="setAdminTab('overview')">
+                                <i class="fas fa-home"></i> Return to Dashboard
+                            </button>
+                        </div>
+                    `}
                 </div>
             `;
         }
