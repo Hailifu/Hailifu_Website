@@ -5884,7 +5884,8 @@
         }
 
         function renderAdminLeads(container) {
-            const leads = getLeads();
+            // Use adminState.data.leads if available (from Supabase), otherwise fallback to localStorage
+            const leads = adminState.data.leads && adminState.data.leads.length ? adminState.data.leads : getLeads();
             container.innerHTML = `
                 <div class="admin-v2-section">
                     <div class="section-header-v2">
