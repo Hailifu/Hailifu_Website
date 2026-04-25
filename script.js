@@ -5560,6 +5560,7 @@
 
         function setAdminTab(tabKey) {
             const container = document.getElementById('adminMainContent');
+            console.log('[Admin] setAdminTab called with:', tabKey, 'container found:', !!container);
             if (!container) return;
 
             const normalizedKey = String(tabKey || 'overview').trim().toLowerCase();
@@ -6326,10 +6327,12 @@
                 adminPanel.dataset.navBound = 'true';
                 adminPanel.addEventListener('click', (e) => {
                     const navBtn = e.target.closest('.nav-item[data-admin-tab]');
+                    console.log('[Admin] Nav item clicked:', navBtn, 'tab:', navBtn?.dataset?.adminTab);
                     if (!navBtn || !adminPanel.contains(navBtn)) return;
                     e.preventDefault();
                     e.stopPropagation();
                     const tab = String(navBtn.dataset.adminTab || '').trim();
+                    console.log('[Admin] Calling setAdminTab with:', tab);
                     if (tab) setAdminTab(tab);
                 });
             }
