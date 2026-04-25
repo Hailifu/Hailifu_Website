@@ -6781,6 +6781,7 @@
             // Sidebar navigation - attach directly to nav buttons
             const navButtons = adminPanel.querySelectorAll('.nav-item[data-admin-tab]');
             console.log('[Admin] Found nav buttons:', navButtons.length);
+            console.log('[Admin] setAdminTab function exists:', typeof setAdminTab);
             navButtons.forEach((btn, index) => {
                 console.log('[Admin] Attaching listener to button:', btn.dataset.adminTab);
                 btn.addEventListener('click', (e) => {
@@ -6788,7 +6789,15 @@
                     e.preventDefault();
                     e.stopPropagation();
                     const tab = String(btn.dataset.adminTab || '').trim();
-                    if (tab) setAdminTab(tab);
+                    console.log('[Admin] About to call setAdminTab with:', tab);
+                    if (tab) {
+                        try {
+                            setAdminTab(tab);
+                            console.log('[Admin] setAdminTab returned successfully');
+                        } catch (err) {
+                            console.error('[Admin] Error calling setAdminTab:', err);
+                        }
+                    }
                 });
             });
 
