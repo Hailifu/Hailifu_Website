@@ -5979,7 +5979,7 @@
                         <div class="projects-grid-v2" id="projectsGridV2">
                             ${projects.map(project => `
                                 <div class="project-card-v2" data-project-id="${project.id}">
-                                    <div class="project-thumbnail" onclick="openProjectPreview('${project.id}')">
+                                    <div class="project-thumbnail" data-action="preview" data-project-id="${project.id}">
                                         <img src="${project.mediaSrc || '/placeholder.jpg'}" alt="${escapeHTML(project.title)}" onerror="this.src='/placeholder.jpg'">
                                         <div class="project-overlay">
                                             <i class="fas fa-expand"></i>
@@ -5992,12 +5992,12 @@
                                             <div class="metadata-field">
                                                 <label>Location:</label>
                                                 <input type="text" value="${escapeHTML(project.location || '')}" 
-                                                       onchange="updateProjectMetadata('${project.id}', 'location', this.value)"
+                                                       data-action="update-metadata" data-field="location" data-project-id="${project.id}"
                                                        class="metadata-input">
                                             </div>
                                             <div class="metadata-field">
                                                 <label>Service Type:</label>
-                                                <select onchange="updateProjectMetadata('${project.id}', 'serviceType', this.value)"
+                                                <select data-action="update-metadata" data-field="serviceType" data-project-id="${project.id}"
                                                         class="metadata-input">
                                                     <option value="cctv" ${project.serviceType === 'cctv' ? 'selected' : ''}>CCTV</option>
                                                     <option value="electrical" ${project.serviceType === 'electrical' ? 'selected' : ''}>Electrical</option>
@@ -6008,8 +6008,8 @@
                                             </div>
                                         </div>
                                         <div class="project-actions">
-                                            <button class="btn-icon" onclick="editProject('${project.id}')"><i class="fas fa-edit"></i></button>
-                                            <button class="btn-icon delete" onclick="deleteProject('${project.id}')"><i class="fas fa-trash"></i></button>
+                                            <button class="btn-icon" data-action="edit" data-project-id="${project.id}"><i class="fas fa-edit"></i></button>
+                                            <button class="btn-icon delete" data-action="delete" data-project-id="${project.id}"><i class="fas fa-trash"></i></button>
                                         </div>
                                     </div>
                                 </div>
@@ -6022,13 +6022,51 @@
                             </div>
                             <h3>No Projects Yet</h3>
                             <p>Start showcasing your work by adding your first project to the gallery.</p>
-                            <button class="empty-state-action" onclick="setAdminTab('overview')">
+                            <button class="empty-state-action" data-action="navigate" data-tab="overview">
                                 <i class="fas fa-home"></i> Return to Dashboard
                             </button>
                         </div>
                     `}
                 </div>
             `;
+
+            // Attach event listeners using delegation
+            container.addEventListener('click', (e) => {
+                const actionBtn = e.target.closest('[data-action]');
+                if (!actionBtn) return;
+
+                const action = actionBtn.dataset.action;
+                const projectId = actionBtn.dataset.projectId;
+
+                switch (action) {
+                    case 'preview':
+                        openProjectPreview(projectId);
+                        break;
+                    case 'edit':
+                        console.log('[Admin] Edit project:', projectId);
+                        pushAdminLog(`Edit project: ${projectId}`, 'INFO');
+                        break;
+                    case 'delete':
+                        if (confirm('Are you sure you want to delete this project?')) {
+                            deleteProjectById(projectId);
+                            renderAdminProjects(container);
+                        }
+                        break;
+                    case 'navigate':
+                        setAdminTab(actionBtn.dataset.tab);
+                        break;
+                }
+            });
+
+            // Handle metadata updates
+            container.addEventListener('change', (e) => {
+                if (e.target.dataset.action === 'update-metadata') {
+                    const projectId = e.target.dataset.projectId;
+                    const field = e.target.dataset.field;
+                    const value = e.target.value;
+                    updateProjectMetadata(projectId, field, value);
+                }
+            });
         }
 
         function updateProjectMetadata(projectId, field, value) {
@@ -6039,25 +6077,6 @@
                 pushAdminLog(`Project metadata updated: ${project.title} ${field} -> ${value}`, 'OK');
             }
         }
-
-        window.editProject = function(projectId) {
-            // Wrapper function for edit button - for now just log
-            console.log('[Admin] Edit project:', projectId);
-            pushAdminLog(`Edit project: ${projectId}`, 'INFO');
-            // TODO: Implement edit functionality
-        };
-
-        window.deleteProject = function(projectId) {
-            // Wrapper function that calls the existing deleteProjectById
-            if (confirm('Are you sure you want to delete this project?')) {
-                deleteProjectById(projectId);
-                // Re-render the projects tab to update the UI
-                const container = document.getElementById('adminMainContent');
-                if (container) {
-                    renderAdminProjects(container);
-                }
-            }
-        };
 
         function openProjectPreview(projectId) {
             const projects = adminState.data.projects.length ? adminState.data.projects : getProjects();
