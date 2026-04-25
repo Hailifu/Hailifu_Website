@@ -6317,6 +6317,7 @@
         }
 
         function syncOpsNodes() {
+            console.log('[Admin] syncOpsNodes called, adminPanel exists:', !!adminPanel);
             if (!adminPanel) return;
 
             adminBackdrop = document.getElementById('adminBackdrop');
@@ -6325,6 +6326,7 @@
             // Sidebar navigation (delegated, reliable)
             if (!adminPanel.dataset.navBound) {
                 adminPanel.dataset.navBound = 'true';
+                console.log('[Admin] Binding nav click event listener to admin panel');
                 adminPanel.addEventListener('click', (e) => {
                     const navBtn = e.target.closest('.nav-item[data-admin-tab]');
                     console.log('[Admin] Nav item clicked:', navBtn, 'tab:', navBtn?.dataset?.adminTab);
@@ -6335,6 +6337,8 @@
                     console.log('[Admin] Calling setAdminTab with:', tab);
                     if (tab) setAdminTab(tab);
                 });
+            } else {
+                console.log('[Admin] Nav click event listener already bound');
             }
 
             // Global Search
