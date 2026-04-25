@@ -6804,9 +6804,6 @@
                 adminPanel.setAttribute('aria-hidden', 'false');
             }
             setAdminTab('overview');
-            renderLeads();
-            renderProjects();
-            renderAdminReviews();
             refreshOverview();
             renderAdminLazyLoop();
             startAdminLazyLoop();
