@@ -5952,13 +5952,19 @@
                             </table>
                         ` : `
                             <div class="empty-state">
+                                <div class="empty-state-icon">
+                                    <i class="fas fa-inbox"></i>
+                                </div>
+                                <h3>No Leads Yet</h3>
+                                <p>No leads have been submitted yet. Check back later.</p>
+                                <button class="empty-state-action" data-action="navigate" data-tab="overview">
+                                    <i class="fas fa-home"></i> Return to Dashboard
+                                </button>
+                            </div>
+                        `}
                     </div>
-                    <div class="card-body">
-                        <div class="system-health-widget">
-                            <div class="health-item">
-                                <div class="health-label">
-                                    <i class="fas fa-database"></i>
-                                    <span>Database Connectivity</span>
+                </div>
+            `;
         }
 
         function updateLeadStatus(leadId, newStatus) {
