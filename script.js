@@ -5831,6 +5831,50 @@
                             try { await loadMediaFromSupabase(); } catch {}
                             return;
                         }
+
+                        if (action === 'lead-whatsapp') {
+                            const number = String(trigger.dataset.whatsapp || '').trim();
+                            if (number) window.open(`https://wa.me/${number}`, '_blank');
+                            return;
+                        }
+
+                        if (action === 'lead-delete') {
+                            const leadId = String(trigger.dataset.leadId || '').trim();
+                            if (!leadId) return;
+                            if (!confirm('Delete this lead permanently?')) return;
+                            if (!verifyAdminControlPin()) {
+                                showAdminMediaToast('Incorrect PIN. Action blocked.', 'warning');
+                                return;
+                            }
+                            deleteLeadById(leadId);
+                            showAdminMediaToast('Lead deleted.', 'success');
+                            setAdminTab('leads');
+                            return;
+                        }
+
+                        if (action === 'lead-view') {
+                            const leadId = String(trigger.dataset.leadId || '').trim();
+                            const lead = getLeads().find((entry) => String(entry?.id || '').trim() === leadId);
+                            if (!lead) return;
+                            alert([
+                                `Name: ${lead.name || 'N/A'}`,
+                                `Phone: ${lead.phone || 'N/A'}`,
+                                `Email: ${lead.email || 'N/A'}`,
+                                `Location: ${lead.location || 'N/A'}`,
+                                `Service: ${lead.serviceLabel || lead.service || 'N/A'}`,
+                                `Invoice: ${lead.invoiceCode || 'N/A'}`,
+                                `Risk: ${lead.fraudRisk || 'N/A'}`,
+                                `Details: ${lead.serviceAnswer || 'N/A'}`
+                            ].join('\n'));
+                            return;
+                        }
+                    });
+
+                    adminPanel.addEventListener('change', (e) => {
+                        const select = e.target.closest('[data-action="lead-status-change"]');
+                        if (!select) return;
+                        updateLeadStatus(select.dataset.leadId, select.value);
+                        showAdminMediaToast('Lead status saved.', 'success');
                     });
                 }
             } catch {}
