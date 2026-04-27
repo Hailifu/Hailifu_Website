@@ -9475,6 +9475,42 @@
             }
         }
 
+        .premium-trust-strip {
+            padding-top: 24px;
+        }
+
+        .premium-trust-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        .premium-trust-card {
+            border: 1px solid rgba(255, 140, 0, 0.24);
+            border-radius: 16px;
+            padding: 18px;
+            background: linear-gradient(160deg, rgba(255, 140, 0, 0.1), rgba(16, 16, 16, 0.78));
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+        }
+
+        .premium-trust-card i {
+            color: #ffb347;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        .premium-trust-card h3 {
+            margin: 0 0 8px;
+            font-size: 1.02rem;
+        }
+
+        .premium-trust-card p {
+            margin: 0;
+            color: var(--text-muted);
+            line-height: 1.5;
+            font-size: 0.9rem;
+        }
+
         .popup-overlay {
             position: fixed;
             inset: 0;
@@ -9807,7 +9843,56 @@
             box-shadow: 0 14px 34px rgba(255, 140, 0, 0.22);
             filter: brightness(1.03);
         }
- 
+
+        .popup-invoice-preview {
+            margin-top: 14px;
+            padding: 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 140, 0, 0.28);
+            background: linear-gradient(145deg, rgba(255, 140, 0, 0.12), rgba(8, 8, 8, 0.6));
+        }
+
+        .popup-invoice-preview h4 {
+            margin: 0 0 10px;
+            font-size: 0.96rem;
+            color: #ffd28f;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .invoice-preview-grid {
+            display: grid;
+            grid-template-columns: minmax(120px, 1fr) minmax(120px, 1fr);
+            gap: 6px 12px;
+            font-size: 0.84rem;
+            margin-bottom: 8px;
+        }
+
+        .invoice-preview-grid span {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .invoice-preview-grid strong {
+            color: #ffffff;
+            text-align: right;
+        }
+
+        .invoice-preview-note {
+            margin: 0;
+            font-size: 0.76rem;
+            line-height: 1.45;
+            color: rgba(255, 255, 255, 0.74);
+        }
+
+        .invoice-risk-low {
+            color: #82f2a5 !important;
+        }
+
+        .invoice-risk-elevated {
+            color: #ffb366 !important;
+        }
+
         .popup-success {
             display: none;
             margin-top: 14px;
@@ -9815,6 +9900,22 @@
             border-radius: 12px;
             background: rgba(76, 175, 80, 0.15);
             border: 1px solid rgba(76, 175, 80, 0.35);
+        }
+
+        .hero-content,
+        .glass-panel,
+        .featured-card,
+        .card,
+        .stats-card {
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+        }
+
+        .featured-card:hover,
+        .card:hover,
+        .stats-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.28);
         }
  
         .project-modal {

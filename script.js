@@ -7445,6 +7445,49 @@
             }
         });
 
+        // Fallback delegated handler to keep critical admin actions responsive
+        // even when dynamic panel re-renders replace nodes.
+        document.addEventListener('click', (e) => {
+            if (!adminPanel || !adminPanel.classList.contains('active')) return;
+            const actionRoot = e.target && e.target.closest ? e.target.closest('#adminPanel') : null;
+            if (!actionRoot) return;
+
+            const leadDeleteBtn = e.target.closest('[data-lead-delete]');
+            if (leadDeleteBtn) {
+                e.preventDefault();
+                const leadId = leadDeleteBtn.getAttribute('data-lead-delete');
+                if (leadId) deleteLeadById(leadId);
+                return;
+            }
+
+            const reviewDeleteBtn = e.target.closest('[data-review-delete]');
+            if (reviewDeleteBtn) {
+                e.preventDefault();
+                const reviewId = reviewDeleteBtn.getAttribute('data-review-delete');
+                if (reviewId) {
+                    if (hasFirestoreReviewRuntime() && canAccessReviewModeration()) {
+                        removeReviewInFirestore(reviewId).catch(() => {});
+                    } else {
+                        const reviews = getReviews();
+                        const idx = reviews.findIndex((r) => r.id === reviewId);
+                        if (idx >= 0) {
+                            reviews.splice(idx, 1);
+                            writeJsonStorage(reviewsStorageKey, reviews);
+                            renderAdminReviews();
+                        }
+                    }
+                }
+                return;
+            }
+
+            const projectDeleteBtn = e.target.closest('[data-project-delete]');
+            if (projectDeleteBtn) {
+                e.preventDefault();
+                const projectId = projectDeleteBtn.getAttribute('data-project-delete');
+                if (projectId) deleteProjectById(projectId);
+            }
+        });
+
         if (hasAdminVisibilityAccess()) {
             // Keep admin interface persistent on authorized devices via localStorage grant.
             updateAdminEntryButtonVisibility();
@@ -12180,8 +12223,121 @@
         const popupQuoteForm = document.getElementById('popupQuoteForm');
         const popupSuccess = document.getElementById('popupSuccess');
         const popupService = document.getElementById('popupService');
+        const popupTimeline = document.getElementById('popupTimeline');
+        const popupInvoicePreview = document.getElementById('popupInvoicePreview');
         const serviceContext = document.getElementById('serviceContext');
         const popupFormShell = popupOverlay ? popupOverlay.querySelector('.popup-form') : null;
+
+        function parseBudgetAmount(rawValue) {
+            const amount = Number(rawValue);
+            if (!Number.isFinite(amount) || amount <= 0) return 0;
+            return Math.round(amount);
+        }
+
+        function estimateInvoiceAmount(serviceKey, message, budgetAmount) {
+            if (budgetAmount > 0) return budgetAmount;
+            const messageText = String(message || '').toLowerCase();
+            const baseByService = {
+                cctv: 3200,
+                electrical: 2500,
+                airconditioning: 2800,
+                gates: 5400,
+                fencing: 4200,
+                solar: 12000,
+                smarthome: 7600,
+                blindcurtain: 3400
+            };
+            let estimate = baseByService[String(serviceKey || '').trim()] || 3000;
+            if (/warehouse|factory|industrial|hotel|school/.test(messageText)) estimate += 2600;
+            if (/villa|mansion|complex|estate|multi/.test(messageText)) estimate += 1800;
+            if (/urgent|asap|today|immediately/.test(messageText)) estimate += 900;
+            return estimate;
+        }
+
+        function buildQuoteInvoiceDraft(payload) {
+            const now = new Date();
+            const createdAt = now.toISOString();
+            const cleanName = String(payload?.name || 'Client').trim() || 'Client';
+            const serviceLabel = String(payload?.serviceLabel || 'Service').trim() || 'Service';
+            const message = String(payload?.message || '').trim();
+            const timeline = String(payload?.timelineLabel || 'Standard').trim();
+            const budgetAmount = parseBudgetAmount(payload?.budget);
+            const subtotal = estimateInvoiceAmount(payload?.serviceKey, message, budgetAmount);
+            const serviceFee = Math.round(subtotal * 0.08);
+            const antiFraudFee = 150;
+            const total = subtotal + serviceFee + antiFraudFee;
+            const verificationSeed = `${cleanName}|${serviceLabel}|${payload?.phone || ''}|${payload?.location || ''}|${createdAt}|${total}`;
+            const verificationCode = `HFI-${hashText(verificationSeed).slice(0, 10).toUpperCase()}`;
+
+            const suspiciousWords = /bitcoin|crypto|gift card|western union|anonymous|cash only|overseas/i;
+            const fraudRisk = suspiciousWords.test(message) ? 'Elevated' : 'Low';
+
+            return {
+                createdAt,
+                validUntil: new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000)).toISOString(),
+                verificationCode,
+                serviceLabel,
+                timeline,
+                subtotal,
+                serviceFee,
+                antiFraudFee,
+                total,
+                fraudRisk
+            };
+        }
+
+        function renderQuoteInvoicePreview(invoice) {
+            if (!popupInvoicePreview || !invoice) return;
+            popupInvoicePreview.innerHTML = `
+                <h4><i class="fas fa-file-invoice-dollar"></i> Invoice Preview</h4>
+                <div class="invoice-preview-grid">
+                    <span>Invoice Code</span><strong>${invoice.verificationCode}</strong>
+                    <span>Service</span><strong>${invoice.serviceLabel}</strong>
+                    <span>Timeline</span><strong>${invoice.timeline}</strong>
+                    <span>Risk Status</span><strong class="invoice-risk-${String(invoice.fraudRisk).toLowerCase()}">${invoice.fraudRisk}</strong>
+                    <span>Estimated Total</span><strong>GHS ${invoice.total.toLocaleString()}</strong>
+                </div>
+                <p class="invoice-preview-note">Code valid for 7 days. Always confirm this code with Hailifu before payment.</p>
+            `;
+        }
+
+        const invoiceApiConfig = {
+            endpoint: String(window.HAILIFU_INVOICE_API_URL || '').trim(),
+            bearerToken: String(window.HAILIFU_INVOICE_API_TOKEN || '').trim()
+        };
+
+        async function registerInvoiceOnServer(payload) {
+            if (!invoiceApiConfig.endpoint) {
+                return {
+                    ok: false,
+                    mode: 'local-only',
+                    reason: 'missing-endpoint'
+                };
+            }
+
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+            if (invoiceApiConfig.bearerToken) {
+                headers.Authorization = `Bearer ${invoiceApiConfig.bearerToken}`;
+            }
+
+            const response = await fetch(invoiceApiConfig.endpoint, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) {
+                const text = await response.text().catch(() => '');
+                throw new Error(text || `Invoice API failed (${response.status})`);
+            }
+            const result = await response.json().catch(() => ({}));
+            return {
+                ok: true,
+                mode: 'server-verified',
+                data: result
+            };
+        }
 
         function initCustomSelect(selectEl) {
             if (!selectEl || selectEl.dataset.customBound) return;
@@ -12405,7 +12561,7 @@
         }
 
         if (popupQuoteForm) {
-            popupQuoteForm.addEventListener('submit', (e) => {
+            popupQuoteForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
 
                 if (typeof popupQuoteForm.reportValidity === 'function' && !popupQuoteForm.reportValidity()) {
@@ -12431,16 +12587,71 @@
                 const name = String(document.getElementById('popupName')?.value || '').trim();
                 const location = String(document.getElementById('popupLocation')?.value || '').trim();
                 const serviceKey = String(popupService?.value || '').trim();
+                const phone = String(document.getElementById('popupPhone')?.value || '').trim();
+                const email = String(document.getElementById('popupEmail')?.value || '').trim();
                 const message = String(document.getElementById('popupMessage')?.value || '').trim();
+                const timelineKey = String(popupTimeline?.value || '').trim();
+                const budget = String(document.getElementById('popupBudget')?.value || '').trim();
                 const serviceLabel = labelMap[serviceKey] || 'Service';
+                const timelineMap = {
+                    urgent: 'Urgent (48 hours)',
+                    standard: 'Standard (1-2 weeks)',
+                    planned: 'Planned (1 month+)'
+                };
+                const timelineLabel = timelineMap[timelineKey] || 'Standard (1-2 weeks)';
+
+                const invoice = buildQuoteInvoiceDraft({
+                    name,
+                    phone,
+                    email,
+                    location,
+                    serviceKey,
+                    serviceLabel,
+                    message,
+                    timelineLabel,
+                    budget
+                });
+                renderQuoteInvoicePreview(invoice);
+
+                let serverVerification = {
+                    ok: false,
+                    mode: 'local-only'
+                };
+                try {
+                    serverVerification = await registerInvoiceOnServer({
+                        client: {
+                            name,
+                            phone,
+                            email,
+                            location
+                        },
+                        request: {
+                            serviceKey,
+                            serviceLabel,
+                            timeline: timelineLabel,
+                            message,
+                            budget: parseBudgetAmount(budget)
+                        },
+                        invoice
+                    });
+                } catch (error) {
+                    console.warn('[HAILIFU] Invoice API verification failed:', error?.message || error);
+                }
 
                 const whatsappNumber = '233550997270';
                 const lines = [
-                    'New Quote Request',
+                    'New Verified Quote Request',
                     `Name: ${name || 'Not provided'}`,
+                    `Phone: ${phone || 'Not provided'}`,
+                    `Email: ${email || 'Not provided'}`,
                     `Location: ${location || 'Not provided'}`,
                     `Service: ${serviceLabel}`,
-                    `Message: ${message || 'No details provided'}`
+                    `Timeline: ${timelineLabel}`,
+                    `Message: ${message || 'No details provided'}`,
+                    `Invoice Code: ${invoice.verificationCode}`,
+                    `Invoice Total: GHS ${invoice.total.toLocaleString()}`,
+                    `Risk Check: ${invoice.fraudRisk}`,
+                    `Verification: ${serverVerification.ok ? 'Server Verified' : 'Local Draft'}`
                 ];
                 const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(lines.join('\n'))}`;
                 const popup = window.open(whatsappUrl, '_blank');
@@ -12448,8 +12659,25 @@
                     window.location.href = whatsappUrl;
                 }
 
+                addLead({
+                    name,
+                    phone,
+                    email,
+                    location,
+                    service: serviceKey,
+                    serviceLabel,
+                    serviceAnswer: message,
+                    timeline: timelineLabel,
+                    invoiceCode: invoice.verificationCode,
+                    invoiceTotal: invoice.total,
+                    fraudRisk: invoice.fraudRisk,
+                    verificationMode: serverVerification.ok ? 'server-verified' : 'local-only',
+                    source: 'popupQuoteForm'
+                });
+
                 if (popupSuccess) {
                     popupSuccess.style.display = 'block';
+                    popupSuccess.textContent = `Verified invoice ${invoice.verificationCode} generated. We will contact you shortly for confirmation.`;
                     setTimeout(() => {
                         popupSuccess.style.display = 'none';
                         closeQuotePopup();
@@ -12461,6 +12689,48 @@
                 popupQuoteForm.reset();
             });
         }
+
+        const popupInvoiceInputs = ['popupName', 'popupPhone', 'popupLocation', 'popupMessage', 'popupBudget'];
+        popupInvoiceInputs.forEach((id) => {
+            const node = document.getElementById(id);
+            if (!node || !popupQuoteForm) return;
+            node.addEventListener('input', () => {
+                const serviceKey = String(popupService?.value || '').trim();
+                const serviceLabel = (popupService?.selectedOptions && popupService.selectedOptions[0]?.textContent) || 'Service';
+                const timelineLabel = (popupTimeline?.selectedOptions && popupTimeline.selectedOptions[0]?.textContent) || 'Standard (1-2 weeks)';
+                const invoice = buildQuoteInvoiceDraft({
+                    name: document.getElementById('popupName')?.value,
+                    phone: document.getElementById('popupPhone')?.value,
+                    location: document.getElementById('popupLocation')?.value,
+                    serviceKey,
+                    serviceLabel,
+                    message: document.getElementById('popupMessage')?.value,
+                    timelineLabel,
+                    budget: document.getElementById('popupBudget')?.value
+                });
+                renderQuoteInvoicePreview(invoice);
+            });
+        });
+        if (popupService) popupService.addEventListener('change', () => {
+            const invoice = buildQuoteInvoiceDraft({
+                serviceKey: popupService.value,
+                serviceLabel: popupService.selectedOptions?.[0]?.textContent || 'Service',
+                timelineLabel: popupTimeline?.selectedOptions?.[0]?.textContent || 'Standard (1-2 weeks)',
+                budget: document.getElementById('popupBudget')?.value,
+                message: document.getElementById('popupMessage')?.value
+            });
+            renderQuoteInvoicePreview(invoice);
+        });
+        if (popupTimeline) popupTimeline.addEventListener('change', () => {
+            const invoice = buildQuoteInvoiceDraft({
+                serviceKey: popupService?.value,
+                serviceLabel: popupService?.selectedOptions?.[0]?.textContent || 'Service',
+                timelineLabel: popupTimeline.selectedOptions?.[0]?.textContent || 'Standard (1-2 weeks)',
+                budget: document.getElementById('popupBudget')?.value,
+                message: document.getElementById('popupMessage')?.value
+            });
+            renderQuoteInvoicePreview(invoice);
+        });
 
         if (heroQuoteBtn) {
             heroQuoteBtn.addEventListener('click', (e) => {

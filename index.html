@@ -762,6 +762,26 @@
         </div>
     </section>
 
+    <section class="section premium-trust-strip animate-on-scroll" id="trust-strip">
+        <div class="premium-trust-grid">
+            <article class="premium-trust-card">
+                <i class="fas fa-shield-alt"></i>
+                <h3>Verified Work Orders</h3>
+                <p>Every new client request now gets a generated invoice code for payment verification and anti-fraud control.</p>
+            </article>
+            <article class="premium-trust-card">
+                <i class="fas fa-user-shield"></i>
+                <h3>Client & Technician Protection</h3>
+                <p>Clear scope, timeline, and proof-of-request records help protect both homeowners and field engineers.</p>
+            </article>
+            <article class="premium-trust-card">
+                <i class="fas fa-gem"></i>
+                <h3>Premium Delivery Standard</h3>
+                <p>Modern design, technical precision, and secure communication for every installation journey.</p>
+            </article>
+        </div>
+    </section>
+
     <!-- Featured Work Section (directly below Hero) -->
     <section class="section featured-work" id="featured-work">
         <h2 class="section-title">Featured Work</h2>
@@ -1665,6 +1685,16 @@
                         <label for="popupName">Your Name</label>
                         <input type="text" id="popupName" required placeholder="Enter your full name">
                     </div>
+
+                    <div class="popup-form-group">
+                        <label for="popupPhone">Phone Number</label>
+                        <input type="tel" id="popupPhone" required placeholder="Enter active phone number">
+                    </div>
+
+                    <div class="popup-form-group">
+                        <label for="popupEmail">Email Address (optional)</label>
+                        <input type="email" id="popupEmail" placeholder="name@example.com">
+                    </div>
                     
                     <div class="popup-form-group">
                         <label for="popupLocation">Property Location</label>
@@ -1690,13 +1720,33 @@
                         <label for="popupMessage">Project Details</label>
                         <textarea id="popupMessage" required placeholder="Tell us about your project requirements..."></textarea>
                     </div>
+
+                    <div class="popup-form-group">
+                        <label for="popupTimeline">Preferred Timeline</label>
+                        <select id="popupTimeline" required>
+                            <option value="">Select timeline</option>
+                            <option value="urgent">Urgent (within 48 hours)</option>
+                            <option value="standard">Standard (within 1-2 weeks)</option>
+                            <option value="planned">Planned (within 1 month+)</option>
+                        </select>
+                    </div>
+
+                    <div class="popup-form-group">
+                        <label for="popupBudget">Estimated Budget (GHS, optional)</label>
+                        <input type="number" id="popupBudget" min="0" step="50" placeholder="e.g. 4500">
+                    </div>
+
+                    <div class="popup-invoice-preview" id="popupInvoicePreview" aria-live="polite">
+                        <h4><i class="fas fa-file-invoice-dollar"></i> Auto-generated invoice preview</h4>
+                        <p class="invoice-preview-note">Describe your requirements above and we will generate a verified invoice code to reduce fraud risk.</p>
+                    </div>
                     
                     <button type="submit" class="popup-submit-btn">
-                        <i class="fas fa-paper-plane"></i> Send Quote Request
+                        <i class="fas fa-shield-alt"></i> Generate Verified Invoice
                     </button>
                     
                     <div class="popup-success" id="popupSuccess">
-                        Thank you! Your quote request has been sent. We'll contact you within 24 hours.
+                        Thank you. Your verified request and invoice code have been generated successfully.
                     </div>
                 </form>
             </div>
