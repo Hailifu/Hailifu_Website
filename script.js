@@ -5769,6 +5769,71 @@
             
             // Set initial tab content
             setAdminTab('overview');
+
+            // Global delegated handlers (survive tab caching/cloning)
+            try {
+                if (adminPanel && !adminPanel.dataset.globalDelegationBound) {
+                    adminPanel.dataset.globalDelegationBound = 'true';
+                    adminPanel.addEventListener('click', async (e) => {
+                        const trigger = e.target.closest('[data-action]');
+                        if (!trigger) return;
+                        const action = String(trigger.dataset.action || '').trim();
+                        if (!action) return;
+
+                        if (action === 'navigate') {
+                            const tab = String(trigger.dataset.tab || '').trim();
+                            if (tab) setAdminTab(tab);
+                            return;
+                        }
+
+                        const waitFor = async (selector, timeoutMs = 2200) => {
+                            const started = Date.now();
+                            while (Date.now() - started < timeoutMs) {
+                                const node = document.querySelector(selector);
+                                if (node) return node;
+                                await new Promise((r) => requestAnimationFrame(() => r()));
+                            }
+                            return null;
+                        };
+
+                        if (action === 'dashboard-upload-media') {
+                            setAdminTab('media');
+                            const input = await waitFor('#mediaFileInput', 2400);
+                            if (input) input.click();
+                            else showAdminMediaToast('Media picker not ready yet. Try again.', 'warning');
+                            return;
+                        }
+
+                        if (action === 'dashboard-delete-latest-media') {
+                            const history = getMediaUploadHistory();
+                            const candidate = history.find((entry) => String(entry?.name || '').trim());
+                            if (!candidate) {
+                                showAdminMediaToast('No uploaded media history yet. Upload first.', 'info');
+                                return;
+                            }
+                            const name = String(candidate.name || '').trim();
+                            if (!confirm(`Delete latest uploaded media: ${name}?`)) return;
+                            if (!verifyAdminControlPin()) {
+                                showAdminMediaToast('Incorrect PIN. Action blocked.', 'warning');
+                                return;
+                            }
+                            const supabase = ensureSupabaseClient();
+                            if (!supabase) {
+                                showAdminMediaToast('Supabase unavailable for delete.', 'error');
+                                return;
+                            }
+                            const { error } = await supabase.storage.from('media').remove([name]);
+                            if (error) {
+                                showAdminMediaToast(`Delete failed: ${error.message}`, 'error');
+                                return;
+                            }
+                            showAdminMediaToast('Latest media deleted.', 'success');
+                            try { await loadMediaFromSupabase(); } catch {}
+                            return;
+                        }
+                    });
+                }
+            } catch {}
             
             return adminPanel;
         }
