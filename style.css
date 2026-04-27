@@ -79,6 +79,23 @@
             --industrial-noise-repeat: no-repeat, repeat;
         }
 
+        a,
+        .section-title a,
+        .btn,
+        .primary-cta-btn,
+        .secondary-cta-btn,
+        .filter-btn.active,
+        .service-chip {
+            border-color: color-mix(in srgb, var(--brand-primary) 60%, transparent);
+        }
+
+        .btn,
+        .primary-cta-btn,
+        .popup-submit-btn,
+        .admin-btn-premium {
+            background: linear-gradient(135deg, var(--brand-primary), color-mix(in srgb, var(--brand-primary) 55%, #000));
+        }
+
         [data-theme='light'] {
             --black: #FFFFFF;
             --white: #1b1b1b;
@@ -5972,9 +5989,11 @@
         /* Modern Client Reviews Section */
         .modern-review-section {
             padding: 80px 5%;
-            background: var(--surface-card);
+            background: linear-gradient(145deg, rgba(14, 14, 14, 0.96), rgba(28, 28, 28, 0.94));
             position: relative;
             overflow: hidden;
+            border-top: 1px solid rgba(255, 140, 0, 0.16);
+            border-bottom: 1px solid rgba(255, 140, 0, 0.16);
         }
 
         [data-theme='light'] .modern-review-section {
@@ -5988,8 +6007,16 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(135deg, rgba(255, 140, 0, 0.1), rgba(255, 140, 0, 0.05));
+            background: radial-gradient(circle at top right, rgba(255, 140, 0, 0.18), transparent 60%);
             z-index: 0;
+        }
+
+        html:not([data-theme='light']) .modern-review-section .hailifu-review-card,
+        html:not([data-theme='light']) .modern-review-section .featured-review-card,
+        html:not([data-theme='light']) .modern-review-section .review-command-bar {
+            background: rgba(20, 20, 20, 0.86);
+            border: 1px solid rgba(255, 140, 0, 0.2);
+            box-shadow: 0 16px 34px rgba(0, 0, 0, 0.35);
         }
 
         .modern-review-container {
@@ -9509,6 +9536,85 @@
             color: var(--text-muted);
             line-height: 1.5;
             font-size: 0.9rem;
+        }
+
+        .admin-notification-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .admin-notification-item {
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: rgba(255, 255, 255, 0.04);
+            padding: 12px 14px;
+        }
+
+        .admin-notification-item.is-unread {
+            border-color: rgba(255, 140, 0, 0.45);
+            background: rgba(255, 140, 0, 0.1);
+        }
+
+        .admin-notification-item header {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 6px;
+            font-size: 0.84rem;
+        }
+
+        .admin-notification-item p {
+            margin: 0 0 4px;
+            font-size: 0.86rem;
+            line-height: 1.45;
+        }
+
+        .section-drag-handle {
+            cursor: grab;
+            font-size: 0.72rem;
+            padding: 3px 8px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 140, 0, 0.35);
+            color: rgba(255, 210, 143, 0.95);
+            user-select: none;
+        }
+
+        .admin-notification-item.drag-over {
+            border-color: rgba(255, 140, 0, 0.62);
+            box-shadow: 0 0 0 2px rgba(255, 140, 0, 0.18) inset;
+        }
+
+        .admin-control-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .admin-control-card {
+            border-radius: 14px;
+            border: 1px solid rgba(255, 140, 0, 0.28);
+            padding: 14px;
+            background: linear-gradient(150deg, rgba(255, 140, 0, 0.1), rgba(15, 15, 15, 0.85));
+        }
+
+        .admin-control-card h3 {
+            margin: 0 0 8px;
+            color: #ffd28f;
+            font-size: 0.98rem;
+        }
+
+        .admin-control-card p {
+            margin: 0;
+            color: var(--text-muted);
+            line-height: 1.45;
+            font-size: 0.88rem;
+        }
+
+        .admin-quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .popup-overlay {

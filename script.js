@@ -215,6 +215,17 @@
         const servicesTitleCta = document.getElementById('servicesTitleCta');
         const themeToggle = document.getElementById('themeToggle');
         const primarySiteUrl = 'https://hailifugh.com';
+        try {
+            const visitMarkerKey = 'hailifu_visit_marker';
+            if (!sessionStorage.getItem(visitMarkerKey)) {
+                sessionStorage.setItem(visitMarkerKey, String(Date.now()));
+                pushAdminNotification(
+                    'visit',
+                    'New Site Visitor',
+                    `A visitor opened the site at ${new Date().toLocaleString()}.`
+                );
+            }
+        } catch {}
         
         const adminSecretParamKey = 'dev';
         const adminSecretParamValue = 'hailifu_access';
@@ -725,9 +736,52 @@
         const leadsStorageKey = 'hailifu_leads';
         const reviewsStorageKey = 'hailifu_reviews';
         const deletedReviewsStorageKey = 'hailifu_deleted_reviews';
+        const adminNotificationsStorageKey = 'hailifu_admin_notifications';
+        const adminControlPinStorageKey = 'hailifu_admin_control_pin';
 
         function getDeletedReviewIds() {
             return readJsonStorage(deletedReviewsStorageKey, []);
+        }
+
+        function getAdminNotifications() {
+            return readJsonStorage(adminNotificationsStorageKey, []);
+        }
+
+        function saveAdminNotifications(items) {
+            writeJsonStorage(adminNotificationsStorageKey, Array.isArray(items) ? items : []);
+        }
+
+        function pushAdminNotification(type, title, details, meta = {}) {
+            const current = getAdminNotifications();
+            const record = {
+                id: `notif_${hashText(`${Date.now()}|${Math.random()}|${type}|${title}`)}`,
+                type: String(type || 'info').trim().toLowerCase(),
+                title: String(title || 'Notification').trim() || 'Notification',
+                details: String(details || '').trim(),
+                createdAt: new Date().toISOString(),
+                read: false,
+                meta: meta && typeof meta === 'object' ? meta : {}
+            };
+            current.unshift(record);
+            if (current.length > 200) current.length = 200;
+            saveAdminNotifications(current);
+            return record;
+        }
+
+        function markAllAdminNotificationsRead() {
+            const current = getAdminNotifications();
+            const next = current.map((entry) => ({ ...entry, read: true }));
+            saveAdminNotifications(next);
+        }
+
+        function getAdminControlPin() {
+            return String(localStorage.getItem(adminControlPinStorageKey) || '2026').trim() || '2026';
+        }
+
+        function verifyAdminControlPin() {
+            const expected = getAdminControlPin();
+            const entered = prompt('Enter Admin PIN to confirm destructive action:');
+            return String(entered || '').trim() === expected;
         }
 
         function recordDeletedReviewId(id) {
@@ -920,6 +974,102 @@
 
         function writeJsonStorage(key, value) {
             localStorage.setItem(key, JSON.stringify(value));
+        }
+
+        const siteControlStorageKey = 'hailifu_site_control_settings';
+
+        const defaultSiteControlSettings = {
+            sectionOrder: ['hero', 'trust-strip', 'featured-work', 'showcase', 'about', 'services', 'reviews'],
+            sectionVisibility: {
+                hero: true,
+                'trust-strip': true,
+                'featured-work': true,
+                showcase: true,
+                about: true,
+                services: true,
+                reviews: true
+            },
+            hero: {
+                title: 'Hailifu Brilliant Installation',
+                tagline: 'Brilliant installations for secure, modern living.',
+                slogan: 'WHERE SECURITY MEETS INNOVATION',
+                subtitle: 'Advanced Surveillance & Electrical Engineering Solutions for Ghana.'
+            },
+            services: {}
+        };
+
+        function getSiteControlSettings() {
+            const raw = readJsonStorage(siteControlStorageKey, {});
+            return {
+                ...defaultSiteControlSettings,
+                ...(raw && typeof raw === 'object' ? raw : {}),
+                sectionVisibility: {
+                    ...defaultSiteControlSettings.sectionVisibility,
+                    ...(raw?.sectionVisibility || {})
+                },
+                hero: {
+                    ...defaultSiteControlSettings.hero,
+                    ...(raw?.hero || {})
+                },
+                services: {
+                    ...(raw?.services || {})
+                }
+            };
+        }
+
+        function saveSiteControlSettings(next) {
+            const merged = {
+                ...getSiteControlSettings(),
+                ...(next && typeof next === 'object' ? next : {})
+            };
+            writeJsonStorage(siteControlStorageKey, merged);
+            return merged;
+        }
+
+        function applySiteSectionOrderAndVisibility(settingsInput = null) {
+            const settings = settingsInput && typeof settingsInput === 'object' ? settingsInput : getSiteControlSettings();
+            const sectionIds = ['hero', 'trust-strip', 'featured-work', 'showcase', 'about', 'services', 'reviews'];
+            const mainRoot = document.querySelector('main') || document.body;
+            const order = Array.isArray(settings.sectionOrder) ? settings.sectionOrder : defaultSiteControlSettings.sectionOrder;
+            const ordered = [...new Set(order.filter((id) => sectionIds.includes(id)).concat(sectionIds))];
+            ordered.forEach((id) => {
+                const node = document.getElementById(id);
+                if (!node || !mainRoot.contains(node)) return;
+                mainRoot.appendChild(node);
+            });
+            sectionIds.forEach((id) => {
+                const node = document.getElementById(id);
+                if (!node) return;
+                const visible = settings.sectionVisibility?.[id] !== false;
+                node.style.display = visible ? '' : 'none';
+            });
+        }
+
+        function applyHeroContentSettings(settingsInput = null) {
+            const settings = settingsInput && typeof settingsInput === 'object' ? settingsInput : getSiteControlSettings();
+            const heroRoot = document.getElementById('hero');
+            if (!heroRoot) return;
+            const titleNode = heroRoot.querySelector('h1');
+            const taglineNode = heroRoot.querySelector('.brand-tagline');
+            const sloganNode = heroRoot.querySelector('.hero-slogan');
+            const subtitleNode = heroRoot.querySelector('.hero-slogan-sub');
+            if (titleNode && settings.hero?.title) titleNode.textContent = settings.hero.title;
+            if (taglineNode && settings.hero?.tagline) taglineNode.textContent = settings.hero.tagline;
+            if (sloganNode && settings.hero?.slogan) sloganNode.textContent = settings.hero.slogan;
+            if (subtitleNode && settings.hero?.subtitle) subtitleNode.textContent = settings.hero.subtitle;
+        }
+
+        function applyServiceCardContentSettings(settingsInput = null) {
+            const settings = settingsInput && typeof settingsInput === 'object' ? settingsInput : getSiteControlSettings();
+            const map = settings.services && typeof settings.services === 'object' ? settings.services : {};
+            Object.entries(map).forEach(([cardId, payload]) => {
+                const card = document.getElementById(cardId);
+                if (!card || !payload || typeof payload !== 'object') return;
+                const titleNode = card.querySelector('h3');
+                const descNode = card.querySelector('p');
+                if (titleNode && payload.title) titleNode.textContent = String(payload.title);
+                if (descNode && payload.description) descNode.textContent = String(payload.description);
+            });
         }
 
         function hasStorageKey(key) {
@@ -5547,6 +5697,12 @@
                             <button class="nav-item" data-admin-tab="reviews">
                                 <i class="fas fa-comment-alt"></i> <span>Reviews</span>
                             </button>
+                            <button class="nav-item" data-admin-tab="notifications">
+                                <i class="fas fa-bell"></i> <span>Notifications</span>
+                            </button>
+                            <button class="nav-item" data-admin-tab="control-center">
+                                <i class="fas fa-crown"></i> <span>Control Center</span>
+                            </button>
                         </nav>
                         <div class="sidebar-footer">
                             <button class="admin-exit-btn" id="adminLogoutBtn" type="button">
@@ -5664,6 +5820,12 @@
                             await loadReviewsFromSupabase();
                             renderAdminReviewsV2(tmp);
                             break;
+                        case 'notifications':
+                            renderAdminNotifications(tmp);
+                            break;
+                        case 'control-center':
+                            renderAdminControlCenter(tmp);
+                            break;
                         default:
                             // Auto-generate premium placeholder for unknown sections
                             renderPremiumPlaceholder(tmp, normalizedKey);
@@ -5693,7 +5855,7 @@
         }
 
         function isValidTab(tabKey) {
-            const validTabs = ['overview', 'leads', 'projects', 'media', 'site-control', 'reviews'];
+            const validTabs = ['overview', 'leads', 'projects', 'media', 'site-control', 'reviews', 'notifications', 'control-center'];
             return validTabs.includes(tabKey);
         }
 
@@ -5856,6 +6018,24 @@
                         </section>
                         <section class="admin-card-v2">
                             <div class="card-header">
+                                <h2><i class="fas fa-bell"></i> Live Alerts</h2>
+                                <button class="admin-btn-small" data-action="navigate" data-tab="notifications">Open</button>
+                            </div>
+                            <div class="card-body">
+                                ${(() => {
+                                    const unread = getAdminNotifications().filter((entry) => !entry.read).slice(0, 5);
+                                    if (!unread.length) return '<div class="admin-empty">No unread alerts.</div>';
+                                    return `<div class="admin-notification-list">${unread.map((entry) => `
+                                        <article class="admin-notification-item is-unread">
+                                            <header><strong>${escapeHTML(entry.title || 'Notification')}</strong><span>${new Date(entry.createdAt || Date.now()).toLocaleTimeString()}</span></header>
+                                            <p>${escapeHTML(entry.details || '')}</p>
+                                        </article>
+                                    `).join('')}</div>`;
+                                })()}
+                            </div>
+                        </section>
+                        <section class="admin-card-v2">
+                            <div class="card-header">
                                 <h2><i class="fas fa-history"></i> System Activity</h2>
                                 <button class="admin-btn-small" onclick="hailifuAdmin.clearLogs()">Clear</button>
                             </div>
@@ -5924,27 +6104,25 @@
                                 <tbody>
                                     ${leads.map(lead => {
                                         const status = lead.status || 'new';
-                                        const statusColor = status === 'new' ? '#FF8C00' : status === 'contacted' ? '#10b981' : '#6366f1';
                                         const whatsappNumber = lead.phone ? lead.phone.replace(/[^0-9]/g, '') : '';
-                                        const whatsappUrl = whatsappNumber ? `https://wa.me/${whatsappNumber}` : '#';
                                         return `
                                         <tr>
                                             <td><strong>${escapeHTML(lead.name)}</strong></td>
                                             <td><span class="badge">${escapeHTML(lead.service)}</span></td>
-                                            <td>${new Date(lead.timestamp).toLocaleDateString()}</td>
+                                            <td>${new Date(lead.timestamp || lead.createdAt || Date.now()).toLocaleDateString()}</td>
                                             <td>
-                                                <select class="status-badge-select" data-lead-id="${lead.id}" onchange="updateLeadStatus('${lead.id}', this.value)">
+                                                <select class="status-badge-select" data-action="lead-status-change" data-lead-id="${lead.id}">
                                                     <option value="new" ${status === 'new' ? 'selected' : ''}>New</option>
                                                     <option value="contacted" ${status === 'contacted' ? 'selected' : ''}>Contacted</option>
                                                     <option value="completed" ${status === 'completed' ? 'selected' : ''}>Completed</option>
                                                 </select>
                                             </td>
                                             <td>
-                                                <button class="btn-icon whatsapp-btn" onclick="window.open('${whatsappUrl}', '_blank')" ${!whatsappNumber ? 'disabled' : ''} title="WhatsApp">
+                                                <button class="btn-icon whatsapp-btn" data-action="lead-whatsapp" data-whatsapp="${whatsappNumber}" ${!whatsappNumber ? 'disabled' : ''} title="WhatsApp">
                                                     <i class="fab fa-whatsapp" style="color: #25D366;"></i>
                                                 </button>
-                                                <button class="btn-icon"><i class="fas fa-eye"></i></button>
-                                                <button class="btn-icon delete"><i class="fas fa-trash"></i></button>
+                                                <button class="btn-icon" data-action="lead-view" data-lead-id="${lead.id}"><i class="fas fa-eye"></i></button>
+                                                <button class="btn-icon delete" data-action="lead-delete" data-lead-id="${lead.id}"><i class="fas fa-trash"></i></button>
                                             </td>
                                         </tr>
                                     `}).join('')}
@@ -5965,6 +6143,55 @@
                     </div>
                 </div>
             `;
+
+            container.addEventListener('click', (e) => {
+                const trigger = e.target.closest('[data-action]');
+                if (!trigger) return;
+                const action = String(trigger.dataset.action || '').trim();
+                if (action === 'navigate') {
+                    setAdminTab(trigger.dataset.tab);
+                    return;
+                }
+                if (action === 'lead-whatsapp') {
+                    const number = String(trigger.dataset.whatsapp || '').trim();
+                    if (number) window.open(`https://wa.me/${number}`, '_blank');
+                    return;
+                }
+                if (action === 'lead-delete') {
+                    const leadId = String(trigger.dataset.leadId || '').trim();
+                    if (!leadId) return;
+                    if (confirm('Delete this lead permanently?')) {
+                        if (!verifyAdminControlPin()) {
+                            showAdminMediaToast('Incorrect PIN. Action blocked.', 'warning');
+                            return;
+                        }
+                        deleteLeadById(leadId);
+                        renderAdminLeads(container);
+                    }
+                    return;
+                }
+                if (action === 'lead-view') {
+                    const leadId = String(trigger.dataset.leadId || '').trim();
+                    const lead = getLeads().find((entry) => String(entry?.id || '').trim() === leadId);
+                    if (!lead) return;
+                    alert([
+                        `Name: ${lead.name || 'N/A'}`,
+                        `Phone: ${lead.phone || 'N/A'}`,
+                        `Email: ${lead.email || 'N/A'}`,
+                        `Location: ${lead.location || 'N/A'}`,
+                        `Service: ${lead.serviceLabel || lead.service || 'N/A'}`,
+                        `Invoice: ${lead.invoiceCode || 'N/A'}`,
+                        `Risk: ${lead.fraudRisk || 'N/A'}`,
+                        `Details: ${lead.serviceAnswer || 'N/A'}`
+                    ].join('\n'));
+                }
+            });
+
+            container.addEventListener('change', (e) => {
+                const select = e.target.closest('[data-action="lead-status-change"]');
+                if (!select) return;
+                updateLeadStatus(select.dataset.leadId, select.value);
+            });
         }
 
         function updateLeadStatus(leadId, newStatus) {
@@ -5972,6 +6199,7 @@
             const lead = leads.find(l => l.id === leadId);
             if (lead) {
                 lead.status = newStatus;
+                saveLeads(leads);
                 pushAdminLog(`Lead status updated: ${lead.name} -> ${newStatus}`, 'OK');
             }
         }
@@ -6117,7 +6345,7 @@
                         <i class="fas fa-cloud-upload-alt"></i>
                         <p>Drag and drop files here to upload to Supabase Storage</p>
                         <input type="file" id="mediaFileInput" multiple accept="image/*,video/*" style="display: none;">
-                        <button class="admin-btn-premium" onclick="document.getElementById('mediaFileInput').click()">
+                        <button class="admin-btn-premium" data-action="media-browse">
                             <i class="fas fa-folder-open"></i> Browse Files
                         </button>
                     </div>
@@ -6132,14 +6360,53 @@
                                     <p class="media-size">${formatBytes(item.metadata?.size || 0)}</p>
                                 </div>
                                 <div class="media-actions">
-                                    <button class="btn-icon" onclick="previewMedia('${item.name}')"><i class="fas fa-eye"></i></button>
-                                    <button class="btn-icon delete" onclick="deleteMedia('${item.name}')"><i class="fas fa-trash"></i></button>
+                                    <button class="btn-icon" data-action="media-preview" data-media-name="${encodeURIComponent(String(item.name || ''))}"><i class="fas fa-eye"></i></button>
+                                    <button class="btn-icon delete" data-action="media-delete" data-media-name="${encodeURIComponent(String(item.name || ''))}"><i class="fas fa-trash"></i></button>
                                 </div>
                             </div>
                         `).join('')}
                     </div>
                 </div>
             `;
+            container.addEventListener('click', async (e) => {
+                const trigger = e.target.closest('[data-action]');
+                if (!trigger) return;
+                const action = String(trigger.dataset.action || '').trim();
+                if (action === 'media-browse') {
+                    const input = document.getElementById('mediaFileInput');
+                    if (input) input.click();
+                    return;
+                }
+                if (action === 'media-preview') {
+                    const name = decodeURIComponent(String(trigger.dataset.mediaName || '').trim());
+                    const media = (adminState.data.media || []).find((entry) => String(entry?.name || '') === name);
+                    if (!media) return;
+                    alert(`Media: ${media.name}\nSize: ${formatBytes(media.metadata?.size || 0)}\nPath: ${media.name}`);
+                    return;
+                }
+                if (action === 'media-delete') {
+                    const name = decodeURIComponent(String(trigger.dataset.mediaName || '').trim());
+                    if (!name) return;
+                    if (!confirm(`Delete media "${name}"?`)) return;
+                    if (!verifyAdminControlPin()) {
+                        showAdminMediaToast('Incorrect PIN. Action blocked.', 'warning');
+                        return;
+                    }
+                    const supabase = ensureSupabaseClient();
+                    if (!supabase) {
+                        showAdminMediaToast('Supabase unavailable for delete', 'error');
+                        return;
+                    }
+                    const { error } = await supabase.storage.from('media').remove([name]);
+                    if (error) {
+                        showAdminMediaToast(`Delete failed: ${error.message}`, 'error');
+                        return;
+                    }
+                    showAdminMediaToast('Media deleted successfully', 'success');
+                    await loadMediaFromSupabase();
+                    setAdminTab('media');
+                }
+            });
             setupMediaDragAndDrop();
         }
 
@@ -6235,6 +6502,36 @@
         }
 
         function renderAdminReviewsV2(container) {
+            const reviews = getReviews();
+            const reviewRows = reviews.map((review) => {
+                const id = String(review?.id || '').trim();
+                const safeName = escapeHTML(String(review?.name || 'Client'));
+                const safeComment = escapeHTML(String(review?.comment || ''));
+                const safeReply = escapeHTML(String(review?.ownerReply || ''));
+                const status = String(review?.status || 'published');
+                return `
+                    <article class="admin-notification-item ${status === 'pending' ? 'is-unread' : ''}">
+                        <header>
+                            <strong>${safeName}</strong>
+                            <span>${status.toUpperCase()}</span>
+                        </header>
+                        <div class="form-group-v2">
+                            <label>Comment</label>
+                            <textarea class="admin-input-v2" rows="3" data-action="review-comment-edit" data-review-id="${id}">${safeComment}</textarea>
+                        </div>
+                        <div class="form-group-v2">
+                            <label>Owner Reply</label>
+                            <textarea class="admin-input-v2" rows="2" data-action="review-reply-edit" data-review-id="${id}">${safeReply}</textarea>
+                        </div>
+                        <div class="admin-quick-actions">
+                            <button class="admin-btn-premium" data-action="review-save" data-review-id="${id}">Save</button>
+                            <button class="admin-btn-premium" data-action="review-toggle-status" data-review-id="${id}">${status === 'pending' ? 'Publish' : 'Set Pending'}</button>
+                            <button class="admin-btn-premium" data-action="review-delete-admin" data-review-id="${id}">Delete</button>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+
             container.innerHTML = `
                 <div class="admin-v2-section">
                     <div class="section-header-v2">
@@ -6242,15 +6539,72 @@
                     </div>
                     <div class="review-moderation-v2">
                         <div class="moderation-card">
-                            <h3>Pending Approval</h3>
-                            <div id="pendingReviewsV2" class="review-stack-v2"></div>
+                            <h3>All Reviews (Edit / Reply / Delete)</h3>
+                            <div id="pendingReviewsV2" class="review-stack-v2">
+                                ${reviewRows || '<div class="admin-empty">No reviews found.</div>'}
+                            </div>
                         </div>
                     </div>
                 </div>
             `;
+
+            container.addEventListener('click', (e) => {
+                const trigger = e.target.closest('[data-action]');
+                if (!trigger) return;
+                const action = String(trigger.dataset.action || '').trim();
+                const reviewId = String(trigger.dataset.reviewId || '').trim();
+                if (!reviewId) return;
+                const list = getReviews();
+                const idx = list.findIndex((entry) => String(entry?.id || '').trim() === reviewId);
+                if (idx < 0) return;
+
+                if (action === 'review-save') {
+                    const commentNode = container.querySelector(`[data-action="review-comment-edit"][data-review-id="${reviewId}"]`);
+                    const replyNode = container.querySelector(`[data-action="review-reply-edit"][data-review-id="${reviewId}"]`);
+                    list[idx].comment = String(commentNode?.value || '').trim();
+                    list[idx].ownerReply = String(replyNode?.value || '').trim();
+                    writeJsonStorage(reviewsStorageKey, list);
+                    renderPublicReviews();
+                    showAdminMediaToast('Review updated.', 'success');
+                    return;
+                }
+
+                if (action === 'review-toggle-status') {
+                    list[idx].status = String(list[idx].status || 'published') === 'pending' ? 'published' : 'pending';
+                    writeJsonStorage(reviewsStorageKey, list);
+                    renderPublicReviews();
+                    setAdminTab('reviews');
+                    return;
+                }
+
+                if (action === 'review-delete-admin') {
+                    if (!confirm('Delete this review permanently?')) return;
+                    if (!verifyAdminControlPin()) {
+                        showAdminMediaToast('Incorrect PIN. Action blocked.', 'warning');
+                        return;
+                    }
+                    list.splice(idx, 1);
+                    writeJsonStorage(reviewsStorageKey, list);
+                    renderPublicReviews();
+                    setAdminTab('reviews');
+                }
+            });
         }
 
         function renderAdminSettings(container) {
+            const settings = getSiteControlSettings();
+            const sectionRows = (Array.isArray(settings.sectionOrder) ? settings.sectionOrder : ['hero', 'trust-strip', 'featured-work', 'showcase', 'about', 'services', 'reviews'])
+                .map((id) => `
+                    <div class="admin-notification-item">
+                        <header><strong>${id}</strong><span class="section-drag-handle" draggable="true" data-action="section-drag" data-section-id="${id}">Drag</span></header>
+                        <div class="admin-quick-actions">
+                            <label><input type="checkbox" data-action="section-visible" data-section-id="${id}" ${settings.sectionVisibility?.[id] !== false ? 'checked' : ''}> Visible</label>
+                            <button class="admin-btn-premium" data-action="section-move-up" data-section-id="${id}">Up</button>
+                            <button class="admin-btn-premium" data-action="section-move-down" data-section-id="${id}">Down</button>
+                        </div>
+                    </div>
+                `).join('');
+            const hero = settings.hero || {};
             container.innerHTML = `
                 <div class="admin-v2-section">
                     <div class="section-header-v2">
@@ -6261,13 +6615,361 @@
                             <h3>General SEO</h3>
                             <div class="form-group-v2">
                                 <label>Site Title</label>
-                                <input type="text" class="admin-input-v2" value="${document.title}">
+                                <input type="text" class="admin-input-v2" id="siteTitleInput" value="${document.title}">
                             </div>
-                            <button class="admin-btn-premium">Save Changes</button>
+                            <div class="form-group-v2">
+                                <label>Meta Description</label>
+                                <textarea class="admin-input-v2" id="metaDescInput" rows="3"></textarea>
+                            </div>
+                            <div class="form-group-v2">
+                                <label>Meta Keywords</label>
+                                <input type="text" class="admin-input-v2" id="metaKeywordsInput" placeholder="cctv, electrical, solar">
+                            </div>
+                            <button class="admin-btn-premium" id="saveSeoBtn">Save SEO</button>
+                        </div>
+                        <div class="admin-card-v2">
+                            <h3>Brand Color System</h3>
+                            <div class="form-group-v2">
+                                <label>Primary Brand Color</label>
+                                <input type="color" class="admin-input-v2" id="primaryColorPicker" value="#ff8c00">
+                            </div>
+                            <div class="form-group-v2">
+                                <label>Accent Color</label>
+                                <input type="color" class="admin-input-v2" id="accentColorPicker" value="#1a1a1a">
+                            </div>
+                            <button class="admin-btn-premium" id="saveThemeBtn">Apply Brand Theme</button>
+                        </div>
+                        <div class="admin-card-v2">
+                            <h3>Homepage Section Order & Visibility</h3>
+                            <div class="admin-notification-list">${sectionRows}</div>
+                        </div>
+                        <div class="admin-card-v2">
+                            <h3>Hero Content Editor</h3>
+                            <div class="form-group-v2">
+                                <label>Hero Title</label>
+                                <input type="text" class="admin-input-v2" id="heroTitleInput" value="${escapeHTML(String(hero.title || ''))}">
+                            </div>
+                            <div class="form-group-v2">
+                                <label>Hero Tagline</label>
+                                <input type="text" class="admin-input-v2" id="heroTaglineInput" value="${escapeHTML(String(hero.tagline || ''))}">
+                            </div>
+                            <div class="form-group-v2">
+                                <label>Hero Slogan</label>
+                                <input type="text" class="admin-input-v2" id="heroSloganInput" value="${escapeHTML(String(hero.slogan || ''))}">
+                            </div>
+                            <div class="form-group-v2">
+                                <label>Hero Subtitle</label>
+                                <textarea class="admin-input-v2" id="heroSubtitleInput" rows="3">${escapeHTML(String(hero.subtitle || ''))}</textarea>
+                            </div>
+                            <button class="admin-btn-premium" id="saveHeroContentBtn">Save Hero Content</button>
+                            <button class="admin-btn-premium" id="previewHeroContentBtn">Live Preview Hero</button>
+                        </div>
+                        <div class="admin-card-v2">
+                            <h3>Service Card Editor</h3>
+                            <div class="form-group-v2">
+                                <label>Select Service Card</label>
+                                <select class="admin-input-v2" id="serviceCardSelector">
+                                    <option value="">Choose card...</option>
+                                    ${Array.from(document.querySelectorAll('#services .services-grid .card')).map((card) => `<option value="${card.id}">${escapeHTML(String(card.id || 'service'))}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="form-group-v2">
+                                <label>Service Title</label>
+                                <input type="text" class="admin-input-v2" id="serviceTitleInput">
+                            </div>
+                            <div class="form-group-v2">
+                                <label>Service Description</label>
+                                <textarea class="admin-input-v2" id="serviceDescInput" rows="3"></textarea>
+                            </div>
+                            <button class="admin-btn-premium" id="saveServiceCardBtn">Save Service Card</button>
+                            <button class="admin-btn-premium" id="previewServiceCardBtn">Live Preview Service</button>
+                        </div>
+                        <div class="admin-card-v2">
+                            <h3>Admin Security</h3>
+                            <div class="form-group-v2">
+                                <label>Destructive Action PIN</label>
+                                <input type="password" class="admin-input-v2" id="adminControlPinInput" value="${escapeHTML(getAdminControlPin())}">
+                            </div>
+                            <button class="admin-btn-premium" id="saveAdminPinBtn">Save Admin PIN</button>
                         </div>
                     </div>
                 </div>
             `;
+            populateSiteControlForm();
+            const saveSeoBtn = container.querySelector('#saveSeoBtn');
+            const saveThemeBtn = container.querySelector('#saveThemeBtn');
+            const saveHeroContentBtn = container.querySelector('#saveHeroContentBtn');
+            const saveServiceCardBtn = container.querySelector('#saveServiceCardBtn');
+            const previewHeroContentBtn = container.querySelector('#previewHeroContentBtn');
+            const previewServiceCardBtn = container.querySelector('#previewServiceCardBtn');
+            const saveAdminPinBtn = container.querySelector('#saveAdminPinBtn');
+            const serviceCardSelector = container.querySelector('#serviceCardSelector');
+            const serviceTitleInput = container.querySelector('#serviceTitleInput');
+            const serviceDescInput = container.querySelector('#serviceDescInput');
+            if (saveSeoBtn) {
+                saveSeoBtn.addEventListener('click', () => {
+                    const title = String(container.querySelector('#siteTitleInput')?.value || '').trim();
+                    const desc = String(container.querySelector('#metaDescInput')?.value || '').trim();
+                    const keywords = String(container.querySelector('#metaKeywordsInput')?.value || '').trim();
+                    if (title) document.title = title;
+                    const metaDesc = document.querySelector('meta[name="description"]');
+                    if (metaDesc) metaDesc.setAttribute('content', desc);
+                    const metaKeywords = document.querySelector('meta[name="keywords"]');
+                    if (metaKeywords) metaKeywords.setAttribute('content', keywords);
+                    pushAdminLog('SEO metadata updated', 'OK');
+                    showAdminMediaToast('SEO settings saved.', 'success');
+                });
+            }
+            if (saveThemeBtn) {
+                saveThemeBtn.addEventListener('click', () => {
+                    const primary = String(container.querySelector('#primaryColorPicker')?.value || '#FF8C00').trim();
+                    const accent = String(container.querySelector('#accentColorPicker')?.value || '#1a1a1a').trim();
+                    applyPremiumBranding({ primary, accent });
+                    adminState.cache.clear();
+                    showAdminMediaToast('Brand theme applied globally.', 'success');
+                });
+            }
+
+            if (saveHeroContentBtn) {
+                saveHeroContentBtn.addEventListener('click', () => {
+                    const next = getSiteControlSettings();
+                    next.hero = {
+                        title: String(container.querySelector('#heroTitleInput')?.value || '').trim(),
+                        tagline: String(container.querySelector('#heroTaglineInput')?.value || '').trim(),
+                        slogan: String(container.querySelector('#heroSloganInput')?.value || '').trim(),
+                        subtitle: String(container.querySelector('#heroSubtitleInput')?.value || '').trim()
+                    };
+                    saveSiteControlSettings(next);
+                    applyHeroContentSettings(next);
+                    showAdminMediaToast('Hero content updated.', 'success');
+                });
+            }
+            if (previewHeroContentBtn) {
+                previewHeroContentBtn.addEventListener('click', () => {
+                    const draft = getSiteControlSettings();
+                    draft.hero = {
+                        title: String(container.querySelector('#heroTitleInput')?.value || '').trim(),
+                        tagline: String(container.querySelector('#heroTaglineInput')?.value || '').trim(),
+                        slogan: String(container.querySelector('#heroSloganInput')?.value || '').trim(),
+                        subtitle: String(container.querySelector('#heroSubtitleInput')?.value || '').trim()
+                    };
+                    applyHeroContentSettings(draft);
+                    showAdminMediaToast('Hero preview updated.', 'info');
+                });
+            }
+
+            if (serviceCardSelector) {
+                serviceCardSelector.addEventListener('change', () => {
+                    const cardId = String(serviceCardSelector.value || '').trim();
+                    const card = cardId ? document.getElementById(cardId) : null;
+                    const titleNode = card ? card.querySelector('h3') : null;
+                    const descNode = card ? card.querySelector('p') : null;
+                    if (serviceTitleInput) serviceTitleInput.value = String(titleNode?.textContent || '').trim();
+                    if (serviceDescInput) serviceDescInput.value = String(descNode?.textContent || '').trim();
+                });
+            }
+
+            if (saveServiceCardBtn) {
+                saveServiceCardBtn.addEventListener('click', () => {
+                    const cardId = String(serviceCardSelector?.value || '').trim();
+                    if (!cardId) {
+                        showAdminMediaToast('Select a service card first.', 'warning');
+                        return;
+                    }
+                    const next = getSiteControlSettings();
+                    next.services = next.services && typeof next.services === 'object' ? next.services : {};
+                    next.services[cardId] = {
+                        title: String(serviceTitleInput?.value || '').trim(),
+                        description: String(serviceDescInput?.value || '').trim()
+                    };
+                    saveSiteControlSettings(next);
+                    applyServiceCardContentSettings(next);
+                    showAdminMediaToast('Service card content updated.', 'success');
+                });
+            }
+            if (previewServiceCardBtn) {
+                previewServiceCardBtn.addEventListener('click', () => {
+                    const cardId = String(serviceCardSelector?.value || '').trim();
+                    if (!cardId) return;
+                    const draft = getSiteControlSettings();
+                    draft.services = draft.services && typeof draft.services === 'object' ? draft.services : {};
+                    draft.services[cardId] = {
+                        title: String(serviceTitleInput?.value || '').trim(),
+                        description: String(serviceDescInput?.value || '').trim()
+                    };
+                    applyServiceCardContentSettings(draft);
+                    showAdminMediaToast('Service preview updated.', 'info');
+                });
+            }
+            if (saveAdminPinBtn) {
+                saveAdminPinBtn.addEventListener('click', () => {
+                    const pin = String(container.querySelector('#adminControlPinInput')?.value || '').trim();
+                    if (!pin || pin.length < 4) {
+                        showAdminMediaToast('PIN must be at least 4 characters.', 'warning');
+                        return;
+                    }
+                    localStorage.setItem(adminControlPinStorageKey, pin);
+                    showAdminMediaToast('Admin PIN updated.', 'success');
+                });
+            }
+
+            container.addEventListener('click', (e) => {
+                const trigger = e.target.closest('[data-action]');
+                if (!trigger) return;
+                const action = String(trigger.dataset.action || '').trim();
+                const sectionId = String(trigger.dataset.sectionId || '').trim();
+                if (!sectionId) return;
+                const next = getSiteControlSettings();
+                const order = Array.isArray(next.sectionOrder) ? next.sectionOrder.slice() : defaultSiteControlSettings.sectionOrder.slice();
+                const idx = order.indexOf(sectionId);
+                if (idx < 0) return;
+                if (action === 'section-move-up' && idx > 0) {
+                    [order[idx - 1], order[idx]] = [order[idx], order[idx - 1]];
+                    next.sectionOrder = order;
+                    saveSiteControlSettings(next);
+                    applySiteSectionOrderAndVisibility(next);
+                    setAdminTab('site-control');
+                    return;
+                }
+                if (action === 'section-move-down' && idx < order.length - 1) {
+                    [order[idx + 1], order[idx]] = [order[idx], order[idx + 1]];
+                    next.sectionOrder = order;
+                    saveSiteControlSettings(next);
+                    applySiteSectionOrderAndVisibility(next);
+                    setAdminTab('site-control');
+                }
+            });
+
+            container.addEventListener('change', (e) => {
+                const toggle = e.target.closest('[data-action="section-visible"]');
+                if (!toggle) return;
+                const sectionId = String(toggle.dataset.sectionId || '').trim();
+                if (!sectionId) return;
+                const next = getSiteControlSettings();
+                next.sectionVisibility = { ...(next.sectionVisibility || {}), [sectionId]: !!toggle.checked };
+                saveSiteControlSettings(next);
+                applySiteSectionOrderAndVisibility(next);
+            });
+
+            let draggedSectionId = '';
+            container.querySelectorAll('[data-action="section-drag"]').forEach((node) => {
+                node.addEventListener('dragstart', (event) => {
+                    draggedSectionId = String(node.dataset.sectionId || '').trim();
+                    event.dataTransfer.effectAllowed = 'move';
+                });
+            });
+            container.querySelectorAll('.admin-notification-item').forEach((row) => {
+                row.addEventListener('dragover', (event) => {
+                    event.preventDefault();
+                    row.classList.add('drag-over');
+                });
+                row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
+                row.addEventListener('drop', (event) => {
+                    event.preventDefault();
+                    row.classList.remove('drag-over');
+                    const target = String(row.querySelector('[data-section-id]')?.dataset.sectionId || '').trim();
+                    if (!draggedSectionId || !target || draggedSectionId === target) return;
+                    const next = getSiteControlSettings();
+                    const order = Array.isArray(next.sectionOrder) ? next.sectionOrder.slice() : [];
+                    const from = order.indexOf(draggedSectionId);
+                    const to = order.indexOf(target);
+                    if (from < 0 || to < 0) return;
+                    order.splice(from, 1);
+                    order.splice(to, 0, draggedSectionId);
+                    next.sectionOrder = order;
+                    saveSiteControlSettings(next);
+                    applySiteSectionOrderAndVisibility(next);
+                    setAdminTab('site-control');
+                });
+            });
+        }
+
+        function renderAdminNotifications(container) {
+            const notifications = getAdminNotifications();
+            container.innerHTML = `
+                <div class="admin-v2-section">
+                    <div class="section-header-v2">
+                        <h2>Notification Center</h2>
+                        <div class="header-actions">
+                            <button class="admin-btn-premium" data-action="notifications-enable-browser">Enable Browser Alerts</button>
+                            <button class="admin-btn-premium" data-action="notifications-mark-read">Mark all read</button>
+                        </div>
+                    </div>
+                    <div class="admin-notification-list">
+                        ${notifications.length ? notifications.map((entry) => `
+                            <article class="admin-notification-item ${entry.read ? '' : 'is-unread'}">
+                                <header>
+                                    <strong>${escapeHTML(entry.title || 'Notification')}</strong>
+                                    <span>${new Date(entry.createdAt || Date.now()).toLocaleString()}</span>
+                                </header>
+                                <p>${escapeHTML(entry.details || '')}</p>
+                                <small>Type: ${escapeHTML(entry.type || 'info')}</small>
+                            </article>
+                        `).join('') : '<div class="admin-empty">No notifications yet.</div>'}
+                    </div>
+                </div>
+            `;
+
+            container.addEventListener('click', (e) => {
+                const enableBrowser = e.target.closest('[data-action="notifications-enable-browser"]');
+                if (enableBrowser) {
+                    if (typeof Notification === 'undefined') {
+                        showAdminMediaToast('Browser notifications are not supported here.', 'warning');
+                        return;
+                    }
+                    Notification.requestPermission().then((permission) => {
+                        if (permission === 'granted') {
+                            showAdminMediaToast('Browser alerts enabled.', 'success');
+                        } else {
+                            showAdminMediaToast('Browser alerts not enabled.', 'warning');
+                        }
+                    }).catch(() => {
+                        showAdminMediaToast('Unable to request notification permission.', 'error');
+                    });
+                    return;
+                }
+                const trigger = e.target.closest('[data-action="notifications-mark-read"]');
+                if (!trigger) return;
+                markAllAdminNotificationsRead();
+                setAdminTab('notifications');
+            });
+        }
+
+        function renderAdminControlCenter(container) {
+            container.innerHTML = `
+                <div class="admin-v2-section">
+                    <div class="section-header-v2">
+                        <h2>Premium Control Center</h2>
+                    </div>
+                    <div class="admin-control-cards">
+                        <article class="admin-control-card">
+                            <h3>Verified Work Orders</h3>
+                            <p>Every new client request now gets a generated invoice code for payment verification and anti-fraud control.</p>
+                        </article>
+                        <article class="admin-control-card">
+                            <h3>Client & Technician Protection</h3>
+                            <p>Clear scope, timeline, and proof-of-request records help protect both homeowners and field engineers.</p>
+                        </article>
+                        <article class="admin-control-card">
+                            <h3>Premium Delivery Standard</h3>
+                            <p>Modern design, technical precision, and secure communication for every installation journey.</p>
+                        </article>
+                    </div>
+                    <div class="admin-quick-actions">
+                        <button class="admin-btn-premium" data-action="quick-tab" data-tab="leads"><i class="fas fa-users"></i> Manage Leads</button>
+                        <button class="admin-btn-premium" data-action="quick-tab" data-tab="projects"><i class="fas fa-images"></i> Manage Gallery</button>
+                        <button class="admin-btn-premium" data-action="quick-tab" data-tab="media"><i class="fas fa-cloud-upload-alt"></i> Upload/Delete Media</button>
+                        <button class="admin-btn-premium" data-action="quick-tab" data-tab="site-control"><i class="fas fa-sliders"></i> Brand/SEO Control</button>
+                    </div>
+                </div>
+            `;
+
+            container.addEventListener('click', (e) => {
+                const trigger = e.target.closest('[data-action="quick-tab"]');
+                if (!trigger) return;
+                const tab = String(trigger.dataset.tab || '').trim();
+                if (tab) setAdminTab(tab);
+            });
         }
 
         function syncAdminLazyLoopNodes() {
@@ -6474,6 +7176,12 @@
             if (!branding) return;
             document.documentElement.style.setProperty('--orange', branding.primary);
             document.documentElement.style.setProperty('--brand-primary', branding.primary);
+            document.documentElement.style.setProperty('--rating-star', branding.primary);
+            document.documentElement.style.setProperty('--accent-gold', branding.primary);
+            if (branding.accent) {
+                document.documentElement.style.setProperty('--brand-secondary', branding.accent);
+                document.documentElement.style.setProperty('--brand-dark', branding.accent);
+            }
             writeJsonStorage('hailifu_branding', branding);
             if (typeof pushAdminLog === 'function') {
                 pushAdminLog('System branding updated successfully');
@@ -7570,6 +8278,20 @@
             saveLeads(leads);
             renderLeads();
             refreshOverview();
+            pushAdminNotification(
+                'request',
+                `New ${record.serviceLabel || record.service || 'service'} request`,
+                `${record.name || 'Client'} submitted a request${record.location ? ` from ${record.location}` : ''}.`,
+                { leadId: record.id, invoiceCode: record.invoiceCode || '' }
+            );
+            try {
+                if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+                    new Notification('Hailifu Lead Alert', {
+                        body: `${record.name || 'A client'} submitted a new request.`,
+                        tag: record.id
+                    });
+                }
+            } catch {}
         }
 
         function renderLeads() {
@@ -10016,6 +10738,12 @@
                 refreshLiveReviewSection();
             }
             if (event.key === pageReachStorageKey) refreshOverview();
+            if (event.key === adminNotificationsStorageKey) {
+                const activeTab = String(adminState?.activeTab || '').trim().toLowerCase();
+                if (activeTab === 'notifications') {
+                    setAdminTab('notifications');
+                }
+            }
         });
 
         function isVisibilityEnabled(project, primaryKey, fallbackKey) {
@@ -12217,6 +12945,10 @@
         }
 
         renderServices();
+        const initialSiteControlSettings = getSiteControlSettings();
+        applySiteSectionOrderAndVisibility(initialSiteControlSettings);
+        applyHeroContentSettings(initialSiteControlSettings);
+        applyServiceCardContentSettings(initialSiteControlSettings);
 
         const popupOverlay = document.getElementById('popupOverlay');
         const popupClose = document.getElementById('popupClose');
