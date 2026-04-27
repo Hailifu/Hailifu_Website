@@ -797,6 +797,7 @@
         const mediaLibraryStorageKey = 'hailifu_media_library';
         const sectionMediaStorageKey = 'hailifu_section_media';
         const pageReachStorageKey = 'hailifu_page_reach';
+        const mediaUploadHistoryStorageKey = 'hailifu_media_upload_history';
         const pageReachSessionKey = 'hailifu_page_reach_session';
 
         let remoteConfigState = null;
@@ -976,6 +977,31 @@
             localStorage.setItem(key, JSON.stringify(value));
         }
 
+        function getMediaUploadHistory() {
+            const raw = readJsonStorage(mediaUploadHistoryStorageKey, []);
+            if (!Array.isArray(raw)) return [];
+            return raw
+                .map((entry) => (entry && typeof entry === 'object' ? entry : null))
+                .filter(Boolean);
+        }
+
+        function pushMediaUploadHistory(fileName) {
+            const name = String(fileName || '').trim();
+            if (!name) return;
+            const current = getMediaUploadHistory();
+            current.unshift({ name, uploadedAt: new Date().toISOString() });
+            const deduped = [];
+            const seen = new Set();
+            current.forEach((entry) => {
+                const key = String(entry?.name || '').trim();
+                if (!key || seen.has(key)) return;
+                seen.add(key);
+                deduped.push(entry);
+            });
+            if (deduped.length > 200) deduped.length = 200;
+            writeJsonStorage(mediaUploadHistoryStorageKey, deduped);
+        }
+
         const siteControlStorageKey = 'hailifu_site_control_settings';
 
         const defaultSiteControlSettings = {
@@ -1029,13 +1055,18 @@
         function applySiteSectionOrderAndVisibility(settingsInput = null) {
             const settings = settingsInput && typeof settingsInput === 'object' ? settingsInput : getSiteControlSettings();
             const sectionIds = ['hero', 'trust-strip', 'featured-work', 'showcase', 'about', 'services', 'reviews'];
-            const mainRoot = document.querySelector('main') || document.body;
+            const mainRoot = document.body;
+            const footer = document.querySelector('footer.site-footer') || document.querySelector('footer');
             const order = Array.isArray(settings.sectionOrder) ? settings.sectionOrder : defaultSiteControlSettings.sectionOrder;
             const ordered = [...new Set(order.filter((id) => sectionIds.includes(id)).concat(sectionIds))];
             ordered.forEach((id) => {
                 const node = document.getElementById(id);
                 if (!node || !mainRoot.contains(node)) return;
-                mainRoot.appendChild(node);
+                if (footer && footer.parentNode === mainRoot) {
+                    mainRoot.insertBefore(node, footer);
+                } else {
+                    mainRoot.appendChild(node);
+                }
             });
             sectionIds.forEach((id) => {
                 const node = document.getElementById(id);
@@ -6043,15 +6074,111 @@
                                 <div class="premium-logs-v2" id="adminLogsContainer"></div>
                             </div>
                         </section>
+                        <section class="admin-card-v2">
+                            <div class="card-header">
+                                <h2><i class="fas fa-bolt"></i> Quick Ops</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="admin-quick-actions">
+                                    <button class="admin-btn-premium" data-action="navigate" data-tab="media"><i class="fas fa-cloud-upload-alt"></i> Media Library</button>
+                                    <button class="admin-btn-premium" data-action="dashboard-upload-media"><i class="fas fa-upload"></i> Upload Media</button>
+                                    <button class="admin-btn-premium" data-action="dashboard-delete-latest-media"><i class="fas fa-trash"></i> Delete Latest Media</button>
+                                    <button class="admin-btn-premium" data-action="navigate" data-tab="projects"><i class="fas fa-images"></i> Gallery</button>
+                                    <button class="admin-btn-premium" data-action="navigate" data-tab="leads"><i class="fas fa-users"></i> Leads</button>
+                                    <button class="admin-btn-premium" data-action="dashboard-delete-latest-lead"><i class="fas fa-trash"></i> Delete Latest Lead</button>
+                                    <button class="admin-btn-premium" data-action="dashboard-delete-latest-project"><i class="fas fa-trash"></i> Delete Latest Project</button>
+                                </div>
+                                <p style="margin-top:10px; color: var(--text-muted); font-size:0.86rem; line-height:1.45;">
+                                    Upload/Delete from dashboard uses the same security PIN protection.
+                                </p>
+                            </div>
+                        </section>
                     </div>
                 </div>
             `;
 
             // Attach event listeners for dashboard navigation
             container.addEventListener('click', (e) => {
-                const actionBtn = e.target.closest('[data-action="navigate"]');
-                if (actionBtn) {
-                    setAdminTab(actionBtn.dataset.tab);
+                const trigger = e.target.closest('[data-action]');
+                if (!trigger) return;
+                const action = String(trigger.dataset.action || '').trim();
+                if (action === 'navigate') {
+                    setAdminTab(trigger.dataset.tab);
+                    return;
+                }
+                if (action === 'dashboard-upload-media') {
+                    setAdminTab('media');
+                    setTimeout(() => {
+                        const input = document.getElementById('mediaFileInput');
+                        if (input) input.click();
+                    }, 250);
+                    return;
+                }
+                if (action === 'dashboard-delete-latest-lead') {
+                    const leads = getLeads();
+                    if (!leads.length) {
+                        showAdminMediaToast('No leads to delete.', 'info');
+                        return;
+                    }
+                    const latest = leads[0];
+                    if (!confirm(`Delete latest lead: ${latest?.name || 'Client'}?`)) return;
+                    if (!verifyAdminControlPin()) {
+                        showAdminMediaToast('Incorrect PIN. Action blocked.', 'warning');
+                        return;
+                    }
+                    deleteLeadById(latest.id);
+                    showAdminMediaToast('Latest lead deleted.', 'success');
+                    setAdminTab('overview');
+                    return;
+                }
+                if (action === 'dashboard-delete-latest-project') {
+                    const projects = getProjects();
+                    if (!projects.length) {
+                        showAdminMediaToast('No projects to delete.', 'info');
+                        return;
+                    }
+                    const latest = projects[0];
+                    if (!confirm(`Delete latest project: ${latest?.title || 'Project'}?`)) return;
+                    if (!verifyAdminControlPin()) {
+                        showAdminMediaToast('Incorrect PIN. Action blocked.', 'warning');
+                        return;
+                    }
+                    deleteProjectById(latest.id);
+                    showAdminMediaToast('Latest project deleted.', 'success');
+                    setAdminTab('overview');
+                    return;
+                }
+                if (action === 'dashboard-delete-latest-media') {
+                    const history = getMediaUploadHistory();
+                    if (!history.length) {
+                        showAdminMediaToast('No uploaded media history found yet. Upload first.', 'info');
+                        return;
+                    }
+                    const candidate = history.find((entry) => String(entry?.name || '').trim());
+                    if (!candidate) {
+                        showAdminMediaToast('No media found in history.', 'info');
+                        return;
+                    }
+                    const name = String(candidate.name || '').trim();
+                    if (!confirm(`Delete latest uploaded media: ${name}?`)) return;
+                    if (!verifyAdminControlPin()) {
+                        showAdminMediaToast('Incorrect PIN. Action blocked.', 'warning');
+                        return;
+                    }
+                    const supabase = ensureSupabaseClient();
+                    if (!supabase) {
+                        showAdminMediaToast('Supabase unavailable for delete.', 'error');
+                        return;
+                    }
+                    supabase.storage.from('media').remove([name]).then(({ error }) => {
+                        if (error) {
+                            showAdminMediaToast(`Delete failed: ${error.message}`, 'error');
+                            return;
+                        }
+                        showAdminMediaToast('Latest media deleted.', 'success');
+                        loadMediaFromSupabase().then(() => {});
+                        setAdminTab('overview');
+                    });
                 }
             });
 
@@ -6480,6 +6607,7 @@
                     }
 
                     if (error) throw error;
+                    pushMediaUploadHistory(fileName);
                     pushAdminLog(`Uploaded: ${file.name}`, 'OK');
                 } catch (err) {
                     pushAdminLog(`Upload failed: ${file.name} - ${err.message}`, 'ERROR');
@@ -8683,6 +8811,14 @@
 
         function deleteProjectById(projectId) {
             if (!projectId) return;
+            try {
+                if (adminPanel && adminPanel.classList.contains('active')) {
+                    if (!verifyAdminControlPin()) {
+                        showAdminMediaToast('Incorrect PIN. Action blocked.', 'warning');
+                        return;
+                    }
+                }
+            } catch {}
             const projects = getProjects();
             const filteredProjects = projects.filter((p) => String(p?.id || '') !== String(projectId));
 
