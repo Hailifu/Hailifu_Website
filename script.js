@@ -5846,7 +5846,7 @@
                                 showAdminMediaToast('Incorrect PIN. Action blocked.', 'warning');
                                 return;
                             }
-                            deleteLeadById(leadId);
+                            await deleteLeadById(leadId);
                             showAdminMediaToast('Lead deleted.', 'success');
                             setAdminTab('leads');
                             return;
@@ -5854,7 +5854,7 @@
 
                         if (action === 'lead-view') {
                             const leadId = String(trigger.dataset.leadId || '').trim();
-                            const lead = getLeads().find((entry) => String(entry?.id || '').trim() === leadId);
+                            const lead = getActiveLeadRecords().find((entry) => String(entry?.id || '').trim() === leadId);
                             if (!lead) return;
                             alert([
                                 `Name: ${lead.name || 'N/A'}`,
@@ -5873,8 +5873,9 @@
                     adminPanel.addEventListener('change', (e) => {
                         const select = e.target.closest('[data-action="lead-status-change"]');
                         if (!select) return;
-                        updateLeadStatus(select.dataset.leadId, select.value);
-                        showAdminMediaToast('Lead status saved.', 'success');
+                        Promise.resolve(updateLeadStatus(select.dataset.leadId, select.value)).then(() => {
+                            showAdminMediaToast('Lead status saved.', 'success');
+                        });
                     });
                 }
             } catch {}
@@ -6430,12 +6431,14 @@
             });
         }
 
-        function updateLeadStatus(leadId, newStatus) {
-            const leads = getLeads();
+        async function updateLeadStatus(leadId, newStatus) {
+            const leads = getActiveLeadRecords();
             const lead = leads.find(l => l.id === leadId);
             if (lead) {
                 lead.status = newStatus;
                 saveLeads(leads);
+                if (adminState?.data) adminState.data.leads = leads.slice();
+                try { await syncLeadRecordToSupabase(lead); } catch {}
                 pushAdminLog(`Lead status updated: ${lead.name} -> ${newStatus}`, 'OK');
             }
         }
@@ -8482,11 +8485,42 @@
             writeJsonStorage(leadsStorageKey, normalized);
         }
 
-        function deleteLeadById(leadId) {
+        function getActiveLeadRecords() {
+            const source = Array.isArray(adminState?.data?.leads) && adminState.data.leads.length
+                ? adminState.data.leads
+                : getLeads();
+            return normalizeLeadRecords(source).normalized;
+        }
+
+        async function syncLeadRecordToSupabase(record) {
+            const supabase = ensureSupabaseClient();
+            if (!supabase || !record || typeof record !== 'object') return false;
+            try {
+                const { error } = await supabase.from('leads').upsert({ ...record }, { onConflict: 'id' });
+                return !error;
+            } catch {
+                return false;
+            }
+        }
+
+        async function deleteLeadRecordFromSupabase(leadId) {
+            const supabase = ensureSupabaseClient();
+            if (!supabase) return false;
+            try {
+                const { error } = await supabase.from('leads').delete().eq('id', leadId);
+                return !error;
+            } catch {
+                return false;
+            }
+        }
+
+        async function deleteLeadById(leadId) {
             const targetId = String(leadId || '').trim();
             if (!targetId) return;
-            const nextLeads = getLeads().filter((lead) => String(lead?.id || '').trim() !== targetId);
+            const nextLeads = getActiveLeadRecords().filter((lead) => String(lead?.id || '').trim() !== targetId);
             saveLeads(nextLeads);
+            if (adminState?.data) adminState.data.leads = nextLeads.slice();
+            try { await deleteLeadRecordFromSupabase(targetId); } catch {}
             renderLeads();
             refreshOverview();
             pushAdminLog(`Deleted lead ${targetId}`, 'PASS');
@@ -8513,6 +8547,8 @@
             }
             leads.unshift(record);
             saveLeads(leads);
+            if (adminState?.data) adminState.data.leads = leads.slice();
+            try { syncLeadRecordToSupabase(record).catch(() => {}); } catch {}
             renderLeads();
             refreshOverview();
             pushAdminNotification(
