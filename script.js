@@ -5868,14 +5868,60 @@
                             ].join('\n'));
                             return;
                         }
+
+                        if (action === 'preview') {
+                            const projectId = String(trigger.dataset.projectId || '').trim();
+                            if (!projectId) return;
+                            openProjectPreview(projectId);
+                            return;
+                        }
+
+                        if (action === 'edit') {
+                            const projectId = String(trigger.dataset.projectId || '').trim();
+                            if (!projectId) return;
+                            const project = getActiveProjectRecords().find((entry) => String(entry?.id || '').trim() === projectId);
+                            if (!project) return;
+                            if (typeof populateProjectForm === 'function') {
+                                populateProjectForm(project);
+                            } else {
+                                alert(`Project: ${project.title || 'Project'}\nCategory: ${project.category || 'N/A'}\nDescription: ${project.description || 'N/A'}`);
+                            }
+                            return;
+                        }
+
+                        if (action === 'delete') {
+                            const projectId = String(trigger.dataset.projectId || '').trim();
+                            if (!projectId) return;
+                            if (!confirm('Delete this project permanently?')) return;
+                            if (!verifyAdminControlPin()) {
+                                showAdminMediaToast('Incorrect PIN. Action blocked.', 'warning');
+                                return;
+                            }
+                            deleteProjectById(projectId);
+                            showAdminMediaToast('Project deleted.', 'success');
+                            setAdminTab('projects');
+                            return;
+                        }
                     });
 
                     adminPanel.addEventListener('change', (e) => {
                         const select = e.target.closest('[data-action="lead-status-change"]');
-                        if (!select) return;
-                        Promise.resolve(updateLeadStatus(select.dataset.leadId, select.value)).then(() => {
-                            showAdminMediaToast('Lead status saved.', 'success');
-                        });
+                        if (select) {
+                            Promise.resolve(updateLeadStatus(select.dataset.leadId, select.value)).then(() => {
+                                showAdminMediaToast('Lead status saved.', 'success');
+                            });
+                        }
+
+                        const metadataInput = e.target.closest('[data-action="update-metadata"]');
+                        if (metadataInput) {
+                            const projectId = String(metadataInput.dataset.projectId || '').trim();
+                            const field = String(metadataInput.dataset.field || '').trim();
+                            const value = String(metadataInput.value || '').trim();
+                            if (!projectId || !field) return;
+                            Promise.resolve(updateProjectMetadata(projectId, field, value)).then(() => {
+                                showAdminMediaToast('Project metadata saved.', 'success');
+                            });
+                        }
                     });
                 }
             } catch {}
@@ -6443,13 +6489,20 @@
             }
         }
 
+        function getActiveProjectRecords() {
+            if (Array.isArray(adminState?.data?.projects) && adminState.data.projects.length) {
+                return adminState.data.projects.slice();
+            }
+            return getProjects();
+        }
+
         function renderAdminProjects(container) {
             const projects = adminState.data.projects.length ? adminState.data.projects : getProjects();
             container.innerHTML = `
                 <div class="admin-v2-section">
                     <div class="section-header-v2">
                         <h2>Gallery Manager</h2>
-                        <button class="admin-btn-premium action-tile"><i class="fas fa-plus"></i> New Project</button>
+                        <button class="admin-btn-premium action-tile" data-action="navigate" data-tab="media"><i class="fas fa-plus"></i> New Project</button>
                     </div>
                     ${projects.length ? `
                         <div class="projects-grid-v2" id="projectsGridV2">
@@ -6545,17 +6598,25 @@
             });
         }
 
-        function updateProjectMetadata(projectId, field, value) {
-            const projects = adminState.data.projects.length ? adminState.data.projects : getProjects();
+        async function updateProjectMetadata(projectId, field, value) {
+            const projects = getActiveProjectRecords();
             const project = projects.find(p => p.id === projectId);
             if (project) {
                 project[field] = value;
+                saveProjects(projects);
+                if (adminState?.data) adminState.data.projects = projects.slice();
+                try {
+                    const supabase = ensureSupabaseClient();
+                    if (supabase) {
+                        await supabase.from('installations').upsert({ ...project }, { onConflict: 'id' });
+                    }
+                } catch {}
                 pushAdminLog(`Project metadata updated: ${project.title} ${field} -> ${value}`, 'OK');
             }
         }
 
         function openProjectPreview(projectId) {
-            const projects = adminState.data.projects.length ? adminState.data.projects : getProjects();
+            const projects = getActiveProjectRecords();
             const project = projects.find(p => p.id === projectId);
             if (project) {
                 const preview = document.createElement('div');
