@@ -778,10 +778,15 @@
             return String(localStorage.getItem(adminControlPinStorageKey) || '2026').trim() || '2026';
         }
 
+        let adminPinVerifiedUntil = 0;
         function verifyAdminControlPin() {
+            const now = Date.now();
+            if (now < adminPinVerifiedUntil) return true;
             const expected = getAdminControlPin();
             const entered = prompt('Enter Admin PIN to confirm destructive action:');
-            return String(entered || '').trim() === expected;
+            const ok = String(entered || '').trim() === expected;
+            if (ok) adminPinVerifiedUntil = now + (2 * 60 * 1000); // allow duplicate handlers for 2 minutes
+            return ok;
         }
 
         function recordDeletedReviewId(id) {
@@ -5786,6 +5791,17 @@
                             return;
                         }
 
+                        // Media Bucket browse button (file picker must open on user gesture)
+                        if (action === 'media-browse') {
+                            const input = document.getElementById('mediaFileInput');
+                            if (input) {
+                                e.stopPropagation();
+                                e.stopImmediatePropagation();
+                                input.click();
+                            }
+                            return;
+                        }
+
                         const waitFor = async (selector, timeoutMs = 2200) => {
                             const started = Date.now();
                             while (Date.now() - started < timeoutMs) {
@@ -5817,6 +5833,8 @@
                                 showAdminMediaToast('Incorrect PIN. Action blocked.', 'warning');
                                 return;
                             }
+                            e.stopPropagation();
+                            e.stopImmediatePropagation();
                             const supabase = ensureSupabaseClient();
                             if (!supabase) {
                                 showAdminMediaToast('Supabase unavailable for delete.', 'error');
@@ -5846,6 +5864,8 @@
                                 showAdminMediaToast('Incorrect PIN. Action blocked.', 'warning');
                                 return;
                             }
+                            e.stopPropagation();
+                            e.stopImmediatePropagation();
                             await deleteLeadById(leadId);
                             showAdminMediaToast('Lead deleted.', 'success');
                             setAdminTab('leads');
@@ -5897,6 +5917,8 @@
                                 showAdminMediaToast('Incorrect PIN. Action blocked.', 'warning');
                                 return;
                             }
+                            e.stopPropagation();
+                            e.stopImmediatePropagation();
                             deleteProjectById(projectId);
                             showAdminMediaToast('Project deleted.', 'success');
                             setAdminTab('projects');
@@ -6104,10 +6126,31 @@
             try {
                 const { data, error } = await supabase.storage.from('media').list();
                 if (!error && data) {
-                    adminState.data.media = data;
+                    const bucket = supabase.storage.from('media');
+                    adminState.data.media = (Array.isArray(data) ? data : [])
+                        .map((entry) => {
+                            const name = String(entry?.name || '').trim();
+                            if (!name || name.endsWith('/')) return null;
+                            let url = '';
+                            try {
+                                const { data: pub } = bucket.getPublicUrl(name);
+                                url = String(pub?.publicUrl || '').trim();
+                            } catch {}
+                            if (!url) return null;
+                            return { ...entry, name, url };
+                        })
+                        .filter(Boolean);
+                    // Invalidate cached media tab DOM so uploads/deletes re-render immediately.
+                    try { adminState.cache.delete('media'); } catch {}
+                    return;
                 }
+                if (error) console.warn('[Admin] Supabase media list error:', error.message);
+                adminState.data.media = [];
+                try { adminState.cache.delete('media'); } catch {}
             } catch (err) {
                 console.error('[Admin] Failed to load media from Supabase:', err);
+                adminState.data.media = [];
+                try { adminState.cache.delete('media'); } catch {}
             }
         }
 
@@ -6271,6 +6314,8 @@
                     return;
                 }
                 if (action === 'dashboard-delete-latest-lead') {
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
                     const leads = getLeads();
                     if (!leads.length) {
                         showAdminMediaToast('No leads to delete.', 'info');
@@ -6288,6 +6333,8 @@
                     return;
                 }
                 if (action === 'dashboard-delete-latest-project') {
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
                     const projects = getProjects();
                     if (!projects.length) {
                         showAdminMediaToast('No projects to delete.', 'info');
@@ -6305,6 +6352,8 @@
                     return;
                 }
                 if (action === 'dashboard-delete-latest-media') {
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
                     const history = getMediaUploadHistory();
                     if (!history.length) {
                         showAdminMediaToast('No uploaded media history found yet. Upload first.', 'info');
@@ -6443,6 +6492,8 @@
                 if (action === 'lead-delete') {
                     const leadId = String(trigger.dataset.leadId || '').trim();
                     if (!leadId) return;
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
                     if (confirm('Delete this lead permanently?')) {
                         if (!verifyAdminControlPin()) {
                             showAdminMediaToast('Incorrect PIN. Action blocked.', 'warning');
@@ -6576,6 +6627,8 @@
                         pushAdminLog(`Edit project: ${projectId}`, 'INFO');
                         break;
                     case 'delete':
+                        e.stopPropagation();
+                        e.stopImmediatePropagation();
                         if (confirm('Are you sure you want to delete this project?')) {
                             deleteProjectById(projectId);
                             renderAdminProjects(container);
@@ -8058,6 +8111,25 @@
                             applySectionMediaAssignments();
                         })
                         .catch((err) => showAdminMediaToast(`Assign failed: ${err.message}`, 'error'));
+                    return;
+                }
+
+                // Media Library Deletion
+                const mediaDeleteBtn = e.target.closest('[data-media-delete]');
+                if (mediaDeleteBtn) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    const mediaId = mediaDeleteBtn.getAttribute('data-media-delete');
+                    if (!mediaId) return;
+                    if (!confirm('Permanently delete this media from the library?')) return;
+                    if (!verifyAdminControlPin()) {
+                        showAdminMediaToast('Incorrect PIN. Action blocked.', 'warning');
+                        return;
+                    }
+                    removeMediaLibraryRecord(mediaId)
+                        .then(() => showAdminMediaToast('Media deleted from library.', 'success'))
+                        .catch((err) => showAdminMediaToast(`Delete failed: ${String(err?.message || err || 'Unknown error')}`, 'error'));
                     return;
                 }
 
@@ -13840,6 +13912,20 @@
         }
 
         bindQuoteButtons();
+
+        function bindQuoteOpenTriggers() {
+            document.querySelectorAll('[data-quote-open]').forEach((el) => {
+                if (el.dataset.quoteOpenBound) return;
+                el.dataset.quoteOpenBound = '1';
+                el.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const key = String(el.dataset.quoteService || '').trim().toLowerCase();
+                    if (key) setQuoteService(key);
+                    openQuotePopup();
+                });
+            });
+        }
+        bindQuoteOpenTriggers();
 
         document.querySelectorAll('#service-cctv, #service-electrical, #service-airconditioning, #service-gates, #service-fencing, #service-solar, #service-smarthome, #service-blindcurtain').forEach((card) => {
             card.removeAttribute('role');

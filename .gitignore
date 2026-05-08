@@ -3,3 +3,9 @@ config.js
 .env
 .env.*
 node_modules/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

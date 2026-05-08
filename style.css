@@ -2230,6 +2230,13 @@
             overflow: hidden;
         }
 
+        #services .services-quote-anchor {
+            scroll-margin-top: 100px;
+            height: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
         #services .services-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
