@@ -1,0 +1,372 @@
+
+Running 131 tests using 1 worker
+
+[1/131] [chromium] › e2e\galleries.spec.js:15:5 › Service galleries — public › shows one card per service from gallery rows
+[2/131] [chromium] › e2e\galleries.spec.js:32:5 › Service galleries — public › showcase wording talks about services, not projects
+[3/131] [chromium] › e2e\galleries.spec.js:41:5 › Service galleries — public › card opens the service gallery
+[4/131] [chromium] › e2e\galleries.spec.js:53:5 › Service galleries — public › falls back to built-in projects when no gallery rows
+[5/131] [chromium] › e2e\galleries.spec.js:60:5 › Service galleries — public › falls back when Supabase is unreachable
+[6/131] [chromium] › e2e\galleries.spec.js:70:5 › Service galleries — public › legacy localStorage projects are ignored when gallery rows exist
+[7/131] [chromium] › e2e\galleries.spec.js:101:5 › Service galleries — admin › galleries tab lists items by service
+[8/131] [chromium] › e2e\galleries.spec.js:112:5 › Service galleries — admin › upload photo and video into CCTV
+[9/131] [chromium] › e2e\galleries.spec.js:133:5 › Service galleries — admin › bad file does not stop the others
+[10/131] [chromium] › e2e\galleries.spec.js:151:5 › Service galleries — admin › not allowed upload leaves nothing behind
+[11/131] [chromium] › e2e\galleries.spec.js:161:5 › Service galleries — admin › tab chosen right after sign-in is not reset to the Dashboard
+[12/131] [chromium] › e2e\galleries.spec.js:181:5 › Service galleries — admin › offline shows state with retry
+[13/131] [chromium] › e2e\galleries.spec.js:196:5 › Service galleries — links and arranging › add Cloudinary and YouTube links
+[14/131] [chromium] › e2e\galleries.spec.js:212:5 › Service galleries — links and arranging › bad and duplicate links are reported
+[15/131] [chromium] › e2e\galleries.spec.js:224:5 › Service galleries — links and arranging › caption, featured, cover, reorder, move
+[16/131] [chromium] › e2e\galleries.spec.js:269:5 › Service galleries — delete › delete removes row, file and public item
+[17/131] [chromium] › e2e\galleries.spec.js:288:5 › Service galleries — delete › refused delete keeps the item
+[18/131] [chromium] › e2e\galleries.spec.js:299:5 › Service galleries — delete › cloudinary item delete keeps the Cloudinary file
+[19/131] [chromium] › e2e\galleries.spec.js:309:5 › Service galleries — delete › deleting cover and last item
+[20/131] [chromium] › e2e\galleries.spec.js:336:5 › Service galleries — import and media library › import copies current photos once
+[21/131] [chromium] › e2e\galleries.spec.js:357:5 › Service galleries — import and media library › media library add to gallery
+[22/131] [chromium] › e2e\galleries.spec.js:378:5 › Service galleries — featured and phones › featured items drive Featured Work
+[23/131] [chromium] › e2e\galleries.spec.js:390:5 › Service galleries — featured and phones › without starred items each service cover is featured
+[24/131] [chromium] › e2e\galleries.spec.js:397:5 › Service galleries — featured and phones › phone layout has no sideways scroll
+[25/131] [chromium] › e2e\galleries.spec.js:417:5 › Service galleries — review fixes › captions with quotes survive and unsafe links are never rendered
+[26/131] [chromium] › e2e\galleries.spec.js:431:5 › Service galleries — review fixes › media library file is not deleted with its gallery item, and cannot be added twice
+[27/131] [chromium] › e2e\galleries.spec.js:455:5 › Service galleries — review fixes › typing the next caption is not wiped when the previous one saves
+[28/131] [chromium] › e2e\galleries.spec.js:472:5 › Service galleries — review fixes › visitors never see old local projects while galleries load
+[29/131] [chromium] › e2e\galleries.spec.js:492:5 › Service galleries — review fixes › captions show under the photo in the public gallery
+[30/131] [chromium] › e2e\galleries.spec.js:505:5 › Service galleries — dashboard › dashboard counts gallery items, not old projects
+[31/131] [chromium] › e2e\galleries.spec.js:518:5 › Service galleries — dashboard › before any gallery items the dashboard points to Import
+[32/131] [chromium] › e2e\galleries.spec.js:526:5 › Service galleries — dashboard › dashboard updates after an upload without reloading
+[33/131] [chromium] › e2e\galleries.spec.js:541:5 › Service galleries — minor fixes › a file whose save is refused is removed from storage again
+[34/131] [chromium] › e2e\galleries.spec.js:552:5 › Service galleries — minor fixes › several files uploaded together keep distinct positions
+[35/131] [chromium] › e2e\galleries.spec.js:562:5 › Service galleries — minor fixes › links that are not photos or videos, or YouTube without a video, are refused
+[36/131] [chromium] › e2e\galleries.spec.js:581:5 › Service galleries — minor fixes › public gallery follows the admin order; cover only sets the card photo
+[37/131] [chromium] › e2e\galleries.spec.js:592:5 › Service galleries — minor fixes › refused caption, star and cover saves change nothing
+[38/131] [chromium] › e2e\galleries.spec.js:609:5 › Service galleries — minor fixes › deleting every gallery item brings the built-in photos back
+[39/131] [chromium] › e2e\round10.spec.js:8:5 › Admin address /hailifu=access › the new address opens the admin login
+[40/131] [chromium] › e2e\round10.spec.js:15:5 › Admin address /hailifu=access › the old ?admin and #admin addresses no longer open it
+[41/131] [chromium] › e2e\round10.spec.js:24:5 › Admin address /hailifu=access › a normal visit after using the admin address does not open the login
+[42/131] [chromium] › e2e\round10.spec.js:42:5 › Page stays still behind popups › quote form freezes the page and puts it back where it was
+[43/131] [chromium] › e2e\round10.spec.js:56:5 › Page stays still behind popups › review form, gallery viewer and phone menu freeze the page too
+[44/131] [chromium] › e2e\round10.spec.js:80:5 › Page stays still behind popups › admin portal freezes the site behind it but scrolls itself
+[45/131] [chromium] › e2e\round10.spec.js:109:5 › Aftercare photo the owner can change › a saved Aftercare photo shows for every visitor, ignoring old per-browser photos
+[46/131] [chromium] › e2e\round10.spec.js:118:5 › Aftercare photo the owner can change › owner uploads a new photo in Site Control; it is saved for everyone
+[47/131] [chromium] › e2e\round10.spec.js:130:5 › Aftercare photo the owner can change › paste a link, pick from the Media Library, and reset to the default photo
+[48/131] [chromium] › e2e\round10.spec.js:174:5 › Gallery viewer: smooth swipe › the photo follows the finger and the next photo slides in beside it
+[49/131] [chromium] › e2e\round10.spec.js:189:5 › Gallery viewer: smooth swipe › the browser's own image drag is blocked so a mouse swipe is not cancelled
+[50/131] [chromium] › e2e\round10.spec.js:195:5 › Gallery viewer: smooth swipe › a short slow drag springs back to the same photo
+[51/131] [chromium] › e2e\round10.spec.js:207:5 › Gallery viewer: smooth swipe › a quick flick changes photo, and swiping right goes back
+[52/131] [chromium] › e2e\round10.spec.js:222:5 › Gallery viewer: smooth swipe › a drag never zooms or closes the viewer; a single photo stretches and springs back
+[53/131] [chromium] › e2e\round10.spec.js:257:5 › Review form like Google (no name or phone) › the form has no name or phone and says it posts publicly
+[54/131] [chromium] › e2e\round10.spec.js:269:5 › Review form like Google (no name or phone) › a visitor answers everything and adds photos; it goes live, the amount is kept private
+[55/131] [chromium] › e2e\round10.spec.js:304:5 › Review form like Google (no name or phone) › stars alone are enough; no stars is blocked; more than 5 photos are refused
+[56/131] [chromium] › e2e\round10.spec.js:322:5 › Review form like Google (no name or phone) › if photos cannot be uploaded nothing is posted and the visitor is told
+[57/131] [chromium] › e2e\round10.spec.js:334:5 › Review form like Google (no name or phone) › an approved review shows its photos and tags, never the amount paid
+[58/131] [chromium] › e2e\round10.spec.js:347:5 › Review form like Google (no name or phone) › a star-only approved review still shows on the site
+[59/131] [chromium] › e2e\round10.spec.js:353:5 › Review form like Google (no name or phone) › admin sees every answer and photo; deleting removes the photos too
+[60/131] [chromium] › e2e\round10.spec.js:378:5 › Admin login and switches redesign › login: welcome copy, show/hide password and Caps Lock warning
+[61/131] [chromium] › e2e\round10.spec.js:400:5 › Admin login and switches redesign › login: busy spinner while signing in, shake and message on a wrong password
+[62/131] [chromium] › e2e\round10.spec.js:414:5 › Admin login and switches redesign › every on/off control is the same switch: big target, keyboard, on/off state
+[63/131] [chromium] › e2e\round11.spec.js:24:5 › Featured Work on a phone › the featured photo changes by itself after the galleries load
+[64/131] [chromium] › e2e\round11.spec.js:38:5 › Featured Work on a phone › the photo on screen matches the active dot
+[65/131] [chromium] › e2e\round11.spec.js:48:5 › Featured Work on a phone › tapping a dot shows that photo
+[66/131] [chromium] › e2e\round11.spec.js:60:1 › Featured Work keeps changing on an iPhone (WebKit)
+[67/131] [chromium] › e2e\round11.spec.js:81:9 › Photos and videos in full › work photos are never cropped and have a blurred fill (desktop)
+[68/131] [chromium] › e2e\round11.spec.js:81:9 › Photos and videos in full › work photos are never cropped and have a blurred fill (phone)
+[69/131] [chromium] › e2e\round11.spec.js:103:5 › Photos and videos in full › the hero background video still fills the screen (not a work photo)
+[70/131] [chromium] › e2e\round11.spec.js:111:5 › Admin PIN removed › Site Control has no PIN card and the old stored PIN is cleared
+[71/131] [chromium] › e2e\round11.spec.js:127:5 › Aftercare without a built-in photo › with nothing saved the Aftercare card shows no photo
+[72/131] [chromium] › e2e\round11.spec.js:136:5 › Aftercare without a built-in photo › a saved Aftercare photo still shows
+[73/131] [chromium] › e2e\round11.spec.js:148:5 › Switches in colour › a switch is green with a tick when on and red with a cross when off
+[74/131] [chromium] › e2e\round11.spec.js:178:5 › Reviews go live at once › a posted review shows on the website straight away
+[75/131] [chromium] › e2e\round11.spec.js:191:5 › Reviews go live at once › robots are ignored: the hidden trap field, or sending within a second
+[76/131] [chromium] › e2e\round11.spec.js:211:5 › Reviews go live at once › web links in the text are refused; one review per browser every 10 minutes
+[77/131] [chromium] › e2e\round11.spec.js:232:5 › Reviews go live at once › before the new SQL is run, a review is still saved (as waiting)
+[78/131] [chromium] › e2e\round11.spec.js:244:5 › Reviews go live at once › admin: live reviews first, Hide / Show on website, and saving never puts the amount back
+[79/131] [chromium] › e2e\round11.spec.js:270:9 › Admin account menu › opens and closes on every tab, every time (desktop)
+[80/131] [chromium] › e2e\round11.spec.js:270:9 › Admin account menu › opens and closes on every tab, every time (phone)
+[81/131] [chromium] › e2e\round11.spec.js:303:5 › Media Library linked to the galleries › owner adds Media Library files to a service gallery
+[82/131] [chromium] › e2e\round11.spec.js:350:5 › Pull down to close › quote form: a long pull closes it, a short slow pull springs back
+[83/131] [chromium] › e2e\round11.spec.js:364:5 › Pull down to close › review form closes with a pull
+[84/131] [chromium] › e2e\round11.spec.js:374:5 › Pull down to close › gallery viewer closes with a pull, but not while zoomed
+[85/131] [chromium] › e2e\round11.spec.js:392:5 › Pull down to close › a sideways swipe in the gallery does not close it
+[86/131] [chromium] › e2e\round11.spec.js:418:5 › Theme follows the device unless the visitor chose one › no choice: light device shows light, dark device shows dark, and it follows changes
+[87/131] [chromium] › e2e\round11.spec.js:427:5 › Theme follows the device unless the visitor chose one › the very first paint already has the right theme (no dark flash on a light phone)
+[88/131] [chromium] › e2e\round11.spec.js:435:5 › Theme follows the device unless the visitor chose one › the button cycles: opposite of the device, the other, then Auto; a choice beats the device
+[89/131] [chromium] › e2e\round11.spec.js:457:5 › Review cards show everything › comment, photo and owner reply are visible (not squeezed away), no "Native" label
+[90/131] [chromium] › e2e\round9.spec.js:14:5 › Networking service › networking is a service everywhere on the public site
+[91/131] [chromium] › e2e\round9.spec.js:37:5 › Networking service › networking has a gallery tab in admin
+[92/131] [chromium] › e2e\round9.spec.js:58:5 › Galleries: select several, clear Move button › select several and delete them together
+[93/131] [chromium] › e2e\round9.spec.js:75:5 › Galleries: select several, clear Move button › select all picks every item in the service only; changing service clears it
+  1) [chromium] › e2e\round9.spec.js:75:5 › Galleries: select several, clear Move button › select all picks every item in the service only; changing service clears it 
+
+    Error: browserContext.newPage: Target crashed 
+
+    Error Context: test-results\round9-Galleries-select-se-0a61a--changing-service-clears-it-chromium\error-context.md
+
+
+[94/131] [chromium] › e2e\round9.spec.js:86:5 › Galleries: select several, clear Move button › a refused delete keeps that item selected and says so
+  2) [chromium] › e2e\round9.spec.js:86:5 › Galleries: select several, clear Move button › a refused delete keeps that item selected and says so 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[95/131] [chromium] › e2e\round9.spec.js:99:5 › Galleries: select several, clear Move button › Move button opens a list of services and moves the item
+  3) [chromium] › e2e\round9.spec.js:99:5 › Galleries: select several, clear Move button › Move button opens a list of services and moves the item 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[96/131] [chromium] › e2e\round9.spec.js:114:5 › Galleries: select several, clear Move button › selected items can be moved together
+  4) [chromium] › e2e\round9.spec.js:114:5 › Galleries: select several, clear Move button › selected items can be moved together 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[97/131] [chromium] › e2e\round9.spec.js:146:5 › Reviews: simple form + owner approval › visitor posts a review: live at once (round 11), thank-you shown
+  5) [chromium] › e2e\round9.spec.js:146:5 › Reviews: simple form + owner approval › visitor posts a review: live at once (round 11), thank-you shown 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[98/131] [chromium] › e2e\round9.spec.js:162:5 › Reviews: simple form + owner approval › missing stars is blocked with a message (round 10: text optional, no name)
+  6) [chromium] › e2e\round9.spec.js:162:5 › Reviews: simple form + owner approval › missing stars is blocked with a message (round 10: text optional, no name) 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[99/131] [chromium] › e2e\round9.spec.js:171:5 › Reviews: simple form + owner approval › a refused save shows a friendly message and keeps the text
+  7) [chromium] › e2e\round9.spec.js:171:5 › Reviews: simple form + owner approval › a refused save shows a friendly message and keeps the text 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[100/131] [chromium] › e2e\round9.spec.js:181:5 › Reviews: simple form + owner approval › owner shows a hidden review again and it shows on the site
+  8) [chromium] › e2e\round9.spec.js:181:5 › Reviews: simple form + owner approval › owner shows a hidden review again and it shows on the site 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[101/131] [chromium] › e2e\round9.spec.js:197:5 › Reviews: simple form + owner approval › waiting reviews never show on the public site
+  9) [chromium] › e2e\round9.spec.js:197:5 › Reviews: simple form + owner approval › waiting reviews never show on the public site 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[102/131] [chromium] › e2e\round9.spec.js:204:5 › Reviews: simple form + owner approval › script in a review is shown as text, never run
+  10) [chromium] › e2e\round9.spec.js:204:5 › Reviews: simple form + owner approval › script in a review is shown as text, never run 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[103/131] [chromium] › e2e\round9.spec.js:234:5 › Google reviews feed (Places API New) › shows Google reviews, rating and count
+  11) [chromium] › e2e\round9.spec.js:234:5 › Google reviews feed (Places API New) › shows Google reviews, rating and count 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[104/131] [chromium] › e2e\round9.spec.js:248:5 › Google reviews feed (Places API New) › a refused key shows the Google link box and warns once
+  12) [chromium] › e2e\round9.spec.js:248:5 › Google reviews feed (Places API New) › a refused key shows the Google link box and warns once 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[105/131] [chromium] › e2e\round9.spec.js:260:5 › Google reviews feed (Places API New) › a fresh saved copy is used without asking Google again
+  13) [chromium] › e2e\round9.spec.js:260:5 › Google reviews feed (Places API New) › a fresh saved copy is used without asking Google again 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[106/131] [chromium] › e2e\round9.spec.js:272:5 › Google reviews feed (Places API New) › Google review text is shown as text, never run
+  14) [chromium] › e2e\round9.spec.js:272:5 › Google reviews feed (Places API New) › Google review text is shown as text, never run 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[107/131] [chromium] › e2e\round9.spec.js:282:5 › Google reviews feed (Places API New) › owner saves the key and Place ID in Site Control and tests it
+  15) [chromium] › e2e\round9.spec.js:282:5 › Google reviews feed (Places API New) › owner saves the key and Place ID in Site Control and tests it 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[108/131] [chromium] › e2e\round9.spec.js:310:5 › Brand colour: site-wide and readable › a saved colour reaches a new visitor, with readable text on it
+  16) [chromium] › e2e\round9.spec.js:310:5 › Brand colour: site-wide and readable › a saved colour reaches a new visitor, with readable text on it 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[109/131] [chromium] › e2e\round9.spec.js:317:5 › Brand colour: site-wide and readable › an old colour saved only in this browser is ignored
+  17) [chromium] › e2e\round9.spec.js:317:5 › Brand colour: site-wide and readable › an old colour saved only in this browser is ignored 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[110/131] [chromium] › e2e\round9.spec.js:326:5 › Brand colour: site-wide and readable › preview picks dark text on yellow and white text on navy, then saves for everyone
+  18) [chromium] › e2e\round9.spec.js:326:5 › Brand colour: site-wide and readable › preview picks dark text on yellow and white text on navy, then saves for everyone 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[111/131] [chromium] › e2e\round9.spec.js:338:5 › Brand colour: site-wide and readable › reset brings back Hailifu orange for everyone
+  19) [chromium] › e2e\round9.spec.js:338:5 › Brand colour: site-wide and readable › reset brings back Hailifu orange for everyone 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[112/131] [chromium] › e2e\round9.spec.js:364:5 › Site health (was Control Center) › everything working shows green checks with real numbers
+  20) [chromium] › e2e\round9.spec.js:364:5 › Site health (was Control Center) › everything working shows green checks with real numbers 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[113/131] [chromium] › e2e\round9.spec.js:378:5 › Site health (was Control Center) › Google refusing the key is red with the reason and a fix link
+  21) [chromium] › e2e\round9.spec.js:378:5 › Site health (was Control Center) › Google refusing the key is red with the reason and a fix link 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[114/131] [chromium] › e2e\round9.spec.js:389:5 › Site health (was Control Center) › waiting reviews are counted and the fix link opens Reviews
+  22) [chromium] › e2e\round9.spec.js:389:5 › Site health (was Control Center) › waiting reviews are counted and the fix link opens Reviews 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[115/131] [chromium] › e2e\round9.spec.js:400:5 › Site health (was Control Center) › storage that cannot be reached is red
+  23) [chromium] › e2e\round9.spec.js:400:5 › Site health (was Control Center) › storage that cannot be reached is red 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[116/131] [chromium] › e2e\round9.spec.js:411:5 › Aftercare card, account email, motion › aftercare card shows real facts and no made-up numbers
+  24) [chromium] › e2e\round9.spec.js:411:5 › Aftercare card, account email, motion › aftercare card shows real facts and no made-up numbers 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[117/131] [chromium] › e2e\round9.spec.js:426:5 › Aftercare card, account email, motion › account menu shows the signed-in email on a phone
+  25) [chromium] › e2e\round9.spec.js:426:5 › Aftercare card, account email, motion › account menu shows the signed-in email on a phone 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[118/131] [chromium] › e2e\round9.spec.js:437:5 › Aftercare card, account email, motion › account menu opens on top of the page content
+  26) [chromium] › e2e\round9.spec.js:437:5 › Aftercare card, account email, motion › account menu opens on top of the page content 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[119/131] [chromium] › e2e\round9.spec.js:450:5 › Aftercare card, account email, motion › showcase cards tilt with the pointer like the service cards
+  27) [chromium] › e2e\round9.spec.js:450:5 › Aftercare card, account email, motion › showcase cards tilt with the pointer like the service cards 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[120/131] [chromium] › e2e\round9.spec.js:462:5 › Aftercare card, account email, motion › the menu wordmark uses the premium display font
+  28) [chromium] › e2e\round9.spec.js:462:5 › Aftercare card, account email, motion › the menu wordmark uses the premium display font 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[121/131] [chromium] › e2e\smoke.spec.js:5:5 › Public smoke › home responds and title matches brand
+  29) [chromium] › e2e\smoke.spec.js:5:5 › Public smoke › home responds and title matches brand ────
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[122/131] [chromium] › e2e\smoke.spec.js:12:5 › Public smoke › hero Request a Quote opens and closes invoice popup
+  30) [chromium] › e2e\smoke.spec.js:12:5 › Public smoke › hero Request a Quote opens and closes invoice popup 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[123/131] [chromium] › e2e\smoke.spec.js:22:5 › Public smoke › contact card offers Call and WhatsApp, no Contact Us
+  31) [chromium] › e2e\smoke.spec.js:22:5 › Public smoke › contact card offers Call and WhatsApp, no Contact Us 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[124/131] [chromium] › e2e\smoke.spec.js:30:5 › Public smoke › service card Request a Quote opens popup
+  32) [chromium] › e2e\smoke.spec.js:30:5 › Public smoke › service card Request a Quote opens popup 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[125/131] [chromium] › e2e\smoke.spec.js:38:5 › Public smoke › deep link #quote resolves in document
+  33) [chromium] › e2e\smoke.spec.js:38:5 › Public smoke › deep link #quote resolves in document ───
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[126/131] [chromium] › e2e\smoke.spec.js:44:5 › Public smoke › theme toggle updates html data-theme
+  34) [chromium] › e2e\smoke.spec.js:44:5 › Public smoke › theme toggle updates html data-theme ────
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[127/131] [chromium] › e2e\smoke.spec.js:52:5 › Public smoke › Write a Review opens modal
+  35) [chromium] › e2e\smoke.spec.js:52:5 › Public smoke › Write a Review opens modal ──────────────
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[128/131] [chromium] › e2e\topbar.spec.js:20:5 › Top advert note › drops, stays 12 s, lifts, and only comes back after 45 s
+  36) [chromium] › e2e\topbar.spec.js:20:5 › Top advert note › drops, stays 12 s, lifts, and only comes back after 45 s 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[129/131] [chromium] › e2e\topbar.spec.js:36:5 › Top advert note › stays down while the pointer is on it, then carries on
+  37) [chromium] › e2e\topbar.spec.js:36:5 › Top advert note › stays down while the pointer is on it, then carries on 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[130/131] [chromium] › e2e\topbar.spec.js:50:5 › Top advert note › closing it stops it for the visit
+  38) [chromium] › e2e\topbar.spec.js:50:5 › Top advert note › closing it stops it for the visit ───
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+[131/131] [chromium] › e2e\topbar.spec.js:61:5 › Top advert note › it is a small note, not a full-width bar, and the menu stays put
+  39) [chromium] › e2e\topbar.spec.js:61:5 › Top advert note › it is a small note, not a full-width bar, and the menu stays put 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+
+  39 failed
+    [chromium] › e2e\round9.spec.js:75:5 › Galleries: select several, clear Move button › select all picks every item in the service only; changing service clears it 
+    [chromium] › e2e\round9.spec.js:86:5 › Galleries: select several, clear Move button › a refused delete keeps that item selected and says so 
+    [chromium] › e2e\round9.spec.js:99:5 › Galleries: select several, clear Move button › Move button opens a list of services and moves the item 
+    [chromium] › e2e\round9.spec.js:114:5 › Galleries: select several, clear Move button › selected items can be moved together 
+    [chromium] › e2e\round9.spec.js:146:5 › Reviews: simple form + owner approval › visitor posts a review: live at once (round 11), thank-you shown 
+    [chromium] › e2e\round9.spec.js:162:5 › Reviews: simple form + owner approval › missing stars is blocked with a message (round 10: text optional, no name) 
+    [chromium] › e2e\round9.spec.js:171:5 › Reviews: simple form + owner approval › a refused save shows a friendly message and keeps the text 
+    [chromium] › e2e\round9.spec.js:181:5 › Reviews: simple form + owner approval › owner shows a hidden review again and it shows on the site 
+    [chromium] › e2e\round9.spec.js:197:5 › Reviews: simple form + owner approval › waiting reviews never show on the public site 
+    [chromium] › e2e\round9.spec.js:204:5 › Reviews: simple form + owner approval › script in a review is shown as text, never run 
+    [chromium] › e2e\round9.spec.js:234:5 › Google reviews feed (Places API New) › shows Google reviews, rating and count 
+    [chromium] › e2e\round9.spec.js:248:5 › Google reviews feed (Places API New) › a refused key shows the Google link box and warns once 
+    [chromium] › e2e\round9.spec.js:260:5 › Google reviews feed (Places API New) › a fresh saved copy is used without asking Google again 
+    [chromium] › e2e\round9.spec.js:272:5 › Google reviews feed (Places API New) › Google review text is shown as text, never run 
+    [chromium] › e2e\round9.spec.js:282:5 › Google reviews feed (Places API New) › owner saves the key and Place ID in Site Control and tests it 
+    [chromium] › e2e\round9.spec.js:310:5 › Brand colour: site-wide and readable › a saved colour reaches a new visitor, with readable text on it 
+    [chromium] › e2e\round9.spec.js:317:5 › Brand colour: site-wide and readable › an old colour saved only in this browser is ignored 
+    [chromium] › e2e\round9.spec.js:326:5 › Brand colour: site-wide and readable › preview picks dark text on yellow and white text on navy, then saves for everyone 
+    [chromium] › e2e\round9.spec.js:338:5 › Brand colour: site-wide and readable › reset brings back Hailifu orange for everyone 
+    [chromium] › e2e\round9.spec.js:364:5 › Site health (was Control Center) › everything working shows green checks with real numbers 
+    [chromium] › e2e\round9.spec.js:378:5 › Site health (was Control Center) › Google refusing the key is red with the reason and a fix link 
+    [chromium] › e2e\round9.spec.js:389:5 › Site health (was Control Center) › waiting reviews are counted and the fix link opens Reviews 
+    [chromium] › e2e\round9.spec.js:400:5 › Site health (was Control Center) › storage that cannot be reached is red 
+    [chromium] › e2e\round9.spec.js:411:5 › Aftercare card, account email, motion › aftercare card shows real facts and no made-up numbers 
+    [chromium] › e2e\round9.spec.js:426:5 › Aftercare card, account email, motion › account menu shows the signed-in email on a phone 
+    [chromium] › e2e\round9.spec.js:437:5 › Aftercare card, account email, motion › account menu opens on top of the page content 
+    [chromium] › e2e\round9.spec.js:450:5 › Aftercare card, account email, motion › showcase cards tilt with the pointer like the service cards 
+    [chromium] › e2e\round9.spec.js:462:5 › Aftercare card, account email, motion › the menu wordmark uses the premium display font 
+    [chromium] › e2e\smoke.spec.js:5:5 › Public smoke › home responds and title matches brand ──────
+    [chromium] › e2e\smoke.spec.js:12:5 › Public smoke › hero Request a Quote opens and closes invoice popup 
+    [chromium] › e2e\smoke.spec.js:22:5 › Public smoke › contact card offers Call and WhatsApp, no Contact Us 
+    [chromium] › e2e\smoke.spec.js:30:5 › Public smoke › service card Request a Quote opens popup ──
+    [chromium] › e2e\smoke.spec.js:38:5 › Public smoke › deep link #quote resolves in document ─────
+    [chromium] › e2e\smoke.spec.js:44:5 › Public smoke › theme toggle updates html data-theme ──────
+    [chromium] › e2e\smoke.spec.js:52:5 › Public smoke › Write a Review opens modal ────────────────
+    [chromium] › e2e\topbar.spec.js:20:5 › Top advert note › drops, stays 12 s, lifts, and only comes back after 45 s 
+    [chromium] › e2e\topbar.spec.js:36:5 › Top advert note › stays down while the pointer is on it, then carries on 
+    [chromium] › e2e\topbar.spec.js:50:5 › Top advert note › closing it stops it for the visit ─────
+    [chromium] › e2e\topbar.spec.js:61:5 › Top advert note › it is a small note, not a full-width bar, and the menu stays put 
+  92 passed (10.1m)

@@ -386,13 +386,13 @@ test.describe('Site health (was Control Center)', () => {
         await page.waitForSelector('#gpCard');
     });
 
-    test('waiting reviews are counted and the fix link opens Reviews', async ({ page }) => {
+    test('reviews are counted (hidden ones are not a warning, round 11) and the fix link opens Reviews', async ({ page }) => {
         await mockSupabase(page, { adverts: [googleRow], reviews: [review('pending'), review('published')] });
         await page.route('https://places.googleapis.com/**', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(place) }));
         await loginAdmin(page);
         await openHealth(page);
-        await expect(check(page, 'reviews')).toHaveAttribute('data-state', 'warn');
-        await expect(check(page, 'reviews')).toContainText('1 waiting');
+        await expect(check(page, 'reviews')).toHaveAttribute('data-state', 'ok');
+        await expect(check(page, 'reviews')).toContainText('1 on the website, 1 hidden');
         await check(page, 'reviews').locator('[data-sh-fix]').click();
         await page.waitForSelector('#rvAdmin');
     });
@@ -420,7 +420,7 @@ test.describe('Aftercare card, account email, motion', () => {
         for (const fake of ['99.9%', '< 15 min', '360', 'SECURE', 'Uptime', 'Latency', 'System Integrity']) {
             expect(text, fake).not.toContain(fake);
         }
-        await expect(card.locator('#integrityImage')).toBeVisible();
+        await expect(card.locator('#integrityImage')).toBeHidden(); // round 11: no built-in photo until the owner adds one
     });
 
     test('account menu shows the signed-in email on a phone', async ({ page }) => {

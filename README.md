@@ -8,7 +8,7 @@ Paste this file (or its sections) into an AI when you want it to **understand th
 
 Every change to the site is logged here, newest first. Originals from before the premium rebuild are kept in `_backup-original-2026-09-28/`.
 
-### 2026-10-01 (round 11): Featured Work on phones, … (in progress)
+### 2026-10-01 (round 11): Featured Work on phones, photos in full, reviews live at once, paper-note advert, coloured switches, pull-to-close, auto theme, crash safety
 
 Backup of the files before this round: `_backup-before-round11-2026-10-01/`. Progress log (survives a PC shutdown): `.superpowers/sdd/2026-10-01-round11/progress.md`.
 
@@ -31,6 +31,13 @@ Backup of the files before this round: `_backup-before-round11-2026-10-01/`. Pro
 | `e2e/topbar.spec.js` | Rewritten for the note: 12 s / 45 s rhythm, hover keeps it, close stops it, small note and the menu stays put. |
 | `e2e/round10.spec.js` | Aftercare test updated: after removing, the preview shows "No photo yet" instead of the old built-in photo. |
 | `e2e/round11.spec.js` | Featured Work tests check the photo actually **on screen**, including on the iPhone engine (WebKit) with 9 photos (fails on the old code, passes now). |
+
+| `index.html` | `premium.css?v=20261001r11`, `script.js?v=7.3`, `premium.js?v=20261001r11`, so browsers load the new files. |
+| `e2e/round9.spec.js` | Site health test: hidden reviews are now green ("1 on the website, 1 hidden"); Aftercare test: no built-in photo. |
+
+**Verified:** full suite of 131 tests passes (run in two parts: the first run hit my 10-minute limit after 92 tests, all passing; the rest were run again: 40 passed, 2 old tests updated to the new behaviour and then passed). Screenshots checked: Featured Work (phone/desktop), Showcase, Aftercare without photo, paper note (desktop/phone, orange/dark), switches, Media Library picker, review cards (phone/desktop, light/dark).
+
+**To do on the live site:** (1) run `supabase/sql/reviews_instant_publish.sql` in Supabase → SQL Editor (reviews go live at once and the amount becomes private); (2) on your phone, check Featured Work changes by itself; (3) send yourself a test review and check it appears straight away.
 
 ### 2026-10-01 (round 10): New admin address, Google-style reviews, smooth gallery swipe, still page behind popups, Aftercare photo, login + switches
 

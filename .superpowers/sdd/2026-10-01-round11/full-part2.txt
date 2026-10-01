@@ -1,0 +1,113 @@
+
+Running 42 tests using 1 worker
+
+[1/42] [chromium] › e2e\round9.spec.js:14:5 › Networking service › networking is a service everywhere on the public site
+[2/42] [chromium] › e2e\round9.spec.js:37:5 › Networking service › networking has a gallery tab in admin
+[3/42] [chromium] › e2e\round9.spec.js:58:5 › Galleries: select several, clear Move button › select several and delete them together
+[4/42] [chromium] › e2e\round9.spec.js:75:5 › Galleries: select several, clear Move button › select all picks every item in the service only; changing service clears it
+[5/42] [chromium] › e2e\round9.spec.js:86:5 › Galleries: select several, clear Move button › a refused delete keeps that item selected and says so
+[6/42] [chromium] › e2e\round9.spec.js:99:5 › Galleries: select several, clear Move button › Move button opens a list of services and moves the item
+[7/42] [chromium] › e2e\round9.spec.js:114:5 › Galleries: select several, clear Move button › selected items can be moved together
+[8/42] [chromium] › e2e\round9.spec.js:146:5 › Reviews: simple form + owner approval › visitor posts a review: live at once (round 11), thank-you shown
+[9/42] [chromium] › e2e\round9.spec.js:162:5 › Reviews: simple form + owner approval › missing stars is blocked with a message (round 10: text optional, no name)
+[10/42] [chromium] › e2e\round9.spec.js:171:5 › Reviews: simple form + owner approval › a refused save shows a friendly message and keeps the text
+[11/42] [chromium] › e2e\round9.spec.js:181:5 › Reviews: simple form + owner approval › owner shows a hidden review again and it shows on the site
+[12/42] [chromium] › e2e\round9.spec.js:197:5 › Reviews: simple form + owner approval › waiting reviews never show on the public site
+[13/42] [chromium] › e2e\round9.spec.js:204:5 › Reviews: simple form + owner approval › script in a review is shown as text, never run
+[14/42] [chromium] › e2e\round9.spec.js:234:5 › Google reviews feed (Places API New) › shows Google reviews, rating and count
+[15/42] [chromium] › e2e\round9.spec.js:248:5 › Google reviews feed (Places API New) › a refused key shows the Google link box and warns once
+[16/42] [chromium] › e2e\round9.spec.js:260:5 › Google reviews feed (Places API New) › a fresh saved copy is used without asking Google again
+[17/42] [chromium] › e2e\round9.spec.js:272:5 › Google reviews feed (Places API New) › Google review text is shown as text, never run
+[18/42] [chromium] › e2e\round9.spec.js:282:5 › Google reviews feed (Places API New) › owner saves the key and Place ID in Site Control and tests it
+[19/42] [chromium] › e2e\round9.spec.js:310:5 › Brand colour: site-wide and readable › a saved colour reaches a new visitor, with readable text on it
+[20/42] [chromium] › e2e\round9.spec.js:317:5 › Brand colour: site-wide and readable › an old colour saved only in this browser is ignored
+[21/42] [chromium] › e2e\round9.spec.js:326:5 › Brand colour: site-wide and readable › preview picks dark text on yellow and white text on navy, then saves for everyone
+[22/42] [chromium] › e2e\round9.spec.js:338:5 › Brand colour: site-wide and readable › reset brings back Hailifu orange for everyone
+[23/42] [chromium] › e2e\round9.spec.js:364:5 › Site health (was Control Center) › everything working shows green checks with real numbers
+[24/42] [chromium] › e2e\round9.spec.js:378:5 › Site health (was Control Center) › Google refusing the key is red with the reason and a fix link
+[25/42] [chromium] › e2e\round9.spec.js:389:5 › Site health (was Control Center) › waiting reviews are counted and the fix link opens Reviews
+  1) [chromium] › e2e\round9.spec.js:389:5 › Site health (was Control Center) › waiting reviews are counted and the fix link opens Reviews 
+
+    Error: expect(locator).toHaveAttribute(expected) failed
+
+    Locator:  locator('#shList [data-sh="reviews"]')
+    Expected: "warn"
+    Received: "ok"
+    Timeout:  10000ms
+
+    Call log:
+      - Expect "toHaveAttribute" locator('#shList [data-sh="reviews"]') with timeout 10000ms
+      - waiting for locator('#shList [data-sh="reviews"]')
+        23 × locator resolved to <li class="sh-row" data-state="ok" data-sh="reviews">…</li>
+           - unexpected value "ok"
+
+
+      392 |         await loginAdmin(page);
+      393 |         await openHealth(page);
+    > 394 |         await expect(check(page, 'reviews')).toHaveAttribute('data-state', 'warn');
+          |                                              ^
+      395 |         await expect(check(page, 'reviews')).toContainText('1 waiting');
+      396 |         await check(page, 'reviews').locator('[data-sh-fix]').click();
+      397 |         await page.waitForSelector('#rvAdmin');
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round9.spec.js:394:46
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round9-Site-health-was-Con-dceac--the-fix-link-opens-Reviews-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round9-Site-health-was-Con-dceac--the-fix-link-opens-Reviews-chromium\error-context.md
+
+
+[26/42] [chromium] › e2e\round9.spec.js:400:5 › Site health (was Control Center) › storage that cannot be reached is red
+[27/42] [chromium] › e2e\round9.spec.js:411:5 › Aftercare card, account email, motion › aftercare card shows real facts and no made-up numbers
+  2) [chromium] › e2e\round9.spec.js:411:5 › Aftercare card, account email, motion › aftercare card shows real facts and no made-up numbers 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('#integrityPanel').locator('#integrityImage')
+    Expected: visible
+    Received: hidden
+    Timeout:  10000ms
+
+    Call log:
+      - Expect "toBeVisible" locator('#integrityPanel').locator('#integrityImage') with timeout 10000ms
+      - waiting for locator('#integrityPanel').locator('#integrityImage')
+        22 × locator resolved to <img id="integrityImage" class="about-visual-image r11-fit" alt="Hailifu technician at work on site"/>
+           - unexpected value "hidden"
+
+
+      421 |             expect(text, fake).not.toContain(fake);
+      422 |         }
+    > 423 |         await expect(card.locator('#integrityImage')).toBeVisible();
+          |                                                       ^
+      424 |     });
+      425 |
+      426 |     test('account menu shows the signed-in email on a phone', async ({ page }) => {
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round9.spec.js:423:55
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round9-Aftercare-card-acco-28213-acts-and-no-made-up-numbers-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round9-Aftercare-card-acco-28213-acts-and-no-made-up-numbers-chromium\error-context.md
+
+
+[28/42] [chromium] › e2e\round9.spec.js:426:5 › Aftercare card, account email, motion › account menu shows the signed-in email on a phone
+[29/42] [chromium] › e2e\round9.spec.js:437:5 › Aftercare card, account email, motion › account menu opens on top of the page content
+[30/42] [chromium] › e2e\round9.spec.js:450:5 › Aftercare card, account email, motion › showcase cards tilt with the pointer like the service cards
+[31/42] [chromium] › e2e\round9.spec.js:462:5 › Aftercare card, account email, motion › the menu wordmark uses the premium display font
+[32/42] [chromium] › e2e\smoke.spec.js:5:5 › Public smoke › home responds and title matches brand
+[33/42] [chromium] › e2e\smoke.spec.js:12:5 › Public smoke › hero Request a Quote opens and closes invoice popup
+[34/42] [chromium] › e2e\smoke.spec.js:22:5 › Public smoke › contact card offers Call and WhatsApp, no Contact Us
+[35/42] [chromium] › e2e\smoke.spec.js:30:5 › Public smoke › service card Request a Quote opens popup
+[36/42] [chromium] › e2e\smoke.spec.js:38:5 › Public smoke › deep link #quote resolves in document
+[37/42] [chromium] › e2e\smoke.spec.js:44:5 › Public smoke › theme toggle updates html data-theme
+[38/42] [chromium] › e2e\smoke.spec.js:52:5 › Public smoke › Write a Review opens modal
+[39/42] [chromium] › e2e\topbar.spec.js:20:5 › Top advert note › drops, stays 12 s, lifts, and only comes back after 45 s
+[40/42] [chromium] › e2e\topbar.spec.js:36:5 › Top advert note › stays down while the pointer is on it, then carries on
+[41/42] [chromium] › e2e\topbar.spec.js:50:5 › Top advert note › closing it stops it for the visit
+[42/42] [chromium] › e2e\topbar.spec.js:61:5 › Top advert note › it is a small note, not a full-width bar, and the menu stays put
+  2 failed
+    [chromium] › e2e\round9.spec.js:389:5 › Site health (was Control Center) › waiting reviews are counted and the fix link opens Reviews 
+    [chromium] › e2e\round9.spec.js:411:5 › Aftercare card, account email, motion › aftercare card shows real facts and no made-up numbers 
+  40 passed (4.1m)
