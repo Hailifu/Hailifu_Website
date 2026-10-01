@@ -63,6 +63,8 @@ test.describe('Top advert note', () => {
         await mockSupabase(page, { adverts: [topbarRow()] });
         await page.goto('/', { waitUntil: 'load' });
         const navTop = () => page.evaluate(() => document.querySelector('.main-nav').getBoundingClientRect().top);
+        // the menu slides in on page load: measure once it has arrived (fast machines got here mid-slide)
+        await expect.poll(() => page.evaluate(() => document.querySelector('.main-nav').getAnimations({ subtree: true }).filter((a) => a.playState === 'running').length)).toBe(0);
         const before = await navTop();
         await waitForDrop(page);
         const box = await page.locator('#r7Topbar').boundingBox();

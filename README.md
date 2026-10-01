@@ -8,6 +8,14 @@ Paste this file (or its sections) into an AI when you want it to **understand th
 
 Every change to the site is logged here, newest first. Originals from before the premium rebuild are kept in `_backup-original-2026-09-28/`.
 
+### 2026-10-01: Published to GitHub; automatic tests fixed
+
+| File | Change |
+|---|---|
+| (git) | **Pushed to https://github.com/Hailifu/Hailifu_Website** (`main`). GitHub's history (up to 8 May 2026, identical to the files this rebuild started from) was kept underneath; the files are this version. GitHub Pages published it: hailifugh.com runs `script.js?v=8.2` / `premium.css?v=20261001r20`. |
+| `.github/workflows/e2e.yml` | The automatic test run ("Playwright smoke") failed on GitHub for 2 reasons, neither a website bug. **1.** It only installed Chrome, so the iPhone (WebKit) test could not start: it now installs WebKit too. **2.** Time limit raised from 20 to 30 minutes (the suite takes about 11 minutes on GitHub, 23 on this PC). |
+| `e2e/topbar.spec.js` | "The menu stays put" measured the menu while it was still sliding in on page load (GitHub's fast machine got there mid-slide: 5.9 px, then 12 px). It now waits for the slide-in to finish. Passes 3 out of 3. |
+
 ### 2026-10-01 (round 20): Light / Dark / Auto in the admin portal
 
 Progress log: `.superpowers/sdd/2026-10-01-round20/progress.md`.
