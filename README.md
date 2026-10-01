@@ -8,6 +8,21 @@ Paste this file (or its sections) into an AI when you want it to **understand th
 
 Every change to the site is logged here, newest first. Originals from before the premium rebuild are kept in `_backup-original-2026-09-28/`.
 
+### 2026-10-01 (round 14): Homepage sections really work, browser-tab icon, old placeholder deleted
+
+Progress log: `.superpowers/sdd/2026-10-01-round14/progress.md`; git checkpoint after each step.
+
+| File | Change |
+|---|---|
+| `script.js` | **"Homepage Section Order & Visibility" never worked.** Two causes: (1) Site Control is built in a holder that is thrown away, and the Up / Down / Visible buttons were connected to that holder, so clicks did nothing; (2) the settings were only kept in your own browser, so visitors would never have seen a change anyway. Replaced by a new **Homepage sections** card: numbered rows, up/down arrows and a Show switch per section. Every change shows on the page at once and is **saved for every visitor** (settings row `__sections_settings` in `adverts`: `{ order, hidden }`). Visitors' browsers keep a copy (`hailifu_sections_v1`) so the page is arranged straight away on the next visit. A hidden section's menu, footer and button links are hidden too. "Original order, all shown" resets. If a save is refused, the card and the page go back and the status line says so. The top banner (menu + main message) is always first and always shown. The old drag handles and the old local-only setting are gone. |
+| `premium.css` | 14.1: Homepage sections card styles (numbered rows, 40 px arrow buttons, hidden rows dimmed; on a narrow card the controls go on their own line). Version `20261001r14`. |
+| `favicon.ico`, `favicon-32.png` (new), `index.html`, `404.html` | **Nothing showed in the browser tab** because `favicon.ico` was a 1×1 blank. Now a real icon (16, 32 and 48 px; the HB logo cropped tight, orange on matte dark, rounded square like the home-screen icon) plus a 32 px PNG. Links carry `?v=r14` so browsers drop the old blank icon. An uploaded logo still replaces the tab icon while the site is open; resetting the logo brings these icons back (the logo-swap script now restores each icon's own file type). |
+| `logo_k1iyvc.png` | **Deleted** (the 1×1 placeholder, unused since round 13). |
+| `index.html` | Asset version bumped (`script.js?v=7.6`). |
+| `e2e/round14.spec.js` (new) | Tests: a visitor sees the saved order and hidden sections (with their links) gone; admin arrows, Show switch and reset change the page and save the row; a refused save puts everything back; the tab icon is a real 16/32/48 icon and `logo_k1iyvc.png` is gone; uploaded logo / reset swap the tab icons correctly. 5/5 pass; all 5 fail on the code from before this round. |
+
+**What you need to do:** nothing in Supabase (the `adverts` table already allows your admin saves). After you put this live, open **Site Control > Homepage sections** to arrange the page. If your browser still shows the old blank tab icon, reload once.
+
 ### 2026-10-01 (round 13): Link previews show the logo
 
 Progress log: `.superpowers/sdd/2026-10-01-round13/progress.md`.
@@ -20,7 +35,7 @@ Progress log: `.superpowers/sdd/2026-10-01-round13/progress.md`.
 | `index.html` | Asset version bumped (`script.js?v=7.5`). |
 | `e2e/round13.spec.js` (new) | Tests: share tags point at the fixed address and the home-screen icon is 180×180; Site Control creates the missing picture once (a real 1200×630 PNG), doesn't redraw it when reopened, redraws it on upload and on reset, and never deletes it; a failed save is reported. 3/3 pass. |
 
-**What you need to do:** before or right after you put this version live, log in to the admin once (`/hailifu=access`) and open **Site Control**. That makes the link preview picture. WhatsApp and Facebook remember old previews for a while; to refresh one now, paste the link into https://developers.facebook.com/tools/debug/ and press "Scrape Again". `logo_k1iyvc.png` is no longer used anywhere and can be deleted.
+**What you need to do:** before or right after you put this version live, log in to the admin once (`/hailifu=access`) and open **Site Control**. That makes the link preview picture. WhatsApp and Facebook remember old previews for a while; to refresh one now, paste the link into https://developers.facebook.com/tools/debug/ and press "Scrape Again". `logo_k1iyvc.png` was deleted in round 14.
 
 ### 2026-10-01 (round 12): No white haze after the admin, real log out, logo upload, Featured Work click
 
