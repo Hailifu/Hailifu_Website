@@ -3672,10 +3672,38 @@
             if (noteEl) noteEl.textContent = note || '';
         }
 
-        function addReviewMedia(files) {
+        // Round 19: phones don't always say what a file is (no type, no ending, or HEIC/HEIF),
+        // so the first bytes of the file decide. The storage only accepts image/* and video/*.
+        const REVIEW_TYPE_BY_EXT = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', gif: 'image/gif', heic: 'image/heic', heif: 'image/heif', mp4: 'video/mp4', m4v: 'video/mp4', mov: 'video/quicktime', webm: 'video/webm' };
+        const REVIEW_EXT_BY_TYPE = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif', 'image/heic': 'heic', 'video/mp4': 'mp4', 'video/quicktime': 'mov', 'video/webm': 'webm' };
+        async function sniffReviewFileType(file) {
+            const known = String(file.type || '').toLowerCase();
+            let head;
+            try { head = new Uint8Array(await file.slice(0, 32).arrayBuffer()); } catch { head = new Uint8Array(0); }
+            const at = (i, text) => text.split('').every((ch, k) => head[i + k] === ch.charCodeAt(0));
+            if (head[0] === 0xff && head[1] === 0xd8 && head[2] === 0xff) return 'image/jpeg';
+            if (head[0] === 0x89 && at(1, 'PNG')) return 'image/png';
+            if (at(0, 'GIF8')) return 'image/gif';
+            if (at(0, 'RIFF') && at(8, 'WEBP')) return 'image/webp';
+            if (head[0] === 0x1a && head[1] === 0x45 && head[2] === 0xdf && head[3] === 0xa3) return 'video/webm';
+            if (at(4, 'ftyp')) {
+                const brand = String.fromCharCode(...head.slice(8, 12)).toLowerCase();
+                if (/^(heic|heix|hevc|hevx|heim|heis|mif1|msf1|heif)/.test(brand)) return 'image/heic';
+                if (brand.startsWith('qt')) return 'video/quicktime';
+                return 'video/mp4';
+            }
+            if (/^(image|video)\//.test(known)) return known === 'image/heif' ? 'image/heic' : known;
+            const ext = String(file.name || '').split('.').pop().toLowerCase();
+            const byExt = REVIEW_TYPE_BY_EXT[ext] || '';
+            return byExt === 'image/heif' ? 'image/heic' : byExt;
+        }
+
+        async function addReviewMedia(files) {
             const notes = [];
-            Array.from(files || []).forEach((file) => {
-                const kind = getMediaKind(file.name, file.type);
+            const picked = Array.from(files || []);
+            const typed = await Promise.all(picked.map(async (file) => ({ file, type: await sniffReviewFileType(file) })));
+            typed.forEach(({ file, type }) => {
+                const kind = type.startsWith('image/') ? 'image' : type.startsWith('video/') ? 'video' : getMediaKind(file.name, file.type);
                 const photos = reviewMediaState.items.filter((x) => x.kind === 'image').length;
                 const hasVideo = reviewMediaState.items.some((x) => x.kind === 'video');
                 if (kind === 'image') {
@@ -3684,18 +3712,78 @@
                     if (hasVideo) { notes.push('You can add 1 video.'); return; }
                     if (file.size > REVIEW_MAX_VIDEO_BYTES) { notes.push('That video is too big (max 30 MB).'); return; }
                 } else { notes.push(`${file.name} is not a photo or video.`); return; }
-                reviewMediaState.items.push({ file, kind, preview: URL.createObjectURL(file) });
+                reviewMediaState.items.push({ file, kind, type, preview: URL.createObjectURL(file) });
             });
+            reviewMediaState.pendingId = ''; // the media changed: next send is a new review
             paintReviewMedia([...new Set(notes)].join(' '));
         }
 
         function clearReviewMedia() {
+            reviewMediaState.pendingId = '';
             reviewMediaState.items.forEach((x) => { try { URL.revokeObjectURL(x.preview); } catch {} });
             reviewMediaState.items = [];
             paintReviewMedia('');
         }
 
         // uploads to media/reviews/<reviewId>/ (visitors may only write there, see SQL)
+        // Photo -> resized WebP (or JPEG where the browser can't make WebP). HEIC/HEIF too, when
+        // the phone can open it (iPhones can). A photo nothing can open is refused with a reason.
+        async function decodeReviewPhoto(file) {
+            try {
+                if (typeof createImageBitmap === 'function') return await createImageBitmap(file, { imageOrientation: 'from-image' });
+            } catch {}
+            const url = URL.createObjectURL(file);
+            try {
+                const img = new Image();
+                img.decoding = 'async';
+                img.src = url;
+                await img.decode();
+                return img;
+            } finally {
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+            }
+        }
+        async function prepareReviewUpload(item) {
+            const type = item.type || (item.kind === 'video' ? 'video/mp4' : 'image/jpeg');
+            if (item.kind === 'video') {
+                const vt = REVIEW_EXT_BY_TYPE[type] ? type : 'video/mp4';
+                return { blob: new Blob([item.file], { type: vt }), ext: REVIEW_EXT_BY_TYPE[vt] };
+            }
+            const plain = /^image\/(jpeg|png|webp|gif)$/.test(type);
+            if (type === 'image/gif' || (plain && item.file.size < 400 * 1024)) {
+                return { blob: new Blob([item.file], { type }), ext: REVIEW_EXT_BY_TYPE[type] };
+            }
+            let pic = null;
+            try { pic = await decodeReviewPhoto(item.file); } catch {}
+            if (!pic || !(pic.width || pic.naturalWidth)) {
+                if (plain) return { blob: new Blob([item.file], { type }), ext: REVIEW_EXT_BY_TYPE[type] };
+                const err = new Error('This phone cannot open one of the photos (HEIC format).');
+                err.code = 'unreadable';
+                throw err;
+            }
+            const w = pic.width || pic.naturalWidth;
+            const h = pic.height || pic.naturalHeight;
+            const scale = Math.min(1, MEDIA_IMAGE_MAX_EDGE / Math.max(w, h));
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.max(1, Math.round(w * scale));
+            canvas.height = Math.max(1, Math.round(h * scale));
+            canvas.getContext('2d').drawImage(pic, 0, 0, canvas.width, canvas.height);
+            if (typeof pic.close === 'function') pic.close();
+            const encode = (t, q) => new Promise((resolve) => canvas.toBlob(resolve, t, q));
+            let out = await encode('image/webp', 0.85);
+            if (!out || out.type !== 'image/webp') out = await encode('image/jpeg', 0.86); // Safari can't make WebP
+            if (!out) {
+                if (plain) return { blob: new Blob([item.file], { type }), ext: REVIEW_EXT_BY_TYPE[type] };
+                const err = new Error('This phone cannot open one of the photos.');
+                err.code = 'unreadable';
+                throw err;
+            }
+            if (plain && out.size >= item.file.size) return { blob: new Blob([item.file], { type }), ext: REVIEW_EXT_BY_TYPE[type] };
+            return { blob: out, ext: REVIEW_EXT_BY_TYPE[out.type] || 'jpg' };
+        }
+
+        // uploads to media/reviews/<reviewId>/ (visitors may only write there, see SQL).
+        // Files already uploaded on an earlier try are kept, so "Try again" only sends the rest.
         async function uploadReviewMedia(reviewId) {
             const supabase = ensureSupabaseClient();
             if (!supabase) throw new Error('offline');
@@ -3703,13 +3791,27 @@
             let i = 0;
             for (const item of reviewMediaState.items) {
                 i += 1;
-                const blob = item.kind === 'image' ? await optimizeImageForUpload(item.file) : item.file;
-                const type = String(blob.type || item.file.type || '').toLowerCase();
-                const ext = (type.split('/')[1] || (item.kind === 'video' ? 'mp4' : 'jpg')).replace(/[^a-z0-9]/g, '').replace('jpeg', 'jpg').replace('quicktime', 'mov') || 'bin';
+                if (item.uploaded && item.uploaded.reviewId === reviewId) { out.push(item.uploaded.media); continue; }
+                const { blob, ext } = await prepareReviewUpload(item);
                 const path = `reviews/${reviewId}/${i}-${Date.now().toString(36)}.${ext}`;
-                const { error } = await withTimeout(supabase.storage.from(MEDIA_BUCKET).upload(path, blob, { contentType: type || undefined, upsert: false }), 120000, 'Uploading review photo');
-                if (error) throw error;
-                out.push({ path, type: item.kind === 'video' ? 'video' : 'image' });
+                // slow mobile data: at least 1 minute, plus 1 s for every 40 KB (max 15 minutes)
+                const wait = Math.min(15 * 60000, 60000 + Math.round(blob.size / 40960) * 1000);
+                let lastError = null;
+                for (let attempt = 0; attempt < 2; attempt += 1) {
+                    try {
+                        const { error } = await withTimeout(supabase.storage.from(MEDIA_BUCKET).upload(path, blob, { contentType: blob.type, upsert: attempt > 0 }), wait, 'Uploading review photo');
+                        if (error) throw error;
+                        lastError = null;
+                        break;
+                    } catch (err) {
+                        lastError = err;
+                        if (/mime|not supported|security|42501|403|413|too large/i.test(String(err?.message || err))) break; // retrying won't help
+                    }
+                }
+                if (lastError) throw lastError;
+                const media = { path, type: item.kind === 'video' ? 'video' : 'image' };
+                item.uploaded = { reviewId, media };
+                out.push(media);
             }
             return out;
         }
@@ -3751,8 +3853,18 @@
                 }
             });
             input?.addEventListener('change', () => {
-                addReviewMedia(input.files);
+                const files = Array.from(input.files || []);
                 input.value = '';
+                addReviewMedia(files);
+            });
+            // round 19: buttons in the problem card under the Post button
+            document.getElementById('formSuccess')?.addEventListener('click', (e) => {
+                const btn = e.target.closest && e.target.closest('[data-rv-notice]');
+                if (!btn) return;
+                if (btn.dataset.rvNotice === 'skip') reviewMediaState.skipOnce = true;
+                const formEl = document.getElementById('reviewForm');
+                if (typeof formEl.requestSubmit === 'function') formEl.requestSubmit();
+                else formEl.querySelector('.submit-btn')?.click();
             });
         })();
 
@@ -4778,7 +4890,24 @@
         function clearReviewFormNotice() {
             if (!formSuccess) return;
             formSuccess.textContent = '';
+            formSuccess.classList.remove('is-error');
             formSuccess.style.display = 'none';
+        }
+
+        // Round 19: problems show as a card under the Post button, with buttons when there is
+        // something to do (actions: [{ id, label, icon, primary }]).
+        function showReviewFormProblem(title, text, actions = []) {
+            if (!formSuccess) return;
+            formSuccess.classList.remove('is-thanks');
+            formSuccess.classList.add('is-error');
+            formSuccess.innerHTML = `
+                <div class="hm-rv-notice">
+                    <i class="fas fa-circle-exclamation hm-rv-notice-icon" aria-hidden="true"></i>
+                    <div class="hm-rv-notice-copy"><strong>${escapeHTML(title)}</strong>${text ? `<span>${escapeHTML(text)}</span>` : ''}</div>
+                </div>
+                ${actions.length ? `<div class="hm-rv-notice-actions">${actions.map((a) => `<button type="button" class="hm-rv-notice-btn${a.primary ? ' is-primary' : ''}" data-rv-notice="${a.id}"><i class="fas ${a.icon}" aria-hidden="true"></i> ${escapeHTML(a.label)}</button>`).join('')}</div>` : ''}`;
+            formSuccess.style.display = 'block';
+            try { formSuccess.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch {}
         }
 
         function showReviewFormNotice(message) {
@@ -4788,8 +4917,10 @@
                 clearReviewFormNotice();
                 return;
             }
+            formSuccess.classList.remove('is-error');
             formSuccess.textContent = text;
             formSuccess.style.display = 'block';
+            try { formSuccess.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch {}
         }
 
         function setReviewIdentityBannerMessage(message) {
@@ -5487,7 +5618,8 @@
 
                 const questionnaireState = collectReviewQuestionnaireState();
                 const now = new Date().toISOString();
-                const reviewId = `r_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
+                // the same id on "Try again", so photos already sent are reused
+                const reviewId = reviewMediaState.pendingId || (reviewMediaState.pendingId = `r_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`);
                 const draft = {
                     id: reviewId,
                     rating,
@@ -5512,24 +5644,40 @@
                     submitBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin" aria-hidden="true"></i> Sending...';
                 }
                 try {
-                    if (reviewMediaState.items.length) {
-                        if (submitBtn) submitBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin" aria-hidden="true"></i> Uploading photos...';
+                    const skipMedia = reviewMediaState.skipOnce === true;
+                    reviewMediaState.skipOnce = false;
+                    if (reviewMediaState.items.length && !skipMedia) {
+                        const many = reviewMediaState.items.length > 1;
+                        if (submitBtn) submitBtn.innerHTML = `<i class="fas fa-circle-notch fa-spin" aria-hidden="true"></i> Uploading ${many ? 'photos' : 'photo'}...`;
                         try {
                             draft.media = await uploadReviewMedia(reviewId);
                         } catch (err) {
                             console.warn('[Reviews] Photo upload failed:', err);
-                            showReviewFormNotice('Your photos could not be uploaded. Check your connection and try again, or remove them to post without photos.');
+                            const unreadable = err && err.code === 'unreadable';
+                            showReviewFormProblem(
+                                unreadable ? 'One photo can\'t be opened on this phone' : `Your ${many ? 'photos' : 'photo'} didn't upload`,
+                                unreadable
+                                    ? 'Remove it and pick another, or post your review without photos.'
+                                    : 'The connection dropped while sending. Your review is not posted yet.',
+                                [
+                                    ...(unreadable ? [] : [{ id: 'retry', label: 'Try again', icon: 'fa-rotate-right', primary: true }]),
+                                    { id: 'skip', label: 'Post without photos', icon: 'fa-paper-plane' }
+                                ]
+                            );
                             return;
                         }
                     }
                     const review = cleanSiteReview(draft);
                     const res = await submitPublicReview(review);
                     if (!res.ok) {
-                        showReviewFormNotice(res.message === 'busy'
-                            ? 'Lots of reviews are coming in right now. Please try again in a few minutes.'
-                            : 'Your review could not be sent. Please check your connection and try again.');
+                        showReviewFormProblem(
+                            res.message === 'busy' ? 'Lots of reviews are coming in right now' : 'Your review could not be sent',
+                            res.message === 'busy' ? 'Please try again in a few minutes.' : 'Please check your connection and try again. Your text is kept.',
+                            [{ id: 'retry', label: 'Try again', icon: 'fa-rotate-right', primary: true }]
+                        );
                         return;
                     }
+                    reviewMediaState.pendingId = '';
                     try { localStorage.setItem('hailifu_review_last_sent', String(Date.now())); } catch {}
                     formSuccess?.classList.add('is-thanks');
                     if (res.live) {

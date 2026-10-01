@@ -6009,3 +6009,47 @@ html { accent-color: var(--p-accent); }
     html body select:not(.hm-sr-select) option::checkmark { color: currentColor; }
     html body select:not(.hm-sr-select) option:disabled { opacity: 0.45; cursor: default; }
 }
+
+/* ============================================================
+   ROUND 19
+   ============================================================ */
+/* 19.1 Review form: an old opening animation (style.css) capped the questions at 620px, so on
+   phones the questions spilled out of the form and any message landed on top of them. */
+html body #reviewModal .review-form.is-composer-ready :is(.review-composer, .review-shared-fields) { max-height: none; overflow: visible; }
+/* old dark-only rule made the service choices white on light paper */
+html body #reviewModal .review-service-option span { color: inherit; }
+
+/* 19.2 Problem card under the Post button: icon, what happened, what to do */
+html body #reviewModal .form-success.is-error {
+    margin-top: 14px;
+    padding: 14px;
+    text-align: left;
+    font-weight: 400;
+    border-radius: 16px;
+    background: color-mix(in srgb, #d0453c 8%, var(--p-surface, #fff));
+    border: 1px solid color-mix(in srgb, #d0453c 35%, transparent);
+    color: var(--p-text);
+}
+html body #reviewModal .hm-rv-notice { display: flex; align-items: flex-start; gap: 12px; }
+html body #reviewModal .hm-rv-notice-icon { flex: none; margin-top: 1px; font-size: 1.25rem; color: #d0453c; }
+html body #reviewModal .hm-rv-notice-copy { display: grid; gap: 3px; min-width: 0; }
+html body #reviewModal .hm-rv-notice-copy strong { font: 700 0.98rem/1.3 var(--p-font); color: var(--p-text); }
+html body #reviewModal .hm-rv-notice-copy span { font-size: 0.88rem; line-height: 1.45; color: var(--p-muted, #6b6862); }
+html body #reviewModal .hm-rv-notice-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding-left: 32px; }
+html body #reviewModal .hm-rv-notice-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 44px; padding: 0 16px; border-radius: 999px;
+    border: 1px solid var(--p-line-strong); background: transparent; color: var(--p-text);
+    font: 600 0.88rem var(--p-font); cursor: pointer;
+    transition: background-color 0.15s ease, transform 0.12s ease;
+}
+html body #reviewModal .hm-rv-notice-btn.is-primary { background: var(--p-accent); border-color: var(--p-accent); color: var(--p-on-accent); }
+html body #reviewModal .hm-rv-notice-btn:active { transform: scale(0.97); }
+html body #reviewModal .hm-rv-notice-btn:focus-visible { outline: 2px solid var(--p-accent); outline-offset: 2px; }
+@media (max-width: 420px) {
+    html body #reviewModal .hm-rv-notice-actions { padding-left: 0; }
+    html body #reviewModal .hm-rv-notice-btn { flex: 1 1 auto; }
+}
+/* the old ".form-success i" rule made every icon in the card big and on its own line */
+html body #reviewModal .form-success.is-error .hm-rv-notice-btn i { display: inline-block; margin: 0; font-size: 0.9em; color: inherit; }
+html body #reviewModal .form-success.is-error .hm-rv-notice-icon { display: block; margin: 1px 0 0; font-size: 1.25rem; color: #d0453c; }

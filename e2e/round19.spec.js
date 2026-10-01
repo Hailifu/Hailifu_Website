@@ -46,18 +46,31 @@ async function send(page) {
 }
 
 test.describe('Review photos from a phone', () => {
-    test.use({ ...devices['Pixel 7'] });
+    const { defaultBrowserType, ...pixel } = devices['Pixel 7'];
+    test.use(pixel);
 
     test('a photo the phone gives without a file type still uploads, as a real image', async ({ page }) => {
         const sb = await mockSupabase(page);
         const saved = strictStorage(page, sb);
         await openAndFill(page);
-        await page.setInputFiles('#reviewMediaInput', { name: 'IMG_20261001_101500.jpg', mimeType: '', buffer: PNG });
+        await page.setInputFiles('#reviewMediaInput', { name: 'IMG_20261001_101500', mimeType: '', buffer: PNG });
         await send(page);
         await expect(page.locator('#formSuccess')).toContainText('Thank you', { timeout: 20000 });
         expect(saved).toHaveLength(1);
         expect(saved[0].type).toMatch(/^image\//);
         expect(sb.db.reviews[0].data.media).toHaveLength(1);
+    });
+
+    test('a photo named .heif is sent as the picture it really is, never as .heif', async ({ page }) => {
+        const sb = await mockSupabase(page);
+        const saved = strictStorage(page, sb);
+        await openAndFill(page);
+        await page.setInputFiles('#reviewMediaInput', { name: '20261001_101500.heif', mimeType: 'image/heif', buffer: PNG });
+        await send(page);
+        await expect(page.locator('#formSuccess')).toContainText('Thank you', { timeout: 20000 });
+        expect(saved).toHaveLength(1);
+        expect(saved[0].name).toMatch(/\.(webp|jpg|png)$/); // never .heif (refused by the storage rule)
+        expect(saved[0].type).toMatch(/^image\//);
     });
 
     test('a dropped connection is retried once without bothering the visitor', async ({ page }) => {
@@ -81,9 +94,9 @@ test.describe('Review photos from a phone', () => {
         await expect(notice).toContainText('photo');
         await expect(notice).toBeInViewport();
         // sits under the Post button and covers nothing
-        const btn = await page.locator('#reviewForm .submit-btn').boundingBox();
-        const box = await notice.boundingBox();
-        expect(box.y).toBeGreaterThanOrEqual(btn.y + btn.height - 1);
+        await page.waitForTimeout(800); // smooth scroll settles
+        const gap = await page.evaluate(() => document.getElementById('formSuccess').getBoundingClientRect().top - document.querySelector('#reviewForm .submit-btn').getBoundingClientRect().bottom);
+        expect(gap).toBeGreaterThanOrEqual(0);
         const covered = await notice.evaluate((n) => {
             const r = n.getBoundingClientRect();
             const x = r.left + r.width / 2;

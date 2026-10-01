@@ -8,6 +8,18 @@ Paste this file (or its sections) into an AI when you want it to **understand th
 
 Every change to the site is logged here, newest first. Originals from before the premium rebuild are kept in `_backup-original-2026-09-28/`.
 
+### 2026-10-01 (round 19): Review photos from phones, and a clear message when something fails
+
+Progress log: `.superpowers/sdd/2026-10-01-round19/progress.md`.
+
+| File | Change |
+|---|---|
+| `script.js` | **"Your photos could not be uploaded" on phones (laptop fine).** Phones don't always say what a photo is: some give no file type, some no file ending (Android names like `1000012345`), and some cameras save HEIC/HEIF. Such a photo was sent as an unknown file, which the Supabase storage refuses (it only takes `image/*` and `video/*`). `.heif` photos were refused by the review upload rule too. A photo with no type and no ending was even **dropped without a word**. Now the first bytes of each file decide what it is (JPEG, PNG, GIF, WebP, HEIC, MP4, MOV, WebM). Photos are resized and turned into WebP (or JPEG on iPhones, which can't make WebP), including HEIC where the phone can open it, and every file is sent with its real type. Slow mobile data gets more time (1 minute plus 1 second per 40 KB, up to 15 minutes), and a dropped connection is retried once automatically. |
+| `script.js` | **Try again / Post without photos.** If photos still fail, a card under the Post button says what happened, with **Try again** (photos already sent are not sent twice: the review keeps the same id) and **Post without photos**. A photo the phone can't open says so and asks for another. Problems sending the review itself use the same card, with Try again. |
+| `premium.css` | 19.1: **the message no longer covers the questions.** An old opening animation (`style.css`) capped the form at 620 px, so on phones the questions spilled out and the message landed on top of them. The **service choices** (CCTV, Electrical...) were white on light paper in light mode (old dark-only rule): now readable. 19.2: the problem card (icon, title, reason, 44 px buttons) in light and dark. Version `20261001r19`. |
+| `index.html` | Asset versions bumped (`script.js?v=8.1`, `premium.css?v=20261001r19`). |
+| `e2e/round19.spec.js` (new) | Tests on a phone with a storage that refuses files the way the real bucket does: a typeless photo uploads as an image; a `.heif`-named photo is never sent as `.heif`; a dropped connection is retried; when photos keep failing, the card sits under the button, covers nothing, and Try again / Post without photos both work; service choices are readable in light mode. All failed before, all 6 pass. `e2e/round10.spec.js`: expects the new wording. |
+
 ### 2026-10-01 (round 18): Smart Home service card; dropdowns and ticks follow the brand colour
 
 Progress log: `.superpowers/sdd/2026-10-01-round18/progress.md`.

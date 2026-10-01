@@ -326,7 +326,7 @@ test.describe('Review form like Google (no name or phone)', () => {
         await page.click('#googleStarRating .google-star[data-rating="5"]');
         await page.setInputFiles('#reviewMediaInput', [png(1)]);
         await submit(page);
-        await expect(page.locator('#formSuccess')).toContainText('photos could not be uploaded');
+        await expect(page.locator('#formSuccess')).toContainText("didn't upload"); // round 19 wording
         expect(sb.db.reviews.length).toBe(0);
         await expect(page.locator('#reviewMediaList .hm-rv-thumb')).toHaveCount(1);
     });
