@@ -16,6 +16,7 @@ Progress log: `.superpowers/sdd/2026-10-01-round12/progress.md`; git checkpoint 
 |---|---|
 | `script.js` | **White haze after closing the admin: fixed.** Opening the admin turned on a 20% white layer over the whole screen (`#adminBackdrop`), and closing never turned it off, so the site looked faded until a reload. It now fades out and is hidden on close. |
 | `script.js` | **"Log out" now really signs you out.** Before, it only closed the window: the code that ends the Supabase session never ran (other click handlers stopped the click first), so the admin could be reopened in that browser without the password. Every logout path now ends the session. |
+| `script.js` | **Clicking Featured Work** used to open an old, unstyled "project" window: plain text, a huge logo, raw grey buttons, a made-up "2.4k views" and the photo tiny in a corner. It now opens the **same gallery viewer as Work Showcase**, at the photo you clicked, with swipe, thumbnails and "Get a quote for this". The slider pauses while the viewer is open and carries on after. |
 | `e2e/round12.spec.js` (new) | Tests: nothing covers the site after Log out or "Back to website"; Log out sends the sign-out and the password is asked again (both fail on the old code). |
 
 ### 2026-10-01 (round 11): Featured Work on phones, photos in full, reviews live at once, paper-note advert, coloured switches, pull-to-close, auto theme, crash safety

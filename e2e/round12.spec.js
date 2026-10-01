@@ -46,4 +46,32 @@ test.describe('No white haze after the admin closes', () => {
     });
 });
 
+test.describe('Clicking Featured Work', () => {
+    for (const vp of [{ name: 'desktop', size: { width: 1366, height: 860 } }, { name: 'phone', size: { width: 390, height: 844 } }]) {
+        test(`opens the gallery viewer at that photo, not the old project window (${vp.name})`, async ({ page }) => {
+            await page.setViewportSize(vp.size);
+            const rows = [1, 2, 3].map((i) => galleryRow({ id: `c${i}`, category: 'cctv', featured: i === 2, order: i, src: `https://res.cloudinary.com/daovfi3i5/image/upload/v1/cctv-${i}.jpg` }))
+                .concat([galleryRow({ id: 's1', category: 'solar', featured: true, order: 4, src: 'https://res.cloudinary.com/daovfi3i5/image/upload/v1/solar-1.jpg' })]);
+            await mockSupabase(page, { installations: rows });
+            await page.route(/res\.cloudinary\.com/, (route) => route.fulfill({ status: 200, contentType: 'image/png', body: PNG }));
+            await page.goto('/', { waitUntil: 'load' });
+            await expect(page.locator('#featuredLoop .featured-loop-slide')).toHaveCount(2, { timeout: 10000 });
+            await page.evaluate(() => document.getElementById('featuredLoop').scrollIntoView({ block: 'center' }));
+            const slide = page.locator('#featuredLoop .featured-loop-slide[data-media-src*="cctv-2"]');
+            await page.locator(`#featuredLoopDots .featured-loop-dot >> nth=${await slide.getAttribute('data-featured-index')}`).click();
+            await page.waitForTimeout(700);
+            const box = await page.locator('#featuredLoop .featured-loop-viewport').boundingBox();
+            await page.mouse.click(box.x + box.width / 2, box.y + box.height * 0.3);
+            await expect(page.locator('#hmGallery')).toBeVisible();
+            await expect(page.locator('#projectModal')).not.toHaveClass(/active|open/);
+            await expect(page.locator('#hmGalFigure img')).toHaveAttribute('src', /cctv-2/); // the photo that was clicked
+            await expect(page.locator('#hmGalCat')).toContainText('CCTV');
+            const idx = () => page.locator('#featuredLoop .featured-loop-slide.is-active').getAttribute('data-featured-index');
+            const before = await idx();
+            await page.waitForTimeout(2600);
+            expect(await idx()).toBe(before); // the slider pauses behind the viewer
+        });
+    }
+});
+
 module.exports = {};

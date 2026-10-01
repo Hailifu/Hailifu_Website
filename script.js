@@ -15030,11 +15030,36 @@
             gal.querySelector('[data-gal="close"]').focus();
         }
 
+        // Round 12: a click on Featured Work opened the old, unstyled project window. It now
+        // opens the same gallery viewer as Work Showcase, at the photo that was clicked.
+        function openFeaturedInGallery(card) {
+            const fileKey = (u) => String(u || '').split(/[?#]/)[0].split('/').pop().replace(/.[a-z0-9]+$/i, '').toLowerCase();
+            const src = String(card.dataset.mediaSrc || '');
+            const key = fileKey(src);
+            const category = typeof normalizeShowcaseCategory === 'function' ? normalizeShowcaseCategory(card.dataset.featuredCategory || '') : String(card.dataset.featuredCategory || '');
+            const projects = Array.isArray(showcaseState.projects) ? showcaseState.projects : [];
+            let target = null;
+            let index = 0;
+            if (key) {
+                for (const p of projects) {
+                    const i = (p.media || []).findIndex((m) => m.mediaSrc === src || fileKey(m.mediaSrc) === key);
+                    if (i >= 0) { target = p; index = i; break; }
+                }
+            }
+            if (!target && category) target = projects.find((p) => p.category === category) || null;
+            try { stopFeaturedLoop(); } catch {}
+            if (target) { openGallery(target.id, index); return; }
+            if (src && typeof openProjectLightbox === 'function') {
+                openProjectLightbox({ mediaSrc: src, mediaType: card.dataset.mediaType || 'image' }, card.querySelector('.featured-card-title')?.textContent || 'Featured work');
+            }
+        }
+
         function closeGallery() {
             const gal = document.getElementById('hmGallery');
             if (!gal || !galleryState.open) return;
             galleryState.open = false;
             gal.classList.remove('is-open');
+            try { startFeaturedLoop(); } catch {} // Featured Work pauses while the viewer is open
             document.body.classList.remove('hm-gal-open');
             if (!document.querySelector('.popup-overlay.active, .review-modal.active')) document.body.classList.remove('modal-open');
             const figure = document.getElementById('hmGalFigure');
@@ -15509,6 +15534,7 @@
             stopFeaturedLoop();
             if (featuredLoopCount <= 1) return;
             if (document.hidden) return;
+            try { if (galleryState.open) return; } catch {} // round 12: paused while the gallery viewer is open
             if (!featuredLoopIsVisible) return;
             if (!featuredLoopObserver && !featuredLoopIsProbablyVisible()) return;
             featuredLoopTimer = setInterval(() => {
@@ -15873,7 +15899,7 @@
                     : '';
                 const isActiveClass = idx === 0 ? ' is-active' : '';
                 return `
-                    <article class="featured-card featured-loop-slide${isActiveClass}" data-featured-index="${idx}" data-generated-project-id="${project.id}" data-media-type="${project.mediaType}" data-media-src="${normalizeCloudinaryUrl(String(project.mediaSrc || project.imageUrl || '').trim())}">
+                    <article class="featured-card featured-loop-slide${isActiveClass}" data-featured-index="${idx}" data-featured-category="${escapeHTML(normalizeCategory(project.category) || '')}" data-generated-project-id="${project.id}" data-media-type="${project.mediaType}" data-media-src="${normalizeCloudinaryUrl(String(project.mediaSrc || project.imageUrl || '').trim())}">
                         ${videoBadge}
                         <div class="featured-card-media">${mediaMarkup}</div>
                         <div class="featured-card-content">
@@ -15938,8 +15964,9 @@
                 featuredBento.addEventListener('click', (e) => {
                     const card = e.target.closest('.featured-card');
                     if (!card) return;
+                    if (e.target.closest('.featured-loop-nav, .featured-loop-dot')) return;
                     e.preventDefault();
-                    openProjectModalFromItem(card);
+                    openFeaturedInGallery(card);
                 });
             }
 
