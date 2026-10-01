@@ -1,0 +1,9 @@
+
+Running 5 tests using 1 worker
+
+[1/5] [chromium] › e2e\round9.spec.js:413:5 › Aftercare card, account email, motion › aftercare card shows real facts and no made-up numbers
+[2/5] [chromium] › e2e\round9.spec.js:428:5 › Aftercare card, account email, motion › account menu shows the signed-in email on a phone
+[3/5] [chromium] › e2e\round9.spec.js:439:5 › Aftercare card, account email, motion › account menu opens on top of the page content
+[4/5] [chromium] › e2e\round9.spec.js:452:5 › Aftercare card, account email, motion › showcase cards tilt with the pointer like the service cards
+[5/5] [chromium] › e2e\round9.spec.js:464:5 › Aftercare card, account email, motion › the menu wordmark uses the premium display font
+  5 passed (22.7s)

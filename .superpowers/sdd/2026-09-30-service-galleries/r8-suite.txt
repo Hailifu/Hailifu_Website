@@ -1,0 +1,57 @@
+﻿
+Running 49 tests using 1 worker
+
+
+
+[1/49] [chromium] › e2e\galleries.spec.js:15:5 › Service galleries — public › shows one card per service from gallery rows
+[2/49] [chromium] › e2e\galleries.spec.js:32:5 › Service galleries — public › showcase wording talks about services, not projects
+[3/49] [chromium] › e2e\galleries.spec.js:41:5 › Service galleries — public › card opens the service gallery
+[4/49] [chromium] › e2e\galleries.spec.js:53:5 › Service galleries — public › falls back to built-in projects when no gallery rows
+[5/49] [chromium] › e2e\galleries.spec.js:60:5 › Service galleries — public › falls back when Supabase is unreachable
+[6/49] [chromium] › e2e\galleries.spec.js:70:5 › Service galleries — public › legacy localStorage projects are ignored when gallery rows exist
+[7/49] [chromium] › e2e\galleries.spec.js:101:5 › Service galleries — admin › galleries tab lists items by service
+[8/49] [chromium] › e2e\galleries.spec.js:112:5 › Service galleries — admin › upload photo and video into CCTV
+[9/49] [chromium] › e2e\galleries.spec.js:133:5 › Service galleries — admin › bad file does not stop the others
+[10/49] [chromium] › e2e\galleries.spec.js:151:5 › Service galleries — admin › not allowed upload leaves nothing behind
+[11/49] [chromium] › e2e\galleries.spec.js:161:5 › Service galleries — admin › tab chosen right after sign-in is not reset to the Dashboard
+[12/49] [chromium] › e2e\galleries.spec.js:181:5 › Service galleries — admin › offline shows state with retry
+[13/49] [chromium] › e2e\galleries.spec.js:196:5 › Service galleries — links and arranging › add Cloudinary and YouTube links
+[14/49] [chromium] › e2e\galleries.spec.js:212:5 › Service galleries — links and arranging › bad and duplicate links are reported
+[15/49] [chromium] › e2e\galleries.spec.js:224:5 › Service galleries — links and arranging › caption, featured, cover, reorder, move
+[16/49] [chromium] › e2e\galleries.spec.js:267:5 › Service galleries — delete › delete removes row, file and public item
+[17/49] [chromium] › e2e\galleries.spec.js:286:5 › Service galleries — delete › refused delete keeps the item
+[18/49] [chromium] › e2e\galleries.spec.js:297:5 › Service galleries — delete › cloudinary item delete keeps the Cloudinary file
+[19/49] [chromium] › e2e\galleries.spec.js:307:5 › Service galleries — delete › deleting cover and last item
+[20/49] [chromium] › e2e\galleries.spec.js:334:5 › Service galleries — import and media library › import copies current photos once
+[21/49] [chromium] › e2e\galleries.spec.js:355:5 › Service galleries — import and media library › media library add to gallery
+[22/49] [chromium] › e2e\galleries.spec.js:376:5 › Service galleries — featured and phones › featured items drive Featured Work
+[23/49] [chromium] › e2e\galleries.spec.js:388:5 › Service galleries — featured and phones › without starred items each service cover is featured
+[24/49] [chromium] › e2e\galleries.spec.js:395:5 › Service galleries — featured and phones › phone layout has no sideways scroll
+[25/49] [chromium] › e2e\galleries.spec.js:415:5 › Service galleries — review fixes › captions with quotes survive and unsafe links are never rendered
+[26/49] [chromium] › e2e\galleries.spec.js:429:5 › Service galleries — review fixes › media library file is not deleted with its gallery item, and cannot be added twice
+[27/49] [chromium] › e2e\galleries.spec.js:453:5 › Service galleries — review fixes › typing the next caption is not wiped when the previous one saves
+[28/49] [chromium] › e2e\galleries.spec.js:470:5 › Service galleries — review fixes › visitors never see old local projects while galleries load
+[29/49] [chromium] › e2e\galleries.spec.js:490:5 › Service galleries — review fixes › captions show under the photo in the public gallery
+[30/49] [chromium] › e2e\galleries.spec.js:503:5 › Service galleries — dashboard › dashboard counts gallery items, not old projects
+[31/49] [chromium] › e2e\galleries.spec.js:516:5 › Service galleries — dashboard › before any gallery items the dashboard points to Import
+[32/49] [chromium] › e2e\galleries.spec.js:524:5 › Service galleries — dashboard › dashboard updates after an upload without reloading
+[33/49] [chromium] › e2e\galleries.spec.js:539:5 › Service galleries — minor fixes › a file whose save is refused is removed from storage again
+[34/49] [chromium] › e2e\galleries.spec.js:550:5 › Service galleries — minor fixes › several files uploaded together keep distinct positions
+[35/49] [chromium] › e2e\galleries.spec.js:560:5 › Service galleries — minor fixes › links that are not photos or videos, or YouTube without a video, are refused
+[36/49] [chromium] › e2e\galleries.spec.js:579:5 › Service galleries — minor fixes › public gallery follows the admin order; cover only sets the card photo
+[37/49] [chromium] › e2e\galleries.spec.js:590:5 › Service galleries — minor fixes › refused caption, star and cover saves change nothing
+[38/49] [chromium] › e2e\galleries.spec.js:607:5 › Service galleries — minor fixes › deleting every gallery item brings the built-in photos back
+[39/49] [chromium] › e2e\smoke.spec.js:5:5 › Public smoke › home responds and title matches brand
+[40/49] [chromium] › e2e\smoke.spec.js:12:5 › Public smoke › hero Request a Quote opens and closes invoice popup
+[41/49] [chromium] › e2e\smoke.spec.js:22:5 › Public smoke › contact card offers Call and WhatsApp, no Contact Us
+[42/49] [chromium] › e2e\smoke.spec.js:30:5 › Public smoke › service card Request a Quote opens popup
+[43/49] [chromium] › e2e\smoke.spec.js:38:5 › Public smoke › deep link #quote resolves in document
+[44/49] [chromium] › e2e\smoke.spec.js:44:5 › Public smoke › theme toggle updates html data-theme
+[45/49] [chromium] › e2e\smoke.spec.js:52:5 › Public smoke › Write a Review opens modal
+[46/49] [chromium] › e2e\topbar.spec.js:13:5 › Top advert bar › drops every 5 seconds: down 5 s, up 5 s, down again
+[47/49] [chromium] › e2e\topbar.spec.js:28:5 › Top advert bar › stays down while the pointer is on it, then carries on
+[48/49] [chromium] › e2e\topbar.spec.js:42:5 › Top advert bar › closing it stops the cycle for the visit
+[49/49] [chromium] › e2e\topbar.spec.js:54:5 › Top advert bar › the menu follows the bar down and back up
+  Slow test file: [chromium] › e2e\galleries.spec.js (6.9m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  49 passed (10.3m)

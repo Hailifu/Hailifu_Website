@@ -1,0 +1,112 @@
+
+Running 4 tests using 1 worker
+
+[1/4] [chromium] › e2e\round9.spec.js:312:5 › Brand colour: site-wide and readable › a saved colour reaches a new visitor, with readable text on it
+  1) [chromium] › e2e\round9.spec.js:312:5 › Brand colour: site-wide and readable › a saved colour reaches a new visitor, with readable text on it 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: "#1f3a8a"
+    Received: "#e8741e"
+
+    Call Log:
+    - Timeout 10000ms exceeded while waiting on the predicate
+
+      313 |         await mockSupabase(page, { adverts: [brandRow('#1f3a8a')] });
+      314 |         await page.goto('/', { waitUntil: 'load' });
+    > 315 |         await expect.poll(() => cssVar(page, '--brand-primary')).toBe('#1f3a8a');
+          |                                                                  ^
+      316 |         expect(await cssVar(page, '--p-on-accent')).toBe('#ffffff'); // navy: white text
+      317 |     });
+      318 |
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round9.spec.js:315:66
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round9-Brand-colour-site-w-8bfae-or-with-readable-text-on-it-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round9-Brand-colour-site-w-8bfae-or-with-readable-text-on-it-chromium\error-context.md
+
+
+[2/4] [chromium] › e2e\round9.spec.js:319:5 › Brand colour: site-wide and readable › an old colour saved only in this browser is ignored
+  2) [chromium] › e2e\round9.spec.js:319:5 › Brand colour: site-wide and readable › an old colour saved only in this browser is ignored 
+
+    Error: expect(received).not.toBe(expected) // Object.is equality
+
+    Expected: not "#00ff00"
+
+      322 |         await page.goto('/', { waitUntil: 'load' });
+      323 |         await page.waitForTimeout(800);
+    > 324 |         expect(await cssVar(page, '--brand-primary')).not.toBe('#00ff00');
+          |                                                           ^
+      325 |         expect(await cssVar(page, '--brand-dark')).not.toBe('#ff0000');
+      326 |     });
+      327 |
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round9.spec.js:324:59
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round9-Brand-colour-site-w-c5a03--in-this-browser-is-ignored-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round9-Brand-colour-site-w-c5a03--in-this-browser-is-ignored-chromium\error-context.md
+
+
+[3/4] [chromium] › e2e\round9.spec.js:328:5 › Brand colour: site-wide and readable › preview picks dark text on yellow and white text on navy, then saves for everyone
+  3) [chromium] › e2e\round9.spec.js:328:5 › Brand colour: site-wide and readable › preview picks dark text on yellow and white text on navy, then saves for everyone 
+
+    Test timeout of 60000ms exceeded.
+
+    Error: page.waitForSelector: Test timeout of 60000ms exceeded.
+    Call log:
+      - waiting for locator('#brCard') to be visible
+
+
+      307 |         if (await menuBtn.isVisible()) await menuBtn.click();
+      308 |         await page.click('#adminPanel .nav-item[data-admin-tab="site-control"]');
+    > 309 |         await page.waitForSelector('#brCard');
+          |                    ^
+      310 |     }
+      311 |
+      312 |     test('a saved colour reaches a new visitor, with readable text on it', async ({ page }) => {
+        at openSiteControl (C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round9.spec.js:309:20)
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round9.spec.js:331:9
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round9-Brand-colour-site-w-92de9-avy-then-saves-for-everyone-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round9-Brand-colour-site-w-92de9-avy-then-saves-for-everyone-chromium\error-context.md
+
+
+[4/4] [chromium] › e2e\round9.spec.js:340:5 › Brand colour: site-wide and readable › reset brings back Hailifu orange for everyone
+  4) [chromium] › e2e\round9.spec.js:340:5 › Brand colour: site-wide and readable › reset brings back Hailifu orange for everyone 
+
+    Test timeout of 60000ms exceeded.
+
+    Error: page.waitForSelector: Test timeout of 60000ms exceeded.
+    Call log:
+      - waiting for locator('#brCard') to be visible
+
+
+      307 |         if (await menuBtn.isVisible()) await menuBtn.click();
+      308 |         await page.click('#adminPanel .nav-item[data-admin-tab="site-control"]');
+    > 309 |         await page.waitForSelector('#brCard');
+          |                    ^
+      310 |     }
+      311 |
+      312 |     test('a saved colour reaches a new visitor, with readable text on it', async ({ page }) => {
+        at openSiteControl (C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round9.spec.js:309:20)
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round9.spec.js:343:9
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round9-Brand-colour-site-w-027d4-Hailifu-orange-for-everyone-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round9-Brand-colour-site-w-027d4-Hailifu-orange-for-everyone-chromium\error-context.md
+
+
+  4 failed
+    [chromium] › e2e\round9.spec.js:312:5 › Brand colour: site-wide and readable › a saved colour reaches a new visitor, with readable text on it 
+    [chromium] › e2e\round9.spec.js:319:5 › Brand colour: site-wide and readable › an old colour saved only in this browser is ignored 
+    [chromium] › e2e\round9.spec.js:328:5 › Brand colour: site-wide and readable › preview picks dark text on yellow and white text on navy, then saves for everyone 
+    [chromium] › e2e\round9.spec.js:340:5 › Brand colour: site-wide and readable › reset brings back Hailifu orange for everyone 

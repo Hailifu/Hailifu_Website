@@ -1,0 +1,8 @@
+
+Running 4 tests using 1 worker
+
+[1/4] [chromium] › e2e\round10.spec.js:174:5 › Gallery viewer: smooth swipe › the photo follows the finger and the next photo slides in beside it
+[2/4] [chromium] › e2e\round10.spec.js:189:5 › Gallery viewer: smooth swipe › a short slow drag springs back to the same photo
+[3/4] [chromium] › e2e\round10.spec.js:201:5 › Gallery viewer: smooth swipe › a quick flick changes photo, and swiping right goes back
+[4/4] [chromium] › e2e\round10.spec.js:216:5 › Gallery viewer: smooth swipe › a drag never zooms or closes the viewer; a single photo stretches and springs back
+  4 passed (24.5s)

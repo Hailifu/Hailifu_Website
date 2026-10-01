@@ -1,0 +1,7 @@
+
+Running 3 tests using 1 worker
+
+[1/3] [chromium] › e2e\round10.spec.js:109:5 › Aftercare photo the owner can change › a saved Aftercare photo shows for every visitor, ignoring old per-browser photos
+[2/3] [chromium] › e2e\round10.spec.js:118:5 › Aftercare photo the owner can change › owner uploads a new photo in Site Control; it is saved for everyone
+[3/3] [chromium] › e2e\round10.spec.js:130:5 › Aftercare photo the owner can change › paste a link, pick from the Media Library, and reset to the default photo
+  3 passed (22.5s)

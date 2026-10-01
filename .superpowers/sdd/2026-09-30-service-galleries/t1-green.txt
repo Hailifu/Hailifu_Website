@@ -1,0 +1,11 @@
+﻿
+Running 5 tests using 1 worker
+
+
+
+[1/5] [chromium] › e2e\galleries.spec.js:15:5 › Service galleries — public › shows one card per service from gallery rows
+[2/5] [chromium] › e2e\galleries.spec.js:32:5 › Service galleries — public › card opens the service gallery
+[3/5] [chromium] › e2e\galleries.spec.js:44:5 › Service galleries — public › falls back to built-in projects when no gallery rows
+[4/5] [chromium] › e2e\galleries.spec.js:51:5 › Service galleries — public › falls back when Supabase is unreachable
+[5/5] [chromium] › e2e\galleries.spec.js:61:5 › Service galleries — public › legacy localStorage projects are ignored when gallery rows exist
+  5 passed (23.3s)

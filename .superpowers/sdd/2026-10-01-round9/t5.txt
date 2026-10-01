@@ -1,0 +1,8 @@
+
+Running 4 tests using 1 worker
+
+[1/4] [chromium] › e2e\round9.spec.js:312:5 › Brand colour: site-wide and readable › a saved colour reaches a new visitor, with readable text on it
+[2/4] [chromium] › e2e\round9.spec.js:319:5 › Brand colour: site-wide and readable › an old colour saved only in this browser is ignored
+[3/4] [chromium] › e2e\round9.spec.js:328:5 › Brand colour: site-wide and readable › preview picks dark text on yellow and white text on navy, then saves for everyone
+[4/4] [chromium] › e2e\round9.spec.js:340:5 › Brand colour: site-wide and readable › reset brings back Hailifu orange for everyone
+  4 passed (28.7s)

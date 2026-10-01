@@ -1,0 +1,10 @@
+
+Running 6 tests using 1 worker
+
+[1/6] [chromium] › e2e\round10.spec.js:8:5 › Admin address /hailifu=access › the new address opens the admin login
+[2/6] [chromium] › e2e\round10.spec.js:15:5 › Admin address /hailifu=access › the old ?admin and #admin addresses no longer open it
+[3/6] [chromium] › e2e\round10.spec.js:24:5 › Admin address /hailifu=access › a normal visit after using the admin address does not open the login
+[4/6] [chromium] › e2e\round10.spec.js:42:5 › Page stays still behind popups › quote form freezes the page and puts it back where it was
+[5/6] [chromium] › e2e\round10.spec.js:56:5 › Page stays still behind popups › review form, gallery viewer and phone menu freeze the page too
+[6/6] [chromium] › e2e\round10.spec.js:80:5 › Page stays still behind popups › admin portal freezes the site behind it but scrolls itself
+  6 passed (34.2s)

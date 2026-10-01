@@ -1,0 +1,40 @@
+﻿
+Running 10 tests using 1 worker
+
+
+
+[1/10] [chromium] › e2e\galleries.spec.js:15:5 › Service galleries — public › shows one card per service from gallery rows
+[2/10] [chromium] › e2e\galleries.spec.js:32:5 › Service galleries — public › card opens the service gallery
+[3/10] [chromium] › e2e\galleries.spec.js:44:5 › Service galleries — public › falls back to built-in projects when no gallery rows
+[4/10] [chromium] › e2e\galleries.spec.js:51:5 › Service galleries — public › falls back when Supabase is unreachable
+[5/10] [chromium] › e2e\galleries.spec.js:61:5 › Service galleries — public › legacy localStorage projects are ignored when gallery rows exist
+[6/10] [chromium] › e2e\galleries.spec.js:86:5 › Service galleries — admin › galleries tab lists items by service
+[7/10] [chromium] › e2e\galleries.spec.js:97:5 › Service galleries — admin › upload photo and video into CCTV
+[8/10] [chromium] › e2e\galleries.spec.js:118:5 › Service galleries — admin › bad file does not stop the others
+  1) [chromium] › e2e\galleries.spec.js:118:5 › Service galleries — admin › bad file does not stop the others 
+
+    Error: File paths cannot be mixed with buffers
+
+      123 |         fs.mkdirSync(testInfo.outputDir, { recursive: true });
+      124 |         fs.writeFileSync(big, Buffer.alloc(61 * 1024 * 1024));
+    > 125 |         await page.setInputFiles('#sgFile', [
+          |                    ^
+      126 |             { name: 'notes.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4') },
+      127 |             big,
+      128 |             png('ok.png')
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\galleries.spec.js:125:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\galleries-Service-gallerie-51758-le-does-not-stop-the-others-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\galleries-Service-gallerie-51758-le-does-not-stop-the-others-chromium\error-context.md
+
+
+
+
+[9/10] [chromium] › e2e\galleries.spec.js:136:5 › Service galleries — admin › not allowed upload leaves nothing behind
+[10/10] [chromium] › e2e\galleries.spec.js:146:5 › Service galleries — admin › offline shows state with retry
+  1 failed
+    [chromium] › e2e\galleries.spec.js:118:5 › Service galleries — admin › bad file does not stop the others 
+  9 passed (1.4m)

@@ -1,0 +1,7 @@
+
+Running 3 tests using 1 worker
+
+[1/3] [chromium] › e2e\round10.spec.js:365:5 › Admin login and switches redesign › login: welcome copy, show/hide password and Caps Lock warning
+[2/3] [chromium] › e2e\round10.spec.js:387:5 › Admin login and switches redesign › login: busy spinner while signing in, shake and message on a wrong password
+[3/3] [chromium] › e2e\round10.spec.js:401:5 › Admin login and switches redesign › every on/off control is the same switch: big target, keyboard, on/off state
+  3 passed (27.2s)

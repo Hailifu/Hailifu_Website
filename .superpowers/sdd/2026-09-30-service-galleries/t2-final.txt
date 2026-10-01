@@ -1,0 +1,16 @@
+
+Running 12 tests using 1 worker
+
+[1/12] [chromium] › e2e\galleries.spec.js:15:5 › Service galleries — public › shows one card per service from gallery rows
+[2/12] [chromium] › e2e\galleries.spec.js:32:5 › Service galleries — public › showcase wording talks about services, not projects
+[3/12] [chromium] › e2e\galleries.spec.js:41:5 › Service galleries — public › card opens the service gallery
+[4/12] [chromium] › e2e\galleries.spec.js:53:5 › Service galleries — public › falls back to built-in projects when no gallery rows
+[5/12] [chromium] › e2e\galleries.spec.js:60:5 › Service galleries — public › falls back when Supabase is unreachable
+[6/12] [chromium] › e2e\galleries.spec.js:70:5 › Service galleries — public › legacy localStorage projects are ignored when gallery rows exist
+[7/12] [chromium] › e2e\galleries.spec.js:95:5 › Service galleries — admin › galleries tab lists items by service
+[8/12] [chromium] › e2e\galleries.spec.js:106:5 › Service galleries — admin › upload photo and video into CCTV
+[9/12] [chromium] › e2e\galleries.spec.js:127:5 › Service galleries — admin › bad file does not stop the others
+[10/12] [chromium] › e2e\galleries.spec.js:145:5 › Service galleries — admin › not allowed upload leaves nothing behind
+[11/12] [chromium] › e2e\galleries.spec.js:155:5 › Service galleries — admin › tab chosen right after sign-in is not reset to the Dashboard
+[12/12] [chromium] › e2e\galleries.spec.js:175:5 › Service galleries — admin › offline shows state with retry
+  12 passed (1.3m)

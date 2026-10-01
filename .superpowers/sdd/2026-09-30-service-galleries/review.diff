@@ -1,0 +1,1095 @@
+diff --git a/_backup-before-galleries-2026-09-30/script.js b/script.js
+index 06a1956..9e2bc99 100644
+--- a/_backup-before-galleries-2026-09-30/script.js
++++ b/script.js
+@@ -5749,7 +5749,7 @@
+                                 <i class="fas fa-bolt"></i> <span>Leads</span>
+                             </button>
+                             <button class="nav-item" data-admin-tab="projects">
+-                                <i class="fas fa-folder-open"></i> <span>Projects</span>
++                                <i class="fas fa-images"></i> <span>Galleries</span>
+                             </button>
+                             <button class="nav-item" data-admin-tab="reviews">
+                                 <i class="fas fa-star"></i> <span>Reviews</span>
+@@ -6088,8 +6088,8 @@
+                             renderAdminLeads(tmp);
+                             break;
+                         case 'projects':
+-                            await loadProjectsFromSupabase();
+-                            renderAdminProjects(tmp);
++                            await loadServiceGallery();
++                            renderAdminServiceGalleries(tmp);
+                             break;
+                         case 'media':
+                             await loadMediaFromSupabase();
+@@ -6224,7 +6224,7 @@
+         const ADMIN_PAGE_META = {
+             overview: ['Dashboard', 'Your business at a glance'],
+             leads: ['Leads', 'Quote requests from the website'],
+-            projects: ['Projects', 'Work shown in the showcase'],
++            projects: ['Galleries', 'Photos and videos by service'],
+             media: ['Media Library', 'Photos and videos in storage'],
+             adverts: ['Adverts', 'The offer banner on the homepage'],
+             'site-control': ['Site Control', 'Text, colours and sections'],
+@@ -6811,8 +6811,16 @@
+                     <div class="hm-actions">
+                         <button type="button" class="hm-icon-btn" data-hm-action="copy" data-media-name="${nameAttr}" title="Copy link" aria-label="Copy link"><i class="fas fa-link"></i></button>
+                         <button type="button" class="hm-icon-btn" data-hm-action="open" data-media-name="${nameAttr}" title="Open" aria-label="Open in new tab"><i class="fas fa-up-right-from-square"></i></button>
++                        ${item.kind === 'image' || item.kind === 'video' ? `<button type="button" class="hm-icon-btn" data-hm-action="to-gallery" data-media-name="${nameAttr}" title="Add to a service gallery" aria-label="Add to a service gallery"><i class="fas fa-images"></i></button>` : ''}
+                         <button type="button" class="hm-icon-btn is-danger" data-hm-action="ask-delete" data-media-name="${nameAttr}" title="Delete" aria-label="Delete"><i class="fas fa-trash"></i></button>
+                     </div>
++                    <div class="hm-togal" role="group" aria-label="Add to gallery">
++                        <select aria-label="Service">
++                            ${SERVICE_GALLERY_CATEGORIES.map((c) => `<option value="${c}">${escapeHTML(SHOWCASE_CATEGORY_LABELS[c] || c)}</option>`).join('')}
++                        </select>
++                        <button type="button" class="hm-btn is-primary" data-hm-action="to-gallery-add" data-media-name="${nameAttr}">Add</button>
++                        <button type="button" class="hm-btn" data-hm-action="to-gallery-cancel">Cancel</button>
++                    </div>
+                     <div class="hm-confirm" role="alertdialog" aria-label="Confirm delete">
+                         <p>Delete this file?</p>
+                         <div>
+@@ -7089,6 +7097,39 @@
+                 e.preventDefault();
+                 const item = findMediaItem(trigger.dataset.mediaName);
+                 switch (action) {
++                    case 'to-gallery': {
++                        const tile = trigger.closest('.hm-tile');
++                        document.querySelectorAll('#hmMedia .hm-tile.is-picking').forEach((t) => t !== tile && t.classList.remove('is-picking'));
++                        tile?.classList.toggle('is-picking');
++                        tile?.querySelector('.hm-togal select')?.focus({ preventScroll: true });
++                        break;
++                    }
++                    case 'to-gallery-cancel':
++                        trigger.closest('.hm-tile')?.classList.remove('is-picking');
++                        break;
++                    case 'to-gallery-add': {
++                        if (!item) break;
++                        const tile = trigger.closest('.hm-tile');
++                        const category = tile?.querySelector('.hm-togal select')?.value || 'cctv';
++                        trigger.disabled = true;
++                        insertServiceGalleryItems([{
++                            id: newServiceGalleryId(),
++                            kind: 'gallery',
++                            category,
++                            mediaType: item.kind === 'video' ? 'video' : 'image',
++                            src: item.url,
++                            source: 'supabase',
++                            storagePath: item.name,
++                            order: sgItemsFor(category).reduce((m, it) => Math.max(m, it.order), 0) + 1,
++                            createdAt: new Date().toISOString()
++                        }]).then((res) => {
++                            trigger.disabled = false;
++                            if (!res.ok) { showAdminMediaToast(`Could not add: ${res.message}`, 'error'); return; }
++                            tile?.classList.remove('is-picking');
++                            showAdminMediaToast(`Added to ${SHOWCASE_CATEGORY_LABELS[category] || category} gallery`, 'success');
++                        });
++                        break;
++                    }
+                     case 'browse': {
+                         const input = document.getElementById('mediaFileInput');
+                         if (input) input.click();
+@@ -9423,6 +9464,10 @@
+                 adminBackdrop.style.backdropFilter = '';
+                 adminBackdrop.style.webkitBackdropFilter = '';
+             }
++            // This runs several times after sign-in (retry timers). Only the first run, when the
++            // portal actually opens, may choose the Dashboard; later runs must not undo the tab
++            // the owner has already clicked.
++            const wasAlreadyOpen = !!(adminPanel && adminPanel.classList.contains('active'));
+             if (adminPanel) {
+                 adminPanel.style.display = 'flex';
+                 adminPanel.style.opacity = '1';
+@@ -9430,7 +9475,7 @@
+                 adminPanel.classList.add('active');
+                 adminPanel.setAttribute('aria-hidden', 'false');
+             }
+-            setAdminTab('overview');
++            if (!wasAlreadyOpen) setAdminTab('overview');
+             refreshOverview();
+             renderAdminLazyLoop();
+             startAdminLazyLoop();
+@@ -12599,6 +12644,8 @@
+             }
+ 
+             const run = () => {
++                // Service galleries (Supabase) replace every legacy source once they exist
++                if (serviceGallery.items.length) { renderFeaturedWork(serviceGalleryToFeaturedProjects()); return; }
+                 renderFeaturedWork(Array.isArray(projectsOverride) ? projectsOverride : getProjects());
+             };
+ 
+@@ -12622,6 +12669,8 @@
+             const showcaseProjects = projects.filter((p) => p && isVisibilityEnabled(p, 'showInShowcase', 'showcase'));
+             scheduleFeaturedRender(projects, true);
+             renderShowcase(showcaseProjects);
++            // Service galleries from Supabase replace the legacy cards once loaded (fallback stays if none)
++            if (!serviceGallery.loaded) loadServiceGallery().then(renderPublicServiceGallery).catch(() => {});
+             renderServices();
+             const activeFilter = document.querySelector('.showcase-filters .filter-btn.active');
+             if (typeof filterProjects === 'function') {
+@@ -12915,7 +12964,7 @@
+             const counts = showcaseState.projects.reduce((acc, p) => { acc[p.category] = (acc[p.category] || 0) + 1; return acc; }, {});
+             const keys = Object.keys(SHOWCASE_CATEGORY_LABELS).filter((k) => counts[k]);
+             const chip = (key, label, count) => `<button type="button" class="hm-sc-chip${showcaseState.filter === key ? ' is-active' : ''}" data-sc-filter="${key}" role="tab" aria-selected="${showcaseState.filter === key}">${escapeHTML(label)}<span>${count}</span></button>`;
+-            chips.innerHTML = chip('all', 'All projects', showcaseState.projects.length) + keys.map((k) => chip(k, SHOWCASE_CATEGORY_LABELS[k], counts[k])).join('');
++            chips.innerHTML = chip('all', showcaseUnit().all, showcaseState.projects.length) + keys.map((k) => chip(k, SHOWCASE_CATEGORY_LABELS[k], counts[k])).join('');
+         }
+ 
+         function paintShowcaseGrid(animate) {
+@@ -12928,7 +12977,7 @@
+             if (countNode) {
+                 const photos = visible.reduce((n, p) => n + p.media.length, 0);
+                 countNode.textContent = visible.length
+-                    ? `${visible.length} project${visible.length === 1 ? '' : 's'} · ${photos} photo${photos === 1 ? '' : 's'} & video${photos === 1 ? '' : 's'}`
++                    ? `${visible.length} ${visible.length === 1 ? showcaseUnit().one : showcaseUnit().many} · ${photos} photo${photos === 1 ? '' : 's'} & video${photos === 1 ? '' : 's'}`
+                     : '';
+             }
+             if (!shown.length) {
+@@ -12968,13 +13017,17 @@
+             if (more) {
+                 const remaining = visible.length - shown.length;
+                 more.hidden = remaining <= 0;
+-                more.textContent = remaining > 0 ? `Show ${Math.min(remaining, SHOWCASE_PAGE_SIZE)} more project${remaining === 1 ? '' : 's'}` : '';
++                more.textContent = remaining > 0 ? `Show ${Math.min(remaining, SHOWCASE_PAGE_SIZE)} more ${remaining === 1 ? showcaseUnit().one : showcaseUnit().many}` : '';
+             }
+         }
+ 
+         function renderShowcase(projectsOverride) {
+             const root = document.getElementById('hmShowcase');
+             if (!root) return;
++            // Service galleries (Supabase) win over every legacy source once they exist,
++            // so items deleted in the admin cannot come back from localStorage/remote copies.
++            if (serviceGallery.items.length) projectsOverride = serviceGalleryToShowcaseProjects();
++            root.classList.toggle('is-services', serviceGallery.items.length > 0);
+             const source = Array.isArray(projectsOverride)
+                 ? projectsOverride
+                 : getProjects().filter((p) => p && isVisibilityEnabled(p, 'showInShowcase', 'showcase'));
+@@ -12996,6 +13049,679 @@
+             openGalleryFromHash();
+         }
+ 
++        // ------------------------------------------------------------------
++        // SERVICE GALLERIES (2026-09-30)
++        // Gallery items are rows in `installations` with data.kind = 'gallery'
++        // (public read, admin write). Each service becomes one showcase card.
++        // Spec: docs/superpowers/specs/2026-09-30-service-galleries-design.md
++        // ------------------------------------------------------------------
++        const SERVICE_GALLERY_CATEGORIES = ['cctv', 'electrical', 'fencing', 'airconditioning', 'solar', 'gates', 'blindcurtain', 'smarthome'];
++        const SERVICE_GALLERY_TABLE = 'installations';
++        const serviceGallery = { items: [], status: 'idle', message: '', loaded: false };
++
++        function normalizeServiceGalleryItem(raw) {
++            const item = raw && typeof raw === 'object' ? raw : {};
++            const src = String(item.src || '').trim();
++            const category = normalizeShowcaseCategory(item.category);
++            if (!src || !SERVICE_GALLERY_CATEGORIES.includes(category)) return null;
++            const mediaType = ['image', 'video', 'youtube'].includes(item.mediaType) ? item.mediaType : 'image';
++            return {
++                id: String(item.id || ''),
++                kind: 'gallery',
++                category,
++                mediaType,
++                src,
++                thumb: String(item.thumb || '').trim(),
++                source: ['supabase', 'cloudinary', 'youtube', 'link'].includes(item.source) ? item.source : 'link',
++                storagePath: String(item.storagePath || '').trim(),
++                caption: String(item.caption || '').trim().slice(0, 140),
++                featured: item.featured === true,
++                cover: item.cover === true,
++                order: Number.isFinite(Number(item.order)) ? Number(item.order) : 0,
++                createdAt: String(item.createdAt || '')
++            };
++        }
++
++        function sortServiceGalleryItems(items) {
++            return items.slice().sort((a, b) =>
++                (SERVICE_GALLERY_CATEGORIES.indexOf(a.category) - SERVICE_GALLERY_CATEGORIES.indexOf(b.category))
++                || (a.order - b.order)
++                || String(a.createdAt).localeCompare(String(b.createdAt)));
++        }
++
++        async function loadServiceGallery() {
++            const supabase = ensureSupabaseClient();
++            if (!supabase) {
++                serviceGallery.status = 'offline';
++                serviceGallery.message = 'Supabase is not configured (see ADMIN_SETUP.md).';
++                return;
++            }
++            try {
++                const { data, error } = await withTimeout(
++                    supabase.from(SERVICE_GALLERY_TABLE).select('*').eq('data->>kind', 'gallery'),
++                    8000,
++                    'Loading galleries'
++                );
++                if (error) throw error;
++                serviceGallery.items = sortServiceGalleryItems((Array.isArray(data) ? data : [])
++                    .map(fromRemoteRow)
++                    .filter((r) => r && r.kind === 'gallery')
++                    .map(normalizeServiceGalleryItem)
++                    .filter((it) => it && it.id));
++                serviceGallery.status = 'ready';
++                serviceGallery.message = '';
++            } catch (err) {
++                const text = String(err?.message || err || '');
++                const offline = /fetch|network|timed out|resolve|failed/i.test(text);
++                serviceGallery.status = offline ? 'offline' : 'error';
++                serviceGallery.message = offline
++                    ? 'Storage can\'t be reached. Your Supabase project may be paused or deleted (see ADMIN_SETUP.md).'
++                    : `Gallery error: ${text}`;
++            } finally {
++                serviceGallery.loaded = true;
++            }
++        }
++
++        function getServiceGalleryGroups() {
++            return SERVICE_GALLERY_CATEGORIES
++                .map((category) => {
++                    const items = serviceGallery.items.filter((it) => it.category === category);
++                    return { category, label: SHOWCASE_CATEGORY_LABELS[category] || category, items, cover: items.find((it) => it.cover) || items[0] };
++                })
++                .filter((g) => g.items.length);
++        }
++
++        function describeServiceGalleryCounts(items) {
++            const videos = items.filter((it) => it.mediaType !== 'image').length;
++            const photos = items.length - videos;
++            return [
++                photos ? `${photos} photo${photos === 1 ? '' : 's'}` : '',
++                videos ? `${videos} video${videos === 1 ? '' : 's'}` : ''
++            ].filter(Boolean).join(' · ');
++        }
++
++        function serviceGalleryToShowcaseProjects() {
++            return getServiceGalleryGroups().map((g) => {
++                const ordered = [g.cover, ...g.items.filter((it) => it !== g.cover)];
++                return {
++                    id: g.category,
++                    title: g.label,
++                    description: describeServiceGalleryCounts(g.items),
++                    category: g.category,
++                    showInShowcase: true,
++                    mediaItems: ordered.map((it) => ({ mediaSrc: it.src, mediaType: it.mediaType, thumbSrc: it.thumb }))
++                };
++            });
++        }
++
++        // Wording for the showcase: service galleries vs legacy projects
++        function showcaseUnit() {
++            return serviceGallery.items.length
++                ? { all: 'All services', one: 'service', many: 'services' }
++                : { all: 'All projects', one: 'project', many: 'projects' };
++        }
++
++        // Featured Work: starred items; if none are starred, each service's cover.
++        // Only featured slides are passed (showInShowcase false) so no legacy top-up is added.
++        function serviceGalleryToFeaturedProjects() {
++            const starred = serviceGallery.items.filter((it) => it.featured);
++            const picks = starred.length ? starred : getServiceGalleryGroups().map((g) => g.cover);
++            return picks.map((it) => ({
++                id: it.id,
++                title: SHOWCASE_CATEGORY_LABELS[it.category] || it.category,
++                name: SHOWCASE_CATEGORY_LABELS[it.category] || it.category,
++                description: it.caption,
++                category: it.category,
++                mediaSrc: it.src,
++                mediaType: it.mediaType,
++                thumbSrc: it.thumb,
++                createdAt: it.createdAt,
++                showInFeatured: true,
++                featured: true,
++                showInShowcase: false,
++                showcase: false
++            }));
++        }
++
++        function renderPublicServiceGallery() {
++            if (!serviceGallery.items.length) return;
++            renderShowcase();
++            scheduleFeaturedRender(null, true);
++        }
++
++        // ---------- Admin: Galleries tab ----------
++        const sgAdmin = { category: 'cctv', confirming: '', queue: [] };
++        const SG_NOT_ALLOWED = 'Not allowed. Sign in again as admin.';
++
++        function sgFriendlyError(err) {
++            const msg = String(err?.message || err || '');
++            if (/row-level security|not allowed|unauthori|401|403/i.test(msg)) return SG_NOT_ALLOWED;
++            if (/fetch|network|timed out|unreachable/i.test(msg)) return 'Storage can\'t be reached. Try again.';
++            return msg || 'Something went wrong';
++        }
++
++        function newServiceGalleryId() {
++            return `g_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
++        }
++
++        function sgItemsFor(category) {
++            return serviceGallery.items.filter((it) => it.category === category);
++        }
++
++        async function insertServiceGalleryItems(records) {
++            const supabase = ensureSupabaseClient();
++            if (!supabase) return { ok: false, items: [], message: 'Storage is offline.' };
++            const items = records.map(normalizeServiceGalleryItem).filter(Boolean);
++            if (!items.length) return { ok: true, items: [], message: '' };
++            try {
++                const { data, error } = await withTimeout(
++                    supabase.from(SERVICE_GALLERY_TABLE).upsert(items.map(toRemoteRow), { onConflict: 'id' }).select(),
++                    12000,
++                    'Saving'
++                );
++                if (error) throw error;
++                if (!Array.isArray(data) || !data.length) throw new Error(SG_NOT_ALLOWED);
++                serviceGallery.items = sortServiceGalleryItems(serviceGallery.items.concat(items));
++                serviceGallery.status = 'ready';
++                renderPublicServiceGallery();
++                return { ok: true, items, message: '' };
++            } catch (err) {
++                return { ok: false, items: [], message: sgFriendlyError(err) };
++            }
++        }
++
++        function sgTileThumb(it) {
++            const src = escapeHTML(it.thumb || it.src);
++            if (it.mediaType === 'video') return `<video src="${escapeHTML(it.src)}#t=0.5" preload="metadata" muted playsinline></video><span class="sg-kind"><i class="fas fa-play"></i> Video</span>`;
++            if (it.mediaType === 'youtube') {
++                const id = typeof getYoutubeVideoId === 'function' ? getYoutubeVideoId(it.src) : '';
++                const thumb = it.thumb || (id && typeof getYoutubeThumbUrl === 'function' ? getYoutubeThumbUrl(id) : '');
++                return `<img src="${escapeHTML(thumb)}" alt="" loading="lazy"><span class="sg-kind"><i class="fab fa-youtube"></i> YouTube</span>`;
++            }
++            return `<img src="${src}" alt="${escapeHTML(it.caption)}" loading="lazy" decoding="async">`;
++        }
++
++        function buildServiceGalleryTiles() {
++            const items = sgItemsFor(sgAdmin.category);
++            if (!items.length) {
++                return `<div class="hm-state sg-empty"><i class="fas fa-images"></i><h3>No ${escapeHTML(SHOWCASE_CATEGORY_LABELS[sgAdmin.category] || '')} photos yet</h3><p>Drop photos or videos above, or paste links. They appear on the website straight away.</p></div>`;
++            }
++            const cover = items.find((it) => it.cover) || items[0];
++            return items.map((it, i) => `
++                <figure class="sg-tile${it === cover ? ' is-cover' : ''}${it.featured ? ' is-featured' : ''}${sgAdmin.confirming === it.id ? ' is-confirming' : ''}" data-sg-id="${escapeHTML(it.id)}" style="--i:${Math.min(i, 12)}">
++                    <div class="sg-thumb">${sgTileThumb(it)}${it === cover ? '<span class="sg-cover-badge">Cover</span>' : ''}</div>
++                    <input class="sg-caption" type="text" maxlength="140" value="${escapeHTML(it.caption)}" placeholder="Add a caption" aria-label="Caption">
++                    <div class="sg-tools">
++                        <button type="button" class="sg-tool${it.featured ? ' is-on' : ''}" data-sg-action="feature" aria-pressed="${it.featured}" title="Show in Featured Work" aria-label="Show in Featured Work"><i class="fas fa-star"></i></button>
++                        <button type="button" class="sg-tool" data-sg-action="cover" title="Use as cover" aria-label="Use as cover"${it === cover ? ' disabled' : ''}><i class="fas fa-image"></i></button>
++                        <button type="button" class="sg-tool" data-sg-action="left" title="Move earlier" aria-label="Move earlier"${i === 0 ? ' disabled' : ''}><i class="fas fa-arrow-left"></i></button>
++                        <button type="button" class="sg-tool" data-sg-action="right" title="Move later" aria-label="Move later"${i === items.length - 1 ? ' disabled' : ''}><i class="fas fa-arrow-right"></i></button>
++                        <select class="sg-move" aria-label="Move to another service">
++                            <option value="">Move to…</option>
++                            ${SERVICE_GALLERY_CATEGORIES.filter((c) => c !== it.category).map((c) => `<option value="${c}">${escapeHTML(SHOWCASE_CATEGORY_LABELS[c] || c)}</option>`).join('')}
++                        </select>
++                        <button type="button" class="sg-tool is-danger" data-sg-action="ask-delete" title="Delete" aria-label="Delete"><i class="fas fa-trash"></i></button>
++                    </div>
++                    <div class="sg-confirm" role="alertdialog" aria-label="Confirm delete">
++                        <span>Delete this item?</span>
++                        <button type="button" class="hm-btn is-danger" data-sg-action="confirm-delete">Delete</button>
++                        <button type="button" class="hm-btn" data-sg-action="cancel-delete">Keep</button>
++                    </div>
++                </figure>`).join('');
++        }
++
++        function buildServiceGalleryQueue() {
++            if (!sgAdmin.queue.length) return '';
++            return sgAdmin.queue.map((q) => `
++                <div class="sg-q is-${q.status}">
++                    <span class="sg-q-name">${escapeHTML(q.name)}</span>
++                    <span class="sg-q-state">${q.status === 'uploading' ? `${q.pct}%` : q.status === 'done' ? 'Added' : escapeHTML(q.message)}</span>
++                    <span class="sg-q-bar" style="--pct:${q.status === 'error' ? 100 : q.pct}%"></span>
++                </div>`).join('');
++        }
++
++        function buildServiceGalleryTabs() {
++            return SERVICE_GALLERY_CATEGORIES.map((c) => `
++                <button type="button" class="sg-tab${c === sgAdmin.category ? ' is-active' : ''}" data-sg-cat="${c}" role="tab" aria-selected="${c === sgAdmin.category}">
++                    ${escapeHTML(SHOWCASE_CATEGORY_LABELS[c] || c)}<span>${sgItemsFor(c).length}</span>
++                </button>`).join('');
++        }
++
++        function renderAdminServiceGalleries(container) {
++            const offline = serviceGallery.status === 'offline' || serviceGallery.status === 'error';
++            const label = escapeHTML(SHOWCASE_CATEGORY_LABELS[sgAdmin.category] || sgAdmin.category);
++            container.innerHTML = `
++                <div class="admin-v2-section sg-admin" id="sgAdmin">
++                    ${offline ? `
++                        <div class="hm-state is-offline">
++                            <i class="fas fa-triangle-exclamation"></i>
++                            <h3>${serviceGallery.status === 'offline' ? 'Storage is offline' : 'Something went wrong'}</h3>
++                            <p>${escapeHTML(serviceGallery.message)}</p>
++                            <button type="button" class="hm-btn" data-sg-action="retry"><i class="fas fa-rotate-right"></i> Try again</button>
++                        </div>` : `
++                        <div class="sg-toolbar">
++                            <div class="sg-tabs" role="tablist" aria-label="Services" id="sgTabs">${buildServiceGalleryTabs()}</div>
++                            <button type="button" class="hm-btn sg-import" data-sg-action="import" title="Copy the photos your website shows today into these galleries">
++                                <i class="fas fa-file-import"></i> Import site photos
++                            </button>
++                        </div>
++                        ${serviceGallery.items.length ? '' : '<p class="sg-hint">Your website still shows its built-in photos. Press <strong>Import site photos</strong> to manage them here, or add new ones below.</p>'}
++                        <div class="sg-add">
++                            <label class="sg-drop" id="sgDrop" for="sgFile">
++                                <i class="fas fa-cloud-arrow-up" aria-hidden="true"></i>
++                                <strong>Add photos or videos to <span id="sgDropLabel">${label}</span></strong>
++                                <span>Drop files here or click to choose. Photos are resized automatically. Videos up to 50 MB.</span>
++                                <input type="file" id="sgFile" multiple accept="image/*,video/*">
++                            </label>
++                            <form class="sg-links" id="sgLinksForm">
++                                <label for="sgLinks">Paste links (Cloudinary or YouTube), one per line</label>
++                                <textarea id="sgLinks" rows="3" placeholder="https://res.cloudinary.com/..."></textarea>
++                                <button type="submit" class="hm-btn"><i class="fas fa-link"></i> Add links</button>
++                                <p class="sg-links-msg" id="sgLinksMsg" role="status" hidden></p>
++                            </form>
++                        </div>
++                        <div class="sg-queue" id="sgQueue" aria-live="polite">${buildServiceGalleryQueue()}</div>
++                        <div class="sg-grid" id="sgGrid">${buildServiceGalleryTiles()}</div>`}
++                </div>`;
++            bindAdminServiceGalleriesOnce();
++        }
++
++        function refreshAdminServiceGalleries() {
++            const tabs = document.getElementById('sgTabs');
++            if (tabs) tabs.innerHTML = buildServiceGalleryTabs();
++            const grid = document.getElementById('sgGrid');
++            if (grid) grid.innerHTML = buildServiceGalleryTiles();
++            const queue = document.getElementById('sgQueue');
++            if (queue) queue.innerHTML = buildServiceGalleryQueue();
++            const label = document.getElementById('sgDropLabel');
++            if (label) label.textContent = SHOWCASE_CATEGORY_LABELS[sgAdmin.category] || sgAdmin.category;
++        }
++
++        async function uploadServiceGalleryFiles(category, filesInput) {
++            const files = Array.from(filesInput || []).filter((f) => f && f.size > 0);
++            if (!files.length) return;
++            const jobs = files.map((file) => {
++                const kind = getMediaKind(file.name, file.type);
++                const job = { name: file.name, pct: 0, status: 'uploading', message: '', file, kind };
++                if (kind !== 'image' && kind !== 'video') { job.status = 'error'; job.message = 'Only photos and videos'; }
++                else if (kind === 'video' && file.size > MEDIA_MAX_VIDEO_BYTES) { job.status = 'error'; job.message = 'Too big (max 50 MB)'; }
++                return job;
++            });
++            sgAdmin.queue = jobs.concat(sgAdmin.queue.filter((q) => q.status === 'uploading')).slice(0, 20);
++            refreshAdminServiceGalleries();
++            const pending = jobs.filter((j) => j.status === 'uploading');
++            const runOne = async (job) => {
++                try {
++                    const blob = job.kind === 'image' ? await optimizeImageForUpload(job.file) : job.file;
++                    const storagePath = `gallery/${category}/${buildMediaObjectName(blob)}`;
++                    await uploadWithProgress(storagePath, blob, (pct) => {
++                        job.pct = pct;
++                        const q = document.getElementById('sgQueue');
++                        if (q) q.innerHTML = buildServiceGalleryQueue();
++                    });
++                    const maxOrder = sgItemsFor(category).reduce((m, it) => Math.max(m, it.order), 0);
++                    const res = await insertServiceGalleryItems([{
++                        id: newServiceGalleryId(),
++                        kind: 'gallery',
++                        category,
++                        mediaType: job.kind,
++                        src: getMediaPublicUrl(storagePath),
++                        source: 'supabase',
++                        storagePath,
++                        order: maxOrder + 1,
++                        createdAt: new Date().toISOString()
++                    }]);
++                    if (!res.ok) throw new Error(res.message);
++                    job.status = 'done';
++                    job.pct = 100;
++                } catch (err) {
++                    job.status = 'error';
++                    job.message = sgFriendlyError(err);
++                }
++                refreshAdminServiceGalleries();
++            };
++            // up to MEDIA_UPLOAD_CONCURRENCY at a time; one failure never stops the others
++            const queue = pending.slice();
++            const workers = Array.from({ length: Math.min(MEDIA_UPLOAD_CONCURRENCY, queue.length) }, async () => {
++                while (queue.length) await runOne(queue.shift());
++            });
++            await Promise.all(workers);
++            const done = jobs.filter((j) => j.status === 'done').length;
++            if (done) showAdminMediaToast(`${done} added to ${SHOWCASE_CATEGORY_LABELS[category] || category}`, 'success');
++            if (typeof pushAdminLog === 'function' && done) pushAdminLog(`Gallery upload: ${done} to ${category}`, 'OK');
++        }
++
++        // One link per line. https only; YouTube / Cloudinary / other image or video URLs.
++        function parseServiceGalleryLinks(text, existing) {
++            const known = new Set();
++            (existing || []).forEach((it) => {
++                const s = String(it.src || '').trim();
++                known.add(s);
++                known.add(normalizeCloudinaryUrl(s));
++            });
++            const items = [];
++            const invalid = [];
++            let duplicates = 0;
++            String(text || '').split(/\r?\n/).map((l) => l.trim()).filter(Boolean).forEach((line) => {
++                let url;
++                try { url = new URL(line); } catch { invalid.push(line); return; }
++                if (url.protocol !== 'https:') { invalid.push(line); return; }
++                const src = normalizeCloudinaryUrl(url.href);
++                if (known.has(src)) { duplicates += 1; return; }
++                known.add(src);
++                const host = url.hostname.replace(/^www\./, '');
++                const isYoutube = /(^|\.)youtube\.com$|^youtu\.be$/.test(host);
++                const isCloudinary = /(^|\.)res\.cloudinary\.com$/.test(host);
++                let mediaType = 'image';
++                let thumb = '';
++                if (isYoutube) {
++                    mediaType = 'youtube';
++                    const id = typeof getYoutubeVideoId === 'function' ? getYoutubeVideoId(src) : '';
++                    thumb = id && typeof getYoutubeThumbUrl === 'function' ? getYoutubeThumbUrl(id) : '';
++                } else if (/\/video\/upload\//.test(url.pathname) || /\.(mp4|webm|mov|m4v)$/i.test(url.pathname)) {
++                    mediaType = 'video';
++                }
++                items.push({ src, mediaType, thumb, source: isYoutube ? 'youtube' : isCloudinary ? 'cloudinary' : 'link' });
++            });
++            return { items, invalid, duplicates };
++        }
++
++        async function saveServiceGalleryRows(changed) {
++            const supabase = ensureSupabaseClient();
++            if (!supabase) return { ok: false, message: 'Storage is offline.' };
++            try {
++                const { data, error } = await withTimeout(
++                    supabase.from(SERVICE_GALLERY_TABLE).upsert(changed.map(toRemoteRow), { onConflict: 'id' }).select(),
++                    10000,
++                    'Saving'
++                );
++                if (error) throw error;
++                if (!Array.isArray(data) || !data.length) throw new Error(SG_NOT_ALLOWED);
++                changed.forEach((next) => {
++                    const i = serviceGallery.items.findIndex((it) => it.id === next.id);
++                    if (i >= 0) serviceGallery.items[i] = next;
++                });
++                serviceGallery.items = sortServiceGalleryItems(serviceGallery.items);
++                renderPublicServiceGallery();
++                return { ok: true, message: '' };
++            } catch (err) {
++                return { ok: false, message: sgFriendlyError(err) };
++            }
++        }
++
++        async function updateServiceGalleryItem(id, patch) {
++            const item = serviceGallery.items.find((it) => it.id === id);
++            if (!item) return { ok: false, message: 'Item not found' };
++            const next = normalizeServiceGalleryItem({ ...item, ...patch });
++            if (!next) return { ok: false, message: 'Invalid change' };
++            return saveServiceGalleryRows([next]);
++        }
++
++        async function setServiceGalleryCover(id) {
++            const item = serviceGallery.items.find((it) => it.id === id);
++            if (!item) return { ok: false, message: 'Item not found' };
++            const changed = sgItemsFor(item.category)
++                .filter((it) => it.cover !== (it.id === id))
++                .map((it) => ({ ...it, cover: it.id === id }));
++            return changed.length ? saveServiceGalleryRows(changed) : { ok: true, message: '' };
++        }
++
++        async function moveServiceGalleryItem(id, dir) {
++            const item = serviceGallery.items.find((it) => it.id === id);
++            if (!item) return { ok: false, message: 'Item not found' };
++            const list = sgItemsFor(item.category);
++            const i = list.indexOf(item);
++            const j = i + (dir < 0 ? -1 : 1);
++            if (j < 0 || j >= list.length) return { ok: true, message: '' };
++            // renumber the whole category so equal/missing orders can never block a swap
++            const ordered = list.slice();
++            [ordered[i], ordered[j]] = [ordered[j], ordered[i]];
++            const changed = ordered
++                .map((it, k) => ({ ...it, order: k + 1 }))
++                .filter((it) => it.order !== list.find((o) => o.id === it.id).order);
++            return saveServiceGalleryRows(changed);
++        }
++
++        async function addServiceGalleryLinks(text) {
++            const msgNode = document.getElementById('sgLinksMsg');
++            const say = (msg) => { if (msgNode) { msgNode.textContent = msg; msgNode.hidden = !msg; } };
++            const { items, invalid, duplicates } = parseServiceGalleryLinks(text, serviceGallery.items);
++            const category = sgAdmin.category;
++            let maxOrder = sgItemsFor(category).reduce((m, it) => Math.max(m, it.order), 0);
++            const records = items.map((it) => ({
++                ...it,
++                id: newServiceGalleryId(),
++                kind: 'gallery',
++                category,
++                order: (maxOrder += 1),
++                createdAt: new Date().toISOString()
++            }));
++            const res = records.length ? await insertServiceGalleryItems(records) : { ok: true, items: [] };
++            const parts = [];
++            if (res.ok && records.length) parts.push(`${records.length} added`);
++            if (!res.ok) parts.push(`Could not add: ${res.message}`);
++            if (invalid.length) parts.push(`${invalid.length} not added (links must start with https://)`);
++            if (duplicates) parts.push(`${duplicates} already in the gallery`);
++            say(parts.join('. '));
++            if (res.ok) {
++                const box = document.getElementById('sgLinks');
++                if (box) box.value = '';
++            }
++            refreshAdminServiceGalleries();
++        }
++
++        function sgSourceForUrl(src) {
++            if (/res\.cloudinary\.com/i.test(src)) return 'cloudinary';
++            if (/youtube\.com|youtu\.be/i.test(src)) return 'youtube';
++            if (/\/storage\/v1\/object\/public\/media\//i.test(src)) return 'supabase';
++            return 'link';
++        }
++
++        // Copies what the website shows today (built-in/local projects + old `installations`
++        // rows without a kind) into service galleries. Skips URLs already in a gallery.
++        async function importCurrentPhotosToServiceGallery() {
++            const supabase = ensureSupabaseClient();
++            if (!supabase) return { ok: false, added: 0, skipped: 0, message: 'Storage is offline.' };
++            let legacyRows = [];
++            try {
++                const { data, error } = await withTimeout(supabase.from(SERVICE_GALLERY_TABLE).select('*'), 10000, 'Loading projects');
++                if (error) throw error;
++                legacyRows = (Array.isArray(data) ? data : []).map(fromRemoteRow).filter((r) => r && r.kind !== 'gallery');
++            } catch (err) {
++                return { ok: false, added: 0, skipped: 0, message: sgFriendlyError(err) };
++            }
++            let legacyProjects = [];
++            try { legacyProjects = getProjects(); } catch {}
++            const known = new Set();
++            serviceGallery.items.forEach((it) => { known.add(it.src); known.add(normalizeCloudinaryUrl(it.src)); });
++            const perCategory = {};
++            const records = [];
++            let skipped = 0;
++            legacyRows.concat(legacyProjects).forEach((project) => {
++                const category = normalizeShowcaseCategory(project?.category);
++                if (!SERVICE_GALLERY_CATEGORIES.includes(category)) return;
++                let media = [];
++                try { media = getShowcaseMedia(project); } catch {}
++                media.forEach((m) => {
++                    const src = String(m.mediaSrc || '').trim();
++                    if (!src || /^(data|blob|javascript):/i.test(src)) return;
++                    let absolute = '';
++                    try {
++                        const u = new URL(src, `${location.origin}/`); // built-ins use site-relative paths
++                        if (!/^https?:$/i.test(u.protocol)) return;
++                        // this site's own files stay root-relative so they work on any domain (localhost or hailifugh.com)
++                        absolute = u.origin === location.origin ? `${u.pathname}${u.search}` : u.href;
++                    } catch { return; }
++                    if (known.has(absolute) || known.has(normalizeCloudinaryUrl(absolute))) { skipped += 1; return; }
++                    known.add(absolute);
++                    const existingCount = sgItemsFor(category).length;
++                    perCategory[category] = (perCategory[category] || 0) + 1;
++                    records.push({
++                        id: newServiceGalleryId(),
++                        kind: 'gallery',
++                        category,
++                        mediaType: ['image', 'video', 'youtube'].includes(m.mediaType) ? m.mediaType : 'image',
++                        src: absolute,
++                        thumb: m.thumbSrc || '',
++                        source: sgSourceForUrl(absolute),
++                        storagePath: '',
++                        caption: String(project?.title || '').trim().slice(0, 140),
++                        cover: existingCount === 0 && perCategory[category] === 1,
++                        order: existingCount + perCategory[category],
++                        createdAt: new Date().toISOString()
++                    });
++                });
++            });
++            if (!records.length) return { ok: true, added: 0, skipped, message: '' };
++            const res = await insertServiceGalleryItems(records);
++            return res.ok ? { ok: true, added: records.length, skipped, message: '' } : { ok: false, added: 0, skipped, message: res.message };
++        }
++
++        // Row first (confirmed with .select()), then the Storage file for our own uploads.
++        // Cloudinary/YouTube files are left where they are; they just leave the website.
++        async function deleteServiceGalleryItem(id) {
++            const item = serviceGallery.items.find((it) => it.id === id);
++            if (!item) return { ok: false, message: 'Item not found' };
++            const supabase = ensureSupabaseClient();
++            if (!supabase) return { ok: false, message: 'Storage is offline.' };
++            try {
++                const { data, error } = await withTimeout(
++                    supabase.from(SERVICE_GALLERY_TABLE).delete().eq('id', id).select('id'),
++                    10000,
++                    'Deleting'
++                );
++                if (error) throw error;
++                if (!Array.isArray(data) || !data.length) throw new Error(SG_NOT_ALLOWED);
++            } catch (err) {
++                return { ok: false, message: sgFriendlyError(err) };
++            }
++            serviceGallery.items = serviceGallery.items.filter((it) => it.id !== id);
++            if (item.source === 'supabase' && item.storagePath) {
++                try {
++                    const { error } = await supabase.storage.from(MEDIA_BUCKET).remove([item.storagePath]);
++                    if (error) console.warn('[Galleries] File not removed:', item.storagePath, error.message);
++                } catch (err) {
++                    console.warn('[Galleries] File not removed:', item.storagePath, err);
++                }
++            }
++            renderShowcase(); // falls back to legacy cards if this was the last item
++            scheduleFeaturedRender(null, true);
++            if (typeof pushAdminLog === 'function') pushAdminLog(`Gallery item deleted (${item.category})`, 'OK');
++            return { ok: true, message: '' };
++        }
++
++        async function runServiceGalleryAction(action, id, value) {
++            let res = { ok: true, message: '' };
++            if (action === 'feature') {
++                const item = serviceGallery.items.find((it) => it.id === id);
++                if (item) res = await updateServiceGalleryItem(id, { featured: !item.featured });
++            } else if (action === 'cover') res = await setServiceGalleryCover(id);
++            else if (action === 'left') res = await moveServiceGalleryItem(id, -1);
++            else if (action === 'right') res = await moveServiceGalleryItem(id, 1);
++            else if (action === 'move') res = await updateServiceGalleryItem(id, { category: value, cover: false, order: sgItemsFor(value).reduce((m, it) => Math.max(m, it.order), 0) + 1 });
++            else if (action === 'caption') res = await updateServiceGalleryItem(id, { caption: value });
++            if (!res.ok) showAdminMediaToast(`Could not save: ${res.message}`, 'error');
++            else if (action === 'move') showAdminMediaToast(`Moved to ${SHOWCASE_CATEGORY_LABELS[value] || value}`, 'success');
++            else if (action === 'caption') showAdminMediaToast('Caption saved', 'success');
++            refreshAdminServiceGalleries();
++        }
++
++        function bindAdminServiceGalleriesOnce() {
++            if (window.__sgBound) return;
++            window.__sgBound = true;
++            document.addEventListener('submit', (e) => {
++                if (!e.target || e.target.id !== 'sgLinksForm') return;
++                e.preventDefault();
++                addServiceGalleryLinks(document.getElementById('sgLinks')?.value || '');
++            });
++            document.addEventListener('change', (e) => {
++                const tile = e.target.closest && e.target.closest('#sgAdmin .sg-tile');
++                if (!tile) return;
++                if (e.target.classList.contains('sg-move') && e.target.value) runServiceGalleryAction('move', tile.dataset.sgId, e.target.value);
++                if (e.target.classList.contains('sg-caption')) {
++                    const item = serviceGallery.items.find((it) => it.id === tile.dataset.sgId);
++                    if (item && item.caption !== e.target.value.trim()) runServiceGalleryAction('caption', tile.dataset.sgId, e.target.value.trim());
++                }
++            });
++            document.addEventListener('click', (e) => {
++                const btn = e.target.closest('#sgAdmin .sg-tile [data-sg-action]');
++                if (!btn || btn.disabled) return;
++                const action = btn.dataset.sgAction;
++                const tileNode = btn.closest('.sg-tile');
++                const id = tileNode.dataset.sgId;
++                if (['feature', 'cover', 'left', 'right'].includes(action)) { runServiceGalleryAction(action, id); return; }
++                if (action === 'ask-delete') {
++                    document.querySelectorAll('#sgGrid .sg-tile.is-confirming').forEach((t) => t.classList.remove('is-confirming'));
++                    sgAdmin.confirming = id;
++                    tileNode.classList.add('is-confirming');
++                    tileNode.querySelector('[data-sg-action="confirm-delete"]')?.focus({ preventScroll: true });
++                    return;
++                }
++                if (action === 'cancel-delete') { sgAdmin.confirming = ''; tileNode.classList.remove('is-confirming'); return; }
++                if (action === 'confirm-delete') {
++                    if (tileNode.classList.contains('is-deleting')) return;
++                    tileNode.classList.add('is-deleting');
++                    deleteServiceGalleryItem(id).then((res) => {
++                        sgAdmin.confirming = '';
++                        if (!res.ok) {
++                            tileNode.classList.remove('is-deleting', 'is-confirming');
++                            showAdminMediaToast(`Could not delete: ${res.message}`, 'error');
++                            return;
++                        }
++                        tileNode.classList.add('is-removed');
++                        showAdminMediaToast('Deleted from the website', 'success');
++                        setTimeout(refreshAdminServiceGalleries, 380);
++                    });
++                }
++            });
++            document.addEventListener('change', (e) => {
++                if (e.target && e.target.id === 'sgFile') {
++                    const files = Array.from(e.target.files || []);
++                    e.target.value = '';
++                    uploadServiceGalleryFiles(sgAdmin.category, files);
++                }
++            });
++            document.addEventListener('click', async (e) => {
++                const tab = e.target.closest('#sgAdmin .sg-tab');
++                if (tab) {
++                    sgAdmin.category = tab.dataset.sgCat;
++                    sgAdmin.confirming = '';
++                    refreshAdminServiceGalleries();
++                    return;
++                }
++                const importBtn = e.target.closest('#sgAdmin [data-sg-action="import"]');
++                if (importBtn) {
++                    if (importBtn.disabled) return;
++                    importBtn.disabled = true;
++                    const res = await importCurrentPhotosToServiceGallery();
++                    importBtn.disabled = false;
++                    if (!res.ok) { showAdminMediaToast(`Could not import: ${res.message}`, 'error'); return; }
++                    showAdminMediaToast(`Imported ${res.added} photo${res.added === 1 ? '' : 's'}${res.skipped ? ` (${res.skipped} already there)` : ''}`, 'success');
++                    const host = document.getElementById('sgAdmin')?.parentElement;
++                    if (host) renderAdminServiceGalleries(host);
++                    return;
++                }
++                if (e.target.closest('#sgAdmin [data-sg-action="retry"]')) {
++                    await loadServiceGallery();
++                    const host = document.getElementById('sgAdmin')?.parentElement;
++                    if (host) renderAdminServiceGalleries(host);
++                }
++            });
++            ['dragenter', 'dragover'].forEach((type) => document.addEventListener(type, (e) => {
++                const drop = e.target.closest && e.target.closest('#sgDrop');
++                if (!drop) return;
++                e.preventDefault();
++                drop.classList.add('is-over');
++            }));
++            ['dragleave', 'drop'].forEach((type) => document.addEventListener(type, (e) => {
++                const drop = e.target.closest && e.target.closest('#sgDrop');
++                if (!drop) return;
++                e.preventDefault();
++                drop.classList.remove('is-over');
++                if (type === 'drop' && e.dataTransfer && e.dataTransfer.files.length) uploadServiceGalleryFiles(sgAdmin.category, e.dataTransfer.files);
++            }));
++        }
++
+         // ---------- Gallery ----------
+         function ensureGalleryShell() {
+             let gal = document.getElementById('hmGallery');
+diff --git a/_backup-before-galleries-2026-09-30/premium.css b/premium.css
+index 28870e1..6f72555 100644
+--- a/_backup-before-galleries-2026-09-30/premium.css
++++ b/premium.css
+@@ -4622,3 +4622,223 @@ html body .r7-chat-teaser-body { min-height: 36px; }
+ #adminPanel.hm-admin .r7-proj-confirm span { flex: 1 0 100%; margin: 0 0 2px; }
+ #adminPanel.hm-admin .r7-proj-confirm .hm-btn { flex: 1; justify-content: center; }
+ #adminPanel.hm-admin .r7-proj-confirm .hm-btn.is-danger { background: #c4392e !important; border-color: #c4392e !important; background-image: none !important; box-shadow: none !important; color: #fff !important; -webkit-text-fill-color: #fff !important; }
++
++/* ==========================================================================
++   7.14 SERVICE GALLERIES (admin). One radius system: 14px panels, 10px controls, pill tabs.
++   ========================================================================== */
++#adminPanel.hm-admin .sg-admin { gap: 16px; }
++#adminPanel.hm-admin .sg-tabs {
++    display: flex;
++    gap: 6px;
++    overflow-x: auto;
++    padding-bottom: 2px;
++    scrollbar-width: none;
++}
++#adminPanel.hm-admin .sg-tab {
++    flex: 0 0 auto;
++    display: inline-flex;
++    align-items: center;
++    gap: 8px;
++    height: 36px;
++    padding: 0 12px 0 14px;
++    border-radius: 999px !important;
++    border: 1px solid var(--a-line-2) !important;
++    background: transparent !important;
++    color: var(--a-soft) !important;
++    font: 600 0.84rem var(--p-font);
++    cursor: pointer;
++}
++#adminPanel.hm-admin .sg-tab span {
++    min-width: 22px;
++    height: 20px;
++    padding: 0 6px;
++    display: inline-grid;
++    place-items: center;
++    border-radius: 999px;
++    background: var(--a-panel-2);
++    color: var(--a-muted);
++    font-size: 0.72rem;
++    font-variant-numeric: tabular-nums;
++}
++#adminPanel.hm-admin .sg-tab:hover { border-color: var(--a-line-strong) !important; color: var(--a-text) !important; }
++#adminPanel.hm-admin .sg-tab.is-active { background: var(--a-text) !important; border-color: var(--a-text) !important; color: #111112 !important; }
++#adminPanel.hm-admin .sg-tab.is-active span { background: rgba(17, 17, 18, 0.12); color: #111112; }
++
++#adminPanel.hm-admin .sg-add { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 12px; }
++#adminPanel.hm-admin .sg-drop {
++    position: relative;
++    display: grid;
++    align-content: center;
++    justify-items: center;
++    gap: 6px;
++    min-height: 168px;
++    padding: 22px;
++    border-radius: 14px;
++    border: 1.5px dashed var(--a-line-strong);
++    background: var(--a-panel);
++    color: var(--a-muted);
++    text-align: center;
++    cursor: pointer;
++    transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.25s var(--r7-ease-out);
++}
++#adminPanel.hm-admin .sg-drop i { font-size: 1.5rem; color: var(--p-accent); transition: transform 0.3s var(--r7-ease-out); }
++#adminPanel.hm-admin .sg-drop strong { color: var(--a-text); font-size: 0.95rem; }
++#adminPanel.hm-admin .sg-drop span { font-size: 0.8rem; max-width: 42ch; }
++#adminPanel.hm-admin .sg-drop:hover, #adminPanel.hm-admin .sg-drop.is-over { border-color: var(--p-accent); background: color-mix(in srgb, var(--p-accent) 7%, var(--a-panel)); }
++#adminPanel.hm-admin .sg-drop.is-over { transform: scale(1.01); }
++#adminPanel.hm-admin .sg-drop.is-over i, #adminPanel.hm-admin .sg-drop:hover i { transform: translateY(-3px); }
++#adminPanel.hm-admin .sg-drop:focus-within { outline: 2px solid var(--p-accent); outline-offset: 2px; }
++#adminPanel.hm-admin .sg-drop input[type='file'] { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; border: 0 !important; padding: 0 !important; }
++#adminPanel.hm-admin .sg-links {
++    display: grid;
++    gap: 8px;
++    padding: 16px;
++    border-radius: 14px;
++    border: 1px solid var(--a-line);
++    background: var(--a-panel);
++}
++#adminPanel.hm-admin .sg-links textarea { min-height: 72px !important; font-size: 0.82rem !important; }
++#adminPanel.hm-admin .sg-links .hm-btn { justify-self: start; }
++#adminPanel.hm-admin .sg-links-msg { margin: 0; font-size: 0.8rem; color: var(--a-soft); }
++
++#adminPanel.hm-admin .sg-queue { display: grid; gap: 6px; }
++#adminPanel.hm-admin .sg-queue:empty { display: none; }
++#adminPanel.hm-admin .sg-q {
++    position: relative;
++    display: flex;
++    justify-content: space-between;
++    gap: 12px;
++    padding: 9px 12px 11px;
++    border-radius: 10px;
++    background: var(--a-panel);
++    border: 1px solid var(--a-line);
++    font-size: 0.82rem;
++    overflow: hidden;
++    animation: r7-admin-page 0.3s var(--r7-ease-out) both;
++}
++#adminPanel.hm-admin .sg-q-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--a-text); }
++#adminPanel.hm-admin .sg-q-state { flex: 0 0 auto; color: var(--a-muted); font-variant-numeric: tabular-nums; }
++#adminPanel.hm-admin .sg-q.is-done .sg-q-state { color: var(--a-ok); }
++#adminPanel.hm-admin .sg-q.is-error .sg-q-state { color: var(--a-bad); }
++#adminPanel.hm-admin .sg-q-bar { position: absolute; left: 0; bottom: 0; height: 2px; width: 100%; background: var(--p-accent); transform-origin: left; transform: scaleX(calc(var(--pct, 0%) / 100%)); transition: transform 0.25s ease; }
++#adminPanel.hm-admin .sg-q.is-done .sg-q-bar { background: var(--a-ok); }
++#adminPanel.hm-admin .sg-q.is-error .sg-q-bar { background: var(--a-bad); }
++
++#adminPanel.hm-admin .sg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
++#adminPanel.hm-admin .sg-grid > .sg-empty { grid-column: 1 / -1; }
++#adminPanel.hm-admin .sg-tile {
++    position: relative;
++    display: flex;
++    flex-direction: column;
++    margin: 0;
++    overflow: hidden;
++    border-radius: 14px;
++    background: var(--a-panel);
++    border: 1px solid var(--a-line);
++    transition: border-color 0.2s ease, transform 0.25s var(--r7-ease-out);
++    animation: r7-admin-page 0.4s var(--r7-ease-out) both;
++    animation-delay: calc(var(--i, 0) * 30ms);
++}
++#adminPanel.hm-admin .sg-tile.is-featured { border-color: color-mix(in srgb, var(--p-accent) 55%, transparent); }
++#adminPanel.hm-admin .sg-thumb { position: relative; aspect-ratio: 4 / 3; background: var(--a-bg); overflow: hidden; }
++#adminPanel.hm-admin .sg-thumb :is(img, video) { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.6s var(--r7-ease-out); }
++#adminPanel.hm-admin .sg-kind, #adminPanel.hm-admin .sg-cover-badge {
++    position: absolute;
++    top: 8px;
++    display: inline-flex;
++    align-items: center;
++    gap: 5px;
++    height: 24px;
++    padding: 0 9px;
++    border-radius: 999px;
++    background: rgba(11, 11, 12, 0.72);
++    color: #f2f0ec;
++    font-size: 0.7rem;
++    font-weight: 600;
++}
++#adminPanel.hm-admin .sg-kind { left: 8px; }
++#adminPanel.hm-admin .sg-cover-badge { right: 8px; background: var(--p-accent); color: #140c05; }
++#adminPanel.hm-admin .sg-caption {
++    margin: 10px 10px 0;
++    min-height: 34px !important;
++    padding: 6px 10px !important;
++    font-size: 0.82rem !important;
++    background: transparent !important;
++    border-color: transparent !important;
++}
++#adminPanel.hm-admin .sg-caption:hover { border-color: var(--a-line-2) !important; }
++#adminPanel.hm-admin .sg-caption:focus { background: var(--a-bg) !important; }
++#adminPanel.hm-admin .sg-tools { display: flex; align-items: center; gap: 4px; padding: 8px 10px 10px; }
++#adminPanel.hm-admin .sg-tool {
++    width: 32px;
++    height: 32px;
++    flex: 0 0 32px;
++    display: grid;
++    place-items: center;
++    border-radius: 8px;
++    border: 1px solid transparent;
++    background: transparent;
++    color: var(--a-muted);
++    cursor: pointer;
++    font-size: 0.8rem;
++}
++#adminPanel.hm-admin .sg-tool:hover:not(:disabled) { color: var(--a-text); background: rgba(255, 255, 255, 0.06); }
++#adminPanel.hm-admin .sg-tool:disabled { opacity: 0.3; cursor: default; }
++#adminPanel.hm-admin .sg-tool.is-on { color: var(--p-accent); }
++#adminPanel.hm-admin .sg-tool.is-danger { margin-left: auto; }
++#adminPanel.hm-admin .sg-tool.is-danger:hover { color: var(--a-bad); background: rgba(239, 107, 94, 0.12); }
++#adminPanel.hm-admin .sg-move { flex: 1 1 auto; min-width: 0; min-height: 32px !important; height: 32px; padding: 0 26px 0 8px !important; font-size: 0.78rem !important; background-position: right 8px center !important; }
++#adminPanel.hm-admin .sg-confirm {
++    position: absolute;
++    left: 0;
++    right: 0;
++    bottom: 0;
++    z-index: 2;
++    display: flex;
++    flex-wrap: wrap;
++    gap: 8px;
++    padding: 12px;
++    border-top: 1px solid var(--a-line-2);
++    background: rgba(19, 19, 21, 0.97);
++    visibility: hidden;
++    opacity: 0;
++    transform: translateY(100%);
++    transition: transform 0.28s var(--r7-ease-out), opacity 0.2s ease, visibility 0s linear 0.28s;
++}
++#adminPanel.hm-admin .sg-confirm span { flex: 1 0 100%; font-size: 0.84rem; font-weight: 600; }
++#adminPanel.hm-admin .sg-confirm .hm-btn { flex: 1; justify-content: center; height: 34px !important; }
++#adminPanel.hm-admin .sg-confirm .hm-btn.is-danger { background: #c4392e !important; border-color: #c4392e !important; color: #fff !important; -webkit-text-fill-color: #fff !important; }
++#adminPanel.hm-admin .sg-tile.is-confirming { border-color: rgba(239, 107, 94, 0.45); }
++#adminPanel.hm-admin .sg-tile.is-confirming .sg-confirm { visibility: visible; opacity: 1; transform: none; transition-delay: 0s; }
++#adminPanel.hm-admin .sg-tile.is-removed { opacity: 0; transform: scale(0.94); transition: opacity 0.3s ease, transform 0.36s var(--r7-ease-out); pointer-events: none; }
++@media (hover: hover) and (pointer: fine) {
++    #adminPanel.hm-admin .sg-tile:hover { transform: translateY(-2px); border-color: var(--a-line-strong); }
++    #adminPanel.hm-admin .sg-tile:hover .sg-thumb :is(img, video) { transform: scale(1.04); }
++}
++@media (max-width: 900px) {
++    #adminPanel.hm-admin .sg-add { grid-template-columns: 1fr; }
++    #adminPanel.hm-admin .sg-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
++}
++@media (max-width: 480px) {
++    #adminPanel.hm-admin .sg-grid { grid-template-columns: 1fr; }
++}
++@media (prefers-reduced-motion: reduce) {
++    #adminPanel.hm-admin :is(.sg-tile, .sg-q) { animation: none; }
++}
++
++/* 7.14 public: service cards already name the service in the title */
++html body #hmShowcase.is-services .hm-sc-cat { display: none !important; }
++html body #hmShowcase.is-services .hm-sc-info { padding-top: 18px; }
++#adminPanel.hm-admin .sg-tab { width: auto !important; flex: 0 0 auto !important; }
++#adminPanel.hm-admin .sg-drop strong span { font-size: inherit; max-width: none; color: var(--p-accent); }
++#adminPanel.hm-admin .sg-toolbar { display: flex; align-items: center; gap: 12px; min-width: 0; }
++#adminPanel.hm-admin .sg-toolbar .sg-tabs { flex: 1; min-width: 0; }
++#adminPanel.hm-admin .sg-import { flex: 0 0 auto; }
++#adminPanel.hm-admin .sg-hint { margin: 0; padding: 12px 14px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--p-accent) 35%, transparent); background: color-mix(in srgb, var(--p-accent) 8%, transparent); color: var(--a-soft); font-size: 0.85rem; }
++#adminPanel.hm-admin .sg-hint strong { color: var(--a-text); }
++#hmMedia .hm-tile { position: relative; }
++#hmMedia .hm-togal { position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; display: grid; grid-template-columns: 1fr auto auto; gap: 6px; padding: 10px; border-top: 1px solid var(--a-line-2, rgba(255, 255, 255, 0.11)); background: rgba(19, 19, 21, 0.97); visibility: hidden; opacity: 0; transform: translateY(100%); transition: transform 0.28s var(--r7-ease-out), opacity 0.2s ease, visibility 0s linear 0.28s; }
++#hmMedia .hm-tile.is-picking .hm-togal { visibility: visible; opacity: 1; transform: none; transition-delay: 0s; }
++#hmMedia .hm-togal select { min-width: 0; min-height: 34px !important; font-size: 0.8rem !important; }
++#hmMedia .hm-togal .hm-btn { height: 34px !important; padding: 0 12px !important; font-size: 0.8rem; }
++@media (max-width: 700px) { #adminPanel.hm-admin .sg-toolbar { flex-direction: column; align-items: stretch; } #adminPanel.hm-admin .sg-import { align-self: flex-start; } }
+diff --git a/_backup-before-galleries-2026-09-30/index.html b/index.html
+index 997d5fb..364304d 100644
+--- a/_backup-before-galleries-2026-09-30/index.html
++++ b/index.html
+@@ -691,7 +691,7 @@
+             }
+         </style>
+         <!-- Premium design layer (2026 rebuild). Loaded last so it overrides style.css and the inline styles above. -->
+-        <link rel="stylesheet" href="/premium.css?v=20260929r7b">
++        <link rel="stylesheet" href="/premium.css?v=20260930g">
+ </head>
+  <body>
+ 
+@@ -2369,7 +2369,7 @@
+     })();
+     </script>
+     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+-    <script src="script.js?v=6.6" defer></script>
++    <script src="script.js?v=6.7" defer></script>
+     <script src="premium.js?v=20260929r7b" defer></script>
+ 
+     <!-- Photo Gallery Modal -->

@@ -1,0 +1,172 @@
+
+Running 4 tests using 1 worker
+
+[1/4] [chromium] › e2e\round9.spec.js:366:5 › Site health (was Control Center) › everything working shows green checks with real numbers
+  1) [chromium] › e2e\round9.spec.js:366:5 › Site health (was Control Center) › everything working shows green checks with real numbers 
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('#adminPanel .nav-item[data-admin-tab="control-center"]')
+    Timeout: 10000ms
+    - Expected substring  - 1
+    + Received string     + 3
+
+    - Site health
+    +
+    +                                  Control Center
+    +                             
+
+    Call log:
+      - Expect "toContainText" locator('#adminPanel .nav-item[data-admin-tab="control-center"]') with timeout 10000ms
+      - waiting for locator('#adminPanel .nav-item[data-admin-tab="control-center"]')
+        23 × locator resolved to <button class="nav-item" data-admin-tab="control-center">…</button>
+           - unexpected value "
+                                     Control Center
+                                "
+
+
+      358 |         if (await menuBtn.isVisible()) await menuBtn.click();
+      359 |         const nav = page.locator('#adminPanel .nav-item[data-admin-tab="control-center"]');
+    > 360 |         await expect(nav).toContainText('Site health');
+          |                           ^
+      361 |         await nav.click();
+      362 |         await page.waitForSelector('#shList [data-sh="google"][data-state]:not([data-state="busy"])', { timeout: 20000 });
+      363 |     }
+        at openHealth (C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round9.spec.js:360:27)
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round9.spec.js:370:9
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round9-Site-health-was-Con-be3b9-en-checks-with-real-numbers-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round9-Site-health-was-Con-be3b9-en-checks-with-real-numbers-chromium\error-context.md
+
+
+[2/4] [chromium] › e2e\round9.spec.js:380:5 › Site health (was Control Center) › Google refusing the key is red with the reason and a fix link
+  2) [chromium] › e2e\round9.spec.js:380:5 › Site health (was Control Center) › Google refusing the key is red with the reason and a fix link 
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('#adminPanel .nav-item[data-admin-tab="control-center"]')
+    Timeout: 10000ms
+    - Expected substring  - 1
+    + Received string     + 3
+
+    - Site health
+    +
+    +                                  Control Center
+    +                             
+
+    Call log:
+      - Expect "toContainText" locator('#adminPanel .nav-item[data-admin-tab="control-center"]') with timeout 10000ms
+      - waiting for locator('#adminPanel .nav-item[data-admin-tab="control-center"]')
+        23 × locator resolved to <button class="nav-item" data-admin-tab="control-center">…</button>
+           - unexpected value "
+                                     Control Center
+                                "
+
+
+      358 |         if (await menuBtn.isVisible()) await menuBtn.click();
+      359 |         const nav = page.locator('#adminPanel .nav-item[data-admin-tab="control-center"]');
+    > 360 |         await expect(nav).toContainText('Site health');
+          |                           ^
+      361 |         await nav.click();
+      362 |         await page.waitForSelector('#shList [data-sh="google"][data-state]:not([data-state="busy"])', { timeout: 20000 });
+      363 |     }
+        at openHealth (C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round9.spec.js:360:27)
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round9.spec.js:384:9
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round9-Site-health-was-Con-429b7-h-the-reason-and-a-fix-link-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round9-Site-health-was-Con-429b7-h-the-reason-and-a-fix-link-chromium\error-context.md
+
+
+[3/4] [chromium] › e2e\round9.spec.js:391:5 › Site health (was Control Center) › waiting reviews are counted and the fix link opens Reviews
+  3) [chromium] › e2e\round9.spec.js:391:5 › Site health (was Control Center) › waiting reviews are counted and the fix link opens Reviews 
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('#adminPanel .nav-item[data-admin-tab="control-center"]')
+    Timeout: 10000ms
+    - Expected substring  - 1
+    + Received string     + 3
+
+    - Site health
+    +
+    +                                  Control Center
+    +                             
+
+    Call log:
+      - Expect "toContainText" locator('#adminPanel .nav-item[data-admin-tab="control-center"]') with timeout 10000ms
+      - waiting for locator('#adminPanel .nav-item[data-admin-tab="control-center"]')
+        23 × locator resolved to <button class="nav-item" data-admin-tab="control-center">…</button>
+           - unexpected value "
+                                     Control Center
+                                "
+
+
+      358 |         if (await menuBtn.isVisible()) await menuBtn.click();
+      359 |         const nav = page.locator('#adminPanel .nav-item[data-admin-tab="control-center"]');
+    > 360 |         await expect(nav).toContainText('Site health');
+          |                           ^
+      361 |         await nav.click();
+      362 |         await page.waitForSelector('#shList [data-sh="google"][data-state]:not([data-state="busy"])', { timeout: 20000 });
+      363 |     }
+        at openHealth (C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round9.spec.js:360:27)
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round9.spec.js:395:9
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round9-Site-health-was-Con-dceac--the-fix-link-opens-Reviews-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round9-Site-health-was-Con-dceac--the-fix-link-opens-Reviews-chromium\error-context.md
+
+
+[4/4] [chromium] › e2e\round9.spec.js:402:5 › Site health (was Control Center) › storage that cannot be reached is red
+  4) [chromium] › e2e\round9.spec.js:402:5 › Site health (was Control Center) › storage that cannot be reached is red 
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('#adminPanel .nav-item[data-admin-tab="control-center"]')
+    Timeout: 10000ms
+    - Expected substring  - 1
+    + Received string     + 3
+
+    - Site health
+    +
+    +                                  Control Center
+    +                             
+
+    Call log:
+      - Expect "toContainText" locator('#adminPanel .nav-item[data-admin-tab="control-center"]') with timeout 10000ms
+      - waiting for locator('#adminPanel .nav-item[data-admin-tab="control-center"]')
+        23 × locator resolved to <button class="nav-item" data-admin-tab="control-center">…</button>
+           - unexpected value "
+                                     Control Center
+                                "
+
+
+      358 |         if (await menuBtn.isVisible()) await menuBtn.click();
+      359 |         const nav = page.locator('#adminPanel .nav-item[data-admin-tab="control-center"]');
+    > 360 |         await expect(nav).toContainText('Site health');
+          |                           ^
+      361 |         await nav.click();
+      362 |         await page.waitForSelector('#shList [data-sh="google"][data-state]:not([data-state="busy"])', { timeout: 20000 });
+      363 |     }
+        at openHealth (C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round9.spec.js:360:27)
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round9.spec.js:407:9
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round9-Site-health-was-Con-881b8-at-cannot-be-reached-is-red-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round9-Site-health-was-Con-881b8-at-cannot-be-reached-is-red-chromium\error-context.md
+
+
+  4 failed
+    [chromium] › e2e\round9.spec.js:366:5 › Site health (was Control Center) › everything working shows green checks with real numbers 
+    [chromium] › e2e\round9.spec.js:380:5 › Site health (was Control Center) › Google refusing the key is red with the reason and a fix link 
+    [chromium] › e2e\round9.spec.js:391:5 › Site health (was Control Center) › waiting reviews are counted and the fix link opens Reviews 
+    [chromium] › e2e\round9.spec.js:402:5 › Site health (was Control Center) › storage that cannot be reached is red 

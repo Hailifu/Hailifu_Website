@@ -1,0 +1,12 @@
+﻿
+Running 6 tests using 1 worker
+
+
+
+[1/6] [chromium] › e2e\galleries.spec.js:539:5 › Service galleries — minor fixes › a file whose save is refused is removed from storage again
+[2/6] [chromium] › e2e\galleries.spec.js:550:5 › Service galleries — minor fixes › several files uploaded together keep distinct positions
+[3/6] [chromium] › e2e\galleries.spec.js:560:5 › Service galleries — minor fixes › links that are not photos or videos, or YouTube without a video, are refused
+[4/6] [chromium] › e2e\galleries.spec.js:579:5 › Service galleries — minor fixes › public gallery follows the admin order; cover only sets the card photo
+[5/6] [chromium] › e2e\galleries.spec.js:590:5 › Service galleries — minor fixes › refused caption, star and cover saves change nothing
+[6/6] [chromium] › e2e\galleries.spec.js:607:5 › Service galleries — minor fixes › deleting every gallery item brings the built-in photos back
+  6 passed (54.6s)

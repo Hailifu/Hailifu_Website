@@ -1,0 +1,48 @@
+﻿
+Running 40 tests using 1 worker
+
+
+
+[1/40] [chromium] › e2e\galleries.spec.js:15:5 › Service galleries — public › shows one card per service from gallery rows
+[2/40] [chromium] › e2e\galleries.spec.js:32:5 › Service galleries — public › showcase wording talks about services, not projects
+[3/40] [chromium] › e2e\galleries.spec.js:41:5 › Service galleries — public › card opens the service gallery
+[4/40] [chromium] › e2e\galleries.spec.js:53:5 › Service galleries — public › falls back to built-in projects when no gallery rows
+[5/40] [chromium] › e2e\galleries.spec.js:60:5 › Service galleries — public › falls back when Supabase is unreachable
+[6/40] [chromium] › e2e\galleries.spec.js:70:5 › Service galleries — public › legacy localStorage projects are ignored when gallery rows exist
+[7/40] [chromium] › e2e\galleries.spec.js:101:5 › Service galleries — admin › galleries tab lists items by service
+[8/40] [chromium] › e2e\galleries.spec.js:112:5 › Service galleries — admin › upload photo and video into CCTV
+[9/40] [chromium] › e2e\galleries.spec.js:133:5 › Service galleries — admin › bad file does not stop the others
+[10/40] [chromium] › e2e\galleries.spec.js:151:5 › Service galleries — admin › not allowed upload leaves nothing behind
+[11/40] [chromium] › e2e\galleries.spec.js:161:5 › Service galleries — admin › tab chosen right after sign-in is not reset to the Dashboard
+[12/40] [chromium] › e2e\galleries.spec.js:181:5 › Service galleries — admin › offline shows state with retry
+[13/40] [chromium] › e2e\galleries.spec.js:196:5 › Service galleries — links and arranging › add Cloudinary and YouTube links
+[14/40] [chromium] › e2e\galleries.spec.js:212:5 › Service galleries — links and arranging › bad and duplicate links are reported
+[15/40] [chromium] › e2e\galleries.spec.js:224:5 › Service galleries — links and arranging › caption, featured, cover, reorder, move
+[16/40] [chromium] › e2e\galleries.spec.js:267:5 › Service galleries — delete › delete removes row, file and public item
+[17/40] [chromium] › e2e\galleries.spec.js:286:5 › Service galleries — delete › refused delete keeps the item
+[18/40] [chromium] › e2e\galleries.spec.js:297:5 › Service galleries — delete › cloudinary item delete keeps the Cloudinary file
+[19/40] [chromium] › e2e\galleries.spec.js:307:5 › Service galleries — delete › deleting cover and last item
+[20/40] [chromium] › e2e\galleries.spec.js:334:5 › Service galleries — import and media library › import copies current photos once
+[21/40] [chromium] › e2e\galleries.spec.js:355:5 › Service galleries — import and media library › media library add to gallery
+[22/40] [chromium] › e2e\galleries.spec.js:376:5 › Service galleries — featured and phones › featured items drive Featured Work
+[23/40] [chromium] › e2e\galleries.spec.js:388:5 › Service galleries — featured and phones › without starred items each service cover is featured
+[24/40] [chromium] › e2e\galleries.spec.js:395:5 › Service galleries — featured and phones › phone layout has no sideways scroll
+[25/40] [chromium] › e2e\galleries.spec.js:415:5 › Service galleries — review fixes › captions with quotes survive and unsafe links are never rendered
+[26/40] [chromium] › e2e\galleries.spec.js:429:5 › Service galleries — review fixes › media library file is not deleted with its gallery item, and cannot be added twice
+[27/40] [chromium] › e2e\galleries.spec.js:453:5 › Service galleries — review fixes › typing the next caption is not wiped when the previous one saves
+[28/40] [chromium] › e2e\galleries.spec.js:470:5 › Service galleries — review fixes › visitors never see old local projects while galleries load
+[29/40] [chromium] › e2e\galleries.spec.js:490:5 › Service galleries — review fixes › captions show under the photo in the public gallery
+[30/40] [chromium] › e2e\galleries.spec.js:503:5 › Service galleries — dashboard › dashboard counts gallery items, not old projects
+[31/40] [chromium] › e2e\galleries.spec.js:516:5 › Service galleries — dashboard › before any gallery items the dashboard points to Import
+[32/40] [chromium] › e2e\galleries.spec.js:524:5 › Service galleries — dashboard › dashboard updates after an upload without reloading
+[33/40] [chromium] › e2e\galleries.spec.js:539:5 › Service galleries — minor fixes › a file whose save is refused is removed from storage again
+[34/40] [chromium] › e2e\galleries.spec.js:550:5 › Service galleries — minor fixes › several files uploaded together keep distinct positions
+[35/40] [chromium] › e2e\galleries.spec.js:560:5 › Service galleries — minor fixes › links that are not photos or videos, or YouTube without a video, are refused
+[36/40] [chromium] › e2e\galleries.spec.js:579:5 › Service galleries — minor fixes › public gallery follows the admin order; cover only sets the card photo
+[37/40] [chromium] › e2e\galleries.spec.js:590:5 › Service galleries — minor fixes › refused caption, star and cover saves change nothing
+[38/40] [chromium] › e2e\galleries.spec.js:607:5 › Service galleries — minor fixes › deleting every gallery item brings the built-in photos back
+[39/40] [chromium] › e2e\round9.spec.js:14:5 › Networking service › networking is a service everywhere on the public site
+[40/40] [chromium] › e2e\round9.spec.js:37:5 › Networking service › networking has a gallery tab in admin
+  Slow test file: [chromium] › e2e\galleries.spec.js (5.6m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  40 passed (5.9m)

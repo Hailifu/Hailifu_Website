@@ -1,0 +1,88 @@
+
+Running 3 tests using 1 worker
+
+[1/3] [chromium] › e2e\round10.spec.js:109:5 › Aftercare photo the owner can change › a saved Aftercare photo shows for every visitor, ignoring old per-browser photos
+  1) [chromium] › e2e\round10.spec.js:109:5 › Aftercare photo the owner can change › a saved Aftercare photo shows for every visitor, ignoring old per-browser photos 
+
+    Error: expect(received).toContain(expected) // indexOf
+
+    Expected substring: "aftercare-new.jpg"
+    Received string:    "https://res.cloudinary.com/daovfi3i5/image/upload/f_auto,q_auto/v1/old-local.jpg"
+
+    Call Log:
+    - Timeout 10000ms exceeded while waiting on the predicate
+
+      112 |         await servePhotos(page);
+      113 |         await page.goto('/', { waitUntil: 'load' });
+    > 114 |         await expect.poll(() => page.locator('#integrityImage').getAttribute('src')).toContain('aftercare-new.jpg');
+          |                                                                                      ^
+      115 |         await expect(page.locator('#integrityImage')).toBeVisible();
+      116 |     });
+      117 |
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round10.spec.js:114:86
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round10-Aftercare-photo-th-7602a-ring-old-per-browser-photos-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round10-Aftercare-photo-th-7602a-ring-old-per-browser-photos-chromium\error-context.md
+
+
+[2/3] [chromium] › e2e\round10.spec.js:118:5 › Aftercare photo the owner can change › owner uploads a new photo in Site Control; it is saved for everyone
+  2) [chromium] › e2e\round10.spec.js:118:5 › Aftercare photo the owner can change › owner uploads a new photo in Site Control; it is saved for everyone 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: page.waitForSelector: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#afCard') to be visible
+
+
+      104 |         if (await menuBtn.isVisible()) await menuBtn.click();
+      105 |         await page.click('#adminPanel .nav-item[data-admin-tab="site-control"]');
+    > 106 |         await page.waitForSelector('#afCard');
+          |                    ^
+      107 |     }
+      108 |
+      109 |     test('a saved Aftercare photo shows for every visitor, ignoring old per-browser photos', async ({ page }) => {
+        at openSiteControl (C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round10.spec.js:106:20)
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round10.spec.js:122:9
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round10-Aftercare-photo-th-29131-ol-it-is-saved-for-everyone-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round10-Aftercare-photo-th-29131-ol-it-is-saved-for-everyone-chromium\error-context.md
+
+
+[3/3] [chromium] › e2e\round10.spec.js:130:5 › Aftercare photo the owner can change › paste a link, pick from the Media Library, and reset to the default photo
+  3) [chromium] › e2e\round10.spec.js:130:5 › Aftercare photo the owner can change › paste a link, pick from the Media Library, and reset to the default photo 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: page.waitForSelector: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#afCard') to be visible
+
+
+      104 |         if (await menuBtn.isVisible()) await menuBtn.click();
+      105 |         await page.click('#adminPanel .nav-item[data-admin-tab="site-control"]');
+    > 106 |         await page.waitForSelector('#afCard');
+          |                    ^
+      107 |     }
+      108 |
+      109 |     test('a saved Aftercare photo shows for every visitor, ignoring old per-browser photos', async ({ page }) => {
+        at openSiteControl (C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round10.spec.js:106:20)
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round10.spec.js:135:9
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round10-Aftercare-photo-th-428f1--reset-to-the-default-photo-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round10-Aftercare-photo-th-428f1--reset-to-the-default-photo-chromium\error-context.md
+
+
+  3 failed
+    [chromium] › e2e\round10.spec.js:109:5 › Aftercare photo the owner can change › a saved Aftercare photo shows for every visitor, ignoring old per-browser photos 
+    [chromium] › e2e\round10.spec.js:118:5 › Aftercare photo the owner can change › owner uploads a new photo in Site Control; it is saved for everyone 
+    [chromium] › e2e\round10.spec.js:130:5 › Aftercare photo the owner can change › paste a link, pick from the Media Library, and reset to the default photo 

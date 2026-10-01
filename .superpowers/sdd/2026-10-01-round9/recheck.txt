@@ -1,0 +1,28 @@
+
+Running 24 tests using 1 worker
+
+[1/24] [chromium] › e2e\round9.spec.js:312:5 › Brand colour: site-wide and readable › a saved colour reaches a new visitor, with readable text on it
+[2/24] [chromium] › e2e\round9.spec.js:319:5 › Brand colour: site-wide and readable › an old colour saved only in this browser is ignored
+[3/24] [chromium] › e2e\round9.spec.js:328:5 › Brand colour: site-wide and readable › preview picks dark text on yellow and white text on navy, then saves for everyone
+[4/24] [chromium] › e2e\round9.spec.js:340:5 › Brand colour: site-wide and readable › reset brings back Hailifu orange for everyone
+[5/24] [chromium] › e2e\round9.spec.js:366:5 › Site health (was Control Center) › everything working shows green checks with real numbers
+[6/24] [chromium] › e2e\round9.spec.js:380:5 › Site health (was Control Center) › Google refusing the key is red with the reason and a fix link
+[7/24] [chromium] › e2e\round9.spec.js:391:5 › Site health (was Control Center) › waiting reviews are counted and the fix link opens Reviews
+[8/24] [chromium] › e2e\round9.spec.js:402:5 › Site health (was Control Center) › storage that cannot be reached is red
+[9/24] [chromium] › e2e\round9.spec.js:312:5 › Brand colour: site-wide and readable › a saved colour reaches a new visitor, with readable text on it
+[10/24] [chromium] › e2e\round9.spec.js:319:5 › Brand colour: site-wide and readable › an old colour saved only in this browser is ignored
+[11/24] [chromium] › e2e\round9.spec.js:328:5 › Brand colour: site-wide and readable › preview picks dark text on yellow and white text on navy, then saves for everyone
+[12/24] [chromium] › e2e\round9.spec.js:340:5 › Brand colour: site-wide and readable › reset brings back Hailifu orange for everyone
+[13/24] [chromium] › e2e\round9.spec.js:366:5 › Site health (was Control Center) › everything working shows green checks with real numbers
+[14/24] [chromium] › e2e\round9.spec.js:380:5 › Site health (was Control Center) › Google refusing the key is red with the reason and a fix link
+[15/24] [chromium] › e2e\round9.spec.js:391:5 › Site health (was Control Center) › waiting reviews are counted and the fix link opens Reviews
+[16/24] [chromium] › e2e\round9.spec.js:402:5 › Site health (was Control Center) › storage that cannot be reached is red
+[17/24] [chromium] › e2e\round9.spec.js:312:5 › Brand colour: site-wide and readable › a saved colour reaches a new visitor, with readable text on it
+[18/24] [chromium] › e2e\round9.spec.js:319:5 › Brand colour: site-wide and readable › an old colour saved only in this browser is ignored
+[19/24] [chromium] › e2e\round9.spec.js:328:5 › Brand colour: site-wide and readable › preview picks dark text on yellow and white text on navy, then saves for everyone
+[20/24] [chromium] › e2e\round9.spec.js:340:5 › Brand colour: site-wide and readable › reset brings back Hailifu orange for everyone
+[21/24] [chromium] › e2e\round9.spec.js:366:5 › Site health (was Control Center) › everything working shows green checks with real numbers
+[22/24] [chromium] › e2e\round9.spec.js:380:5 › Site health (was Control Center) › Google refusing the key is red with the reason and a fix link
+[23/24] [chromium] › e2e\round9.spec.js:391:5 › Site health (was Control Center) › waiting reviews are counted and the fix link opens Reviews
+[24/24] [chromium] › e2e\round9.spec.js:402:5 › Site health (was Control Center) › storage that cannot be reached is red
+  24 passed (3.3m)

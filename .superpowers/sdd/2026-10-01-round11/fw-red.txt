@@ -1,0 +1,6 @@
+
+Running 2 tests using 1 worker
+
+[1/2] [chromium] › e2e\round11.spec.js:15:5 › Featured Work on a phone › the featured photo changes by itself after the galleries load
+[2/2] [chromium] › e2e\round11.spec.js:27:5 › Featured Work on a phone › tapping a dot shows that photo
+  2 passed (14.6s)

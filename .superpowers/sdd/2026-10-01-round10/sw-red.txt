@@ -1,0 +1,90 @@
+
+Running 4 tests using 1 worker
+
+[1/4] [chromium] › e2e\round10.spec.js:174:5 › Gallery viewer: smooth swipe › the photo follows the finger and the next photo slides in beside it
+  1) [chromium] › e2e\round10.spec.js:174:5 › Gallery viewer: smooth swipe › the photo follows the finger and the next photo slides in beside it 
+
+    Error: expect(received).toBeLessThan(expected)
+
+    Expected: < -100
+    Received:   0
+
+      177 |         await page.mouse.down();
+      178 |         await page.mouse.move(c.x - 150, c.y, { steps: 12 });
+    > 179 |         expect(await shiftX(page)).toBeLessThan(-100);
+          |                                    ^
+      180 |         await expect(page.locator('#hmGallery .hm-gal-peek.is-next img')).toHaveAttribute('src', /swipe-2\.jpg/);
+      181 |         await expect(page.locator('#hmGallery .hm-gal-peek.is-next')).toBeVisible();
+      182 |         await page.mouse.move(c.x - c.w * 0.4, c.y, { steps: 10 });
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round10.spec.js:179:36
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round10-Gallery-viewer-smo-fcfd2-t-photo-slides-in-beside-it-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round10-Gallery-viewer-smo-fcfd2-t-photo-slides-in-beside-it-chromium\error-context.md
+
+
+[2/4] [chromium] › e2e\round10.spec.js:189:5 › Gallery viewer: smooth swipe › a short slow drag springs back to the same photo
+[3/4] [chromium] › e2e\round10.spec.js:201:5 › Gallery viewer: smooth swipe › a quick flick changes photo, and swiping right goes back
+  2) [chromium] › e2e\round10.spec.js:201:5 › Gallery viewer: smooth swipe › a quick flick changes photo, and swiping right goes back 
+
+    Error: expect(locator).toHaveText(expected) failed
+
+    Locator:  locator('#hmGalCounter')
+    Expected: "1 / 3"
+    Received: "2 / 3"
+    Timeout:  10000ms
+
+    Call log:
+      - Expect "toHaveText" locator('#hmGalCounter') with timeout 10000ms
+      - waiting for locator('#hmGalCounter')
+        23 × locator resolved to <span id="hmGalCounter" aria-live="polite" class="hm-gal-counter">2 / 3</span>
+           - unexpected value "2 / 3"
+
+
+      211 |         await page.mouse.move(c.x + c.w * 0.4, c.y, { steps: 10 });
+      212 |         await page.mouse.up();
+    > 213 |         await expect(page.locator('#hmGalCounter')).toHaveText('1 / 3');
+          |                                                     ^
+      214 |     });
+      215 |
+      216 |     test('a drag never zooms or closes the viewer; a single photo stretches and springs back', async ({ page }) => {
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round10.spec.js:213:53
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round10-Gallery-viewer-smo-70599-and-swiping-right-goes-back-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round10-Gallery-viewer-smo-70599-and-swiping-right-goes-back-chromium\error-context.md
+
+
+[4/4] [chromium] › e2e\round10.spec.js:216:5 › Gallery viewer: smooth swipe › a drag never zooms or closes the viewer; a single photo stretches and springs back
+  3) [chromium] › e2e\round10.spec.js:216:5 › Gallery viewer: smooth swipe › a drag never zooms or closes the viewer; a single photo stretches and springs back 
+
+    Error: expect(received).toBeLessThan(expected)
+
+    Expected: < -10
+    Received:   0
+
+      220 |         await page.mouse.move(c.x - 200, c.y, { steps: 10 });
+      221 |         const pulled = await shiftX(page);
+    > 222 |         expect(pulled).toBeLessThan(-10);
+          |                        ^
+      223 |         expect(pulled).toBeGreaterThan(-200 * 0.6); // resists: moves less than the finger
+      224 |         await page.mouse.up();
+      225 |         await page.waitForTimeout(700);
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round10.spec.js:222:24
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round10-Gallery-viewer-smo-c603e--stretches-and-springs-back-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round10-Gallery-viewer-smo-c603e--stretches-and-springs-back-chromium\error-context.md
+
+
+  3 failed
+    [chromium] › e2e\round10.spec.js:174:5 › Gallery viewer: smooth swipe › the photo follows the finger and the next photo slides in beside it 
+    [chromium] › e2e\round10.spec.js:201:5 › Gallery viewer: smooth swipe › a quick flick changes photo, and swiping right goes back 
+    [chromium] › e2e\round10.spec.js:216:5 › Gallery viewer: smooth swipe › a drag never zooms or closes the viewer; a single photo stretches and springs back 
+  1 passed (39.2s)

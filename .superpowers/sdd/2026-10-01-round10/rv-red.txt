@@ -1,0 +1,1344 @@
+
+Running 13 tests using 1 worker
+
+[1/13] [chromium] › e2e\round10.spec.js:247:5 › Review form like Google (no name or phone) › the form has no name or phone and says it posts publicly
+  1) [chromium] › e2e\round10.spec.js:247:5 › Review form like Google (no name or phone) › the form has no name or phone and says it posts publicly 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: expect(locator).toHaveCount(expected) failed
+
+    Locator:  locator('#reviewVisitorName')
+    Expected: 0
+    Received: 1
+    Timeout:  10000ms
+
+    Call log:
+      - Expect "toHaveCount" locator('#reviewVisitorName') with timeout 10000ms
+      - waiting for locator('#reviewVisitorName')
+        15 × locator resolved to 1 element
+           - unexpected value "1"
+
+
+      248 |         await mockSupabase(page);
+      249 |         await openForm(page);
+    > 250 |         await expect(page.locator('#reviewVisitorName')).toHaveCount(0);
+          |                                                          ^
+      251 |         await expect(page.locator('#reviewVisitorPhone')).toHaveCount(0);
+      252 |         await expect(page.locator('#reviewModal')).toContainText('Hailifu Brilliant Installation');
+      253 |         await expect(page.locator('#reviewModal')).toContainText('Posting publicly on hailifugh.com');
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round10.spec.js:250:58
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round10-Review-form-like-G-be8a7--and-says-it-posts-publicly-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round10-Review-form-like-G-be8a7--and-says-it-posts-publicly-chromium\error-context.md
+
+
+[2/13] [chromium] › e2e\round10.spec.js:259:5 › Review form like Google (no name or phone) › a visitor answers everything and adds photos; all of it is saved as waiting
+  2) [chromium] › e2e\round10.spec.js:259:5 › Review form like Google (no name or phone) › a visitor answers everything and adds photos; all of it is saved as waiting 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: page.setInputFiles: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#reviewMediaInput')
+
+
+      262 |         await page.click('#googleStarRating .google-star[data-rating="4"]');
+      263 |         await page.fill('#reviewComment', 'Clean wiring, cameras work on my phone.');
+    > 264 |         await page.setInputFiles('#reviewMediaInput', [png(1), png(2)]);
+          |         ^
+      265 |         await expect(page.locator('#reviewMediaList .hm-rv-thumb')).toHaveCount(2);
+      266 |         await page.click('#reviewForm [data-review-like-tag="Clean finish"]');
+      267 |         await pick(page, 'used', 'service');
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round10.spec.js:264:9
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round10-Review-form-like-G-9050f-l-of-it-is-saved-as-waiting-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round10-Review-form-like-G-9050f-l-of-it-is-saved-as-waiting-chromium\error-context.md
+
+
+[3/13] [chromium] › e2e\round10.spec.js:291:5 › Review form like Google (no name or phone) › stars alone are enough; no stars is blocked; more than 5 photos are refused
+  3) [chromium] › e2e\round10.spec.js:291:5 › Review form like Google (no name or phone) › stars alone are enough; no stars is blocked; more than 5 photos are refused 
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('#formSuccess')
+    Expected substring: "star"
+    Received string:    "Please add your name."
+    Timeout: 10000ms
+
+    Call log:
+      - Expect "toContainText" locator('#formSuccess') with timeout 10000ms
+      - waiting for locator('#formSuccess')
+        20 × locator resolved to <div role="status" id="formSuccess" aria-live="polite" class="form-success">Please add your name.</div>
+           - unexpected value "Please add your name."
+
+
+      293 |         await openForm(page);
+      294 |         await submit(page);
+    > 295 |         await expect(page.locator('#formSuccess')).toContainText('star');
+          |                                                    ^
+      296 |         expect(sb.db.reviews.length).toBe(0);
+      297 |         await page.setInputFiles('#reviewMediaInput', [1, 2, 3, 4, 5, 6].map(png));
+      298 |         await expect(page.locator('#reviewMediaList .hm-rv-thumb')).toHaveCount(5);
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round10.spec.js:295:52
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round10-Review-form-like-G-96051-e-than-5-photos-are-refused-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round10-Review-form-like-G-96051-e-than-5-photos-are-refused-chromium\error-context.md
+
+
+[4/13] [chromium] › e2e\round10.spec.js:309:5 › Review form like Google (no name or phone) › if photos cannot be uploaded nothing is posted and the visitor is told
+  4) [chromium] › e2e\round10.spec.js:309:5 › Review form like Google (no name or phone) › if photos cannot be uploaded nothing is posted and the visitor is told 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: page.setInputFiles: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('#reviewMediaInput')
+
+
+      312 |         await openForm(page);
+      313 |         await page.click('#googleStarRating .google-star[data-rating="5"]');
+    > 314 |         await page.setInputFiles('#reviewMediaInput', [png(1)]);
+          |         ^
+      315 |         await submit(page);
+      316 |         await expect(page.locator('#formSuccess')).toContainText('photos could not be uploaded');
+      317 |         expect(sb.db.reviews.length).toBe(0);
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round10.spec.js:314:9
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round10-Review-form-like-G-965ea-ted-and-the-visitor-is-told-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round10-Review-form-like-G-965ea-ted-and-the-visitor-is-told-chromium\error-context.md
+
+
+[5/13] [chromium] › e2e\round10.spec.js:321:5 › Review form like Google (no name or phone) › an approved review shows its photos and tags, never the amount paid
+  5) [chromium] › e2e\round10.spec.js:321:5 › Review form like Google (no name or phone) › an approved review shows its photos and tags, never the amount paid 
+
+    Error: expect(locator).toHaveAttribute(expected) failed
+
+    Locator: locator('.featured-reviews-track .featured-review-card').filter({ hasText: 'Neat CCTV job.' }).first().locator('.hm-rv-media img')
+    Expected pattern: /reviews\/r_photo1\/1-a\.webp/
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toHaveAttribute" locator('.featured-reviews-track .featured-review-card').filter({ hasText: 'Neat CCTV job.' }).first().locator('.hm-rv-media img') with timeout 10000ms
+      - waiting for locator('.featured-reviews-track .featured-review-card').filter({ hasText: 'Neat CCTV job.' }).first().locator('.hm-rv-media img')
+
+
+      326 |         await expect(card).toBeVisible();
+      327 |         await expect(card).toContainText('Hailifu customer');
+    > 328 |         await expect(card.locator('.hm-rv-media img')).toHaveAttribute('src', /reviews\/r_photo1\/1-a\.webp/);
+          |                                                        ^
+      329 |         await expect(card.locator('.hm-rv-tags')).toContainText('CCTV installation');
+      330 |         await expect(card.locator('.hm-rv-tags')).toContainText('Responded the same day');
+      331 |         await expect(card).not.toContainText('5,000');
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round10.spec.js:328:56
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round10-Review-form-like-G-e8702--tags-never-the-amount-paid-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round10-Review-form-like-G-e8702--tags-never-the-amount-paid-chromium\error-context.md
+
+
+[6/13] [chromium] › e2e\round10.spec.js:334:5 › Review form like Google (no name or phone) › a star-only approved review still shows on the site
+  6) [chromium] › e2e\round10.spec.js:334:5 › Review form like Google (no name or phone) › a star-only approved review still shows on the site 
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('.featured-reviews-track')
+    Timeout: 10000ms
+    - Expected substring  -   1
+    + Received string     + 485
+
+    - Solar energy
+    +
+    +                     
+    +                         
+    +                             
+    +                         
+    +                         
+    +                             
+    +                                 
+    +                                 
+    +                                     Native
+    +                                     
+    +                                         Daouda
+    +                                         
+    +                                     
+    +                                 
+    +                             
+    +                             2 weeks ago
+    +                         
+    +                         ★★★★★
+    +                         Best CCTV technician. He is good in everything.
+    +                         ResponseWe are really grateful and always available for your service.
+    +                     
+    +                 
+    +                     
+    +                         
+    +                             
+    +                         
+    +                         
+    +                             
+    +                                 
+    +                                 
+    +                                     Native
+    +                                     
+    +                                         Rakiba Mohammed
+    +                                         
+    +                                     
+    +                                 
+    +                             
+    +                             19 weeks ago
+    +                         
+    +                         ★★★★★
+    +                         Excellent service and professional execution.
+    +                         ResponseThank you so much for your time and your appreciation.
+    +                     
+    +                 
+    +                     
+    +                         
+    +                             
+    +                         
+    +                         
+    +                             
+    +                                 
+    +                                 
+    +                                     Native
+    +                                     
+    +                                         Dennis Somuah
+    +                                         
+    +                                     
+    +                                 
+    +                             
+    +                             22 weeks ago
+    +                         
+    +                         ★★★★★
+    +                         Best installation company you can trust.
+    +                         ResponseReally appreciate it.
+    +                     
+    +                 
+    +                     
+    +                         
+    +                             
+    +                         
+    +                         
+    +                             
+    +                                 
+    +                                 
+    +                                     Native
+    +                                     
+    +                                         Arafat Fatawu
+    +                                         
+    +                                     
+    +                                 
+    +                             
+    +                             30 weeks ago
+    +                         
+    +                         ★★★★★
+    +                         Best installer I have seen so far because he is kind.
+    +                         ResponseThank you. We appreciate your trust.
+    +                     
+    +                 
+    +                     
+    +                         
+    +                             
+    +                         
+    +                         
+    +                             
+    +                                 
+    +                                 
+    +                                     Native
+    +                                     
+    +                                         Alidu Salifu
+    +                                         
+    +                                     
+    +                                 
+    +                             
+    +                             30 weeks ago
+    +                         
+    +                         ★★★★★
+    +                         They are reliable and professional, always on time, with great communication.
+    +                         ResponseThank you. Reliability is our priority.
+    +                     
+    +                 
+    +                     
+    +                         
+    +                             
+    +                         
+    +                         
+    +                             
+    +                                 
+    +                                 
+    +                                     Native
+    +                                     
+    +                                         Abu Bawie
+    +                                         
+    +                                     
+    +                                 
+    +                             
+    +                             34 weeks ago
+    +                         
+    +                         ★★★★★
+    +                         Great service offered. Hassle-free.
+    +                         ResponseGreat working with you, sir.
+    +                     
+    +                 
+    +                     
+    +                         
+    +                             
+    +                         
+    +                         
+    +                             
+    +                                 
+    +                                 
+    +                                     Native
+    +                                     
+    +                                         Arafat Yankine
+    +                                         
+    +                                     
+    +                                 
+    +                             
+    +                             20 Jan 2025
+    +                         
+    +                         ★★★★★
+    +                         They are good and reliable.
+    +                         ResponseYou are always welcome.
+    +                     
+    +                 
+    +                     
+    +                         
+    +                             
+    +                         
+    +                         
+    +                             
+    +                                 
+    +                                 
+    +                                     Native
+    +                                     
+    +                                         Abdullah Yusuf
+    +                                         
+    +                                     
+    +                                 
+    +                             
+    +                             29 Aug 2023
+    +                         
+    +                         ★★★★★
+    +                         As the company name suggests, all services were brilliant.
+    +                         ResponseWe appreciate it a lot.
+    +                     
+    +                 
+    +                     
+    +                         
+    +                             
+    +                         
+    +                         
+    +                             
+    +                                 
+    +                                 
+    +                                     Native
+    +                                     
+    +                                         admin admin
+    +                                         
+    +                                     
+    +                                 
+    +                             
+    +                             15 Feb 2023
+    +                         
+    +                         ★★★★★
+    +                         I have been using their services for 4 years. Best value, on time, and very responsive.
+    +                         ResponseThank you. We appreciate it.
+    +                     
+    +                 
+    +                     
+    +                         
+    +                             
+    +                         
+    +                         
+    +                             
+    +                                 
+    +                                 
+    +                                     Native
+    +                                     
+    +                                         Mohammed Drame
+    +                                         
+    +                                     
+    +                                 
+    +                             
+    +                             19 Oct 2022
+    +                         
+    +                         ★★★★★
+    +                         Full review available on Google.
+    +                         ResponseThank you for your appreciation. Hailifu is always here for you.
+    +                     
+    +                 
+    +                     
+    +                         
+    +                             
+    +                         
+    +                         
+    +                             
+    +                                 
+    +                                 
+    +                                     Native
+    +                                     
+    +                                         Yussif Nuhu
+    +                                         
+    +                                     
+    +                                 
+    +                             
+    +                             1 Aug 2022
+    +                         
+    +                         ★★★★★
+    +                         Full review available on Google.
+    +                         ResponseThank you so much for your review.
+    +                     
+    +                 
+    +                     
+    +                         
+    +                             
+    +                         
+    +                         
+    +                             
+    +                                 
+    +                                 
+    +                                     Native
+    +                                     
+    +                                         Ali Yoro
+    +                                         
+    +                                     
+    +                                 
+    +                             
+    +                             13 May 2022
+    +                         
+    +                         ★★★★★
+    +                         Full review available on Google.
+    +                         ResponseThank you. Together we are strong, and we appreciate you too.
+    +                     
+    +                 
+    +                     
+    +                         
+    +                             
+    +                         
+    +                         
+    +                             
+    +                                 
+    +                                 
+    +                                     Native
+    +                                     
+    +                                         Abdul-Wahab Abubakar
+    +                                         
+    +                                     
+    +                                 
+    +                             
+    +                             26 Apr 2022
+    +                         
+    +                         ★★★★★
+    +                         Full review available on Google.
+    +                         ResponseThank you so much.
+    +                     
+    +                 
+    +                     
+    +                         
+    +                             
+    +                         
+    +                         
+    +                             
+    +                                 
+    +                                 
+    +                                     Native
+    +                                     
+    +                                         Ghana
+    +                                         
+    +                                     
+    +                                 
+    +                             
+    +                             19 Apr 2022
+    +                         
+    +                         ★★★★★
+    +                         Full review available on Google.
+    +                         ResponseThank you. Together we are strong, and we appreciate you too.
+    +                     
+    +                 
+    +                     
+    +                         
+    +                             
+    +                         
+    +                         
+    +                             
+    +                                 
+    +                                 
+    +                                     Native
+    +                                     
+    +                                         Fuseini Adam
+    +                                         
+    +                                     
+    +                                 
+    +                             
+    +                             4 Oct 2020
+    +                         
+    +                         ★★★★★
+    +                         Full review available on Google.
+    +                         ResponseThank you for your appreciation.
+    +                     
+    +                 
+    +                     
+    +                         
+    +                             
+    +                         
+    +                         
+    +                             
+    +                                 
+    +                                 
+    +                                     Native
+    +                                     
+    +                                         Sam Yeboah
+    +                                         
+    +                                     
+    +                                 
+    +                             
+    +                             25 Jul 2020
+    +                         
+    +                         ★★★★★
+    +                         Awesome. Bravo.
+    +                         ResponseThank you for your appreciation.
+    +                     
+    +                 
+    +                     
+    +                         
+    +                             
+    +                         
+    +                         
+    +                             
+    +                                 
+    +                                 
+    +                                     Native
+    +                                     
+    +                                         bright senoo
+    +                                         
+    +                                     
+    +                                 
+    +                             
+    +                             12 Jul 2020
+    +                         
+    +                         ★★★★★
+    +                         Full review available on Google.
+    +                         ResponseThank you for your appreciation.
+    +                     
+    +                 
+    +                     
+    +                         
+    +                             
+    +                         
+    +                         
+    +                             
+    +                                 
+    +                                 
+    +                                     Native
+    +                                     
+    +                                         Michael Obeng
+    +                                         
+    +                                     
+    +                                 
+    +                             
+    +                             7 Jul 2020
+    +                         
+    +                         ★★★★★
+    +                         Full review available on Google.
+    +                         ResponseThank you for your appreciation.
+    +                     
+    +                 
+    +                     
+    +                         
+    +                             
+    +                         
+    +                         
+    +                             
+    +                                 
+    +                                 
+    +                                     Native
+    +                                     
+    +                                         LAWER JOSEPH
+    +                                         
+    +                                     
+    +                                 
+    +                             
+    +                             4 Jul 2020
+    +                         
+    +                         ★★★★★
+    +                         Full review available on Google.
+    +                         ResponseThank you for your appreciation.
+    +                     
+    +                 
+    +                     
+    +                         
+    +                             
+    +                         
+    +                         
+    +                             
+    +                                 
+    +                                 
+    +                                     Native
+    +                                     
+    +                                         Wendy Bibio
+    +                                         
+    +                                     
+    +                                 
+    +                             
+    +                             3 Jul 2020
+    +                         
+    +                         ★★★★★
+    +                         Full review available on Google.
+    +                         ResponseThank you for your appreciation. We love you too.
+    +                     
+    +                 
+    +                     
+    +                         
+    +                             
+    +                         
+    +                         
+    +                             
+    +                                 
+    +                                 
+    +                                     Native
+    +                                     
+    +                                         Shaibu Salifu
+    +                                         
+    +                                     
+    +                                 
+    +                             
+    +                             Recent
+    +                         
+    +                         ★★★★★
+    +                         Outstanding team execution. Fast response, clean install, and professional finish.
+    +                         ResponseThank you for trusting Hailifu with your installation.
+    +                     
+    +                 
+    +                     
+    +                         
+    +                             
+    +                         
+    +                         
+    +                             
+    +                                 
+    +                                 
+    +                                     Native
+    +                                     
+    +                                         Amina
+    +                                         
+    +                                     
+    +                                 
+    +                             
+    +                             Recent
+    +                         
+    +                         ★★★★★
+    +                         Prompt installation with clear explanations. The team exceeded expectations.
+    +                         ResponseWe appreciate your feedback and support.
+    +                     
+    +                 
+
+    Call log:
+      - Expect "toContainText" locator('.featured-reviews-track') with timeout 10000ms
+      - waiting for locator('.featured-reviews-track')
+        19 × locator resolved to <div class="featured-reviews-track">…</div>
+           - unexpected value "
+                        
+                            
+                                
+                            
+                            
+                                
+                                    
+                                    
+                                        Native
+                                        
+                                            Daouda
+                                            
+                                        
+                                    
+                                
+                                2 weeks ago
+                            
+                            ★★★★★
+                            Best CCTV technician. He is good in everything.
+                            ResponseWe are really grateful and always available for your service.
+                        
+                    
+                        
+                            
+                                
+                            
+                            
+                                
+                                    
+                                    
+                                        Native
+                                        
+                                            Rakiba Mohammed
+                                            
+                                        
+                                    
+                                
+                                19 weeks ago
+                            
+                            ★★★★★
+                            Excellent service and professional execution.
+                            ResponseThank you so much for your time and your appreciation.
+                        
+                    
+                        
+                            
+                                
+                            
+                            
+                                
+                                    
+                                    
+                                        Native
+                                        
+                                            Dennis Somuah
+                                            
+                                        
+                                    
+                                
+                                22 weeks ago
+                            
+                            ★★★★★
+                            Best installation company you can trust.
+                            ResponseReally appreciate it.
+                        
+                    
+                        
+                            
+                                
+                            
+                            
+                                
+                                    
+                                    
+                                        Native
+                                        
+                                            Arafat Fatawu
+                                            
+                                        
+                                    
+                                
+                                30 weeks ago
+                            
+                            ★★★★★
+                            Best installer I have seen so far because he is kind.
+                            ResponseThank you. We appreciate your trust.
+                        
+                    
+                        
+                            
+                                
+                            
+                            
+                                
+                                    
+                                    
+                                        Native
+                                        
+                                            Alidu Salifu
+                                            
+                                        
+                                    
+                                
+                                30 weeks ago
+                            
+                            ★★★★★
+                            They are reliable and professional, always on time, with great communication.
+                            ResponseThank you. Reliability is our priority.
+                        
+                    
+                        
+                            
+                                
+                            
+                            
+                                
+                                    
+                                    
+                                        Native
+                                        
+                                            Abu Bawie
+                                            
+                                        
+                                    
+                                
+                                34 weeks ago
+                            
+                            ★★★★★
+                            Great service offered. Hassle-free.
+                            ResponseGreat working with you, sir.
+                        
+                    
+                        
+                            
+                                
+                            
+                            
+                                
+                                    
+                                    
+                                        Native
+                                        
+                                            Arafat Yankine
+                                            
+                                        
+                                    
+                                
+                                20 Jan 2025
+                            
+                            ★★★★★
+                            They are good and reliable.
+                            ResponseYou are always welcome.
+                        
+                    
+                        
+                            
+                                
+                            
+                            
+                                
+                                    
+                                    
+                                        Native
+                                        
+                                            Abdullah Yusuf
+                                            
+                                        
+                                    
+                                
+                                29 Aug 2023
+                            
+                            ★★★★★
+                            As the company name suggests, all services were brilliant.
+                            ResponseWe appreciate it a lot.
+                        
+                    
+                        
+                            
+                                
+                            
+                            
+                                
+                                    
+                                    
+                                        Native
+                                        
+                                            admin admin
+                                            
+                                        
+                                    
+                                
+                                15 Feb 2023
+                            
+                            ★★★★★
+                            I have been using their services for 4 years. Best value, on time, and very responsive.
+                            ResponseThank you. We appreciate it.
+                        
+                    
+                        
+                            
+                                
+                            
+                            
+                                
+                                    
+                                    
+                                        Native
+                                        
+                                            Mohammed Drame
+                                            
+                                        
+                                    
+                                
+                                19 Oct 2022
+                            
+                            ★★★★★
+                            Full review available on Google.
+                            ResponseThank you for your appreciation. Hailifu is always here for you.
+                        
+                    
+                        
+                            
+                                
+                            
+                            
+                                
+                                    
+                                    
+                                        Native
+                                        
+                                            Yussif Nuhu
+                                            
+                                        
+                                    
+                                
+                                1 Aug 2022
+                            
+                            ★★★★★
+                            Full review available on Google.
+                            ResponseThank you so much for your review.
+                        
+                    
+                        
+                            
+                                
+                            
+                            
+                                
+                                    
+                                    
+                                        Native
+                                        
+                                            Ali Yoro
+                                            
+                                        
+                                    
+                                
+                                13 May 2022
+                            
+                            ★★★★★
+                            Full review available on Google.
+                            ResponseThank you. Together we are strong, and we appreciate you too.
+                        
+                    
+                        
+                            
+                                
+                            
+                            
+                                
+                                    
+                                    
+                                        Native
+                                        
+                                            Abdul-Wahab Abubakar
+                                            
+                                        
+                                    
+                                
+                                26 Apr 2022
+                            
+                            ★★★★★
+                            Full review available on Google.
+                            ResponseThank you so much.
+                        
+                    
+                        
+                            
+                                
+                            
+                            
+                                
+                                    
+                                    
+                                        Native
+                                        
+                                            Ghana
+                                            
+                                        
+                                    
+                                
+                                19 Apr 2022
+                            
+                            ★★★★★
+                            Full review available on Google.
+                            ResponseThank you. Together we are strong, and we appreciate you too.
+                        
+                    
+                        
+                            
+                                
+                            
+                            
+                                
+                                    
+                                    
+                                        Native
+                                        
+                                            Fuseini Adam
+                                            
+                                        
+                                    
+                                
+                                4 Oct 2020
+                            
+                            ★★★★★
+                            Full review available on Google.
+                            ResponseThank you for your appreciation.
+                        
+                    
+                        
+                            
+                                
+                            
+                            
+                                
+                                    
+                                    
+                                        Native
+                                        
+                                            Sam Yeboah
+                                            
+                                        
+                                    
+                                
+                                25 Jul 2020
+                            
+                            ★★★★★
+                            Awesome. Bravo.
+                            ResponseThank you for your appreciation.
+                        
+                    
+                        
+                            
+                                
+                            
+                            
+                                
+                                    
+                                    
+                                        Native
+                                        
+                                            bright senoo
+                                            
+                                        
+                                    
+                                
+                                12 Jul 2020
+                            
+                            ★★★★★
+                            Full review available on Google.
+                            ResponseThank you for your appreciation.
+                        
+                    
+                        
+                            
+                                
+                            
+                            
+                                
+                                    
+                                    
+                                        Native
+                                        
+                                            Michael Obeng
+                                            
+                                        
+                                    
+                                
+                                7 Jul 2020
+                            
+                            ★★★★★
+                            Full review available on Google.
+                            ResponseThank you for your appreciation.
+                        
+                    
+                        
+                            
+                                
+                            
+                            
+                                
+                                    
+                                    
+                                        Native
+                                        
+                                            LAWER JOSEPH
+                                            
+                                        
+                                    
+                                
+                                4 Jul 2020
+                            
+                            ★★★★★
+                            Full review available on Google.
+                            ResponseThank you for your appreciation.
+                        
+                    
+                        
+                            
+                                
+                            
+                            
+                                
+                                    
+                                    
+                                        Native
+                                        
+                                            Wendy Bibio
+                                            
+                                        
+                                    
+                                
+                                3 Jul 2020
+                            
+                            ★★★★★
+                            Full review available on Google.
+                            ResponseThank you for your appreciation. We love you too.
+                        
+                    
+                        
+                            
+                                
+                            
+                            
+                                
+                                    
+                                    
+                                        Native
+                                        
+                                            Shaibu Salifu
+                                            
+                                        
+                                    
+                                
+                                Recent
+                            
+                            ★★★★★
+                            Outstanding team execution. Fast response, clean install, and professional finish.
+                            ResponseThank you for trusting Hailifu with your installation.
+                        
+                    
+                        
+                            
+                                
+                            
+                            
+                                
+                                    
+                                    
+                                        Native
+                                        
+                                            Amina
+                                            
+                                        
+                                    
+                                
+                                Recent
+                            
+                            ★★★★★
+                            Prompt installation with clear explanations. The team exceeded expectations.
+                            ResponseWe appreciate your feedback and support.
+                        
+                    "
+
+
+      335 |         await mockSupabase(page, { reviews: [siteRow({ id: 'r_stars', comment: '', media: [], services: ['Solar energy'] })] });
+      336 |         await page.goto('/', { waitUntil: 'load' });
+    > 337 |         await expect(page.locator('.featured-reviews-track')).toContainText('Solar energy');
+          |                                                               ^
+      338 |     });
+      339 |
+      340 |     test('admin sees every answer and photo; deleting removes the photos too', async ({ page }) => {
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round10.spec.js:337:63
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round10-Review-form-like-G-5e4a5-iew-still-shows-on-the-site-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round10-Review-form-like-G-5e4a5-iew-still-shows-on-the-site-chromium\error-context.md
+
+
+[7/13] [chromium] › e2e\round10.spec.js:340:5 › Review form like Google (no name or phone) › admin sees every answer and photo; deleting removes the photos too
+  7) [chromium] › e2e\round10.spec.js:340:5 › Review form like Google (no name or phone) › admin sees every answer and photo; deleting removes the photos too 
+
+    Error: Got a service
+
+    expect(locator).toContainText(expected) failed
+
+    Locator: locator('#rvAdmin .rv-list[data-rv-list="pending"] .rv-card').first()
+    Timeout: 10000ms
+    - Expected substring  -  1
+    + Received string     + 18
+
+    - Got a service
+    +
+    +                     
+    +                         H
+    +                         
+    +                             Hailifu customer
+    +                             ★★★★★ · Oct 1, 2026
+    +                         
+    +                         
+    +                     
+    +                     Neat CCTV job.
+    +                     CCTV installation
+    +                     Your reply (shown under the review)
+    +                         
+    +                     
+    +                      Approve
+    +                      Save reply
+    +                      Delete
+    +                 
+
+    Call log:
+      - Got a service locator('#rvAdmin .rv-list[data-rv-list="pending"] .rv-card').first() with timeout 10000ms
+      - waiting for locator('#rvAdmin .rv-list[data-rv-list="pending"] .rv-card').first()
+        23 × locator resolved to <article data-rv-id="r_photo1" class="rv-card is-waiting">…</article>
+           - unexpected value "
+                        
+                            H
+                            
+                                Hailifu customer
+                                ★★★★★ · Oct 1, 2026
+                            
+                            
+                        
+                        Neat CCTV job.
+                        CCTV installation
+                        Your reply (shown under the review)
+                            
+                        
+                         Approve
+                         Save reply
+                         Delete
+                    "
+
+
+      347 |         const card = page.locator('#rvAdmin .rv-list[data-rv-list="pending"] .rv-card').first();
+      348 |         for (const t of ['Hailifu customer', 'Got a service', 'Fair', '₵2,000 to ₵5,000', 'Responded the same day', 'Clean finish', 'CCTV installation']) {
+    > 349 |             await expect(card, t).toContainText(t);
+          |                                   ^
+      350 |         }
+      351 |         await expect(card.locator('.rv-media img')).toHaveCount(1);
+      352 |         await card.locator('[data-rv-action="delete"]').click();
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round10.spec.js:349:35
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round10-Review-form-like-G-ac6b8-ting-removes-the-photos-too-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round10-Review-form-like-G-ac6b8-ting-removes-the-photos-too-chromium\error-context.md
+
+
+[8/13] [chromium] › e2e\round9.spec.js:142:5 › Reviews: simple form + owner approval › visitor posts a review: saved as waiting, thank-you shown
+  8) [chromium] › e2e\round9.spec.js:142:5 › Reviews: simple form + owner approval › visitor posts a review: saved as waiting, thank-you shown 
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('#formSuccess')
+    Expected substring: "Thank you"
+    Received string:    "Please add your name."
+    Timeout: 10000ms
+
+    Call log:
+      - Expect "toContainText" locator('#formSuccess') with timeout 10000ms
+      - waiting for locator('#formSuccess')
+        23 × locator resolved to <div role="status" id="formSuccess" aria-live="polite" class="form-success">Please add your name.</div>
+           - unexpected value "Please add your name."
+
+
+      145 |         await fillForm(page);
+      146 |         await submit(page);
+    > 147 |         await expect(page.locator('#formSuccess')).toContainText('Thank you');
+          |                                                    ^
+      148 |         await expect.poll(() => sb.db.reviews.length).toBe(1);
+      149 |         const row = sb.db.reviews[0];
+      150 |         expect(row.data.status).toBe('pending');
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round9.spec.js:147:52
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round9-Reviews-simple-form-d728e--as-waiting-thank-you-shown-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round9-Reviews-simple-form-d728e--as-waiting-thank-you-shown-chromium\error-context.md
+
+
+[9/13] [chromium] › e2e\round9.spec.js:158:5 › Reviews: simple form + owner approval › missing stars is blocked with a message (round 10: text optional, no name)
+  9) [chromium] › e2e\round9.spec.js:158:5 › Reviews: simple form + owner approval › missing stars is blocked with a message (round 10: text optional, no name) 
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('#formSuccess')
+    Expected substring: "star"
+    Received string:    "Please add your name."
+    Timeout: 10000ms
+
+    Call log:
+      - Expect "toContainText" locator('#formSuccess') with timeout 10000ms
+      - waiting for locator('#formSuccess')
+        23 × locator resolved to <div role="status" id="formSuccess" aria-live="polite" class="form-success">Please add your name.</div>
+           - unexpected value "Please add your name."
+
+
+      161 |         await fillForm(page, { stars: 0 });
+      162 |         await submit(page);
+    > 163 |         await expect(page.locator('#formSuccess')).toContainText('star');
+          |                                                    ^
+      164 |         expect(sb.db.reviews.length).toBe(0);
+      165 |     });
+      166 |
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round9.spec.js:163:52
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round9-Reviews-simple-form-26ad5-d-10-text-optional-no-name--chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round9-Reviews-simple-form-26ad5-d-10-text-optional-no-name--chromium\error-context.md
+
+
+[10/13] [chromium] › e2e\round9.spec.js:167:5 › Reviews: simple form + owner approval › a refused save shows a friendly message and keeps the text
+  10) [chromium] › e2e\round9.spec.js:167:5 › Reviews: simple form + owner approval › a refused save shows a friendly message and keeps the text 
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('#formSuccess')
+    Expected substring: "could not be sent"
+    Received string:    "Please add your name."
+    Timeout: 10000ms
+
+    Call log:
+      - Expect "toContainText" locator('#formSuccess') with timeout 10000ms
+      - waiting for locator('#formSuccess')
+        23 × locator resolved to <div role="status" id="formSuccess" aria-live="polite" class="form-success">Please add your name.</div>
+           - unexpected value "Please add your name."
+
+
+      171 |         await fillForm(page);
+      172 |         await submit(page);
+    > 173 |         await expect(page.locator('#formSuccess')).toContainText('could not be sent');
+          |                                                    ^
+      174 |         await expect(page.locator('#reviewComment')).toHaveValue('They fixed our Wi-Fi in one visit.');
+      175 |     });
+      176 |
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round9.spec.js:173:52
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round9-Reviews-simple-form-527fa--message-and-keeps-the-text-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round9-Reviews-simple-form-527fa--message-and-keeps-the-text-chromium\error-context.md
+
+
+[11/13] [chromium] › e2e\round9.spec.js:177:5 › Reviews: simple form + owner approval › owner approves a waiting review and it shows on the site
+[12/13] [chromium] › e2e\round9.spec.js:193:5 › Reviews: simple form + owner approval › waiting reviews never show on the public site
+[13/13] [chromium] › e2e\round9.spec.js:200:5 › Reviews: simple form + owner approval › script in a review is shown as text, never run
+  10 failed
+    [chromium] › e2e\round10.spec.js:247:5 › Review form like Google (no name or phone) › the form has no name or phone and says it posts publicly 
+    [chromium] › e2e\round10.spec.js:259:5 › Review form like Google (no name or phone) › a visitor answers everything and adds photos; all of it is saved as waiting 
+    [chromium] › e2e\round10.spec.js:291:5 › Review form like Google (no name or phone) › stars alone are enough; no stars is blocked; more than 5 photos are refused 
+    [chromium] › e2e\round10.spec.js:309:5 › Review form like Google (no name or phone) › if photos cannot be uploaded nothing is posted and the visitor is told 
+    [chromium] › e2e\round10.spec.js:321:5 › Review form like Google (no name or phone) › an approved review shows its photos and tags, never the amount paid 
+    [chromium] › e2e\round10.spec.js:334:5 › Review form like Google (no name or phone) › a star-only approved review still shows on the site 
+    [chromium] › e2e\round10.spec.js:340:5 › Review form like Google (no name or phone) › admin sees every answer and photo; deleting removes the photos too 
+    [chromium] › e2e\round9.spec.js:142:5 › Reviews: simple form + owner approval › visitor posts a review: saved as waiting, thank-you shown 
+    [chromium] › e2e\round9.spec.js:158:5 › Reviews: simple form + owner approval › missing stars is blocked with a message (round 10: text optional, no name) 
+    [chromium] › e2e\round9.spec.js:167:5 › Reviews: simple form + owner approval › a refused save shows a friendly message and keeps the text 
+  3 passed (4.8m)

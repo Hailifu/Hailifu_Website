@@ -1,0 +1,9 @@
+
+Running 5 tests using 1 worker
+
+[1/5] [chromium] › e2e\scratch-r9-shots.spec.js:9:9 › public dark desk
+[2/5] [chromium] › e2e\scratch-r9-shots.spec.js:9:9 › public dark phone
+[3/5] [chromium] › e2e\scratch-r9-shots.spec.js:9:9 › public light desk
+[4/5] [chromium] › e2e\scratch-r9-shots.spec.js:9:9 › public light phone
+[5/5] [chromium] › e2e\scratch-r9-shots.spec.js:28:1 › admin site health + brand
+  5 passed (48.2s)

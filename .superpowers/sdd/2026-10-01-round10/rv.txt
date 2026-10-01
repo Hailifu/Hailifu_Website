@@ -1,0 +1,45 @@
+
+Running 13 tests using 1 worker
+
+[1/13] [chromium] › e2e\round10.spec.js:247:5 › Review form like Google (no name or phone) › the form has no name or phone and says it posts publicly
+[2/13] [chromium] › e2e\round10.spec.js:259:5 › Review form like Google (no name or phone) › a visitor answers everything and adds photos; all of it is saved as waiting
+  1) [chromium] › e2e\round10.spec.js:259:5 › Review form like Google (no name or phone) › a visitor answers everything and adds photos; all of it is saved as waiting 
+
+    Error: locator.check: Element is not visible
+    Call log:
+      - waiting for locator('#reviewServiceGrid input[value="CCTV installation"]')
+        - locator resolved to <input type="checkbox" value="CCTV installation" name="reviewServiceOption"/>
+      - attempting click action
+        - scrolling into view if needed
+
+
+      266 |         await page.click('#reviewForm [data-review-like-tag="Clean finish"]');
+      267 |         await pick(page, 'used', 'service');
+    > 268 |         await page.locator('#reviewServiceGrid input[value="CCTV installation"]').check({ force: true });
+          |                                                                                   ^
+      269 |         await pick(page, 'price', 'fair');
+      270 |         await pick(page, 'amount', '500-2k');
+      271 |         await pick(page, 'speed', 'same-day');
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round10.spec.js:268:83
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round10-Review-form-like-G-9050f-l-of-it-is-saved-as-waiting-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round10-Review-form-like-G-9050f-l-of-it-is-saved-as-waiting-chromium\error-context.md
+
+
+[3/13] [chromium] › e2e\round10.spec.js:291:5 › Review form like Google (no name or phone) › stars alone are enough; no stars is blocked; more than 5 photos are refused
+[4/13] [chromium] › e2e\round10.spec.js:309:5 › Review form like Google (no name or phone) › if photos cannot be uploaded nothing is posted and the visitor is told
+[5/13] [chromium] › e2e\round10.spec.js:321:5 › Review form like Google (no name or phone) › an approved review shows its photos and tags, never the amount paid
+[6/13] [chromium] › e2e\round10.spec.js:334:5 › Review form like Google (no name or phone) › a star-only approved review still shows on the site
+[7/13] [chromium] › e2e\round10.spec.js:340:5 › Review form like Google (no name or phone) › admin sees every answer and photo; deleting removes the photos too
+[8/13] [chromium] › e2e\round9.spec.js:142:5 › Reviews: simple form + owner approval › visitor posts a review: saved as waiting, thank-you shown
+[9/13] [chromium] › e2e\round9.spec.js:158:5 › Reviews: simple form + owner approval › missing stars is blocked with a message (round 10: text optional, no name)
+[10/13] [chromium] › e2e\round9.spec.js:167:5 › Reviews: simple form + owner approval › a refused save shows a friendly message and keeps the text
+[11/13] [chromium] › e2e\round9.spec.js:177:5 › Reviews: simple form + owner approval › owner approves a waiting review and it shows on the site
+[12/13] [chromium] › e2e\round9.spec.js:193:5 › Reviews: simple form + owner approval › waiting reviews never show on the public site
+[13/13] [chromium] › e2e\round9.spec.js:200:5 › Reviews: simple form + owner approval › script in a review is shown as text, never run
+  1 failed
+    [chromium] › e2e\round10.spec.js:259:5 › Review form like Google (no name or phone) › a visitor answers everything and adds photos; all of it is saved as waiting 
+  12 passed (1.6m)

@@ -1,0 +1,45 @@
+﻿
+Running 5 tests using 1 worker
+
+
+
+[1/5] [chromium] › e2e\galleries.spec.js:415:5 › Service galleries — review fixes › captions with quotes survive and unsafe links are never rendered
+[2/5] [chromium] › e2e\galleries.spec.js:429:5 › Service galleries — review fixes › media library file is not deleted with its gallery item, and cannot be added twice
+[3/5] [chromium] › e2e\galleries.spec.js:453:5 › Service galleries — review fixes › typing the next caption is not wiped when the previous one saves
+[4/5] [chromium] › e2e\galleries.spec.js:470:5 › Service galleries — review fixes › visitors never see old local projects while galleries load
+[5/5] [chromium] › e2e\galleries.spec.js:490:5 › Service galleries — review fixes › captions show under the photo in the public gallery
+  1) [chromium] › e2e\galleries.spec.js:490:5 › Service galleries — review fixes › captions show under the photo in the public gallery 
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('#hmGalDesc')
+    Expected substring: "Villa, East Legon"
+    Received string:    ""
+    Timeout: 10000ms
+
+    Call log:
+      - Expect "toContainText" locator('#hmGalDesc') with timeout 10000ms
+      - waiting for locator('#hmGalDesc')
+        21 × locator resolved to <p id="hmGalDesc" class="hm-gal-desc"></p>
+           - unexpected value ""
+
+
+      492 |         await openHome(page);
+      493 |         await cards(page).first().click();
+    > 494 |         await expect(page.locator('#hmGalDesc')).toContainText('Villa, East Legon');
+          |                                                  ^
+      495 |         await page.keyboard.press('ArrowRight');
+      496 |         await expect(page.locator('#hmGalDesc')).toContainText('Shop, Tema');
+      497 |     });
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\galleries.spec.js:494:50
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\galleries-Service-gallerie-1eabb-photo-in-the-public-gallery-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\galleries-Service-gallerie-1eabb-photo-in-the-public-gallery-chromium\error-context.md
+
+
+  1 failed
+    [chromium] › e2e\galleries.spec.js:490:5 › Service galleries — review fixes › captions show under the photo in the public gallery 
+  4 passed (52.8s)

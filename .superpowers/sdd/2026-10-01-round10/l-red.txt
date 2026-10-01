@@ -1,0 +1,88 @@
+
+Running 3 tests using 1 worker
+
+[1/3] [chromium] › e2e\round10.spec.js:42:5 › Page stays still behind popups › quote form freezes the page and puts it back where it was
+  1) [chromium] › e2e\round10.spec.js:42:5 › Page stays still behind popups › quote form freezes the page and puts it back where it was 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+    Call Log:
+    - Timeout 10000ms exceeded while waiting on the predicate
+
+      46 |         await page.evaluate(() => document.querySelector('#heroQuoteBtn, .premium-nav-cta').click());
+      47 |         await expect(page.locator('#popupOverlay')).toHaveClass(/active/);
+    > 48 |         await expect.poll(() => locked(page)).toBe(true);
+         |                                               ^
+      49 |         await page.mouse.wheel(0, 1200);
+      50 |         await page.waitForTimeout(300);
+      51 |         await page.keyboard.press('Escape');
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round10.spec.js:48:47
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round10-Page-stays-still-b-d3434-d-puts-it-back-where-it-was-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round10-Page-stays-still-b-d3434-d-puts-it-back-where-it-was-chromium\error-context.md
+
+
+[2/3] [chromium] › e2e\round10.spec.js:56:5 › Page stays still behind popups › review form, gallery viewer and phone menu freeze the page too
+  2) [chromium] › e2e\round10.spec.js:56:5 › Page stays still behind popups › review form, gallery viewer and phone menu freeze the page too 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+    Call Log:
+    - Timeout 10000ms exceeded while waiting on the predicate
+
+      62 |         await page.evaluate(() => document.querySelector('.hm-cta-review [data-review-modal-open]').click());
+      63 |         await expect(page.locator('#reviewModal')).toHaveClass(/active/);
+    > 64 |         await expect.poll(() => locked(page)).toBe(true);
+         |                                               ^
+      65 |         await page.keyboard.press('Escape');
+      66 |         await expect.poll(() => locked(page)).toBe(false);
+      67 |
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round10.spec.js:64:47
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round10-Page-stays-still-b-25637-ne-menu-freeze-the-page-too-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round10-Page-stays-still-b-25637-ne-menu-freeze-the-page-too-chromium\error-context.md
+
+
+[3/3] [chromium] › e2e\round10.spec.js:79:5 › Page stays still behind popups › admin portal freezes the site behind it but scrolls itself
+  3) [chromium] › e2e\round10.spec.js:79:5 › Page stays still behind popups › admin portal freezes the site behind it but scrolls itself 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+    Call Log:
+    - Timeout 10000ms exceeded while waiting on the predicate
+
+      81 |         await mockSupabase(page, { installations: Array.from({ length: 12 }, (_, i) => galleryRow({ id: `g${i}`, category: 'cctv' })) });
+      82 |         await loginAdmin(page);
+    > 83 |         await expect.poll(() => locked(page)).toBe(true);
+         |                                               ^
+      84 |         await page.click('#adminPanel .nav-item[data-admin-tab="projects"]');
+      85 |         await page.waitForSelector('#sgAdmin');
+      86 |         await page.mouse.move(700, 450);
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round10.spec.js:83:47
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round10-Page-stays-still-b-0f993-ehind-it-but-scrolls-itself-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round10-Page-stays-still-b-0f993-ehind-it-but-scrolls-itself-chromium\error-context.md
+
+
+  3 failed
+    [chromium] › e2e\round10.spec.js:42:5 › Page stays still behind popups › quote form freezes the page and puts it back where it was 
+    [chromium] › e2e\round10.spec.js:56:5 › Page stays still behind popups › review form, gallery viewer and phone menu freeze the page too 
+    [chromium] › e2e\round10.spec.js:79:5 › Page stays still behind popups › admin portal freezes the site behind it but scrolls itself 

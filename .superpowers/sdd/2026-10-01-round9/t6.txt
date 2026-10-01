@@ -1,0 +1,8 @@
+
+Running 4 tests using 1 worker
+
+[1/4] [chromium] › e2e\round9.spec.js:366:5 › Site health (was Control Center) › everything working shows green checks with real numbers
+[2/4] [chromium] › e2e\round9.spec.js:380:5 › Site health (was Control Center) › Google refusing the key is red with the reason and a fix link
+[3/4] [chromium] › e2e\round9.spec.js:391:5 › Site health (was Control Center) › waiting reviews are counted and the fix link opens Reviews
+[4/4] [chromium] › e2e\round9.spec.js:402:5 › Site health (was Control Center) › storage that cannot be reached is red
+  4 passed (36.2s)

@@ -1,0 +1,159 @@
+﻿
+Running 5 tests using 1 worker
+
+
+
+[1/5] [chromium] › e2e\galleries.spec.js:86:5 › Service galleries — admin › galleries tab lists items by service
+  1) [chromium] › e2e\galleries.spec.js:86:5 › Service galleries — admin › galleries tab lists items by service 
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('#adminPanel .nav-item[data-admin-tab="projects"]')
+    Timeout: 10000ms
+    - Expected substring  - 1
+    + Received string     + 3
+
+    - Galleries
+    +
+    +                                  Projects
+    +                             
+
+    Call log:
+      - Expect "toContainText" locator('#adminPanel .nav-item[data-admin-tab="projects"]') with timeout 10000ms
+      - waiting for locator('#adminPanel .nav-item[data-admin-tab="projects"]')
+        23 × locator resolved to <button class="nav-item" data-admin-tab="projects">…</button>
+           - unexpected value "
+                                     Projects
+                                "
+
+
+      87 |         await mockSupabase(page, { installations: [galleryRow({ category: 'cctv' }), galleryRow({ category: 'cctv' }), galleryRow({ category: 'solar' })] });
+      88 |         await loginAdmin(page);
+    > 89 |         await expect(page.locator('#adminPanel .nav-item[data-admin-tab="projects"]')).toContainText('Galleries');
+         |                                                                                        ^
+      90 |         await openGalleriesTab(page);
+      91 |         await expect(page.locator('.sg-tab[data-sg-cat="cctv"] span')).toHaveText('2');
+      92 |         await expect(page.locator('#sgGrid .sg-tile')).toHaveCount(2);
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\galleries.spec.js:89:88
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\galleries-Service-gallerie-89bc9--tab-lists-items-by-service-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\galleries-Service-gallerie-89bc9--tab-lists-items-by-service-chromium\error-context.md
+
+
+
+
+[2/5] [chromium] › e2e\galleries.spec.js:97:5 › Service galleries — admin › upload photo and video into CCTV
+  2) [chromium] › e2e\galleries.spec.js:97:5 › Service galleries — admin › upload photo and video into CCTV 
+
+    TimeoutError: page.waitForSelector: Timeout 15000ms exceeded.
+    Call log:
+      - waiting for locator('#sgAdmin') to be visible
+
+
+      80 | async function openGalleriesTab(page) {
+      81 |     await page.click('#adminPanel .nav-item[data-admin-tab="projects"]');
+    > 82 |     await page.waitForSelector('#sgAdmin', { timeout: 15000 });
+         |                ^
+      83 | }
+      84 |
+      85 | test.describe('Service galleries — admin', () => {
+        at openGalleriesTab (C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\galleries.spec.js:82:16)
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\galleries.spec.js:100:9
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\galleries-Service-gallerie-d5036-d-photo-and-video-into-CCTV-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\galleries-Service-gallerie-d5036-d-photo-and-video-into-CCTV-chromium\error-context.md
+
+
+
+
+[3/5] [chromium] › e2e\galleries.spec.js:118:5 › Service galleries — admin › bad file does not stop the others
+  3) [chromium] › e2e\galleries.spec.js:118:5 › Service galleries — admin › bad file does not stop the others 
+
+    TimeoutError: page.waitForSelector: Timeout 15000ms exceeded.
+    Call log:
+      - waiting for locator('#sgAdmin') to be visible
+
+
+      80 | async function openGalleriesTab(page) {
+      81 |     await page.click('#adminPanel .nav-item[data-admin-tab="projects"]');
+    > 82 |     await page.waitForSelector('#sgAdmin', { timeout: 15000 });
+         |                ^
+      83 | }
+      84 |
+      85 | test.describe('Service galleries — admin', () => {
+        at openGalleriesTab (C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\galleries.spec.js:82:16)
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\galleries.spec.js:121:9
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\galleries-Service-gallerie-51758-le-does-not-stop-the-others-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\galleries-Service-gallerie-51758-le-does-not-stop-the-others-chromium\error-context.md
+
+
+
+
+[4/5] [chromium] › e2e\galleries.spec.js:136:5 › Service galleries — admin › not allowed upload leaves nothing behind
+  4) [chromium] › e2e\galleries.spec.js:136:5 › Service galleries — admin › not allowed upload leaves nothing behind 
+
+    TimeoutError: page.waitForSelector: Timeout 15000ms exceeded.
+    Call log:
+      - waiting for locator('#sgAdmin') to be visible
+
+
+      80 | async function openGalleriesTab(page) {
+      81 |     await page.click('#adminPanel .nav-item[data-admin-tab="projects"]');
+    > 82 |     await page.waitForSelector('#sgAdmin', { timeout: 15000 });
+         |                ^
+      83 | }
+      84 |
+      85 | test.describe('Service galleries — admin', () => {
+        at openGalleriesTab (C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\galleries.spec.js:82:16)
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\galleries.spec.js:140:9
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\galleries-Service-gallerie-86f17-pload-leaves-nothing-behind-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\galleries-Service-gallerie-86f17-pload-leaves-nothing-behind-chromium\error-context.md
+
+
+
+
+[5/5] [chromium] › e2e\galleries.spec.js:146:5 › Service galleries — admin › offline shows state with retry
+  5) [chromium] › e2e\galleries.spec.js:146:5 › Service galleries — admin › offline shows state with retry 
+
+    TimeoutError: page.waitForSelector: Timeout 15000ms exceeded.
+    Call log:
+      - waiting for locator('#sgAdmin') to be visible
+
+
+      80 | async function openGalleriesTab(page) {
+      81 |     await page.click('#adminPanel .nav-item[data-admin-tab="projects"]');
+    > 82 |     await page.waitForSelector('#sgAdmin', { timeout: 15000 });
+         |                ^
+      83 | }
+      84 |
+      85 | test.describe('Service galleries — admin', () => {
+        at openGalleriesTab (C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\galleries.spec.js:82:16)
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\galleries.spec.js:150:9
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\galleries-Service-gallerie-87c60-line-shows-state-with-retry-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\galleries-Service-gallerie-87c60-line-shows-state-with-retry-chromium\error-context.md
+
+
+  5 failed
+    [chromium] › e2e\galleries.spec.js:86:5 › Service galleries — admin › galleries tab lists items by service 
+    [chromium] › e2e\galleries.spec.js:97:5 › Service galleries — admin › upload photo and video into CCTV 
+    [chromium] › e2e\galleries.spec.js:118:5 › Service galleries — admin › bad file does not stop the others 
+    [chromium] › e2e\galleries.spec.js:136:5 › Service galleries — admin › not allowed upload leaves nothing behind 
+    [chromium] › e2e\galleries.spec.js:146:5 › Service galleries — admin › offline shows state with retry 

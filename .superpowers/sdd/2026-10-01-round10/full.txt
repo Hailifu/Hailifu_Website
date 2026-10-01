@@ -1,0 +1,163 @@
+
+Running 103 tests using 1 worker
+
+[1/103] [chromium] › e2e\galleries.spec.js:15:5 › Service galleries — public › shows one card per service from gallery rows
+[2/103] [chromium] › e2e\galleries.spec.js:32:5 › Service galleries — public › showcase wording talks about services, not projects
+[3/103] [chromium] › e2e\galleries.spec.js:41:5 › Service galleries — public › card opens the service gallery
+[4/103] [chromium] › e2e\galleries.spec.js:53:5 › Service galleries — public › falls back to built-in projects when no gallery rows
+[5/103] [chromium] › e2e\galleries.spec.js:60:5 › Service galleries — public › falls back when Supabase is unreachable
+[6/103] [chromium] › e2e\galleries.spec.js:70:5 › Service galleries — public › legacy localStorage projects are ignored when gallery rows exist
+[7/103] [chromium] › e2e\galleries.spec.js:101:5 › Service galleries — admin › galleries tab lists items by service
+[8/103] [chromium] › e2e\galleries.spec.js:112:5 › Service galleries — admin › upload photo and video into CCTV
+[9/103] [chromium] › e2e\galleries.spec.js:133:5 › Service galleries — admin › bad file does not stop the others
+[10/103] [chromium] › e2e\galleries.spec.js:151:5 › Service galleries — admin › not allowed upload leaves nothing behind
+[11/103] [chromium] › e2e\galleries.spec.js:161:5 › Service galleries — admin › tab chosen right after sign-in is not reset to the Dashboard
+[12/103] [chromium] › e2e\galleries.spec.js:181:5 › Service galleries — admin › offline shows state with retry
+[13/103] [chromium] › e2e\galleries.spec.js:196:5 › Service galleries — links and arranging › add Cloudinary and YouTube links
+[14/103] [chromium] › e2e\galleries.spec.js:212:5 › Service galleries — links and arranging › bad and duplicate links are reported
+[15/103] [chromium] › e2e\galleries.spec.js:224:5 › Service galleries — links and arranging › caption, featured, cover, reorder, move
+[16/103] [chromium] › e2e\galleries.spec.js:269:5 › Service galleries — delete › delete removes row, file and public item
+[17/103] [chromium] › e2e\galleries.spec.js:288:5 › Service galleries — delete › refused delete keeps the item
+[18/103] [chromium] › e2e\galleries.spec.js:299:5 › Service galleries — delete › cloudinary item delete keeps the Cloudinary file
+[19/103] [chromium] › e2e\galleries.spec.js:309:5 › Service galleries — delete › deleting cover and last item
+[20/103] [chromium] › e2e\galleries.spec.js:336:5 › Service galleries — import and media library › import copies current photos once
+[21/103] [chromium] › e2e\galleries.spec.js:357:5 › Service galleries — import and media library › media library add to gallery
+[22/103] [chromium] › e2e\galleries.spec.js:378:5 › Service galleries — featured and phones › featured items drive Featured Work
+[23/103] [chromium] › e2e\galleries.spec.js:390:5 › Service galleries — featured and phones › without starred items each service cover is featured
+[24/103] [chromium] › e2e\galleries.spec.js:397:5 › Service galleries — featured and phones › phone layout has no sideways scroll
+[25/103] [chromium] › e2e\galleries.spec.js:417:5 › Service galleries — review fixes › captions with quotes survive and unsafe links are never rendered
+[26/103] [chromium] › e2e\galleries.spec.js:431:5 › Service galleries — review fixes › media library file is not deleted with its gallery item, and cannot be added twice
+[27/103] [chromium] › e2e\galleries.spec.js:455:5 › Service galleries — review fixes › typing the next caption is not wiped when the previous one saves
+[28/103] [chromium] › e2e\galleries.spec.js:472:5 › Service galleries — review fixes › visitors never see old local projects while galleries load
+[29/103] [chromium] › e2e\galleries.spec.js:492:5 › Service galleries — review fixes › captions show under the photo in the public gallery
+[30/103] [chromium] › e2e\galleries.spec.js:505:5 › Service galleries — dashboard › dashboard counts gallery items, not old projects
+[31/103] [chromium] › e2e\galleries.spec.js:518:5 › Service galleries — dashboard › before any gallery items the dashboard points to Import
+[32/103] [chromium] › e2e\galleries.spec.js:526:5 › Service galleries — dashboard › dashboard updates after an upload without reloading
+[33/103] [chromium] › e2e\galleries.spec.js:541:5 › Service galleries — minor fixes › a file whose save is refused is removed from storage again
+[34/103] [chromium] › e2e\galleries.spec.js:552:5 › Service galleries — minor fixes › several files uploaded together keep distinct positions
+[35/103] [chromium] › e2e\galleries.spec.js:562:5 › Service galleries — minor fixes › links that are not photos or videos, or YouTube without a video, are refused
+[36/103] [chromium] › e2e\galleries.spec.js:581:5 › Service galleries — minor fixes › public gallery follows the admin order; cover only sets the card photo
+[37/103] [chromium] › e2e\galleries.spec.js:592:5 › Service galleries — minor fixes › refused caption, star and cover saves change nothing
+[38/103] [chromium] › e2e\galleries.spec.js:609:5 › Service galleries — minor fixes › deleting every gallery item brings the built-in photos back
+[39/103] [chromium] › e2e\round10.spec.js:8:5 › Admin address /hailifu=access › the new address opens the admin login
+[40/103] [chromium] › e2e\round10.spec.js:15:5 › Admin address /hailifu=access › the old ?admin and #admin addresses no longer open it
+[41/103] [chromium] › e2e\round10.spec.js:24:5 › Admin address /hailifu=access › a normal visit after using the admin address does not open the login
+[42/103] [chromium] › e2e\round10.spec.js:42:5 › Page stays still behind popups › quote form freezes the page and puts it back where it was
+[43/103] [chromium] › e2e\round10.spec.js:56:5 › Page stays still behind popups › review form, gallery viewer and phone menu freeze the page too
+[44/103] [chromium] › e2e\round10.spec.js:80:5 › Page stays still behind popups › admin portal freezes the site behind it but scrolls itself
+  1) [chromium] › e2e\round10.spec.js:80:5 › Page stays still behind popups › admin portal freezes the site behind it but scrolls itself 
+
+    Test timeout of 60000ms exceeded.
+
+    Error: page.click: Test timeout of 60000ms exceeded.
+    Call log:
+      - waiting for locator('#adminPanel .nav-item[data-admin-tab="projects"]')
+        - locator resolved to <button class="nav-item" data-admin-tab="projects">…</button>
+      - attempting click action
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+        - performing click action
+
+
+      83 |         await loginAdmin(page);
+      84 |         await expect.poll(() => locked(page)).toBe(true);
+    > 85 |         await page.click('#adminPanel .nav-item[data-admin-tab="projects"]');
+         |                    ^
+      86 |         await page.waitForSelector('#sgAdmin');
+      87 |         await page.mouse.move(700, 450);
+      88 |         await page.mouse.wheel(0, 900);
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round10.spec.js:85:20
+
+    Error Context: test-results\round10-Page-stays-still-b-0f993-ehind-it-but-scrolls-itself-chromium\error-context.md
+
+
+[45/103] [chromium] › e2e\round10.spec.js:109:5 › Aftercare photo the owner can change › a saved Aftercare photo shows for every visitor, ignoring old per-browser photos
+[46/103] [chromium] › e2e\round10.spec.js:118:5 › Aftercare photo the owner can change › owner uploads a new photo in Site Control; it is saved for everyone
+[47/103] [chromium] › e2e\round10.spec.js:130:5 › Aftercare photo the owner can change › paste a link, pick from the Media Library, and reset to the default photo
+[48/103] [chromium] › e2e\round10.spec.js:174:5 › Gallery viewer: smooth swipe › the photo follows the finger and the next photo slides in beside it
+[49/103] [chromium] › e2e\round10.spec.js:189:5 › Gallery viewer: smooth swipe › a short slow drag springs back to the same photo
+[50/103] [chromium] › e2e\round10.spec.js:201:5 › Gallery viewer: smooth swipe › a quick flick changes photo, and swiping right goes back
+[51/103] [chromium] › e2e\round10.spec.js:216:5 › Gallery viewer: smooth swipe › a drag never zooms or closes the viewer; a single photo stretches and springs back
+[52/103] [chromium] › e2e\round10.spec.js:247:5 › Review form like Google (no name or phone) › the form has no name or phone and says it posts publicly
+[53/103] [chromium] › e2e\round10.spec.js:259:5 › Review form like Google (no name or phone) › a visitor answers everything and adds photos; all of it is saved as waiting
+[54/103] [chromium] › e2e\round10.spec.js:291:5 › Review form like Google (no name or phone) › stars alone are enough; no stars is blocked; more than 5 photos are refused
+[55/103] [chromium] › e2e\round10.spec.js:309:5 › Review form like Google (no name or phone) › if photos cannot be uploaded nothing is posted and the visitor is told
+[56/103] [chromium] › e2e\round10.spec.js:321:5 › Review form like Google (no name or phone) › an approved review shows its photos and tags, never the amount paid
+[57/103] [chromium] › e2e\round10.spec.js:334:5 › Review form like Google (no name or phone) › a star-only approved review still shows on the site
+[58/103] [chromium] › e2e\round10.spec.js:340:5 › Review form like Google (no name or phone) › admin sees every answer and photo; deleting removes the photos too
+[59/103] [chromium] › e2e\round10.spec.js:365:5 › Admin login and switches redesign › login: welcome copy, show/hide password and Caps Lock warning
+[60/103] [chromium] › e2e\round10.spec.js:387:5 › Admin login and switches redesign › login: busy spinner while signing in, shake and message on a wrong password
+[61/103] [chromium] › e2e\round10.spec.js:401:5 › Admin login and switches redesign › every on/off control is the same switch: big target, keyboard, on/off state
+[62/103] [chromium] › e2e\round9.spec.js:14:5 › Networking service › networking is a service everywhere on the public site
+[63/103] [chromium] › e2e\round9.spec.js:37:5 › Networking service › networking has a gallery tab in admin
+[64/103] [chromium] › e2e\round9.spec.js:58:5 › Galleries: select several, clear Move button › select several and delete them together
+[65/103] [chromium] › e2e\round9.spec.js:75:5 › Galleries: select several, clear Move button › select all picks every item in the service only; changing service clears it
+[66/103] [chromium] › e2e\round9.spec.js:86:5 › Galleries: select several, clear Move button › a refused delete keeps that item selected and says so
+[67/103] [chromium] › e2e\round9.spec.js:99:5 › Galleries: select several, clear Move button › Move button opens a list of services and moves the item
+[68/103] [chromium] › e2e\round9.spec.js:114:5 › Galleries: select several, clear Move button › selected items can be moved together
+[69/103] [chromium] › e2e\round9.spec.js:142:5 › Reviews: simple form + owner approval › visitor posts a review: saved as waiting, thank-you shown
+[70/103] [chromium] › e2e\round9.spec.js:158:5 › Reviews: simple form + owner approval › missing stars is blocked with a message (round 10: text optional, no name)
+[71/103] [chromium] › e2e\round9.spec.js:167:5 › Reviews: simple form + owner approval › a refused save shows a friendly message and keeps the text
+[72/103] [chromium] › e2e\round9.spec.js:177:5 › Reviews: simple form + owner approval › owner approves a waiting review and it shows on the site
+[73/103] [chromium] › e2e\round9.spec.js:193:5 › Reviews: simple form + owner approval › waiting reviews never show on the public site
+[74/103] [chromium] › e2e\round9.spec.js:200:5 › Reviews: simple form + owner approval › script in a review is shown as text, never run
+[75/103] [chromium] › e2e\round9.spec.js:230:5 › Google reviews feed (Places API New) › shows Google reviews, rating and count
+[76/103] [chromium] › e2e\round9.spec.js:244:5 › Google reviews feed (Places API New) › a refused key shows the Google link box and warns once
+[77/103] [chromium] › e2e\round9.spec.js:256:5 › Google reviews feed (Places API New) › a fresh saved copy is used without asking Google again
+[78/103] [chromium] › e2e\round9.spec.js:268:5 › Google reviews feed (Places API New) › Google review text is shown as text, never run
+[79/103] [chromium] › e2e\round9.spec.js:278:5 › Google reviews feed (Places API New) › owner saves the key and Place ID in Site Control and tests it
+[80/103] [chromium] › e2e\round9.spec.js:306:5 › Brand colour: site-wide and readable › a saved colour reaches a new visitor, with readable text on it
+[81/103] [chromium] › e2e\round9.spec.js:313:5 › Brand colour: site-wide and readable › an old colour saved only in this browser is ignored
+[82/103] [chromium] › e2e\round9.spec.js:322:5 › Brand colour: site-wide and readable › preview picks dark text on yellow and white text on navy, then saves for everyone
+[83/103] [chromium] › e2e\round9.spec.js:334:5 › Brand colour: site-wide and readable › reset brings back Hailifu orange for everyone
+[84/103] [chromium] › e2e\round9.spec.js:360:5 › Site health (was Control Center) › everything working shows green checks with real numbers
+  2) [chromium] › e2e\round9.spec.js:360:5 › Site health (was Control Center) › everything working shows green checks with real numbers 
+
+    Test timeout of 60000ms exceeded.
+
+    TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.
+
+       at helpers\mock-supabase.js:114
+
+      112 |     await page.fill('#hmLoginPassword', 'correct-horse');
+      113 |     await page.click('.hm-login-submit');
+    > 114 |     await page.waitForFunction(() => document.getElementById('adminPanel')?.classList.contains('active'), null, { timeout: 15000 });
+          |                ^
+      115 |     await page.waitForTimeout(800);
+      116 | }
+      117 |
+        at loginAdmin (C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\helpers\mock-supabase.js:114:16)
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round9.spec.js:363:9
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round9-Site-health-was-Con-be3b9-en-checks-with-real-numbers-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round9-Site-health-was-Con-be3b9-en-checks-with-real-numbers-chromium\error-context.md
+
+
+[85/103] [chromium] › e2e\round9.spec.js:374:5 › Site health (was Control Center) › Google refusing the key is red with the reason and a fix link
+[86/103] [chromium] › e2e\round9.spec.js:385:5 › Site health (was Control Center) › waiting reviews are counted and the fix link opens Reviews
+[87/103] [chromium] › e2e\round9.spec.js:396:5 › Site health (was Control Center) › storage that cannot be reached is red
+[88/103] [chromium] › e2e\round9.spec.js:407:5 › Aftercare card, account email, motion › aftercare card shows real facts and no made-up numbers
+[89/103] [chromium] › e2e\round9.spec.js:422:5 › Aftercare card, account email, motion › account menu shows the signed-in email on a phone
+[90/103] [chromium] › e2e\round9.spec.js:433:5 › Aftercare card, account email, motion › account menu opens on top of the page content
+[91/103] [chromium] › e2e\round9.spec.js:446:5 › Aftercare card, account email, motion › showcase cards tilt with the pointer like the service cards
+[92/103] [chromium] › e2e\round9.spec.js:458:5 › Aftercare card, account email, motion › the menu wordmark uses the premium display font
+[93/103] [chromium] › e2e\smoke.spec.js:5:5 › Public smoke › home responds and title matches brand
+[94/103] [chromium] › e2e\smoke.spec.js:12:5 › Public smoke › hero Request a Quote opens and closes invoice popup
+[95/103] [chromium] › e2e\smoke.spec.js:22:5 › Public smoke › contact card offers Call and WhatsApp, no Contact Us
+[96/103] [chromium] › e2e\smoke.spec.js:30:5 › Public smoke › service card Request a Quote opens popup
+[97/103] [chromium] › e2e\smoke.spec.js:38:5 › Public smoke › deep link #quote resolves in document
+[98/103] [chromium] › e2e\smoke.spec.js:44:5 › Public smoke › theme toggle updates html data-theme
+[99/103] [chromium] › e2e\smoke.spec.js:52:5 › Public smoke › Write a Review opens modal
+[100/103] [chromium] › e2e\topbar.spec.js:13:5 › Top advert bar › drops every 5 seconds: down 5 s, up 5 s, down again
+[101/103] [chromium] › e2e\topbar.spec.js:28:5 › Top advert bar › stays down while the pointer is on it, then carries on
+[102/103] [chromium] › e2e\topbar.spec.js:42:5 › Top advert bar › closing it stops the cycle for the visit
+[103/103] [chromium] › e2e\topbar.spec.js:54:5 › Top advert bar › the menu follows the bar down and back up
+  2 failed
+    [chromium] › e2e\round10.spec.js:80:5 › Page stays still behind popups › admin portal freezes the site behind it but scrolls itself 
+    [chromium] › e2e\round9.spec.js:360:5 › Site health (was Control Center) › everything working shows green checks with real numbers 
+  101 passed (15.1m)

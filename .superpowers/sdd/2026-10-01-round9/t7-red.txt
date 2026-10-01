@@ -1,0 +1,198 @@
+
+Running 4 tests using 1 worker
+
+[1/4] [chromium] › e2e\round9.spec.js:413:5 › Aftercare card, account email, motion › aftercare card shows real facts and no made-up numbers
+  1) [chromium] › e2e\round9.spec.js:413:5 › Aftercare card, account email, motion › aftercare card shows real facts and no made-up numbers 
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('#integrityPanel')
+    Timeout: 10000ms
+    - Expected substring  -  1
+    + Received string     + 37
+
+    - Looked after after we leave
+    +
+    +                     
+    +                         
+    +                             System Integrity
+    +                             Monitoring
+    +                         
+    +                         SECURE
+    +                     
+    +                     
+    +                         
+    +                             
+    +                         
+    +                         
+    +                             
+    +                             
+    +                             
+    +                         
+    +                         
+    +                             
+    +                             
+    +                         
+    +                     
+    +                     
+    +                         
+    +                             Uptime
+    +                             99.9%
+    +                         
+    +                         
+    +                             Latency
+    +                             < 15 min
+    +                         
+    +                         
+    +                             Coverage
+    +                             360°
+    +                         
+    +                     
+    +                 
+
+    Call log:
+      - Expect "toContainText" locator('#integrityPanel') with timeout 10000ms
+      - waiting for locator('#integrityPanel')
+        23 × locator resolved to <div id="integrityPanel" class="about-visual-panel">…</div>
+           - unexpected value "
+                        
+                            
+                                System Integrity
+                                Monitoring
+                            
+                            SECURE
+                        
+                        
+                            
+                                
+                            
+                            
+                                
+                                
+                                
+                            
+                            
+                                
+                                
+                            
+                        
+                        
+                            
+                                Uptime
+                                99.9%
+                            
+                            
+                                Latency
+                                < 15 min
+                            
+                            
+                                Coverage
+                                360°
+                            
+                        
+                    "
+
+
+      415 |         await page.goto('/', { waitUntil: 'load' });
+      416 |         const card = page.locator('#integrityPanel');
+    > 417 |         await expect(card).toContainText('Looked after after we leave');
+          |                            ^
+      418 |         await expect(card).toContainText('24/7');
+      419 |         await expect(card).toContainText('30 min');
+      420 |         await expect(card).toContainText('Certified');
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round9.spec.js:417:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round9-Aftercare-card-acco-28213-acts-and-no-made-up-numbers-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round9-Aftercare-card-acco-28213-acts-and-no-made-up-numbers-chromium\error-context.md
+
+
+[2/4] [chromium] › e2e\round9.spec.js:428:5 › Aftercare card, account email, motion › account menu shows the signed-in email on a phone
+  2) [chromium] › e2e\round9.spec.js:428:5 › Aftercare card, account email, motion › account menu shows the signed-in email on a phone 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('#hmAccountMenu .hm-account-who')
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('#hmAccountMenu .hm-account-who') with timeout 10000ms
+      - waiting for locator('#hmAccountMenu .hm-account-who')
+
+
+      432 |         await page.click('#hmAccountBtn');
+      433 |         const who = page.locator('#hmAccountMenu .hm-account-who');
+    > 434 |         await expect(who).toBeVisible();
+          |                           ^
+      435 |         await expect(who).toContainText('Signed in as');
+      436 |         await expect(who).toContainText('owner@example.com');
+      437 |     });
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round9.spec.js:434:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round9-Aftercare-card-acco-e0850--signed-in-email-on-a-phone-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round9-Aftercare-card-acco-e0850--signed-in-email-on-a-phone-chromium\error-context.md
+
+
+[3/4] [chromium] › e2e\round9.spec.js:439:5 › Aftercare card, account email, motion › showcase cards tilt with the pointer like the service cards
+  3) [chromium] › e2e\round9.spec.js:439:5 › Aftercare card, account email, motion › showcase cards tilt with the pointer like the service cards 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+    Call Log:
+    - Timeout 10000ms exceeded while waiting on the predicate
+
+      446 |         await page.mouse.move(box.x + box.width * 0.85, box.y + box.height * 0.2);
+      447 |         await page.mouse.move(box.x + box.width * 0.9, box.y + box.height * 0.15);
+    > 448 |         await expect.poll(() => card.evaluate((el) => el.classList.contains('is-tilting'))).toBe(true);
+          |                                                                                             ^
+      449 |     });
+      450 |
+      451 |     test('the menu wordmark uses the premium display font', async ({ page }) => {
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round9.spec.js:448:93
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round9-Aftercare-card-acco-e496f-nter-like-the-service-cards-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round9-Aftercare-card-acco-e496f-nter-like-the-service-cards-chromium\error-context.md
+
+
+[4/4] [chromium] › e2e\round9.spec.js:451:5 › Aftercare card, account email, motion › the menu wordmark uses the premium display font
+  4) [chromium] › e2e\round9.spec.js:451:5 › Aftercare card, account email, motion › the menu wordmark uses the premium display font 
+
+    Error: expect(received).toMatch(expected)
+
+    Expected pattern: /Unbounded/
+    Received string:  "\"Bricolage Grotesque\", Geist, Inter, system-ui, -apple-system, \"Segoe UI\", sans-serif"
+
+      453 |         await page.goto('/', { waitUntil: 'load' });
+      454 |         const family = await page.locator('#headerLogo').evaluate((el) => getComputedStyle(el).fontFamily);
+    > 455 |         expect(family).toMatch(/Unbounded/);
+          |                        ^
+      456 |     });
+      457 | });
+      458 |
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\round9.spec.js:455:24
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\round9-Aftercare-card-acco-8b632-es-the-premium-display-font-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\round9-Aftercare-card-acco-8b632-es-the-premium-display-font-chromium\error-context.md
+
+
+  4 failed
+    [chromium] › e2e\round9.spec.js:413:5 › Aftercare card, account email, motion › aftercare card shows real facts and no made-up numbers 
+    [chromium] › e2e\round9.spec.js:428:5 › Aftercare card, account email, motion › account menu shows the signed-in email on a phone 
+    [chromium] › e2e\round9.spec.js:439:5 › Aftercare card, account email, motion › showcase cards tilt with the pointer like the service cards 
+    [chromium] › e2e\round9.spec.js:451:5 › Aftercare card, account email, motion › the menu wordmark uses the premium display font 

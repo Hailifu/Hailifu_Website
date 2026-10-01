@@ -1,0 +1,179 @@
+﻿
+Running 5 tests using 1 worker
+
+
+
+[1/5] [chromium] › e2e\galleries.spec.js:415:5 › Service galleries — review fixes › captions with quotes survive and unsafe links are never rendered
+  1) [chromium] › e2e\galleries.spec.js:415:5 › Service galleries — review fixes › captions with quotes survive and unsafe links are never rendered 
+
+    Error: expect(locator).toHaveValue(expected) failed
+
+    Locator:  locator('#sgGrid .sg-tile[data-sg-id="g_q"]').locator('.sg-caption')
+    Expected: "Villa \"Sunrise\", East Legon"
+    Received: "Villa "
+    Timeout:  10000ms
+
+    Call log:
+      - Expect "toHaveValue" locator('#sgGrid .sg-tile[data-sg-id="g_q"]').locator('.sg-caption') with timeout 10000ms
+      - waiting for locator('#sgGrid .sg-tile[data-sg-id="g_q"]').locator('.sg-caption')
+        23 × locator resolved to <input east="" legon"="" type="text" sunrise",="" value="Villa " maxlength="140" class="sg-caption" aria-label="Caption" placeholder="Add a caption"/>
+           - unexpected value "Villa "
+
+
+      421 |         await loginAdmin(page);
+      422 |         await openGalleriesTab(page);
+    > 423 |         await expect(tile(page, 'g_q').locator('.sg-caption')).toHaveValue('Villa "Sunrise", East Legon');
+          |                                                                ^
+      424 |         await expect(tile(page, 'g_js')).toHaveCount(0);
+      425 |         const srcs = await page.$$eval('#sgGrid img', (n) => n.map((i) => i.getAttribute('src')));
+      426 |         srcs.forEach((s) => expect(s).not.toMatch(/^javascript:/i));
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\galleries.spec.js:423:64
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\galleries-Service-gallerie-28ffd-fe-links-are-never-rendered-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\galleries-Service-gallerie-28ffd-fe-links-are-never-rendered-chromium\error-context.md
+
+
+
+
+[2/5] [chromium] › e2e\galleries.spec.js:429:5 › Service galleries — review fixes › media library file is not deleted with its gallery item, and cannot be added twice
+  2) [chromium] › e2e\galleries.spec.js:429:5 › Service galleries — review fixes › media library file is not deleted with its gallery item, and cannot be added twice 
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('#adminMediaToast')
+    Expected substring: "already in a gallery"
+    Received string:    "Added to Solar gallery"
+    Timeout: 10000ms
+
+    Call log:
+      - Expect "toContainText" locator('#adminMediaToast') with timeout 10000ms
+      - waiting for locator('#adminMediaToast')
+        - locator resolved to <div role="status" aria-live="polite" id="adminMediaToast" class="admin-media-toast is-success active">Added to Gate automation gallery</div>
+        - unexpected value "Added to Gate automation gallery"
+        8 × locator resolved to <div role="status" aria-live="polite" id="adminMediaToast" class="admin-media-toast is-success active">Added to Solar gallery</div>
+          - unexpected value "Added to Solar gallery"
+        14 × locator resolved to <div role="status" aria-live="polite" id="adminMediaToast" class="admin-media-toast is-success">Added to Solar gallery</div>
+           - unexpected value "Added to Solar gallery"
+
+
+      438 |             await page.selectOption(`${t} .hm-togal select`, i === 0 ? 'gates' : 'solar');
+      439 |             await page.click(`${t} [data-hm-action="to-gallery-add"]`);
+    > 440 |             await expect(page.locator('#adminMediaToast')).toContainText(i === 0 ? 'Added to' : 'already in a gallery');
+          |                                                            ^
+      441 |             await page.waitForTimeout(300);
+      442 |         }
+      443 |         expect(galleryRows(sb).length).toBe(1);
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\galleries.spec.js:440:60
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\galleries-Service-gallerie-3be5c-m-and-cannot-be-added-twice-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\galleries-Service-gallerie-3be5c-m-and-cannot-be-added-twice-chromium\error-context.md
+
+
+
+
+[3/5] [chromium] › e2e\galleries.spec.js:453:5 › Service galleries — review fixes › typing the next caption is not wiped when the previous one saves
+  3) [chromium] › e2e\galleries.spec.js:453:5 › Service galleries — review fixes › typing the next caption is not wiped when the previous one saves 
+
+    Error: expect(locator).toHaveValue(expected) failed
+
+    Locator:  locator('#sgGrid .sg-tile[data-sg-id="g_2"]').locator('.sg-caption')
+    Expected: "Second caption in progress"
+    Received: ""
+    Timeout:  10000ms
+
+    Call log:
+      - Expect "toHaveValue" locator('#sgGrid .sg-tile[data-sg-id="g_2"]').locator('.sg-caption') with timeout 10000ms
+      - waiting for locator('#sgGrid .sg-tile[data-sg-id="g_2"]').locator('.sg-caption')
+        23 × locator resolved to <input value="" type="text" maxlength="140" class="sg-caption" aria-label="Caption" placeholder="Add a caption"/>
+           - unexpected value ""
+
+
+      464 |         await page.keyboard.type('Second caption in progress', { delay: 40 });
+      465 |         await page.waitForTimeout(1200); // first save finishes during/after typing
+    > 466 |         await expect(tile(page, 'g_2').locator('.sg-caption')).toHaveValue('Second caption in progress');
+          |                                                                ^
+      467 |         await expect(tile(page, 'g_2').locator('.sg-caption')).toBeFocused();
+      468 |     });
+      469 |
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\galleries.spec.js:466:64
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\galleries-Service-gallerie-a1c26-when-the-previous-one-saves-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\galleries-Service-gallerie-a1c26-when-the-previous-one-saves-chromium\error-context.md
+
+
+
+
+[4/5] [chromium] › e2e\galleries.spec.js:470:5 › Service galleries — review fixes › visitors never see old local projects while galleries load
+  4) [chromium] › e2e\galleries.spec.js:470:5 › Service galleries — review fixes › visitors never see old local projects while galleries load 
+
+    Error: expect(received).not.toContain(expected) // indexOf
+
+    Expected value: not "Old Local Project"
+    Received array:     ["Old Local Project", "Old Local Project", "Old Local Project", "CCTV"]
+
+      485 |         await expect(cards(page)).toHaveCount(1, { timeout: 15000 });
+      486 |         await expect(cards(page).first().locator('h3')).toHaveText('CCTV');
+    > 487 |         expect(seen).not.toContain('Old Local Project');
+          |                          ^
+      488 |     });
+      489 |
+      490 |     test('captions show under the photo in the public gallery', async ({ page }) => {
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\galleries.spec.js:487:26
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\galleries-Service-gallerie-e2fc5-ojects-while-galleries-load-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\galleries-Service-gallerie-e2fc5-ojects-while-galleries-load-chromium\error-context.md
+
+
+
+
+[5/5] [chromium] › e2e\galleries.spec.js:490:5 › Service galleries — review fixes › captions show under the photo in the public gallery
+  5) [chromium] › e2e\galleries.spec.js:490:5 › Service galleries — review fixes › captions show under the photo in the public gallery 
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('#hmGalDesc')
+    Expected substring: "Villa, East Legon"
+    Received string:    "2 photos"
+    Timeout: 10000ms
+
+    Call log:
+      - Expect "toContainText" locator('#hmGalDesc') with timeout 10000ms
+      - waiting for locator('#hmGalDesc')
+        23 × locator resolved to <p id="hmGalDesc" class="hm-gal-desc">2 photos</p>
+           - unexpected value "2 photos"
+
+
+      492 |         await openHome(page);
+      493 |         await cards(page).first().click();
+    > 494 |         await expect(page.locator('#hmGalDesc')).toContainText('Villa, East Legon');
+          |                                                  ^
+      495 |         await page.keyboard.press('ArrowRight');
+      496 |         await expect(page.locator('#hmGalDesc')).toContainText('Shop, Tema');
+      497 |     });
+        at C:\Users\01hai\OneDrive\Desktop\Hailifu_Website-main\Hailifu_Website-main\e2e\galleries.spec.js:494:50
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\galleries-Service-gallerie-1eabb-photo-in-the-public-gallery-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\galleries-Service-gallerie-1eabb-photo-in-the-public-gallery-chromium\error-context.md
+
+
+  5 failed
+    [chromium] › e2e\galleries.spec.js:415:5 › Service galleries — review fixes › captions with quotes survive and unsafe links are never rendered 
+    [chromium] › e2e\galleries.spec.js:429:5 › Service galleries — review fixes › media library file is not deleted with its gallery item, and cannot be added twice 
+    [chromium] › e2e\galleries.spec.js:453:5 › Service galleries — review fixes › typing the next caption is not wiped when the previous one saves 
+    [chromium] › e2e\galleries.spec.js:470:5 › Service galleries — review fixes › visitors never see old local projects while galleries load 
+    [chromium] › e2e\galleries.spec.js:490:5 › Service galleries — review fixes › captions show under the photo in the public gallery 

@@ -1,0 +1,13 @@
+
+Running 9 tests using 1 worker
+
+[1/9] [chromium] › e2e\round10.spec.js:8:5 › Admin address /hailifu=access › the new address opens the admin login
+[2/9] [chromium] › e2e\round10.spec.js:15:5 › Admin address /hailifu=access › the old ?admin and #admin addresses no longer open it
+[3/9] [chromium] › e2e\round10.spec.js:24:5 › Admin address /hailifu=access › a normal visit after using the admin address does not open the login
+[4/9] [chromium] › e2e\round9.spec.js:366:5 › Site health (was Control Center) › everything working shows green checks with real numbers
+[5/9] [chromium] › e2e\round9.spec.js:380:5 › Site health (was Control Center) › Google refusing the key is red with the reason and a fix link
+[6/9] [chromium] › e2e\round9.spec.js:391:5 › Site health (was Control Center) › waiting reviews are counted and the fix link opens Reviews
+[7/9] [chromium] › e2e\round9.spec.js:402:5 › Site health (was Control Center) › storage that cannot be reached is red
+[8/9] [chromium] › e2e\round9.spec.js:428:5 › Aftercare card, account email, motion › account menu shows the signed-in email on a phone
+[9/9] [chromium] › e2e\round9.spec.js:439:5 › Aftercare card, account email, motion › account menu opens on top of the page content
+  9 passed (1.1m)
