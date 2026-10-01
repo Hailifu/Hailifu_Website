@@ -73,9 +73,28 @@ test('Featured Work keeps changing on an iPhone (WebKit)', async ({ baseURL }) =
         // (the loop rightly pauses then). Two changes in a row = it did not freeze after the first slide.
         const seen = async () => { await page.locator('#featuredLoop').scrollIntoViewIfNeeded(); return visibleSlide(page); };
         const first = await seen();
-        await expect.poll(seen, { timeout: 20000 }).not.toBe(first);
-        const second = await seen();
-        await expect.poll(seen, { timeout: 20000 }).not.toBe(second);
+        try {
+            await expect.poll(seen, { timeout: 20000 }).not.toBe(first);
+            const second = await seen();
+            await expect.poll(seen, { timeout: 20000 }).not.toBe(second);
+        } catch (err) {
+            // GitHub-only failure (2026-10-01): print why the loop is not moving
+            const state = await page.evaluate(() => {
+                const loop = document.getElementById('featuredLoop');
+                const track = loop && loop.querySelector('.featured-loop-track');
+                const r = loop ? loop.getBoundingClientRect() : null;
+                return {
+                    hidden: document.hidden, visibility: document.visibilityState, focus: document.hasFocus(),
+                    io: typeof IntersectionObserver, innerHeight, scrollY: Math.round(scrollY),
+                    loopRect: r && [Math.round(r.top), Math.round(r.bottom)],
+                    track: track && { transform: getComputedStyle(track).transform, inline: track.style.transform, transition: getComputedStyle(track).transition },
+                    active: loop && (loop.querySelector('.is-active') || {}).outerHTML?.slice(0, 120),
+                    gallery: !!document.querySelector('#hmGallery.is-open'), locked: document.documentElement.className
+                };
+            });
+            console.log('[featured diag]', JSON.stringify(state));
+            throw err;
+        }
     } finally { await browser.close(); }
 });
 
