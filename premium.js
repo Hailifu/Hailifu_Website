@@ -562,8 +562,102 @@
         }, true);
     }
 
+    /* ---------------- Round 11: pull down to close ----------------
+       Every popup with an X can also be closed by pulling it down with a finger.
+       Starts only when the drag is mostly downward, the content under the finger is
+       scrolled to the top, and not on a text field or a zoomed photo. Past ~110 px (or a
+       quick flick) it presses the popup's own X, so each popup closes the usual way.
+       Moves the panel with CSS `translate` (opening animations own `transform`). */
+    var PULL_TARGETS = [
+        { panel: '#popupOverlay .hm-quote', close: '#popupClose' },
+        { panel: '#reviewModal .review-modal-dialog', close: '#reviewModalClose' },
+        { panel: '#projectModal .project-modal-dialog', close: '#projectModalClose' },
+        { panel: '#photoGalleryModal .gallery-container', close: '#galleryCloseBtn' },
+        { panel: '#hmGallery', close: '#hmGallery [data-gal="close"]', skip: function () { var f = document.getElementById('hmGalFigure'); return !!(f && f.classList.contains('is-zoomed')); } },
+        { panel: '.media-lightbox', close: '.media-lightbox-close' },
+        { panel: '#chatbotContainer', close: '#chatbotClose' },
+        { panel: '#brilliantChatWindow', close: '#brilliantChatClose' },
+        { panel: '#r7NavSheet .r7-sheet-panel', close: '#r7NavSheet .r7-sheet-backdrop' }
+    ];
+    var PULL_CLOSE_PX = 110;
+
+    function isShown(el) {
+        if (!el || el.closest('[hidden]')) return false;
+        if (!el.getClientRects().length) return false;
+        var cs = getComputedStyle(el);
+        return cs.visibility !== 'hidden' && cs.display !== 'none' && Number(cs.opacity) > 0.05;
+    }
+
+    function scrolledAway(from, panel) {
+        for (var n = from; n && n !== panel.parentElement; n = n.parentElement) {
+            if (n.scrollTop > 0 && n.scrollHeight > n.clientHeight + 1) {
+                var oy = getComputedStyle(n).overflowY;
+                if (oy === 'auto' || oy === 'scroll') return true;
+            }
+        }
+        return false;
+    }
+
+    function initPullToClose() {
+        var drag = null;
+        function reset(panel, animate) {
+            panel.style.transition = animate && !reduceMotion ? 'translate 0.32s cubic-bezier(0.23, 1, 0.32, 1)' : '';
+            panel.style.translate = '';
+            if (animate) setTimeout(function () { panel.style.transition = ''; }, 340);
+        }
+        document.addEventListener('touchstart', function (e) {
+            drag = null;
+            if (e.touches.length !== 1) return;
+            var t = e.target;
+            if (!(t instanceof Element)) return;
+            if (t.closest('input, textarea, select, [contenteditable="true"]')) return;
+            for (var i = 0; i < PULL_TARGETS.length; i++) {
+                var cfg = PULL_TARGETS[i];
+                var panel = t.closest(cfg.panel);
+                if (!panel || !isShown(panel)) continue;
+                if ((cfg.skip && cfg.skip()) || scrolledAway(t, panel)) return;
+                var closeBtn = document.querySelector(cfg.close);
+                if (!closeBtn) return;
+                drag = { panel: panel, closeBtn: closeBtn, x0: e.touches[0].clientX, y0: e.touches[0].clientY, t0: Date.now(), dy: 0, locked: false };
+                return;
+            }
+        }, { passive: true });
+        document.addEventListener('touchmove', function (e) {
+            if (!drag) return;
+            var dx = e.touches[0].clientX - drag.x0;
+            var dy = e.touches[0].clientY - drag.y0;
+            if (!drag.locked) {
+                if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+                if (dy <= 0 || Math.abs(dx) > Math.abs(dy)) { drag = null; return; } // up or sideways: not ours
+                drag.locked = true;
+                drag.panel.style.transition = 'none';
+            }
+            if (e.cancelable) e.preventDefault();
+            drag.dy = Math.max(0, dy);
+            // follows the finger, a little heavier the further it goes
+            var shown = drag.dy < 160 ? drag.dy : 160 + (drag.dy - 160) * 0.5;
+            drag.panel.style.translate = '0 ' + shown.toFixed(1) + 'px';
+        }, { passive: false });
+        function end() {
+            if (!drag) return;
+            var d = drag;
+            drag = null;
+            if (!d.locked) return;
+            var speed = d.dy / Math.max(1, Date.now() - d.t0); // px per ms
+            if (d.dy > PULL_CLOSE_PX || (speed > 0.6 && d.dy > 40)) {
+                d.closeBtn.click();
+                setTimeout(function () { reset(d.panel, false); }, 450);
+            } else {
+                reset(d.panel, true);
+            }
+        }
+        document.addEventListener('touchend', end, { passive: true });
+        document.addEventListener('touchcancel', end, { passive: true });
+    }
+
     function start() {
         initFullMedia();
+        initPullToClose();
         initAdminMotion();
         initNavLight();
         initQuoteChips();

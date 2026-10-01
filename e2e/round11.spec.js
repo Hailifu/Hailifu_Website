@@ -330,4 +330,86 @@ test.describe('Media Library linked to the galleries', () => {
     });
 });
 
+test.describe('Pull down to close', () => {
+    test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+
+    // A real finger drag (Chrome touch events), from the middle-top of an element.
+    async function pull(page, selector, distance, { steps = 12, stepMs = 16 } = {}) {
+        const box = await page.locator(selector).first().boundingBox();
+        const x = box.x + box.width / 2;
+        const y = box.y + Math.min(60, box.height / 4);
+        const cdp = await page.context().newCDPSession(page);
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+        for (let i = 1; i <= steps; i++) {
+            await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y + (distance * i) / steps }] });
+            await page.waitForTimeout(stepMs);
+        }
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    }
+
+    test('quote form: a long pull closes it, a short slow pull springs back', async ({ page }) => {
+        await mockSupabase(page, {});
+        await page.goto('/', { waitUntil: 'load' });
+        await page.locator('#heroQuoteBtn').click();
+        await expect(page.locator('#popupOverlay')).toHaveClass(/active/);
+        await page.waitForTimeout(500);
+        await pull(page, '#popupOverlay .hm-quote', 50, { steps: 10, stepMs: 60 });
+        await page.waitForTimeout(500);
+        await expect(page.locator('#popupOverlay')).toHaveClass(/active/);
+        expect(await page.locator('#popupOverlay .hm-quote').evaluate((el) => el.style.translate)).toBe('');
+        await pull(page, '#popupOverlay .hm-quote', 220);
+        await expect(page.locator('#popupOverlay')).not.toHaveClass(/active/);
+    });
+
+    test('review form closes with a pull', async ({ page }) => {
+        await mockSupabase(page, {});
+        await page.goto('/', { waitUntil: 'load' });
+        await page.locator('.hm-cta-review [data-review-modal-open]').click();
+        await expect(page.locator('#reviewModal')).toHaveClass(/active/);
+        await page.waitForTimeout(500);
+        await pull(page, '#reviewModal .review-modal-dialog', 220);
+        await expect(page.locator('#reviewModal')).not.toHaveClass(/active/);
+    });
+
+    test('gallery viewer closes with a pull, but not while zoomed', async ({ page }) => {
+        await mockSupabase(page, { installations: [1, 2].map((i) => galleryRow({ id: `v${i}`, category: 'cctv', order: i, cover: i === 1 })) });
+        await servePhotos(page);
+        await page.goto('/', { waitUntil: 'load' });
+        const card = page.locator('#showcase [data-gallery-open], #showcase .hm-sc-card').first();
+        await card.scrollIntoViewIfNeeded();
+        await card.click();
+        await expect(page.locator('#hmGallery')).toBeVisible();
+        await page.waitForTimeout(500);
+        await page.evaluate(() => document.getElementById('hmGalFigure').classList.add('is-zoomed'));
+        await pull(page, '#hmGallery .hm-gal-stage', 220);
+        await page.waitForTimeout(400);
+        await expect(page.locator('#hmGallery')).toBeVisible();
+        await page.evaluate(() => document.getElementById('hmGalFigure').classList.remove('is-zoomed'));
+        await pull(page, '#hmGallery .hm-gal-stage', 220);
+        await expect(page.locator('#hmGallery')).toBeHidden();
+    });
+
+    test('a sideways swipe in the gallery does not close it', async ({ page }) => {
+        await mockSupabase(page, { installations: [1, 2].map((i) => galleryRow({ id: `s${i}`, category: 'cctv', order: i, cover: i === 1 })) });
+        await servePhotos(page);
+        await page.goto('/', { waitUntil: 'load' });
+        const card = page.locator('#showcase [data-gallery-open], #showcase .hm-sc-card').first();
+        await card.scrollIntoViewIfNeeded();
+        await card.click();
+        await expect(page.locator('#hmGallery')).toBeVisible();
+        await page.waitForTimeout(500);
+        const box = await page.locator('#hmGallery .hm-gal-stage').boundingBox();
+        const cdp = await page.context().newCDPSession(page);
+        const y = box.y + box.height / 2;
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: box.x + box.width - 40, y }] });
+        for (let i = 1; i <= 10; i++) {
+            await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: box.x + box.width - 40 - i * 20, y: y + i * 4 }] });
+            await page.waitForTimeout(16);
+        }
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+        await page.waitForTimeout(500);
+        await expect(page.locator('#hmGallery')).toBeVisible();
+    });
+});
+
 module.exports = {};
