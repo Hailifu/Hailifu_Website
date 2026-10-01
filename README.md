@@ -8,6 +8,20 @@ Paste this file (or its sections) into an AI when you want it to **understand th
 
 Every change to the site is logged here, newest first. Originals from before the premium rebuild are kept in `_backup-original-2026-09-28/`.
 
+### 2026-10-01 (round 20): Light / Dark / Auto in the admin portal
+
+Progress log: `.superpowers/sdd/2026-10-01-round20/progress.md`.
+
+| File | Change |
+|---|---|
+| `script.js` | **Light / Dark / Auto switch** in the admin sidebar (above "View website"). It is the same saved setting as the website's theme button (`hailifu_theme`): choosing Light in the admin also makes the website light on that device, and the other way round. Auto follows the device and changes with it. |
+| `premium.css` | 20.1: **the admin had no light version** (it was built dark-only). Now a light set of admin colours (warm paper, white cards, dark text, brand accent unchanged), used whenever the theme is light. 20.2: the switch. Older admin sections (Media Library, Adverts, some chips, hints and delete buttons) had fixed light-on-dark colours, so 75 rules now use the shared admin colours (dark mode looks the same as before). Delete/error text gets a deep red on light paper. Thumbnail frames stay dark on purpose. |
+| `premium.css` | Dropdowns (round 18): the chosen value is centred in the box and the down-arrow shows again. |
+| `index.html` | Asset versions bumped (`script.js?v=8.2`, `premium.css?v=20261001r20`). |
+| `e2e/round20.spec.js` (new) | Tests: Light, Dark and Auto switch the admin and are remembered, and Auto follows the device; in light mode every admin tab is checked for readable text (contrast at least 3:1). Both failed before, both pass. |
+| `premium.css`, `e2e/round12.spec.js` | Logo card: its buttons are visibly paused while it saves or redraws the link preview picture (a click in that moment used to be ignored without a sign); the test waits for that. |
+| `.gitignore` | The `_backup...` folders stay on this PC and are no longer tracked by git, so they are never published. |
+
 ### 2026-10-01 (round 19): Review photos from phones, and a clear message when something fails
 
 Progress log: `.superpowers/sdd/2026-10-01-round19/progress.md`.

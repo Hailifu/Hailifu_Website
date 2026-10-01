@@ -121,6 +121,7 @@ test.describe('Owner can upload a new logo', () => {
         await expect(page.locator('#adminPanel .sidebar-logo img')).toHaveAttribute('src', url);
         await expect(page.locator('#lgPreview img').first()).toHaveAttribute('src', url);
 
+        await expect(page.locator('#lgCard')).not.toHaveClass(/is-busy/); // finished redrawing the link preview
         await page.click('[data-lg-action="reset"]');
         await expect.poll(saved).toBe('');
         await expect.poll(() => logoSrcs(page)).toEqual(['/logo.webp', '/logo.webp', '/logo.webp', '/logo.webp']);

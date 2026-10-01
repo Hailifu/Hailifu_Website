@@ -1188,10 +1188,10 @@ html body .footer-status { box-shadow: none; }
 .hm-login-cancel { height: 40px; border: 0; background: none; color: #a09d98; font: inherit; cursor: pointer; }
 .hm-login-cancel:hover { color: #f0eeea; }
 
-#hmMedia { font-family: var(--p-font); color: #f0eeea; }
+#hmMedia { font-family: var(--p-font); color: var(--a-text, #f0eeea); }
 #hmMedia .hm-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
-#hmMedia .hm-head h2 { margin: 0; font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; color: #f0eeea; }
-#hmMedia .hm-head p { margin: 4px 0 0; color: #a09d98; font-size: 0.9rem; }
+#hmMedia .hm-head h2 { margin: 0; font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; color: var(--a-text, #f0eeea); }
+#hmMedia .hm-head p { margin: 4px 0 0; color: var(--a-muted, #a09d98); font-size: 0.9rem; }
 
 #hmMedia .hm-btn {
     display: inline-flex;
@@ -1200,9 +1200,9 @@ html body .footer-status { box-shadow: none; }
     height: 38px;
     padding: 0 16px;
     border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    border: 1px solid var(--a-line-2, rgba(255, 255, 255, 0.14));
     background: transparent;
-    color: #f0eeea;
+    color: var(--a-text, #f0eeea);
     font: inherit;
     font-size: 0.88rem;
     font-weight: 600;
@@ -1233,17 +1233,17 @@ html body .footer-status { box-shadow: none; }
 #hmMedia .hm-drop:focus-visible,
 #hmMedia .hm-drop.is-dragging { border-color: var(--p-accent); background: color-mix(in srgb, var(--p-accent) 8%, #151516); outline: none; }
 #hmMedia .hm-drop i { font-size: 1.6rem; color: var(--p-accent); }
-#hmMedia .hm-drop p { margin: 0; color: #f0eeea; }
-#hmMedia .hm-drop span { color: #a09d98; font-size: 0.82rem; }
+#hmMedia .hm-drop p { margin: 0; color: var(--a-text, #f0eeea); }
+#hmMedia .hm-drop span { color: var(--a-muted, #a09d98); font-size: 0.82rem; }
 
 #hmMedia .hm-queue { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 8px; }
-#hmMedia .hm-job { padding: 10px 14px; border-radius: 12px; background: #19191b; border: 1px solid rgba(255, 255, 255, 0.07); }
+#hmMedia .hm-job { padding: 10px 14px; border-radius: 12px; background: var(--a-panel-2, #19191b); border: 1px solid var(--a-line-2, rgba(255, 255, 255, 0.07)); }
 #hmMedia .hm-job-row { display: flex; justify-content: space-between; gap: 12px; font-size: 0.85rem; }
 #hmMedia .hm-job-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#hmMedia .hm-job-state { color: #a09d98; flex-shrink: 0; }
+#hmMedia .hm-job-state { color: var(--a-muted, #a09d98); flex-shrink: 0; }
 #hmMedia .hm-job.is-done .hm-job-state { color: #6fcf8f; }
-#hmMedia .hm-job.is-error .hm-job-state { color: #ff9a8f; }
-#hmMedia .hm-bar { height: 4px; margin-top: 8px; border-radius: 4px; background: rgba(255, 255, 255, 0.07); overflow: hidden; }
+#hmMedia .hm-job.is-error .hm-job-state { color: var(--a-bad-text, #ff9a8f); }
+#hmMedia .hm-bar { height: 4px; margin-top: 8px; border-radius: 4px; background: var(--a-raise, rgba(255, 255, 255, 0.07)); overflow: hidden; }
 #hmMedia .hm-bar span { display: block; height: 100%; background: var(--p-accent); transition: width 0.2s ease; }
 #hmMedia .hm-job.is-done .hm-bar span { background: #4fb874; }
 #hmMedia .hm-job.is-error .hm-bar span { width: 100% !important; background: #c8453a; }
@@ -1254,16 +1254,16 @@ html body .footer-status { box-shadow: none; }
     height: 34px;
     padding: 0 14px;
     border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--a-line-2, rgba(255, 255, 255, 0.12));
     background: transparent;
-    color: #a09d98;
+    color: var(--a-muted, #a09d98);
     font: inherit;
     font-size: 0.85rem;
     cursor: pointer;
 }
 #hmMedia .hm-chip span { margin-left: 4px; opacity: 0.7; }
-#hmMedia .hm-chip.is-active { background: #f0eeea; border-color: #f0eeea; color: #111112; }
-#hmMedia .hm-bulk { display: none; align-items: center; gap: 8px; font-size: 0.88rem; color: #f0eeea; }
+#hmMedia .hm-chip.is-active { background: var(--a-text, #f0eeea); border-color: var(--a-text, #f0eeea); color: var(--a-bg, #111112); }
+#hmMedia .hm-bulk { display: none; align-items: center; gap: 8px; font-size: 0.88rem; color: var(--a-text, #f0eeea); }
 #hmMedia .hm-bulk.is-visible { display: flex; }
 
 #hmMedia .hm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
@@ -1272,15 +1272,15 @@ html body .footer-status { box-shadow: none; }
     margin: 0;
     border-radius: 14px;
     overflow: hidden;
-    background: #19191b;
-    border: 1px solid rgba(255, 255, 255, 0.07);
+    background: var(--a-panel-2, #19191b);
+    border: 1px solid var(--a-line-2, rgba(255, 255, 255, 0.07));
     transition: border-color 0.15s ease;
 }
 #hmMedia .hm-tile.is-selected { border-color: var(--p-accent); }
 #hmMedia .hm-thumb { position: relative; aspect-ratio: 4 / 3; background: #111112; display: grid; place-items: center; }
 #hmMedia .hm-thumb img,
 #hmMedia .hm-thumb video { width: 100%; height: 100%; object-fit: cover; display: block; }
-#hmMedia .hm-file-icon { font-size: 1.8rem; color: #a09d98; }
+#hmMedia .hm-file-icon { font-size: 1.8rem; color: var(--a-muted, #a09d98); }
 #hmMedia .hm-badge {
     position: absolute;
     left: 8px;
@@ -1288,14 +1288,14 @@ html body .footer-status { box-shadow: none; }
     padding: 3px 8px;
     border-radius: 999px;
     background: rgba(9, 9, 10, 0.75);
-    color: #f0eeea;
+    color: var(--a-text, #f0eeea);
     font-size: 0.72rem;
 }
 #hmMedia .hm-check { position: absolute; top: 8px; left: 8px; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 8px; background: rgba(9, 9, 10, 0.7); cursor: pointer; }
 #hmMedia .hm-check input { width: 16px; height: 16px; accent-color: var(--p-accent); cursor: pointer; margin: 0; }
 #hmMedia figcaption { display: grid; gap: 2px; padding: 10px 12px 4px; }
-#hmMedia .hm-name { font-size: 0.82rem; color: #f0eeea; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#hmMedia .hm-meta { font-size: 0.75rem; color: #a09d98; }
+#hmMedia .hm-name { font-size: 0.82rem; color: var(--a-text, #f0eeea); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#hmMedia .hm-meta { font-size: 0.75rem; color: var(--a-muted, #a09d98); }
 #hmMedia .hm-actions { display: flex; gap: 4px; padding: 4px 8px 10px; }
 #hmMedia .hm-icon-btn {
     width: 34px;
@@ -1305,12 +1305,12 @@ html body .footer-status { box-shadow: none; }
     border-radius: 10px;
     border: 0;
     background: transparent;
-    color: #a09d98;
+    color: var(--a-muted, #a09d98);
     cursor: pointer;
 }
-#hmMedia .hm-icon-btn:hover { background: rgba(255, 255, 255, 0.07); color: #f0eeea; }
+#hmMedia .hm-icon-btn:hover { background: var(--a-raise, rgba(255, 255, 255, 0.07)); color: var(--a-text, #f0eeea); }
 #hmMedia .hm-icon-btn.is-danger { margin-left: auto; }
-#hmMedia .hm-icon-btn.is-danger:hover { background: rgba(200, 69, 58, 0.16); color: #ff9a8f; }
+#hmMedia .hm-icon-btn.is-danger:hover { background: rgba(200, 69, 58, 0.16); color: var(--a-bad-text, #ff9a8f); }
 #hmMedia .hm-confirm {
     position: absolute;
     inset: 0;
@@ -1327,10 +1327,10 @@ html body .footer-status { box-shadow: none; }
 #hmMedia .hm-tile.is-confirming .hm-confirm { display: flex; }
 
 #hmMedia .hm-state { display: grid; justify-items: center; gap: 8px; padding: 56px 16px; text-align: center; border-radius: 16px; background: #151516; }
-#hmMedia .hm-state i { font-size: 1.8rem; color: #a09d98; }
+#hmMedia .hm-state i { font-size: 1.8rem; color: var(--a-muted, #a09d98); }
 #hmMedia .hm-state.is-offline i { color: var(--p-accent); }
-#hmMedia .hm-state h3 { margin: 4px 0 0; font-size: 1.1rem; color: #f0eeea; }
-#hmMedia .hm-state p { margin: 0 0 8px; max-width: 46ch; color: #a09d98; line-height: 1.5; }
+#hmMedia .hm-state h3 { margin: 4px 0 0; font-size: 1.1rem; color: var(--a-text, #f0eeea); }
+#hmMedia .hm-state p { margin: 0 0 8px; max-width: 46ch; color: var(--a-muted, #a09d98); line-height: 1.5; }
 
 #hmMedia .hm-thumb { overflow: hidden; }
 #hmMedia .hm-thumb img { font-size: 0; color: transparent; }
@@ -1340,14 +1340,14 @@ html body .footer-status { box-shadow: none; }
 #adminPanel.premium-admin-v3 .admin-sidebar-v2 {
     background: #161617;
     background-image: none;
-    border-right: 1px solid rgba(255, 255, 255, 0.07);
+    border-right: 1px solid var(--a-line-2, rgba(255, 255, 255, 0.07));
     box-shadow: none;
 }
 #adminPanel.premium-admin-v3 .admin-main-v2,
 #adminPanel.premium-admin-v3 .main-content-scroll { background: #111112; background-image: none; }
-#adminPanel.premium-admin-v3 .main-header { background: #111112; border-bottom: 1px solid rgba(255, 255, 255, 0.07); box-shadow: none; }
-#adminPanel.premium-admin-v3 .nav-item { font-family: var(--p-font); color: #a09d98; border-radius: 12px; box-shadow: none; }
-#adminPanel.premium-admin-v3 .nav-item:hover { background: rgba(255, 255, 255, 0.05); color: #f0eeea; }
+#adminPanel.premium-admin-v3 .main-header { background: #111112; border-bottom: 1px solid var(--a-line-2, rgba(255, 255, 255, 0.07)); box-shadow: none; }
+#adminPanel.premium-admin-v3 .nav-item { font-family: var(--p-font); color: var(--a-muted, #a09d98); border-radius: 12px; box-shadow: none; }
+#adminPanel.premium-admin-v3 .nav-item:hover { background: var(--a-raise, rgba(255, 255, 255, 0.05)); color: var(--a-text, #f0eeea); }
 #adminPanel.premium-admin-v3 .nav-item.active {
     background: var(--p-accent);
     background-image: none;
@@ -1355,7 +1355,7 @@ html body .footer-status { box-shadow: none; }
     box-shadow: none;
 }
 #adminPanel.premium-admin-v3 .nav-item.active i { color: var(--p-on-accent); }
-#adminPanel.premium-admin-v3 .header-search input { background: #19191b; border-color: rgba(255, 255, 255, 0.1); color: #f0eeea; }
+#adminPanel.premium-admin-v3 .header-search input { background: var(--a-panel-2, #19191b); border-color: var(--a-line-2, rgba(255, 255, 255, 0.1)); color: var(--a-text, #f0eeea); }
 
 @media (max-width: 640px) {
     #hmMedia .hm-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -2093,64 +2093,64 @@ html body #hmAds .hm-ads-dot.is-active { width: 30px; background: var(--p-accent
 }
 
 /* ---------- 3. Admin > Adverts (reuses the media-manager look) ---------- */
-#hmAdsAdmin { font-family: var(--p-font); color: #f0eeea; }
+#hmAdsAdmin { font-family: var(--p-font); color: var(--a-text, #f0eeea); }
 #hmAdsAdmin .hm-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
-#hmAdsAdmin .hm-head h2 { margin: 0; font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; color: #f0eeea; }
-#hmAdsAdmin .hm-head p { margin: 4px 0 0; color: #a09d98; font-size: 0.9rem; }
+#hmAdsAdmin .hm-head h2 { margin: 0; font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; color: var(--a-text, #f0eeea); }
+#hmAdsAdmin .hm-head p { margin: 4px 0 0; color: var(--a-muted, #a09d98); font-size: 0.9rem; }
 #hmAdsAdmin .hm-btn {
     display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 16px;
-    border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.14); background: transparent;
-    color: #f0eeea; font: inherit; font-size: 0.88rem; font-weight: 600; white-space: nowrap; cursor: pointer;
+    border-radius: 999px; border: 1px solid var(--a-line-2, rgba(255, 255, 255, 0.14)); background: transparent;
+    color: var(--a-text, #f0eeea); font: inherit; font-size: 0.88rem; font-weight: 600; white-space: nowrap; cursor: pointer;
     transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
 }
 #hmAdsAdmin .hm-btn:hover { border-color: rgba(255, 255, 255, 0.3); }
 #hmAdsAdmin .hm-btn:active { transform: scale(0.97); }
 #hmAdsAdmin .hm-btn.is-danger { background: #c8453a; border-color: #c8453a; color: #fff; }
-#hmAdsAdmin .hm-btn.is-danger-outline { color: #ff9a8f; border-color: rgba(200, 69, 58, 0.45); }
+#hmAdsAdmin .hm-btn.is-danger-outline { color: var(--a-bad-text, #ff9a8f); border-color: rgba(200, 69, 58, 0.45); }
 #hmAdsAdmin .hm-btn.is-danger-outline:hover { background: rgba(200, 69, 58, 0.14); }
 #hmAdsAdmin .hm-btn:disabled { opacity: 0.6; cursor: progress; }
-#hmAdsAdmin .hm-ad-form { padding: 24px; margin-bottom: 22px; border-radius: 18px; background: #19191b; border: 1px solid rgba(255, 255, 255, 0.07); }
-#hmAdsAdmin .hm-ad-form h3 { margin: 0 0 16px; font-size: 1.1rem; color: #f0eeea; }
+#hmAdsAdmin .hm-ad-form { padding: 24px; margin-bottom: 22px; border-radius: 18px; background: var(--a-panel-2, #19191b); border: 1px solid var(--a-line-2, rgba(255, 255, 255, 0.07)); }
+#hmAdsAdmin .hm-ad-form h3 { margin: 0 0 16px; font-size: 1.1rem; color: var(--a-text, #f0eeea); }
 #hmAdsAdmin .hm-ad-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-bottom: 16px; }
 #hmAdsAdmin .hm-ad-field { display: grid; gap: 6px; }
 #hmAdsAdmin .hm-ad-field--wide { grid-column: 1 / -1; }
-#hmAdsAdmin .hm-ad-field label { font-size: 0.85rem; font-weight: 600; color: #f0eeea; }
-#hmAdsAdmin .hm-ad-field label span { font-weight: 400; color: #a09d98; }
+#hmAdsAdmin .hm-ad-field label { font-size: 0.85rem; font-weight: 600; color: var(--a-text, #f0eeea); }
+#hmAdsAdmin .hm-ad-field label span { font-weight: 400; color: var(--a-muted, #a09d98); }
 #hmAdsAdmin .hm-ad-field :is(input:not([type='file']), textarea) {
-    min-height: 44px; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.14);
-    background: #111112; color: #f0eeea; font: inherit; font-size: 0.95rem;
+    min-height: 44px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--a-line-2, rgba(255, 255, 255, 0.14));
+    background: #111112; color: var(--a-text, #f0eeea); font: inherit; font-size: 0.95rem;
 }
 #hmAdsAdmin .hm-ad-field :is(input, textarea):focus { outline: none; border-color: var(--p-accent); box-shadow: 0 0 0 3px var(--p-accent-soft); }
-#hmAdsAdmin .hm-ad-image-row { display: flex; align-items: center; gap: 14px; color: #a09d98; font-size: 0.88rem; }
-#hmAdsAdmin .hm-ad-image-row img { width: 96px; height: 64px; object-fit: cover; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.1); }
-#hmAdsAdmin .hm-ad-check { display: flex; align-items: center; gap: 10px; color: #f0eeea; font-size: 0.9rem; cursor: pointer; }
+#hmAdsAdmin .hm-ad-image-row { display: flex; align-items: center; gap: 14px; color: var(--a-muted, #a09d98); font-size: 0.88rem; }
+#hmAdsAdmin .hm-ad-image-row img { width: 96px; height: 64px; object-fit: cover; border-radius: 10px; border: 1px solid var(--a-line-2, rgba(255, 255, 255, 0.1)); }
+#hmAdsAdmin .hm-ad-check { display: flex; align-items: center; gap: 10px; color: var(--a-text, #f0eeea); font-size: 0.9rem; cursor: pointer; }
 #hmAdsAdmin .hm-ad-check input { width: 18px; height: 18px; accent-color: var(--p-accent); }
-#hmAdsAdmin .hm-ad-error { margin: 0 0 12px; padding: 10px 12px; border-radius: 10px; background: rgba(220, 70, 60, 0.12); color: #ff9a8f; font-size: 0.88rem; }
+#hmAdsAdmin .hm-ad-error { margin: 0 0 12px; padding: 10px 12px; border-radius: 10px; background: rgba(220, 70, 60, 0.12); color: var(--a-bad-text, #ff9a8f); font-size: 0.88rem; }
 #hmAdsAdmin .hm-ad-rows { display: grid; gap: 10px; }
 #hmAdsAdmin .hm-ad-row {
     position: relative; display: grid; grid-template-columns: 88px minmax(0, 1fr) auto auto; align-items: center; gap: 16px;
-    padding: 12px 14px; border-radius: 16px; background: #19191b; border: 1px solid rgba(255, 255, 255, 0.07);
+    padding: 12px 14px; border-radius: 16px; background: var(--a-panel-2, #19191b); border: 1px solid var(--a-line-2, rgba(255, 255, 255, 0.07));
 }
 #hmAdsAdmin .hm-ad-row.is-paused { opacity: 0.62; }
 #hmAdsAdmin .hm-ad-thumb { width: 88px; height: 60px; border-radius: 10px; overflow: hidden; background: #111112; display: grid; place-items: center; color: var(--p-accent); }
 #hmAdsAdmin .hm-ad-thumb img { width: 100%; height: 100%; object-fit: cover; }
 #hmAdsAdmin .hm-ad-info { display: grid; gap: 2px; min-width: 0; }
-#hmAdsAdmin .hm-ad-info strong { color: #f0eeea; font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#hmAdsAdmin .hm-ad-info span { color: #a09d98; font-size: 0.84rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#hmAdsAdmin .hm-ad-info strong { color: var(--a-text, #f0eeea); font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#hmAdsAdmin .hm-ad-info span { color: var(--a-muted, #a09d98); font-size: 0.84rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #hmAdsAdmin .hm-ad-info small { color: #7d7a75; font-size: 0.76rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #hmAdsAdmin .hm-ad-status { padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; background: rgba(79, 184, 116, 0.14); color: #6fcf8f; }
-#hmAdsAdmin .hm-ad-row.is-paused .hm-ad-status { background: rgba(255, 255, 255, 0.07); color: #a09d98; }
+#hmAdsAdmin .hm-ad-row.is-paused .hm-ad-status { background: var(--a-raise, rgba(255, 255, 255, 0.07)); color: var(--a-muted, #a09d98); }
 #hmAdsAdmin .hm-ad-row-actions { display: flex; gap: 8px; }
 #hmAdsAdmin .hm-ad-confirm {
     position: absolute; inset: 0; display: none; align-items: center; justify-content: flex-end; gap: 10px;
-    padding: 0 14px; border-radius: 16px; background: rgba(17, 17, 18, 0.94); color: #f0eeea; font-weight: 600;
+    padding: 0 14px; border-radius: 16px; background: rgba(17, 17, 18, 0.94); color: var(--a-text, #f0eeea); font-weight: 600;
 }
 #hmAdsAdmin .hm-ad-row.is-confirming .hm-ad-confirm { display: flex; }
 #hmAdsAdmin .hm-state { display: grid; justify-items: center; gap: 8px; padding: 48px 16px; text-align: center; border-radius: 16px; background: #151516; }
-#hmAdsAdmin .hm-state i { font-size: 1.8rem; color: #a09d98; }
+#hmAdsAdmin .hm-state i { font-size: 1.8rem; color: var(--a-muted, #a09d98); }
 #hmAdsAdmin .hm-state.is-offline i { color: var(--p-accent); }
-#hmAdsAdmin .hm-state h3 { margin: 4px 0 0; font-size: 1.1rem; color: #f0eeea; }
-#hmAdsAdmin .hm-state p { margin: 0 0 8px; max-width: 46ch; color: #a09d98; line-height: 1.5; }
+#hmAdsAdmin .hm-state h3 { margin: 4px 0 0; font-size: 1.1rem; color: var(--a-text, #f0eeea); }
+#hmAdsAdmin .hm-state p { margin: 0 0 8px; max-width: 46ch; color: var(--a-muted, #a09d98); line-height: 1.5; }
 @media (max-width: 720px) {
     #hmAdsAdmin .hm-ad-form-grid { grid-template-columns: 1fr; }
     #hmAdsAdmin .hm-ad-row { grid-template-columns: 64px minmax(0, 1fr); }
@@ -2727,7 +2727,7 @@ html body #reviewModal .form-success i { display: block; font-size: 1.8rem; colo
     text-align: left; cursor: pointer; box-shadow: none !important; transition: color 0.2s ease, background-color 0.2s ease;
 }
 #adminPanel.hm-admin .nav-item i { width: 18px; text-align: center; font-size: 0.95rem; color: inherit; }
-#adminPanel.hm-admin .nav-item:hover { color: var(--a-text); background: rgba(255, 255, 255, 0.04) !important; }
+#adminPanel.hm-admin .nav-item:hover { color: var(--a-text); background: var(--a-raise, rgba(255, 255, 255, 0.04)) !important; }
 #adminPanel.hm-admin .nav-item.active { color: var(--p-on-accent); font-weight: 600; }
 #adminPanel.hm-admin .nav-item.active i { color: var(--p-on-accent); }
 #adminPanel.hm-admin .hm-nav-indicator {
@@ -2747,8 +2747,8 @@ html body #reviewModal .form-success i { display: block; font-size: 1.8rem; colo
     display: flex; align-items: center; gap: 12px; height: 42px; padding: 0 12px; border-radius: 12px; border: 0;
     background: transparent !important; color: var(--a-muted) !important; font-family: var(--p-font); font-size: 0.9rem; font-weight: 500; text-decoration: none; cursor: pointer; box-shadow: none !important;
 }
-#adminPanel.hm-admin .hm-side-link:hover { color: var(--a-text) !important; background: rgba(255, 255, 255, 0.04) !important; }
-#adminPanel.hm-admin .admin-exit-btn:hover { color: #ff9a8f !important; background: rgba(200, 69, 58, 0.1) !important; }
+#adminPanel.hm-admin .hm-side-link:hover { color: var(--a-text) !important; background: var(--a-raise, rgba(255, 255, 255, 0.04)) !important; }
+#adminPanel.hm-admin .admin-exit-btn:hover { color: var(--a-bad-text, #ff9a8f) !important; background: rgba(200, 69, 58, 0.1) !important; }
 #adminPanel.hm-admin .admin-main-v2 { background: var(--a-bg) !important; background-image: none !important; }
 #adminPanel.hm-admin .main-header {
     display: flex; align-items: center; gap: 16px; padding: 18px clamp(16px, 3vw, 32px);
@@ -2781,7 +2781,7 @@ html body #reviewModal .form-success i { display: block; font-size: 1.8rem; colo
     display: flex; align-items: center; gap: 10px; width: 100%; height: 40px; padding: 0 12px; border: 0; border-radius: 10px;
     background: transparent; color: var(--a-text); font-family: var(--p-font); font-size: 0.9rem; text-align: left; cursor: pointer;
 }
-#adminPanel.hm-admin .hm-account-menu button:hover { background: rgba(255, 255, 255, 0.06); }
+#adminPanel.hm-admin .hm-account-menu button:hover { background: var(--a-raise, rgba(255, 255, 255, 0.06)); }
 #adminPanel.hm-admin .hm-account-menu button i { width: 16px; color: var(--p-accent); }
 #adminPanel.hm-admin .hm-admin-menu { display: none; width: 42px; height: 42px; border-radius: 12px; border: 1px solid var(--a-line); background: var(--a-panel); color: var(--a-text); cursor: pointer; }
 #adminPanel.hm-admin .main-content-scroll { padding: clamp(18px, 3vw, 32px); background: transparent !important; }
@@ -2822,8 +2822,8 @@ html body #reviewModal .form-success i { display: block; font-size: 1.8rem; colo
 #adminPanel.hm-admin :is(.admin-btn-premium, .admin-btn-small):active { transform: scale(0.97); }
 #adminPanel.hm-admin .admin-btn-small { height: 32px; padding: 0 12px; font-size: 0.8rem; }
 #adminPanel.hm-admin .btn-icon { width: 36px; height: 36px; display: inline-grid; place-items: center; border-radius: 10px; border: 1px solid var(--a-line) !important; background: transparent !important; color: var(--a-muted) !important; cursor: pointer; }
-#adminPanel.hm-admin .btn-icon:hover { color: var(--a-text) !important; background: rgba(255, 255, 255, 0.06) !important; }
-#adminPanel.hm-admin .btn-icon.delete:hover { color: #ff9a8f !important; background: rgba(200, 69, 58, 0.12) !important; }
+#adminPanel.hm-admin .btn-icon:hover { color: var(--a-text) !important; background: var(--a-raise, rgba(255, 255, 255, 0.06)) !important; }
+#adminPanel.hm-admin .btn-icon.delete:hover { color: var(--a-bad-text, #ff9a8f) !important; background: rgba(200, 69, 58, 0.12) !important; }
 #adminPanel.hm-admin :is(.projects-grid-v2, .settings-grid-v2, .admin-control-cards, .review-stack-v2, .admin-notification-list) { display: grid; gap: 14px; }
 #adminPanel.hm-admin .projects-grid-v2 { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
 #adminPanel.hm-admin .settings-grid-v2 { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
@@ -2894,7 +2894,7 @@ html body #reviewModal .form-success i { display: block; font-size: 1.8rem; colo
     border: 1px solid var(--a-line-2); background: transparent; color: var(--a-muted); font-family: var(--p-font); font-size: 0.86rem; font-weight: 500;
 }
 #adminPanel.hm-admin .hm-chip-f span { min-width: 22px; height: 22px; padding: 0 6px; display: inline-grid; place-items: center; border-radius: 999px; background: var(--a-panel-2); font-size: 0.74rem; }
-#adminPanel.hm-admin .hm-chip-f.is-active { background: var(--a-text); border-color: var(--a-text); color: #111112; }
+#adminPanel.hm-admin .hm-chip-f.is-active { background: var(--a-text); border-color: var(--a-text); color: var(--a-bg, #111112); }
 #adminPanel.hm-admin .hm-chip-f.is-active span { background: rgba(17, 17, 18, 0.12); }
 #adminPanel.hm-admin .hm-search { display: flex; align-items: center; gap: 10px; width: min(320px, 100%); height: 42px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--a-line-2); background: var(--a-panel); color: var(--a-muted); }
 #adminPanel.hm-admin .hm-search:focus-within { border-color: var(--p-accent); }
@@ -2924,7 +2924,7 @@ html body #reviewModal .form-success i { display: block; font-size: 1.8rem; colo
 #adminPanel.hm-admin .hm-leads-page .hm-btn-wa { color: #7fdc9e; border-color: rgba(79, 184, 116, 0.4); }
 #adminPanel.hm-admin .hm-leads-page .hm-btn.is-danger { background: #c8453a; border-color: #c8453a; color: #fff; }
 #adminPanel.hm-admin .hm-leads-page .hm-icon-btn { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 10px; border: 0; background: transparent; color: var(--a-muted); cursor: pointer; }
-#adminPanel.hm-admin .hm-leads-page .hm-icon-btn.is-danger:hover { color: #ff9a8f; background: rgba(200, 69, 58, 0.14); }
+#adminPanel.hm-admin .hm-leads-page .hm-icon-btn.is-danger:hover { color: var(--a-bad-text, #ff9a8f); background: rgba(200, 69, 58, 0.14); }
 #adminPanel.hm-admin .hm-lead-confirm { position: absolute; inset: 0; display: none; align-items: center; justify-content: flex-end; gap: 10px; padding: 0 18px; border-radius: 18px; background: rgba(17, 17, 18, 0.95); font-weight: 600; }
 #adminPanel.hm-admin .hm-lead.is-confirming .hm-lead-confirm { display: flex; animation: hm-backdrop-in 0.2s ease both; }
 #adminPanel.hm-admin .hm-state { display: grid; justify-items: center; gap: 8px; padding: 48px 16px; text-align: center; border-radius: 18px; background: var(--a-panel); color: var(--a-muted); }
@@ -3502,7 +3502,7 @@ html.r7-has-topbar body .r7-sheet-panel { top: calc(var(--r7-topbar-h, 0px) + 76
 #adminPanel .r7-tb-tone input { position: absolute; opacity: 0; pointer-events: none; }
 #adminPanel .r7-tb-tone:has(input:checked) { border-color: var(--p-accent); background: color-mix(in srgb, var(--p-accent) 12%, transparent); }
 #adminPanel .r7-tb-tone:has(input:focus-visible) { outline: 2px solid var(--p-accent); outline-offset: 2px; }
-#adminPanel .r7-tb-swatch { width: 22px; height: 22px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.2); }
+#adminPanel .r7-tb-swatch { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--a-line-2, rgba(255, 255, 255, 0.2)); }
 #adminPanel .r7-tb-tone[data-tone='orange'] .r7-tb-swatch { background: var(--p-accent); }
 #adminPanel .r7-tb-tone[data-tone='dark'] .r7-tb-swatch { background: #111112; }
 #adminPanel .r7-tb-tone[data-tone='light'] .r7-tb-swatch { background: #f2f1ee; }
@@ -4141,7 +4141,7 @@ html body .r7-split .r7-word { display: inline-block; white-space: pre; }
 #adminPanel.hm-admin .nav-item.active i { color: var(--a-text) !important; font-weight: 600; }
 #adminPanel.hm-admin .nav-item.active i { color: var(--p-accent) !important; }
 #adminPanel.hm-admin .hm-nav-indicator {
-    background: rgba(255, 255, 255, 0.06) !important;
+    background: var(--a-raise, rgba(255, 255, 255, 0.06)) !important;
     background-image: none !important;
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
     border-radius: 9px;
@@ -4157,7 +4157,7 @@ html body .r7-split .r7-word { display: inline-block; white-space: pre; }
     border-radius: 0 3px 3px 0;
     background: var(--p-accent);
 }
-#adminPanel.hm-admin .sidebar-nav:not(.has-indicator) .nav-item.active { background: rgba(255, 255, 255, 0.06) !important; }
+#adminPanel.hm-admin .sidebar-nav:not(.has-indicator) .nav-item.active { background: var(--a-raise, rgba(255, 255, 255, 0.06)) !important; }
 #adminPanel.hm-admin .sidebar-footer { gap: 2px; padding-top: 10px; }
 #adminPanel.hm-admin :is(.hm-side-link, .admin-exit-btn) { height: 36px; border-radius: 9px; font-size: 0.86rem; color: var(--a-muted) !important; }
 
@@ -4203,7 +4203,7 @@ html body .r7-split .r7-word { display: inline-block; white-space: pre; }
 /* KPIs: numbers lead */
 #adminPanel.hm-admin .hm-kpis { gap: 12px; }
 #adminPanel.hm-admin .hm-kpi { padding: 16px 16px 14px; gap: 2px; }
-#adminPanel.hm-admin .hm-kpi-icon { position: absolute; top: 14px; right: 14px; width: 30px; height: 30px; margin: 0; border-radius: 8px; font-size: 0.8rem; background: rgba(255, 255, 255, 0.04); color: var(--a-muted); }
+#adminPanel.hm-admin .hm-kpi-icon { position: absolute; top: 14px; right: 14px; width: 30px; height: 30px; margin: 0; border-radius: 8px; font-size: 0.8rem; background: var(--a-raise, rgba(255, 255, 255, 0.04)); color: var(--a-muted); }
 #adminPanel.hm-admin .hm-kpi:hover .hm-kpi-icon { color: var(--p-accent); background: var(--p-accent-soft); transform: none; }
 #adminPanel.hm-admin .hm-kpi-label { order: -1; margin-bottom: 10px; font-size: 0.78rem; font-weight: 500; color: var(--a-muted); }
 #adminPanel.hm-admin .hm-kpi-value { font-family: var(--r7-display); font-size: 2.1rem; font-weight: 700; letter-spacing: -0.03em; }
@@ -4243,7 +4243,7 @@ html body .r7-split .r7-word { display: inline-block; white-space: pre; }
 #adminPanel.hm-admin .admin-btn-small { height: 30px; padding: 0 12px; border-radius: 8px !important; font-size: 0.78rem; }
 #adminPanel.hm-admin .hm-btn.is-danger { border-radius: 10px !important; background: #b8392e !important; border-color: #b8392e !important; }
 #adminPanel.hm-admin .hm-chip-f { height: 32px; border-radius: 8px; font-size: 0.82rem; }
-#adminPanel.hm-admin .hm-chip-f.is-active { background: var(--a-text); color: #111112; }
+#adminPanel.hm-admin .hm-chip-f.is-active { background: var(--a-text); color: var(--a-bg, #111112); }
 #adminPanel.hm-admin .hm-search { height: 36px; border-radius: 9px; }
 
 /* form controls: one consistent style for every tab (incl. the older ones) */
@@ -4652,8 +4652,8 @@ html body .r7-chat-teaser-body { min-height: 36px; }
     font-variant-numeric: tabular-nums;
 }
 #adminPanel.hm-admin .sg-tab:hover { border-color: var(--a-line-strong) !important; color: var(--a-text) !important; }
-#adminPanel.hm-admin .sg-tab.is-active { background: var(--a-text) !important; border-color: var(--a-text) !important; color: #111112 !important; }
-#adminPanel.hm-admin .sg-tab.is-active span { background: rgba(17, 17, 18, 0.12); color: #111112; }
+#adminPanel.hm-admin .sg-tab.is-active { background: var(--a-text) !important; border-color: var(--a-text) !important; color: var(--a-bg, #111112) !important; }
+#adminPanel.hm-admin .sg-tab.is-active span { background: rgba(17, 17, 18, 0.12); color: var(--a-bg, #111112); }
 
 #adminPanel.hm-admin .sg-add { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 12px; }
 #adminPanel.hm-admin .sg-drop {
@@ -4773,7 +4773,7 @@ html body .r7-chat-teaser-body { min-height: 36px; }
     cursor: pointer;
     font-size: 0.8rem;
 }
-#adminPanel.hm-admin .sg-tool:hover:not(:disabled) { color: var(--a-text); background: rgba(255, 255, 255, 0.06); }
+#adminPanel.hm-admin .sg-tool:hover:not(:disabled) { color: var(--a-text); background: var(--a-raise, rgba(255, 255, 255, 0.06)); }
 #adminPanel.hm-admin .sg-tool:disabled { opacity: 0.3; cursor: default; }
 #adminPanel.hm-admin .sg-tool.is-on { color: var(--p-accent); }
 #adminPanel.hm-admin .sg-tool.is-danger { margin-left: auto; }
@@ -5080,7 +5080,7 @@ html[data-theme='light'] body .site-footer .footer-status { box-shadow: 0 0 0 1p
         padding: 4px 8px;
         border-radius: 6px;
         background: #f2f0ec;
-        color: #111112;
+        color: var(--a-bg, #111112);
         font: 600 0.7rem var(--p-font);
         white-space: nowrap;
         opacity: 0;
@@ -5148,7 +5148,7 @@ html body #reviewModal .review-form.is-sent .review-flow-shell { display: none; 
 #adminPanel.hm-admin .rv-reply textarea { min-height: 56px !important; font-size: 0.88rem !important; }
 #adminPanel.hm-admin .rv-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 #adminPanel.hm-admin .rv-actions .hm-btn { height: 34px !important; font-size: 0.82rem; }
-#adminPanel.hm-admin .rv-actions .hm-btn.is-ghost-danger { margin-left: auto; color: #ff9a8f !important; -webkit-text-fill-color: #ff9a8f !important; }
+#adminPanel.hm-admin .rv-actions .hm-btn.is-ghost-danger { margin-left: auto; color: var(--a-bad-text, #ff9a8f) !important; -webkit-text-fill-color: var(--a-bad-text, #ff9a8f) !important; }
 #adminPanel.hm-admin .rv-actions .hm-btn.is-danger { color: #fff !important; -webkit-text-fill-color: #fff !important; }
 #adminPanel.hm-admin .rv-confirm-text { font-size: 0.86rem; font-weight: 600; margin-right: auto; }
 #adminPanel.hm-admin .rv-nav-badge { display: inline-grid; place-items: center; min-width: 20px; height: 20px; margin-left: auto; padding: 0 6px; border-radius: 999px; background: var(--p-accent); color: var(--p-on-accent); font-size: 0.72rem; font-weight: 700; }
@@ -5186,7 +5186,7 @@ html body #google-reviews-grid .google-fallback-ui p { margin: 0; color: var(--p
 #adminPanel.hm-admin .gp-actions .hm-btn { display: inline-flex; align-items: center; gap: 7px; padding: 0 14px !important; }
 #adminPanel.hm-admin .gp-status { margin: 12px 0 0; min-height: 1.2em; font-size: 0.84rem; line-height: 1.5; color: var(--a-muted); }
 #adminPanel.hm-admin .gp-status[data-tone='ok'] { color: #7fd99a; }
-#adminPanel.hm-admin .gp-status[data-tone='error'] { color: #ff9a8f; }
+#adminPanel.hm-admin .gp-status[data-tone='error'] { color: var(--a-bad-text, #ff9a8f); }
 
 /* ==========================================================================
    7.19 Brand colour card (round 9): one site-wide colour, readable text on it
@@ -5205,7 +5205,7 @@ html body #google-reviews-grid .google-fallback-ui p { margin: 0; color: var(--p
 #adminPanel.hm-admin .sh-summary { margin: 0; font-size: 1.05rem; font-weight: 600; color: var(--a-text); }
 #adminPanel.hm-admin .sh-summary[data-state='ok'] { color: #7fd99a; }
 #adminPanel.hm-admin .sh-summary[data-state='warn'] { color: #f2c46d; }
-#adminPanel.hm-admin .sh-summary[data-state='bad'] { color: #ff9a8f; }
+#adminPanel.hm-admin .sh-summary[data-state='bad'] { color: var(--a-bad-text, #ff9a8f); }
 #adminPanel.hm-admin .sh-head .hm-btn,
 #adminPanel.hm-admin .sh-row .hm-btn { display: inline-flex; align-items: center; gap: 7px; padding: 0 14px !important; white-space: nowrap; }
 #adminPanel.hm-admin .sh-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
@@ -5668,7 +5668,7 @@ html body #about .about-visual-image-wrap.integrity-empty { display: none; }
     padding: 16px;
     text-align: center;
     font-size: 0.9rem;
-    color: var(--p-text-2, rgba(245, 244, 241, 0.7));
+    color: var(--a-muted, rgba(245, 244, 241, 0.7));
 }
 #adminPanel.hm-admin .af-preview .af-empty i { font-size: 1.4rem; opacity: 0.6; }
 
@@ -6053,3 +6053,76 @@ html body #reviewModal .hm-rv-notice-btn:focus-visible { outline: 2px solid var(
 /* the old ".form-success i" rule made every icon in the card big and on its own line */
 html body #reviewModal .form-success.is-error .hm-rv-notice-btn i { display: inline-block; margin: 0; font-size: 0.9em; color: inherit; }
 html body #reviewModal .form-success.is-error .hm-rv-notice-icon { display: block; margin: 1px 0 0; font-size: 1.25rem; color: #d0453c; }
+
+/* ============================================================
+   ROUND 20
+   ============================================================ */
+/* 20.1 Admin portal follows Light / Dark / Auto (it was dark-only). Light = warm paper,
+   same calm, flat look; the brand colour stays the accent. */
+html[data-theme='light'] #adminPanel.hm-admin {
+    --a-bg: #f3f1ec;
+    --a-panel: #ffffff;
+    --a-panel-2: #f8f6f2;
+    --a-raise: #efece6;
+    --a-line: rgba(28, 26, 22, 0.08);
+    --a-line-2: rgba(28, 26, 22, 0.14);
+    --a-line-strong: rgba(28, 26, 22, 0.22);
+    --a-text: #1c1a16;
+    --a-muted: #66625b;
+    --a-soft: #45423c;
+    --a-ok: #1d8a4b;
+    --a-warn: #9a6200;
+    --a-bad: #c4392e;
+    color-scheme: light;
+}
+html[data-theme='light'] #adminPanel.hm-admin #adminMainContent :is(input, textarea, select) { color-scheme: light; }
+html[data-theme='light'] #adminPanel.hm-admin #adminMainContent :is(input, textarea)::placeholder { color: #8a867f; }
+
+/* 20.2 Light / Dark / Auto switch in the sidebar */
+#adminPanel.hm-admin .hm-admin-theme {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    margin: 0 0 10px;
+    padding: 3px;
+    border-radius: 12px;
+    background: var(--a-raise, rgba(255, 255, 255, 0.06));
+    border: 1px solid var(--a-line);
+}
+#adminPanel.hm-admin .hm-admin-theme button {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    min-height: 36px; padding: 0 6px; border: 0; border-radius: 9px;
+    background: transparent; color: var(--a-muted);
+    font: 600 0.78rem var(--p-font); cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+#adminPanel.hm-admin .hm-admin-theme button:hover { color: var(--a-text); }
+#adminPanel.hm-admin .hm-admin-theme button[aria-pressed='true'] {
+    background: var(--a-panel); color: var(--a-text);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12), inset 0 0 0 1px var(--a-line-2);
+}
+#adminPanel.hm-admin .hm-admin-theme button[aria-pressed='true'] i { color: var(--p-accent); }
+#adminPanel.hm-admin .hm-admin-theme button:focus-visible { outline: 2px solid var(--p-accent); outline-offset: 1px; }
+/* red text for delete buttons and errors: soft pink on dark, deep red on light */
+#adminPanel.hm-admin { --a-bad-text: #ff9a8f; }
+html[data-theme='light'] #adminPanel.hm-admin { --a-bad-text: #b42318; }
+/* round 18 dropdowns: keep the chosen value vertically centred in the closed box */
+@supports (appearance: base-select) {
+    html body select:not([hidden]):not(.hm-sr-select) { display: inline-flex; align-items: center; }
+    #adminPanel.hm-admin select:not([hidden]) { display: flex; }
+}
+/* show the dropdown arrow (the drawn one doesn't render on styled dropdowns) */
+@supports (appearance: base-select) {
+    html body select:not(.hm-sr-select)::picker-icon {
+        display: block;
+        color: var(--a-muted, var(--p-muted, #8f8c87));
+        margin-left: auto;
+        padding-left: 8px;
+        transition: rotate 0.2s ease;
+    }
+    html body select:not(.hm-sr-select):open::picker-icon { rotate: 180deg; }
+    html body select:not([hidden]):not(.hm-sr-select) { background-image: none !important; padding-right: 12px !important; }
+}
+/* logo card: while it saves or redraws the link preview picture, its buttons are visibly paused
+   (a click then used to be ignored without a sign) */
+#adminPanel.hm-admin .lg-card.is-busy [data-lg-action] { opacity: 0.55; pointer-events: none; cursor: progress; }

@@ -23,7 +23,13 @@ const adminBgLightness = (page) => page.evaluate(() => {
 
 // every visible piece of text: contrast against the background it really sits on
 function lowContrast() {
-    const parse = (s) => { const m = String(s).match(/[\d.]+/g); return m ? m.map(Number) : null; };
+    const parse = (s) => {
+        const str = String(s);
+        const m = str.match(/[\d.]+/g);
+        if (!m) return null;
+        const v = m.map(Number);
+        return str.startsWith('color(srgb') ? [v[0] * 255, v[1] * 255, v[2] * 255, v[3]] : v; // color-mix() results
+    };
     const lum = ([r, g, b]) => [r, g, b].map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }).reduce((a, v, i) => a + v * [0.2126, 0.7152, 0.0722][i], 0);
     const bgOf = (el) => {
         for (let e = el; e; e = e.parentElement) {

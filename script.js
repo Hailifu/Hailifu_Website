@@ -949,7 +949,26 @@
                 themeToggle.title = `Theme: ${THEME_LABELS[safeMode]}`;
                 themeToggle.setAttribute('aria-label', `Theme: ${THEME_LABELS[safeMode].toLowerCase()}. Tap to change.`);
             }
+            // round 20: the admin's Light / Dark / Auto buttons show the same setting
+            document.querySelectorAll('#hmAdminTheme [data-theme-set]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.themeSet === safeMode)));
         }
+
+        // round 20: pick a mode directly (admin buttons); same saved setting as the site's button
+        function setThemeMode(mode) {
+            const next = mode === 'light' || mode === 'dark' ? mode : 'system';
+            try {
+                if (next === 'system') localStorage.removeItem(themeStorageKey);
+                else localStorage.setItem(themeStorageKey, next);
+            } catch {}
+            applyTheme(next);
+        }
+        // admin panel handlers stop clicks from bubbling, so listen in the capture phase
+        window.addEventListener('click', (e) => {
+            const btn = e.target instanceof Element ? e.target.closest('#hmAdminTheme [data-theme-set]') : null;
+            if (!btn) return;
+            e.preventDefault();
+            setThemeMode(btn.dataset.themeSet);
+        }, true);
 
         // Auto -> the opposite of what the device shows (so the first tap always changes
         // something) -> the other one -> back to Auto.
@@ -6276,6 +6295,11 @@
                             </button>
                         </nav>
                         <div class="sidebar-footer">
+                            <div class="hm-admin-theme" id="hmAdminTheme" role="group" aria-label="Theme">
+                                <button type="button" data-theme-set="light" aria-pressed="false" title="Light"><i class="fas fa-sun" aria-hidden="true"></i><span>Light</span></button>
+                                <button type="button" data-theme-set="dark" aria-pressed="false" title="Dark"><i class="fas fa-moon" aria-hidden="true"></i><span>Dark</span></button>
+                                <button type="button" data-theme-set="system" aria-pressed="false" title="Auto: follows your device"><i class="fas fa-circle-half-stroke" aria-hidden="true"></i><span>Auto</span></button>
+                            </div>
                             <a class="hm-side-link" href="/" target="_blank" rel="noopener"><i class="fas fa-arrow-up-right-from-square"></i> <span>View website</span></a>
                             <button class="admin-exit-btn" id="adminLogoutBtn" type="button">
                                 <i class="fas fa-right-from-bracket"></i> <span>Log out</span>
@@ -6315,6 +6339,7 @@
             document.body.insertAdjacentHTML('beforeend', markup);
             adminBackdrop = document.getElementById('adminBackdrop');
             adminPanel = document.getElementById('adminPanel');
+            applyTheme(getThemeMode()); // marks the current Light / Dark / Auto button
             
             // Set initial tab content
             setAdminTab('overview');
