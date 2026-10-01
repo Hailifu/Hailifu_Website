@@ -11,3 +11,6 @@ node_modules/
 /playwright/.cache/
 # Local output of tools/cloudinary-to-galleries.js
 cloudinary-links.html
+
+# Local backups (kept on this PC, never published)
+/_backup*/
