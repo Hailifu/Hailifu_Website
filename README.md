@@ -8,6 +8,15 @@ Paste this file (or its sections) into an AI when you want it to **understand th
 
 Every change to the site is logged here, newest first. Originals from before the premium rebuild are kept in `_backup-original-2026-09-28/`.
 
+### 2026-10-01 (round 16): No more dots under Featured Work
+
+| File | Change |
+|---|---|
+| `script.js` | **The moving dots under the Featured Work slider are removed.** They are no longer drawn, and the code that updated them and handled taps on them is gone (`updateFeaturedLoopDots`, the dots click handler, `featuredLoopDots`). The slider still changes on its own, with the left/right arrows and by swiping. |
+| `premium.css` | Dot styles and their fill animation (`hm-dot-fill`) removed. Version `20261001r16`. |
+| `index.html` | Asset versions bumped (`script.js?v=7.8`, `premium.css?v=20261001r16`). |
+| `e2e/round11.spec.js`, `e2e/round12.spec.js` | Tests that moved the slider with the dots now use the arrows. A new check confirms there are no dots and the arrows still work. All 6 Featured Work tests pass, including the iPhone (WebKit) one. |
+
 ### 2026-10-01 (round 15): Script errors on the homepage tracked down and fixed
 
 Progress log: `.superpowers/sdd/2026-10-01-round15/progress.md`.

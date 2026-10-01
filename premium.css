@@ -2368,10 +2368,8 @@ html body .hm-sr { position: absolute !important; width: 1px; height: 1px; overf
     html body #featured-work .featured-loop-slide.is-active .featured-card-content > :nth-child(1) { animation-delay: 0.25s; }
     html body #featured-work .featured-loop-slide.is-active .featured-card-content > :nth-child(2) { animation-delay: 0.38s; }
     html body #featured-work .featured-loop-slide.is-active .featured-card-content > :nth-child(3) { animation-delay: 0.5s; }
-    html body #featured-work .featured-loop-dot.active { animation: hm-dot-fill 5s linear both; }
 }
 @keyframes hm-feat-zoom { from { transform: scale(1.14); } to { transform: scale(1); } }
-@keyframes hm-dot-fill { from { background-size: 0% 100%; } to { background-size: 100% 100%; } }
 html body #featured-work .featured-loop-viewport { border-radius: 24px; overflow: hidden; }
 html body #featured-work .featured-card-content {
     background: linear-gradient(0deg, rgba(10, 10, 11, 0.92) 0%, rgba(10, 10, 11, 0.5) 55%, rgba(10, 10, 11, 0) 100%);
@@ -2391,13 +2389,6 @@ html body #featured-work .featured-loop-nav {
     transition: transform 0.2s var(--p-ease-out), background-color 0.2s ease;
 }
 html body #featured-work .featured-loop-nav:hover { background: rgba(10, 10, 11, 0.75); transform: scale(1.06); }
-html body #featured-work .featured-loop-dots { gap: 8px; margin-top: 16px; }
-html body #featured-work .featured-loop-dot {
-    width: 10px; height: 6px; border-radius: 999px; border: 0;
-    background: var(--p-line-strong) linear-gradient(var(--p-accent), var(--p-accent)) no-repeat left / 0% 100%;
-    transition: width 0.35s var(--p-ease-out);
-}
-html body #featured-work .featured-loop-dot.active { width: 34px; }
 
 /* ---------- Work Showcase (rebuilt) ---------- */
 html body #showcase .hm-sc { max-width: var(--p-max); margin: 0 auto; }

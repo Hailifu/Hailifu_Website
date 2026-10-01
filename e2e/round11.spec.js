@@ -35,23 +35,25 @@ test.describe('Featured Work on a phone', () => {
         await expect.poll(() => visibleSlide(page), { timeout: 7000 }).not.toBe(first);
     });
 
-    test('the photo on screen matches the active dot', async ({ page }) => {
+    test('the photo on screen matches the active slide after the next arrow', async ({ page }) => {
         await mockSupabase(page, { installations: starred() });
         await servePhotos(page);
         await page.goto('/', { waitUntil: 'load' });
         await page.locator('#featuredLoop').scrollIntoViewIfNeeded();
         await expect(page.locator('#featuredLoop .featured-loop-slide')).toHaveCount(3, { timeout: 10000 });
-        await page.locator('#featuredLoopDots .featured-loop-dot').nth(1).tap();
+        await expect(page.locator('#featuredLoop .featured-loop-slide.is-active')).toHaveAttribute('data-featured-index', '0');
+        await page.locator('#featuredLoopNext').tap();
         await expect.poll(() => visibleSlide(page), { timeout: 4000 }).toBe('1');
     });
 
-    test('tapping a dot shows that photo', async ({ page }) => {
+    test('round 16: no dots under Featured Work; the arrows still move it', async ({ page }) => {
         await mockSupabase(page, { installations: starred() });
         await servePhotos(page);
         await page.goto('/', { waitUntil: 'load' });
         await page.locator('#featuredLoop').scrollIntoViewIfNeeded();
         await expect(page.locator('#featuredLoop .featured-loop-slide')).toHaveCount(3, { timeout: 10000 });
-        await page.locator('#featuredLoopDots .featured-loop-dot').nth(2).tap();
+        await expect(page.locator('#featured-work .featured-loop-dots, #featured-work .featured-loop-dot')).toHaveCount(0);
+        await page.locator('#featuredLoopPrev').tap();
         await expect(page.locator('#featuredLoop .featured-loop-slide.is-active')).toHaveAttribute('data-featured-index', '2');
     });
 });

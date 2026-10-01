@@ -58,7 +58,11 @@ test.describe('Clicking Featured Work', () => {
             await expect(page.locator('#featuredLoop .featured-loop-slide')).toHaveCount(2, { timeout: 10000 });
             await page.evaluate(() => document.getElementById('featuredLoop').scrollIntoView({ block: 'center' }));
             const slide = page.locator('#featuredLoop .featured-loop-slide[data-media-src*="cctv-2"]');
-            await page.locator(`#featuredLoopDots .featured-loop-dot >> nth=${await slide.getAttribute('data-featured-index')}`).click();
+            const want = await slide.getAttribute('data-featured-index');
+            for (let i = 0; i < 4 && (await page.locator('#featuredLoop .featured-loop-slide.is-active').getAttribute('data-featured-index')) !== want; i++) {
+                await page.locator('#featuredLoopNext').click();
+                await page.waitForTimeout(400);
+            }
             await page.waitForTimeout(700);
             // click the slide itself (a fixed screen point missed when the page was still settling)
             const vpBox = await page.locator('#featuredLoop .featured-loop-viewport').boundingBox();

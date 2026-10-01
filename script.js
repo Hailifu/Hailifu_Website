@@ -477,7 +477,6 @@
 
         let featuredLoop = null;
         let featuredLoopTrack = null;
-        let featuredLoopDots = null;
         let featuredLoopPrev = null;
         let featuredLoopNext = null;
         let featuredLoopSlides = [];
@@ -15828,7 +15827,6 @@
         function syncFeaturedLoopNodes() {
             featuredLoop = document.getElementById('featuredLoop');
             featuredLoopTrack = document.getElementById('featuredLoopTrack');
-            featuredLoopDots = document.getElementById('featuredLoopDots');
             featuredLoopPrev = document.getElementById('featuredLoopPrev');
             featuredLoopNext = document.getElementById('featuredLoopNext');
             featuredLoopSlides = featuredLoop
@@ -15839,18 +15837,6 @@
         function setFeaturedLoopTransitionEnabled(enabled) {
             if (!featuredLoop) return;
             featuredLoop.classList.toggle('no-transition', !enabled);
-        }
-
-        function updateFeaturedLoopDots() {
-            if (!featuredLoopDots) return;
-            const dots = Array.from(featuredLoopDots.querySelectorAll('.featured-loop-dot'));
-            if (!dots.length) return;
-            const active = featuredLoopCount
-                ? ((featuredLoopIndex % featuredLoopCount) + featuredLoopCount) % featuredLoopCount
-                : 0;
-            dots.forEach((dot, idx) => {
-                dot.classList.toggle('active', idx === active);
-            });
         }
 
         function setFeaturedLoopIndex(nextIndex, opts = {}) {
@@ -15907,7 +15893,6 @@
                 });
             });
 
-            updateFeaturedLoopDots();
             markFeaturedMediaLoaded();
         }
 
@@ -15995,7 +15980,6 @@
                             featuredLoopSlides.forEach((slide, idx) => {
                                 slide.classList.toggle('is-active', idx === featuredLoopIndex);
                             });
-                            updateFeaturedLoopDots();
                         }
                     });
                 };
@@ -16118,19 +16102,6 @@
                     e.preventDefault();
                     e.stopPropagation();
                     advanceFeaturedLoop(1);
-                    startFeaturedLoop();
-                });
-            }
-
-            if (featuredLoopDots) {
-                featuredLoopDots.addEventListener('click', (e) => {
-                    const dot = e.target.closest('.featured-loop-dot');
-                    if (!dot) return;
-                    const dots = Array.from(featuredLoopDots.querySelectorAll('.featured-loop-dot'));
-                    const idx = dots.indexOf(dot);
-                    if (idx < 0) return;
-                    stopFeaturedLoop();
-                    setFeaturedLoopIndex(idx, { animate: true });
                     startFeaturedLoop();
                 });
             }
@@ -16300,13 +16271,6 @@
             };
 
             const slides = featuredList.map((project, idx) => buildSlide(project, idx)).join('');
-            const dotsMarkup = featuredLoopCount > 1
-                ? featuredList.map((_, idx) => {
-                    const active = idx === 0 ? ' active' : '';
-                    return `<span class="featured-loop-dot${active}"></span>`;
-                }).join('')
-                : '';
-
             const navMarkup = featuredLoopCount > 1
                 ? `
                     <button class="featured-loop-nav prev" id="featuredLoopPrev" type="button" aria-label="Previous featured project">
@@ -16324,7 +16288,6 @@
                         <div class="featured-loop-track" id="featuredLoopTrack">${slides}</div>
                         ${navMarkup}
                     </div>
-                    <div class="featured-loop-dots" id="featuredLoopDots" aria-hidden="true">${dotsMarkup}</div>
                 </div>
             `;
 
@@ -16352,7 +16315,7 @@
                 featuredBento.addEventListener('click', (e) => {
                     const card = e.target.closest('.featured-card');
                     if (!card) return;
-                    if (e.target.closest('.featured-loop-nav, .featured-loop-dot')) return;
+                    if (e.target.closest('.featured-loop-nav')) return;
                     e.preventDefault();
                     openFeaturedInGallery(card);
                 });
