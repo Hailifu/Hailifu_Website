@@ -5875,3 +5875,11 @@ html body :is(#reviews, .modern-review-section) .featured-reviews-feed .featured
 html body :is(#reviews, .modern-review-section) .featured-reviews-feed .featured-reviews-track { align-items: stretch !important; }
 /* owner replies were hidden site-wide by an old style.css rule although Admin says they show */
 html body :is(#reviews, .modern-review-section) .featured-reviews-feed .featured-review-response { display: block !important; }
+
+/* 12.2 Site logo card (Site Control): the logo on a dark and a light tile */
+#adminPanel.hm-admin .lg-preview { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 4px 0 14px; }
+#adminPanel.hm-admin .lg-tile { display: flex; align-items: center; justify-content: center; aspect-ratio: 16 / 9; border-radius: 12px; border: 1px solid var(--a-line, rgba(255, 255, 255, 0.08)); }
+#adminPanel.hm-admin .lg-tile.is-dark { background: #111112; }
+#adminPanel.hm-admin .lg-tile.is-light { background: #f4f2ef; }
+#adminPanel.hm-admin .lg-tile img { width: 56px; height: 56px; object-fit: contain; border-radius: 10px; }
+#adminPanel.hm-admin .lg-card.is-busy .lg-preview { opacity: 0.55; transition: opacity 0.2s ease; }

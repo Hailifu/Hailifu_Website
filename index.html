@@ -16,6 +16,63 @@
             } catch (e) {}
         })();
     </script>
+    <!-- Site logo (round 12): the owner's uploaded logo replaces every /logo.webp, before first paint
+         and in anything added later (admin, login, review cards). script.js calls hailifuSetLogo(). -->
+    <script>
+        (function () {
+            var DEF = '/logo.webp';
+            var IS_LOGO = /(^|\/)logo\.webp([?#]|$)/;
+            var current = '';
+            var watcher = null;
+            function ok(url) {
+                url = String(url || '').trim();
+                return (/^https:\/\/[^\s"'<>]+$/i.test(url) || (/^\/[^\s"'<>]*$/.test(url) && url.indexOf('//') !== 0)) ? url : '';
+            }
+            function fixImg(img) {
+                if (!img.hasAttribute('data-site-logo')) {
+                    if (!IS_LOGO.test(img.getAttribute('src') || '')) return;
+                    img.setAttribute('data-site-logo', '');
+                }
+                var want = current || DEF;
+                if (img.getAttribute('src') !== want) img.setAttribute('src', want);
+            }
+            function sweep(root) {
+                if (!root || root.nodeType !== 1) return;
+                if (root.tagName === 'IMG') { fixImg(root); return; }
+                var imgs = root.getElementsByTagName('img');
+                for (var i = 0; i < imgs.length; i++) fixImg(imgs[i]);
+            }
+            function fixIcons() {
+                var links = document.querySelectorAll('link[rel="icon"], link[rel="apple-touch-icon"]');
+                for (var i = 0; i < links.length; i++) {
+                    var l = links[i];
+                    if (!l.hasAttribute('data-default-href')) l.setAttribute('data-default-href', l.getAttribute('href') || '');
+                    l.setAttribute('href', current || l.getAttribute('data-default-href'));
+                    if (l.rel === 'icon') { if (current) l.removeAttribute('type'); else l.setAttribute('type', 'image/x-icon'); }
+                }
+            }
+            window.hailifuSetLogo = function (url) {
+                current = ok(url);
+                sweep(document.documentElement);
+                fixIcons();
+                if (current && !watcher && window.MutationObserver) {
+                    watcher = new MutationObserver(function (records) {
+                        for (var r = 0; r < records.length; r++) {
+                            var added = records[r].addedNodes;
+                            for (var n = 0; n < added.length; n++) sweep(added[n]);
+                        }
+                    });
+                    watcher.observe(document.documentElement, { childList: true, subtree: true });
+                    document.addEventListener('DOMContentLoaded', fixIcons);
+                } else if (!current && watcher) {
+                    watcher.disconnect();
+                    watcher = null;
+                }
+                return current;
+            };
+            try { var saved = localStorage.getItem('hailifu_logo_v1'); if (saved) window.hailifuSetLogo(saved); } catch (e) {}
+        })();
+    </script>
     <title>HAILIFU | Brilliant Installation</title>
     <meta name="description" content="Accra's premier CCTV and Electrical installation experts. Verified 5.0-star smart home and security systems.">
     <meta name="keywords" content="CCTV, Installer, Electrician, Technician, HAILIFU">

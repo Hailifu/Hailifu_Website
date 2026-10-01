@@ -8548,6 +8548,17 @@
                             </div>
                             <p class="gp-status" id="brStatus" aria-live="polite"></p>
                         </div>
+                        <div class="admin-card-v2 gp-card lg-card" id="lgCard">
+                            <h3>Site logo</h3>
+                            <p class="gp-help">Your logo in the menu bar, footer, chat, quotes, reviews, admin and the browser tab. Saved for every visitor. A square PNG with a see-through background looks best.</p>
+                            <div class="lg-preview" id="lgPreview"></div>
+                            <input type="file" id="lgFile" accept="image/*" hidden>
+                            <div class="gp-actions">
+                                <button type="button" class="hm-btn" data-lg-action="reset"><i class="fas fa-rotate-left"></i> Use original logo</button>
+                                <button type="button" class="hm-btn is-primary" data-lg-action="upload"><i class="fas fa-upload"></i> Upload new logo</button>
+                            </div>
+                            <p class="gp-status" id="lgStatus" aria-live="polite"></p>
+                        </div>
                         <div class="admin-card-v2 gp-card af-card" id="afCard">
                             <h3>Aftercare photo</h3>
                             <p class="gp-help">The photo in "Looked after after we leave" on the homepage. Saved for every visitor.</p>
@@ -8619,6 +8630,7 @@
             fillGoogleSettingsCard().catch(() => {});
             bindBrandCard(container);
             bindAftercareCard(container);
+            bindLogoCard(container);
             const saveSeoBtn = container.querySelector('#saveSeoBtn');
             const saveThemeBtn = container.querySelector('#saveThemeBtn');
             const saveHeroContentBtn = container.querySelector('#saveHeroContentBtn');
@@ -9525,6 +9537,141 @@
                             : '<p class="af-library-note">No photos in the Media Library yet.</p>';
                     });
                 }
+            });
+        }
+
+        // --- Site logo (round 12) ---
+        // The owner's own logo, saved for every visitor in the adverts settings row
+        // "__logo_settings" { url }. Empty = the built-in /logo.webp. The swap itself is
+        // done by hailifuSetLogo() in the <head> of index.html (before first paint, and for
+        // logos the admin, login and review cards add later); the copy from the last visit
+        // is kept in localStorage "hailifu_logo_v1" so there is no flash of the old logo.
+        const DEFAULT_SITE_LOGO = '/logo.webp';
+
+        function readLogoCache() {
+            try { return cleanAftercareUrl(localStorage.getItem('hailifu_logo_v1')); } catch { return ''; }
+        }
+
+        function writeLogoCache(url) {
+            try {
+                if (url) localStorage.setItem('hailifu_logo_v1', url);
+                else localStorage.removeItem('hailifu_logo_v1');
+            } catch {}
+        }
+
+        function applySiteLogo(url) {
+            const clean = cleanAftercareUrl(url);
+            if (typeof window.hailifuSetLogo === 'function') window.hailifuSetLogo(clean);
+            return clean;
+        }
+
+        async function loadLogoSettings() {
+            const supabase = ensureSupabaseClient();
+            if (!supabase) return;
+            try {
+                const { data, error } = await withTimeout(
+                    supabase.from('adverts').select('*').eq('id', '__logo_settings'),
+                    8000,
+                    'Loading site logo'
+                );
+                if (error || !Array.isArray(data)) return;
+                writeLogoCache(applySiteLogo(data[0] ? fromRemoteRow(data[0]).url : ''));
+            } catch {}
+        }
+
+        async function saveLogoUrl(url) {
+            const clean = url ? cleanAftercareUrl(url) : '';
+            if (url && !clean) return { ok: false, message: 'Use a link that starts with https://' };
+            const supabase = ensureSupabaseClient();
+            if (!supabase) return { ok: false, message: 'Storage is offline.' };
+            try {
+                const record = { id: '__logo_settings', type: 'settings', url: clean };
+                const { data, error } = await withTimeout(
+                    supabase.from('adverts').upsert([toRemoteRow(record)], { onConflict: 'id' }).select(),
+                    10000,
+                    'Saving site logo'
+                );
+                if (error) throw error;
+                if (!Array.isArray(data) || !data.length) throw new Error('not allowed');
+                writeLogoCache(applySiteLogo(clean));
+                return { ok: true, url: clean };
+            } catch (err) {
+                return { ok: false, message: /not allowed|security|42501|jwt/i.test(String(err?.message || err)) ? 'Not allowed. Sign in again and retry.' : 'Could not save. Check your connection.' };
+            }
+        }
+
+        // storage path of a logo this card uploaded itself (only those are removed when replaced)
+        function logoStoragePath(url) {
+            const m = String(url || '').match(/\/storage\/v1\/object\/public\/media\/(site\/logo-[^?#]+)/);
+            return m ? decodeURIComponent(m[1]) : '';
+        }
+
+        function logoPreviewHTML(url) {
+            const src = escapeHTML(cleanAftercareUrl(url) || DEFAULT_SITE_LOGO);
+            // shown on a dark and a light tile: the site has both themes
+            return `<span class="lg-tile is-dark"><img src="${src}" alt="Logo on dark"></span><span class="lg-tile is-light"><img src="${src}" alt="Logo on light"></span>`;
+        }
+
+        function bindLogoCard(scope) {
+            const root = scope || document;
+            const card = root.querySelector('#lgCard');
+            if (!card || card.dataset.bound) return;
+            card.dataset.bound = '1';
+            const preview = card.querySelector('#lgPreview');
+            const status = card.querySelector('#lgStatus');
+            const fileInput = card.querySelector('#lgFile');
+            let current = readLogoCache();
+            let busy = false;
+            const say = (text, tone) => { if (status) { status.textContent = text; status.dataset.tone = tone; } };
+            const show = () => { if (preview) preview.innerHTML = logoPreviewHTML(current); };
+            show();
+            say(current ? 'Your own logo is showing.' : 'The original Hailifu logo is showing.', 'idle');
+
+            const commit = async (url, okText) => {
+                const previousPath = logoStoragePath(current);
+                const res = await saveLogoUrl(url);
+                if (!res.ok) { say(res.message, 'error'); return false; }
+                current = res.url;
+                show();
+                say(okText, 'ok');
+                showAdminMediaToast('Logo saved', 'success');
+                if (previousPath && previousPath !== logoStoragePath(current)) {
+                    try { await ensureSupabaseClient().storage.from(MEDIA_BUCKET).remove([previousPath]); } catch {}
+                }
+                return true;
+            };
+            const run = async (job) => {
+                if (busy) return;
+                busy = true;
+                card.classList.add('is-busy');
+                try { await job(); } finally { busy = false; card.classList.remove('is-busy'); }
+            };
+
+            fileInput?.addEventListener('change', () => run(async () => {
+                const file = fileInput.files && fileInput.files[0];
+                fileInput.value = '';
+                if (!file) return;
+                if (getMediaKind(file.name, file.type) !== 'image') { say('Choose a photo: PNG (best, see-through background), SVG, WebP or JPG.', 'error'); return; }
+                if (file.size > 5 * 1024 * 1024) { say('That file is too big (max 5 MB).', 'error'); return; }
+                let path = '';
+                try {
+                    say('Uploading...', 'busy');
+                    const blob = await optimizeImageForUpload(file);
+                    path = `site/logo-${buildMediaObjectName(blob)}`;
+                    await uploadWithProgress(path, blob, (pct) => say(`Uploading... ${Math.round(pct)}%`, 'busy'));
+                } catch (err) {
+                    say(/not allowed|security|403|42501/i.test(String(err?.message || err)) ? 'Not allowed. Sign in again and retry.' : 'Upload failed. Check your connection.', 'error');
+                    return;
+                }
+                const ok = await commit(getMediaPublicUrl(path), 'Saved. Every visitor now sees this logo.');
+                if (!ok) { try { await ensureSupabaseClient().storage.from(MEDIA_BUCKET).remove([path]); } catch {} }
+            }));
+
+            card.addEventListener('click', (e) => {
+                const btn = e.target.closest && e.target.closest('[data-lg-action]');
+                if (!btn) return;
+                if (btn.dataset.lgAction === 'upload') fileInput?.click();
+                else if (btn.dataset.lgAction === 'reset') run(() => commit('', 'The original Hailifu logo is back for everyone.'));
             });
         }
 
@@ -18955,6 +19102,7 @@
         // Execute activation
         loadBrandSettings();
         loadAftercareSettings();
+        loadLogoSettings();
         initGoogleReviews();
         
         if (typeof bumpPageLoads === 'function') bumpPageLoads();
