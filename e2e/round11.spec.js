@@ -144,4 +144,26 @@ test.describe('Aftercare without a built-in photo', () => {
     });
 });
 
+test.describe('Switches in colour', () => {
+    test('a switch is green with a tick when on and red with a cross when off', async ({ page }) => {
+        await mockSupabase(page, {});
+        await loginAdmin(page);
+        const menuBtn = page.locator('#hmAdminMenuBtn');
+        if (await menuBtn.isVisible()) await menuBtn.click();
+        await page.click('#adminPanel .nav-item[data-admin-tab="adverts"]');
+        const sw = page.locator('label.hm-switch:has(#hmAdActive)');
+        await sw.scrollIntoViewIfNeeded();
+        const look = () => sw.evaluate((el) => ({
+            track: getComputedStyle(el.querySelector('.hm-switch-track')).backgroundColor,
+            mark: getComputedStyle(el.querySelector('.hm-switch-thumb'), '::after').content
+        }));
+        await expect(page.locator('#hmAdActive')).toBeChecked();
+        await expect.poll(look).toEqual({ track: 'rgb(34, 165, 91)', mark: '"✓"' });
+        await sw.click();
+        await page.mouse.move(5, 5);
+        await expect(page.locator('#hmAdActive')).not.toBeChecked();
+        await expect.poll(look).toEqual({ track: 'rgb(208, 69, 60)', mark: '"✕"' });
+    });
+});
+
 module.exports = {};

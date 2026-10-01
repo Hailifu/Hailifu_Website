@@ -5760,3 +5760,27 @@ html body .r7-topbar-cta { margin-top: auto; }
 @media (max-width: 640px) {
     html body .r7-topbar { width: 168px; }
 }
+
+/* 11.6 Switches in colour: green = on, red = off. The knob also shows a tick / cross,
+   so on/off never depends on colour alone (red-green colour blindness). */
+:is(#adminPanel.hm-admin, html body) .hm-switch { --sw-on: #22a55b; --sw-off: #d0453c; }
+:is(#adminPanel.hm-admin, html body) .hm-switch .hm-switch-track,
+html[data-theme='light'] :is(#adminPanel.hm-admin, body) .hm-switch .hm-switch-track {
+    background: var(--sw-off);
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1), inset 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+:is(#adminPanel.hm-admin, html body) .hm-switch input:checked + .hm-switch-track,
+html[data-theme='light'] :is(#adminPanel.hm-admin, body) .hm-switch input:checked + .hm-switch-track { background: var(--sw-on); }
+@media (hover: hover) and (pointer: fine) {
+    :is(#adminPanel.hm-admin, html body) .hm-switch:hover input:not(:checked) + .hm-switch-track { background: color-mix(in srgb, var(--sw-off) 88%, #fff); }
+    :is(#adminPanel.hm-admin, html body) .hm-switch:hover input:checked + .hm-switch-track { background: color-mix(in srgb, var(--sw-on) 88%, #fff); }
+}
+:is(#adminPanel.hm-admin, html body) .hm-switch-thumb { display: grid; place-items: center; background: #fff; }
+:is(#adminPanel.hm-admin, html body) .hm-switch-thumb::after {
+    content: '\2715';
+    font: 700 calc(var(--sw-thumb) * 0.45) / 1 system-ui, sans-serif;
+    color: var(--sw-off);
+    transition: color 0.2s ease;
+}
+:is(#adminPanel.hm-admin, html body) .hm-switch input:checked + .hm-switch-track .hm-switch-thumb::after { content: '\2713'; color: var(--sw-on); }
+:is(#adminPanel.hm-admin, html body) .hm-switch input:focus-visible + .hm-switch-track { outline-color: var(--p-accent); }

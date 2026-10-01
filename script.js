@@ -7951,7 +7951,7 @@
                     <div class="r7-tb-head">
                         <div>
                             <h3>Top bar</h3>
-                            <p>A slim notice that slides down above the menu. Visitors can close it.</p>
+                            <p>A small paper note that drops in under the menu. Visitors can close it.</p>
                         </div>
                         <label class="hm-switch">
                             <input type="checkbox" id="r7TbEnabled" role="switch"${t.enabled ? ' checked' : ''}>

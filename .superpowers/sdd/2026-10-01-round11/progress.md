@@ -23,3 +23,4 @@ Rule for this round: update this file after EVERY finished step, and make a git 
 - Item 3 (PIN): DONE. Removed getAdminControlPin/verifyAdminControlPin, 3 prompt blocks, Site Control card + handler; deleteProjectById without session now refuses; old localStorage key cleared. ADMIN_SETUP updated. Test RED->GREEN.
 - Item 4 (aftercare no default): DONE. defaultIntegrityMediaUrl=''; empty -> #integrityContainer hidden (premium.css 11.4); admin 'Remove photo' + .af-empty preview. round10 reset test updated. e2e/zz-shot.spec.js = scratch screenshot spec (delete at end).
 - Item 5 (paper note): DONE. premium.css 11.5 (square 200px/168px note, tape, drop rotate); script.js setTopbarHeight always 0, rhythm 12 s down / 45 s up. topbar.spec.js rewritten 4/4. Screenshots ok.
+- Item 6 (switch colours): DONE. premium.css 11.6 green #22a55b on / red #d0453c off + tick/cross in thumb. Test GREEN. Also topbar admin text updated.
