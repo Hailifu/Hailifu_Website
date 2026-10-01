@@ -88,3 +88,25 @@ test.describe('Browser tab icon', () => {
         expect(await icons()).toEqual(['/favicon.ico?v=r14|image/x-icon', '/favicon-32.png?v=r14|image/png']);
     });
 });
+
+test.describe('Reviewer pictures', () => {
+    test('no outside avatar service, no script errors, and a broken photo falls back to initials', async ({ page }) => {
+        const errors = [];
+        page.on('pageerror', (e) => errors.push(e.message));
+        const avatarCalls = [];
+        await page.route(/ui-avatars\.com/, (route) => { avatarCalls.push(route.request().url()); return route.abort('connectionclosed'); });
+        await page.route(/broken-photo\.example/, (route) => route.fulfill({ status: 404, body: '' }));
+        const data = { id: 'r_photo', name: "O'Neil Mensah", rating: 5, comment: 'Neat work.', status: 'published', source: 'website', authorImage: 'https://broken-photo.example/me.jpg', createdAt: new Date().toISOString() };
+        await mockSupabase(page, { reviews: [{ id: data.id, data, updated_at: data.createdAt }] });
+        await page.goto('/', { waitUntil: 'load' });
+        await page.locator('#reviews').scrollIntoViewIfNeeded();
+        const avatars = page.locator('img.reviewer-avatar');
+        await expect.poll(() => avatars.count()).toBeGreaterThan(0);
+        // every avatar ends up as a real picture (none left broken)
+        await expect.poll(() => avatars.evaluateAll((imgs) => imgs.filter((i) => !(i.complete && i.naturalWidth > 0)).map((i) => i.getAttribute('src')))).toEqual([]);
+        const photo = page.locator('img.reviewer-avatar[alt="O\'Neil Mensah"]').first();
+        await expect(photo).toHaveAttribute('src', /^data:image\/svg\+xml/);
+        expect(avatarCalls).toEqual([]);
+        expect(errors).toEqual([]);
+    });
+});
