@@ -46,9 +46,13 @@
                 var links = document.querySelectorAll('link[rel="icon"], link[rel="apple-touch-icon"]');
                 for (var i = 0; i < links.length; i++) {
                     var l = links[i];
-                    if (!l.hasAttribute('data-default-href')) l.setAttribute('data-default-href', l.getAttribute('href') || '');
+                    if (!l.hasAttribute('data-default-href')) {
+                        l.setAttribute('data-default-href', l.getAttribute('href') || '');
+                        l.setAttribute('data-default-type', l.getAttribute('type') || '');
+                    }
                     l.setAttribute('href', current || l.getAttribute('data-default-href'));
-                    if (l.rel === 'icon') { if (current) l.removeAttribute('type'); else l.setAttribute('type', 'image/x-icon'); }
+                    var defType = l.getAttribute('data-default-type');
+                    if (current || !defType) l.removeAttribute('type'); else l.setAttribute('type', defType);
                 }
             }
             window.hailifuSetLogo = function (url) {
@@ -94,7 +98,8 @@
     <meta name="twitter:image:alt" content="HAILIFU logo on a dark background above the words Brilliant Installation">
     <meta name="theme-color" content="#0f1012">
     <link rel="canonical" href="https://hailifugh.com/">
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico?v=r14" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=r14">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <script type="application/ld+json">
     {
