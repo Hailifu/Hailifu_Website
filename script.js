@@ -1080,28 +1080,64 @@
             return merged;
         }
 
-        function applySiteSectionOrderAndVisibility(settingsInput = null) {
-            const settings = settingsInput && typeof settingsInput === 'object' ? settingsInput : getSiteControlSettings();
-            const sectionIds = ['hero', 'trust-strip', 'featured-work', 'showcase', 'about', 'services', 'reviews'];
-            const mainRoot = document.body;
-            const footer = document.querySelector('footer.site-footer') || document.querySelector('footer');
-            const order = Array.isArray(settings.sectionOrder) ? settings.sectionOrder : defaultSiteControlSettings.sectionOrder;
-            const ordered = [...new Set(order.filter((id) => sectionIds.includes(id)).concat(sectionIds))];
-            ordered.forEach((id) => {
+        // --- Homepage sections (round 14) ---
+        // Order and visibility are saved for every visitor in the adverts settings row
+        // "__sections_settings" { order: [ids], hidden: [ids] }; the copy from the last visit is
+        // kept in localStorage "hailifu_sections_v1" so the page is arranged straight away.
+        // The top banner (hero) holds the menu and the main message, so it is always first and shown.
+        // (The old version kept this only in the owner's own browser, and its buttons were never
+        // connected, so nothing changed for anyone.)
+        const HOME_SECTIONS = [
+            { id: 'hero', name: 'Top banner', note: 'Always first and always shown: it holds the menu and main message.', locked: true },
+            { id: 'trust-strip', name: 'Trust badges' },
+            { id: 'featured-work', name: 'Featured Work' },
+            { id: 'showcase', name: 'Our Work (galleries)' },
+            { id: 'about', name: 'Why Hailifu + Aftercare' },
+            { id: 'services', name: 'Services' },
+            { id: 'reviews', name: 'Reviews' }
+        ];
+        const MOVABLE_SECTION_IDS = HOME_SECTIONS.filter((s) => !s.locked).map((s) => s.id);
+        const SECTIONS_CACHE_KEY = 'hailifu_sections_v1';
+
+        function normalizeSectionLayout(raw) {
+            const order = Array.isArray(raw?.order) ? raw.order.map(String) : [];
+            const hidden = Array.isArray(raw?.hidden) ? raw.hidden.map(String) : [];
+            return {
+                order: [...new Set(order.filter((id) => MOVABLE_SECTION_IDS.includes(id)).concat(MOVABLE_SECTION_IDS))],
+                hidden: [...new Set(hidden.filter((id) => MOVABLE_SECTION_IDS.includes(id)))]
+            };
+        }
+
+        function readSectionsCache() {
+            try { return normalizeSectionLayout(JSON.parse(localStorage.getItem(SECTIONS_CACHE_KEY) || '{}')); } catch { return normalizeSectionLayout({}); }
+        }
+
+        function writeSectionsCache(layout) {
+            try { localStorage.setItem(SECTIONS_CACHE_KEY, JSON.stringify(normalizeSectionLayout(layout))); } catch {}
+        }
+
+        function applySiteSectionOrderAndVisibility(layoutInput = null) {
+            const layout = normalizeSectionLayout(layoutInput || readSectionsCache());
+            const hero = document.getElementById('hero');
+            let anchor = hero;
+            layout.order.forEach((id) => {
                 const node = document.getElementById(id);
-                if (!node || !mainRoot.contains(node)) return;
-                if (footer && footer.parentNode === mainRoot) {
-                    mainRoot.insertBefore(node, footer);
-                } else {
-                    mainRoot.appendChild(node);
-                }
+                if (!node || !anchor || node.parentNode !== anchor.parentNode) return;
+                if (anchor.nextElementSibling !== node) anchor.after(node);
+                anchor = node;
             });
-            sectionIds.forEach((id) => {
+            MOVABLE_SECTION_IDS.forEach((id) => {
                 const node = document.getElementById(id);
-                if (!node) return;
-                const visible = settings.sectionVisibility?.[id] !== false;
-                node.style.display = visible ? '' : 'none';
+                const hide = layout.hidden.includes(id);
+                if (node) node.style.display = hide ? 'none' : '';
+                // menu, footer and button links to a hidden section are hidden with it
+                document.querySelectorAll(`a[href="#${id}"]`).forEach((link) => {
+                    if (link.closest('#adminPanel')) return;
+                    if (hide) { link.dataset.sectionHidden = '1'; link.style.display = 'none'; }
+                    else if (link.dataset.sectionHidden) { delete link.dataset.sectionHidden; link.style.display = ''; }
+                });
             });
+            return layout;
         }
 
         function applyHeroContentSettings(settingsInput = null) {
@@ -8484,17 +8520,6 @@
 
         function renderAdminSettings(container) {
             const settings = getSiteControlSettings();
-            const sectionRows = (Array.isArray(settings.sectionOrder) ? settings.sectionOrder : ['hero', 'trust-strip', 'featured-work', 'showcase', 'about', 'services', 'reviews'])
-                .map((id) => `
-                    <div class="admin-notification-item">
-                        <header><strong>${id}</strong><span class="section-drag-handle" draggable="true" data-action="section-drag" data-section-id="${id}">Drag</span></header>
-                        <div class="admin-quick-actions">
-                            <label class="hm-switch is-compact"><input type="checkbox" role="switch" data-action="section-visible" data-section-id="${id}" ${settings.sectionVisibility?.[id] !== false ? 'checked' : ''}><span class="hm-switch-track" aria-hidden="true"><span class="hm-switch-thumb"></span></span><span class="hm-switch-label">Visible</span></label>
-                            <button class="admin-btn-premium" data-action="section-move-up" data-section-id="${id}">Up</button>
-                            <button class="admin-btn-premium" data-action="section-move-down" data-section-id="${id}">Down</button>
-                        </div>
-                    </div>
-                `).join('');
             const hero = settings.hero || {};
             container.innerHTML = `
                 <div class="admin-v2-section">
@@ -8577,9 +8602,14 @@
                             <button type="button" class="hm-btn af-reset" data-af-action="reset"><i class="fas fa-trash-can"></i> Remove photo</button>
                             <p class="gp-status" id="afStatus" aria-live="polite"></p>
                         </div>
-                        <div class="admin-card-v2">
-                            <h3>Homepage Section Order & Visibility</h3>
-                            <div class="admin-notification-list">${sectionRows}</div>
+                        <div class="admin-card-v2 gp-card sc-card" id="scCard">
+                            <h3>Homepage sections</h3>
+                            <p class="gp-help">Choose the order of the homepage sections and which ones show. Saved for every visitor as soon as you change it. A hidden section's menu links are hidden too.</p>
+                            <ol class="sc-list" id="scList"></ol>
+                            <div class="gp-actions">
+                                <button type="button" class="hm-btn" data-sc-action="reset"><i class="fas fa-rotate-left"></i> Original order, all shown</button>
+                            </div>
+                            <p class="gp-status" id="scStatus" aria-live="polite"></p>
                         </div>
                         <div class="admin-card-v2">
                             <h3>Hero Content Editor</h3>
@@ -8631,6 +8661,7 @@
             bindBrandCard(container);
             bindAftercareCard(container);
             bindLogoCard(container);
+            bindSectionsCard(container);
             const saveSeoBtn = container.querySelector('#saveSeoBtn');
             const saveThemeBtn = container.querySelector('#saveThemeBtn');
             const saveHeroContentBtn = container.querySelector('#saveHeroContentBtn');
@@ -8735,76 +8766,6 @@
                     showAdminMediaToast('Service preview updated.', 'info');
                 });
             }
-
-            container.addEventListener('click', (e) => {
-                const trigger = e.target.closest('[data-action]');
-                if (!trigger) return;
-                const action = String(trigger.dataset.action || '').trim();
-                const sectionId = String(trigger.dataset.sectionId || '').trim();
-                if (!sectionId) return;
-                const next = getSiteControlSettings();
-                const order = Array.isArray(next.sectionOrder) ? next.sectionOrder.slice() : defaultSiteControlSettings.sectionOrder.slice();
-                const idx = order.indexOf(sectionId);
-                if (idx < 0) return;
-                if (action === 'section-move-up' && idx > 0) {
-                    [order[idx - 1], order[idx]] = [order[idx], order[idx - 1]];
-                    next.sectionOrder = order;
-                    saveSiteControlSettings(next);
-                    applySiteSectionOrderAndVisibility(next);
-                    setAdminTab('site-control');
-                    return;
-                }
-                if (action === 'section-move-down' && idx < order.length - 1) {
-                    [order[idx + 1], order[idx]] = [order[idx], order[idx + 1]];
-                    next.sectionOrder = order;
-                    saveSiteControlSettings(next);
-                    applySiteSectionOrderAndVisibility(next);
-                    setAdminTab('site-control');
-                }
-            });
-
-            container.addEventListener('change', (e) => {
-                const toggle = e.target.closest('[data-action="section-visible"]');
-                if (!toggle) return;
-                const sectionId = String(toggle.dataset.sectionId || '').trim();
-                if (!sectionId) return;
-                const next = getSiteControlSettings();
-                next.sectionVisibility = { ...(next.sectionVisibility || {}), [sectionId]: !!toggle.checked };
-                saveSiteControlSettings(next);
-                applySiteSectionOrderAndVisibility(next);
-            });
-
-            let draggedSectionId = '';
-            container.querySelectorAll('[data-action="section-drag"]').forEach((node) => {
-                node.addEventListener('dragstart', (event) => {
-                    draggedSectionId = String(node.dataset.sectionId || '').trim();
-                    event.dataTransfer.effectAllowed = 'move';
-                });
-            });
-            container.querySelectorAll('.admin-notification-item').forEach((row) => {
-                row.addEventListener('dragover', (event) => {
-                    event.preventDefault();
-                    row.classList.add('drag-over');
-                });
-                row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
-                row.addEventListener('drop', (event) => {
-                    event.preventDefault();
-                    row.classList.remove('drag-over');
-                    const target = String(row.querySelector('[data-section-id]')?.dataset.sectionId || '').trim();
-                    if (!draggedSectionId || !target || draggedSectionId === target) return;
-                    const next = getSiteControlSettings();
-                    const order = Array.isArray(next.sectionOrder) ? next.sectionOrder.slice() : [];
-                    const from = order.indexOf(draggedSectionId);
-                    const to = order.indexOf(target);
-                    if (from < 0 || to < 0) return;
-                    order.splice(from, 1);
-                    order.splice(to, 0, draggedSectionId);
-                    next.sectionOrder = order;
-                    saveSiteControlSettings(next);
-                    applySiteSectionOrderAndVisibility(next);
-                    setAdminTab('site-control');
-                });
-            });
         }
 
         function renderAdminNotifications(container) {
@@ -9790,6 +9751,140 @@
                 if (!btn) return;
                 if (btn.dataset.lgAction === 'upload') fileInput?.click();
                 else if (btn.dataset.lgAction === 'reset') run(() => commit('', 'The original Hailifu logo is back for everyone.'));
+            });
+        }
+
+        // --- Homepage sections card + saved layout (round 14) ---
+        async function loadSectionsSettings() {
+            const supabase = ensureSupabaseClient();
+            if (!supabase) return;
+            try {
+                const { data, error } = await withTimeout(
+                    supabase.from('adverts').select('*').eq('id', '__sections_settings'),
+                    8000,
+                    'Loading homepage sections'
+                );
+                if (error || !Array.isArray(data)) return;
+                const layout = normalizeSectionLayout(data[0] ? fromRemoteRow(data[0]) : {});
+                writeSectionsCache(layout);
+                applySiteSectionOrderAndVisibility(layout);
+            } catch {}
+        }
+
+        async function saveSectionsLayout(input) {
+            const layout = normalizeSectionLayout(input);
+            const supabase = ensureSupabaseClient();
+            if (!supabase) return { ok: false, message: 'Storage is offline.' };
+            try {
+                const record = { id: '__sections_settings', type: 'settings', order: layout.order, hidden: layout.hidden };
+                const { data, error } = await withTimeout(
+                    supabase.from('adverts').upsert([toRemoteRow(record)], { onConflict: 'id' }).select(),
+                    10000,
+                    'Saving homepage sections'
+                );
+                if (error) throw error;
+                if (!Array.isArray(data) || !data.length) throw new Error('not allowed');
+                writeSectionsCache(layout);
+                return { ok: true, layout };
+            } catch (err) {
+                return { ok: false, message: /not allowed|security|42501|jwt/i.test(String(err?.message || err)) ? 'Not allowed. Sign in again and retry.' : 'Could not save. Check your connection.' };
+            }
+        }
+
+        function sectionRowsHTML(layout) {
+            const byId = Object.fromEntries(HOME_SECTIONS.map((s) => [s.id, s]));
+            const hero = HOME_SECTIONS.find((s) => s.locked);
+            const lockedRow = `
+                <li class="sc-row is-locked" data-sc-id="${hero.id}">
+                    <span class="sc-pos" aria-hidden="true">1</span>
+                    <span class="sc-name">${escapeHTML(hero.name)}<small>${escapeHTML(hero.note)}</small></span>
+                    <i class="fas fa-lock sc-lock" aria-hidden="true"></i>
+                </li>`;
+            const last = layout.order.length - 1;
+            return lockedRow + layout.order.map((id, i) => {
+                const name = escapeHTML(byId[id].name);
+                const shown = !layout.hidden.includes(id);
+                return `
+                <li class="sc-row${shown ? '' : ' is-hidden'}" data-sc-id="${id}">
+                    <span class="sc-pos" aria-hidden="true">${i + 2}</span>
+                    <span class="sc-name">${name}${shown ? '' : '<small>Hidden from visitors</small>'}</span>
+                    <span class="sc-ctrl">
+                        <button type="button" class="sc-move" data-sc-action="up" aria-label="Move ${name} up" ${i === 0 ? 'disabled' : ''}><i class="fas fa-arrow-up" aria-hidden="true"></i></button>
+                        <button type="button" class="sc-move" data-sc-action="down" aria-label="Move ${name} down" ${i === last ? 'disabled' : ''}><i class="fas fa-arrow-down" aria-hidden="true"></i></button>
+                        <label class="hm-switch is-compact"><input type="checkbox" role="switch" data-sc-action="show" ${shown ? 'checked' : ''} aria-label="Show ${name}"><span class="hm-switch-track" aria-hidden="true"><span class="hm-switch-thumb"></span></span><span class="hm-switch-label">Show</span></label>
+                    </span>
+                </li>`;
+            }).join('');
+        }
+
+        // Listeners go on the card itself: Site Control is built in a holder that is thrown away.
+        function bindSectionsCard(scope) {
+            const root = scope || document;
+            const card = root.querySelector('#scCard');
+            if (!card || card.dataset.bound) return;
+            card.dataset.bound = '1';
+            const list = card.querySelector('#scList');
+            const status = card.querySelector('#scStatus');
+            let layout = readSectionsCache();
+            let saving = Promise.resolve();
+            const say = (text, tone) => { if (status) { status.textContent = text; status.dataset.tone = tone; } };
+            const render = (focusId, focusAction) => {
+                list.innerHTML = sectionRowsHTML(layout);
+                if (!focusId) return;
+                const row = list.querySelector(`[data-sc-id="${focusId}"]`);
+                const btn = row && (row.querySelector(`[data-sc-action="${focusAction}"]:not(:disabled)`) || row.querySelector('[data-sc-action]:not(:disabled)'));
+                if (btn) btn.focus({ preventScroll: true });
+            };
+            render();
+
+            // the page changes at once; the save follows (one at a time) and is undone if it fails
+            const change = (next, okText, focusId, focusAction) => {
+                const before = layout;
+                layout = normalizeSectionLayout(next);
+                render(focusId, focusAction);
+                applySiteSectionOrderAndVisibility(layout);
+                say('Saving...', 'busy');
+                const wanted = layout;
+                saving = saving.then(async () => {
+                    const res = await saveSectionsLayout(wanted);
+                    if (layout !== wanted) return; // a newer change is on its way
+                    if (res.ok) { say(okText, 'ok'); return; }
+                    layout = before;
+                    render();
+                    applySiteSectionOrderAndVisibility(layout);
+                    say(res.message, 'error');
+                });
+            };
+
+            card.addEventListener('click', (e) => {
+                const btn = e.target.closest && e.target.closest('button[data-sc-action]');
+                if (!btn || btn.disabled) return;
+                const action = btn.dataset.scAction;
+                if (action === 'reset') { change({}, 'Original order, every section shown, for every visitor.'); return; }
+                const id = btn.closest('[data-sc-id]')?.dataset.scId;
+                const order = layout.order.slice();
+                const i = order.indexOf(id);
+                const j = action === 'up' ? i - 1 : i + 1;
+                if (i < 0 || j < 0 || j >= order.length) return;
+                [order[i], order[j]] = [order[j], order[i]];
+                const name = HOME_SECTIONS.find((s) => s.id === id)?.name || id;
+                change({ order, hidden: layout.hidden }, `Saved. ${name} is now number ${j + 2} on the homepage for every visitor.`, id, action);
+            });
+
+            card.addEventListener('change', (e) => {
+                const input = e.target.closest && e.target.closest('input[data-sc-action="show"]');
+                if (!input) return;
+                const id = input.closest('[data-sc-id]')?.dataset.scId;
+                const hidden = layout.hidden.filter((h) => h !== id);
+                if (!input.checked) hidden.push(id);
+                const name = HOME_SECTIONS.find((s) => s.id === id)?.name || id;
+                change({ order: layout.order, hidden }, input.checked ? `Saved. ${name} shows again for every visitor.` : `Saved. ${name} is hidden from every visitor.`, id, 'show');
+            });
+
+            // show what is really saved (another device may have changed it)
+            loadSectionsSettings().then(() => {
+                const fresh = readSectionsCache();
+                if (JSON.stringify(fresh) !== JSON.stringify(layout) && status?.dataset.tone !== 'busy') { layout = fresh; render(); }
             });
         }
 
@@ -17682,7 +17777,7 @@
 
         renderServices();
         const initialSiteControlSettings = getSiteControlSettings();
-        applySiteSectionOrderAndVisibility(initialSiteControlSettings);
+        applySiteSectionOrderAndVisibility();
         applyHeroContentSettings(initialSiteControlSettings);
         applyServiceCardContentSettings(initialSiteControlSettings);
 
@@ -19221,6 +19316,7 @@
         loadBrandSettings();
         loadAftercareSettings();
         loadLogoSettings();
+        loadSectionsSettings();
         initGoogleReviews();
         
         if (typeof bumpPageLoads === 'function') bumpPageLoads();

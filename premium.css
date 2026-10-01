@@ -5883,3 +5883,48 @@ html body :is(#reviews, .modern-review-section) .featured-reviews-feed .featured
 #adminPanel.hm-admin .lg-tile.is-light { background: #f4f2ef; }
 #adminPanel.hm-admin .lg-tile img { width: 56px; height: 56px; object-fit: contain; border-radius: 10px; }
 #adminPanel.hm-admin .lg-card.is-busy .lg-preview { opacity: 0.55; transition: opacity 0.2s ease; }
+
+/* ============================================================
+   ROUND 14
+   ============================================================ */
+/* 14.1 Homepage sections card (Site Control): numbered rows, arrows, Show switch */
+#adminPanel.hm-admin .sc-list { list-style: none; margin: 4px 0 14px; padding: 0; display: grid; gap: 6px; container-type: inline-size; }
+#adminPanel.hm-admin .sc-row {
+    display: flex; align-items: center; gap: 12px;
+    min-height: 56px; padding: 8px 10px 8px 12px;
+    border: 1px solid var(--a-line-2); border-radius: 12px;
+    background: var(--a-panel-2);
+    transition: opacity 0.2s ease, border-color 0.2s ease;
+}
+#adminPanel.hm-admin .sc-pos {
+    flex: none; width: 26px; height: 26px; border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font: 600 0.8rem/1 var(--p-font); font-variant-numeric: tabular-nums;
+    color: var(--a-text); background: var(--a-raise, rgba(255, 255, 255, 0.06));
+}
+#adminPanel.hm-admin .sc-name { flex: 1 1 auto; min-width: 0; font-weight: 600; font-size: 0.92rem; color: var(--a-text); }
+#adminPanel.hm-admin .sc-name small { display: block; margin-top: 2px; font-weight: 400; font-size: 0.78rem; line-height: 1.35; color: var(--a-muted); }
+#adminPanel.hm-admin .sc-row.is-locked { background: transparent; border-style: dashed; }
+#adminPanel.hm-admin .sc-lock { flex: none; color: var(--a-muted); font-size: 0.85rem; margin-right: 6px; }
+#adminPanel.hm-admin .sc-row.is-hidden .sc-pos,
+#adminPanel.hm-admin .sc-row.is-hidden .sc-name { opacity: 0.55; }
+#adminPanel.hm-admin .sc-ctrl { flex: none; display: inline-flex; align-items: center; gap: 6px; }
+#adminPanel.hm-admin .sc-move {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 1px solid var(--a-line-2); background: transparent; color: var(--a-text);
+    padding: 0; min-height: 0; min-width: 0;
+    cursor: pointer; transition: background-color 0.15s ease, transform 0.1s ease;
+}
+#adminPanel.hm-admin .sc-move:hover:not(:disabled) { background: var(--a-raise, rgba(255, 255, 255, 0.06)); }
+#adminPanel.hm-admin .sc-move:active:not(:disabled) { transform: scale(0.94); }
+#adminPanel.hm-admin .sc-move:disabled { opacity: 0.28; cursor: default; }
+#adminPanel.hm-admin .sc-move:focus-visible { outline: 2px solid var(--p-accent); outline-offset: 2px; }
+#adminPanel.hm-admin .sc-ctrl .hm-switch { margin-left: 6px; }
+/* narrow card (phone, or the side column on desktop): controls go on their own line */
+@container (max-width: 460px) {
+    #adminPanel.hm-admin .sc-row { flex-wrap: wrap; row-gap: 8px; }
+    #adminPanel.hm-admin .sc-ctrl { width: 100%; padding-left: 38px; }
+    #adminPanel.hm-admin .sc-ctrl .hm-switch { margin-left: auto; }
+    #adminPanel.hm-admin .sc-row.is-locked { flex-wrap: nowrap; }
+}
