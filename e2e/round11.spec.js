@@ -264,4 +264,39 @@ test.describe('Reviews go live at once', () => {
     });
 });
 
+test.describe('Admin account menu', () => {
+    const TABS = ['overview', 'leads', 'projects', 'media', 'reviews', 'adverts', 'site-control', 'control-center', 'notifications'];
+    for (const vp of [{ name: 'desktop', size: { width: 1366, height: 860 } }, { name: 'phone', size: { width: 390, height: 844 } }]) {
+        test(`opens and closes on every tab, every time (${vp.name})`, async ({ page }) => {
+            test.setTimeout(120000);
+            await page.setViewportSize(vp.size);
+            await mockSupabase(page, {});
+            await loginAdmin(page);
+            const btn = page.locator('#hmAccountBtn');
+            const menu = page.locator('#hmAccountMenu');
+            for (const tab of TABS) {
+                const navBtn = page.locator('#hmAdminMenuBtn');
+                if (await navBtn.isVisible()) await navBtn.click();
+                await page.click(`#adminPanel .nav-item[data-admin-tab="${tab}"]`);
+                await page.waitForTimeout(400);
+                for (let round = 0; round < 2; round++) {
+                    await btn.click();
+                    await expect(menu, `${tab}: opens (round ${round + 1})`).toBeVisible();
+                    await expect(btn).toHaveAttribute('aria-expanded', 'true');
+                    await btn.click();
+                    await expect(menu, `${tab}: closes with the same button`).toBeHidden();
+                }
+                await btn.click();
+                await expect(menu).toBeVisible();
+                await page.keyboard.press('Escape');
+                await expect(menu, `${tab}: Escape closes`).toBeHidden();
+                await expect(page.locator('#adminPanel'), `${tab}: Escape keeps the portal open`).toHaveClass(/active/);
+                await btn.click();
+                await page.locator('#hmAdminPageTitle').click();
+                await expect(menu, `${tab}: clicking outside closes`).toBeHidden();
+            }
+        });
+    }
+});
+
 module.exports = {};

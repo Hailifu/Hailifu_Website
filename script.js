@@ -6777,26 +6777,61 @@
         function bindAdminChromeOnce() {
             if (window.__hmChromeBound) return;
             window.__hmChromeBound = true;
-            document.addEventListener('click', (e) => {
-                const menuBtn = e.target.closest('#hmAccountBtn');
-                const menu = document.getElementById('hmAccountMenu');
-                if (menuBtn && menu) {
-                    const open = menu.hidden;
-                    menu.hidden = !open;
-                    menuBtn.setAttribute('aria-expanded', String(open));
+
+            // Account (email) menu. Round 11: handled in the window CAPTURE phase, before any
+            // other admin click handler, because several of those stop propagation and the
+            // menu then "sometimes didn't respond". Escape closes only the menu (it used to
+            // close the whole admin portal); arrow keys move between the items.
+            const accountParts = () => ({ btn: document.getElementById('hmAccountBtn'), menu: document.getElementById('hmAccountMenu') });
+            const setAccountMenu = (open, focusFirst = false) => {
+                const { btn, menu } = accountParts();
+                if (!btn || !menu) return;
+                menu.hidden = !open;
+                btn.setAttribute('aria-expanded', String(!!open));
+                if (open && focusFirst) menu.querySelector('[role="menuitem"]')?.focus();
+            };
+            window.addEventListener('click', (e) => {
+                const target = e.target instanceof Element ? e.target : null;
+                if (!target) return;
+                const { menu } = accountParts();
+                if (!menu) return;
+                if (target.closest('#hmAccountBtn')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setAccountMenu(menu.hidden, e.detail === 0); // keyboard "click" focuses the first item
                     return;
                 }
-                if (menu && !menu.hidden && !e.target.closest('#hmAccountMenu')) {
-                    menu.hidden = true;
-                    document.getElementById('hmAccountBtn')?.setAttribute('aria-expanded', 'false');
-                }
-                const item = e.target.closest('[data-hm-account]');
+                const item = target.closest('#hmAccountMenu [data-hm-account]');
                 if (item) {
-                    if (menu) menu.hidden = true;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setAccountMenu(false);
                     if (item.dataset.hmAccount === 'password') openSetPasswordDialog('change');
                     if (item.dataset.hmAccount === 'logout') document.getElementById('adminLogoutBtn')?.click();
                     return;
                 }
+                if (!menu.hidden && !target.closest('#hmAccountMenu')) setAccountMenu(false);
+            }, true);
+            window.addEventListener('keydown', (e) => {
+                const { btn, menu } = accountParts();
+                if (!menu || menu.hidden) return;
+                const items = Array.from(menu.querySelectorAll('[role="menuitem"]'));
+                const at = items.indexOf(document.activeElement);
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    setAccountMenu(false);
+                    btn?.focus();
+                } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    const step = e.key === 'ArrowDown' ? 1 : -1;
+                    items[(at + step + items.length) % items.length]?.focus();
+                } else if (e.key === 'Tab') {
+                    setAccountMenu(false);
+                }
+            }, true);
+
+            document.addEventListener('click', (e) => {
                 if (e.target.closest('#hmAdminMenuBtn')) {
                     document.getElementById('adminPanel')?.classList.toggle('is-nav-open');
                 }
