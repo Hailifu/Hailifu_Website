@@ -5948,3 +5948,24 @@ html body .r7-topbar.has-img .r7-topbar-close {
 #adminPanel .r7-tb-image-row input[type='file'] { flex: 1 1 220px; min-width: 0; }
 #adminPanel .r7-tb-image-row [hidden] { display: none !important; }
 #adminPanel .r7-tb-image-help { display: block; margin-top: 6px; color: var(--a-muted, #a09d98); font-size: 0.8rem; line-height: 1.4; }
+
+/* ============================================================
+   ROUND 18
+   ============================================================ */
+/* 18.1 Services grid with the Smart Home card (9 cards, no gaps).
+   Desktop (4 columns): CCTV 2x2 with Electrical, Networking, Fence, AC beside it;
+   then Solar + Blinds; then Gates + Smart Home (each wide). Tablet: CCTV full width,
+   the other 8 in pairs. Phone: one column (unchanged). */
+html body #services #service-solar,
+html body #services #service-blindcurtain,
+html body #services #service-gates,
+html body #services #service-smarthome { grid-column: span 2; }
+@media (max-width: 1024px) {
+    html body #services #service-solar,
+    html body #services #service-blindcurtain,
+    html body #services #service-gates,
+    html body #services #service-smarthome { grid-column: span 1; }
+}
+@media (max-width: 640px) {
+    html body #services .services-grid > .card { grid-column: 1 / -1; }
+}

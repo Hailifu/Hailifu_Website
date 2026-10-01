@@ -16603,7 +16603,8 @@
             fencing: { label: 'Electric Fence', icon: 'fa-shield-halved', question: 'Where is the fence going?', options: ['Home', 'Office or shop', 'Industrial site'] },
             airconditioning: { label: 'Air Conditioning', icon: 'fa-snowflake', question: 'Installation, servicing or repair?', options: ['New installation', 'Servicing', 'Repair'] },
             solar: { label: 'Solar Energy', icon: 'fa-solar-panel', question: 'New system, upgrade or maintenance?', options: ['New system', 'Upgrade or batteries', 'Maintenance'] },
-            blindcurtain: { label: 'Smart Window Solutions', icon: 'fa-table-columns', question: 'What would you like?', options: ['Motorised blinds', 'Automated curtains', 'Full smart window setup'] }
+            blindcurtain: { label: 'Smart Window Solutions', icon: 'fa-table-columns', question: 'What would you like?', options: ['Motorised blinds', 'Automated curtains', 'Full smart window setup'] },
+            smarthome: { label: 'Smart Home', icon: 'fa-house-signal', question: 'What would you like to control from your phone?', options: ['Lights and sockets', 'Cameras and gate', 'Whole home', 'Not sure yet'] }
         };
         // Answers only use facts already on the site (areas, call-back time, quotes).
         const assistantFaq = {
@@ -16640,6 +16641,7 @@
         function normalizeService(text) {
             const t = (text || '').toLowerCase();
             if (assistantCatalog[t]) return t;
+            if (t.includes('smart home') || t.includes('smarthome') || t.includes('home automation')) return 'smarthome';
             if (t.includes('cctv') || t.includes('camera')) return 'cctv';
             if (t.includes('network') || t.includes('wifi') || t.includes('wi-fi') || t.includes('cabling') || /\blan\b/.test(t)) return 'networking';
             if (t.includes('gate')) return 'gates';
