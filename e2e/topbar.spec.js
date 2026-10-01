@@ -1,5 +1,6 @@
 // @ts-check
-// Top advert bar: drops down, stays 5 s, lifts, drops again 5 s later (until closed).
+// Top advert (round 11): a small paper note. Drops, stays 12 s, lifts, comes back after 45 s
+// (until closed). Floats, so the menu never moves.
 const { test, expect } = require('@playwright/test');
 const { mockSupabase } = require('./helpers/mock-supabase');
 
@@ -8,56 +9,66 @@ function topbarRow(extra = {}) {
     return { id: '__topbar_settings', data, updated_at: new Date().toISOString() };
 }
 const isDown = (page) => page.evaluate(() => !!document.getElementById('r7Topbar')?.classList.contains('is-in'));
+// Advance the fake clock in small steps until the note has dropped (data loads in real time).
+async function waitForDrop(page) {
+    await page.waitForFunction(() => !!document.getElementById('r7Topbar'), null, { timeout: 15000 });
+    for (let i = 0; i < 20 && !(await isDown(page)); i++) await page.clock.runFor(250);
+    expect(await isDown(page)).toBe(true);
+}
 
-test.describe('Top advert bar', () => {
-    test('drops every 5 seconds: down 5 s, up 5 s, down again', async ({ page }) => {
+test.describe('Top advert note', () => {
+    test('drops, stays 12 s, lifts, and only comes back after 45 s', async ({ page }) => {
         await page.clock.install();
         await mockSupabase(page, { adverts: [topbarRow()] });
         await page.goto('/', { waitUntil: 'load' });
-        await page.clock.runFor(2500);
-        await expect.poll(() => isDown(page)).toBe(true);
-        await page.clock.runFor(5200);
+        await waitForDrop(page);
+        await page.clock.runFor(8000);
+        expect(await isDown(page)).toBe(true); // not the old 5 s flicker
+        await page.clock.runFor(4500);
         await expect.poll(() => isDown(page)).toBe(false);
         await expect(page.locator('#r7Topbar')).toBeAttached(); // lifted, not removed
-        await page.clock.runFor(5200);
+        await page.clock.runFor(30000);
+        expect(await isDown(page)).toBe(false);
+        await page.clock.runFor(16000);
         await expect.poll(() => isDown(page)).toBe(true);
-        await page.clock.runFor(5200);
-        await expect.poll(() => isDown(page)).toBe(false);
     });
 
     test('stays down while the pointer is on it, then carries on', async ({ page }) => {
         await page.clock.install();
         await mockSupabase(page, { adverts: [topbarRow()] });
         await page.goto('/', { waitUntil: 'load' });
-        await page.clock.runFor(2500);
-        await expect.poll(() => isDown(page)).toBe(true);
+        await waitForDrop(page);
+        await page.clock.runFor(1000);
         await page.hover('#r7Topbar .r7-topbar-text');
-        await page.clock.runFor(12000);
+        await page.clock.runFor(30000);
         expect(await isDown(page)).toBe(true);
-        await page.mouse.move(700, 600);
-        await page.clock.runFor(5200);
+        await page.mouse.move(400, 600);
+        await page.clock.runFor(12500);
         await expect.poll(() => isDown(page)).toBe(false);
     });
 
-    test('closing it stops the cycle for the visit', async ({ page }) => {
+    test('closing it stops it for the visit', async ({ page }) => {
         await page.clock.install();
         await mockSupabase(page, { adverts: [topbarRow()] });
         await page.goto('/', { waitUntil: 'load' });
-        await page.clock.runFor(2500);
-        await expect.poll(() => isDown(page)).toBe(true);
+        await waitForDrop(page);
         await page.click('#r7Topbar [data-topbar-close]');
-        await page.clock.runFor(30000);
+        await page.clock.runFor(120000);
         expect(await isDown(page)).toBe(false);
         expect(await page.evaluate(() => document.getElementById('r7Topbar').hidden)).toBe(true);
     });
 
-    test('the menu follows the bar down and back up', async ({ page }) => {
+    test('it is a small note, not a full-width bar, and the menu stays put', async ({ page }) => {
         await page.clock.install();
         await mockSupabase(page, { adverts: [topbarRow()] });
         await page.goto('/', { waitUntil: 'load' });
-        await page.clock.runFor(2500);
-        await expect.poll(() => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--r7-topbar-h'))).not.toBe('0px');
-        await page.clock.runFor(5200);
-        await expect.poll(() => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--r7-topbar-h'))).toBe('0px');
+        const navTop = () => page.evaluate(() => document.querySelector('.main-nav').getBoundingClientRect().top);
+        const before = await navTop();
+        await waitForDrop(page);
+        const box = await page.locator('#r7Topbar').boundingBox();
+        const vw = page.viewportSize().width;
+        expect(box.width).toBeLessThan(260);
+        expect(box.width).toBeLessThan(vw / 2);
+        expect(await navTop()).toBe(before);
     });
 });

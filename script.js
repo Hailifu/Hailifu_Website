@@ -7727,8 +7727,10 @@
                 <button type="button" class="r7-topbar-close" data-topbar-close aria-label="Close this notice"><i class="fas fa-times" aria-hidden="true"></i></button>`;
         }
 
+        // Round 11: the advert is a small floating paper note, so it never pushes the menu down
+        // (the admin preview is not fixed and is not measured).
         function setTopbarHeight(bar) {
-            const h = bar && !bar.hidden && bar.classList.contains('is-in') ? bar.offsetHeight : 0;
+            const h = 0;
             document.documentElement.style.setProperty('--r7-topbar-h', `${h}px`);
             document.documentElement.classList.toggle('r7-has-topbar', h > 0);
         }
@@ -7762,11 +7764,14 @@
             }, 1800);
         }
 
-        // Owner request: the bar drops, stays 5 s, lifts, and drops again 5 s later,
-        // until the visitor closes it. It never lifts while the pointer or keyboard focus is on it.
-        const TOPBAR_CYCLE_MS = 5000;
+        // Round 11 (owner: "shouldn't be distracting"): the note drops, stays 12 s, lifts, and
+        // comes back once every 45 s until the visitor closes it. It never lifts while the
+        // pointer or keyboard focus is on it.
+        const TOPBAR_DOWN_MS = 12000;
+        const TOPBAR_UP_MS = 45000;
         function scheduleTopbarCycle(bar) {
             clearTimeout(renderTopbar.cycle);
+            const wait = bar.classList.contains('is-in') ? TOPBAR_DOWN_MS : TOPBAR_UP_MS;
             renderTopbar.cycle = setTimeout(() => {
                 if (!bar.isConnected || bar.hidden) return;
                 const isDown = bar.classList.contains('is-in');
@@ -7776,7 +7781,7 @@
                     setTopbarHeight(bar);
                 }
                 scheduleTopbarCycle(bar);
-            }, TOPBAR_CYCLE_MS);
+            }, wait);
         }
 
         function closeTopbar() {

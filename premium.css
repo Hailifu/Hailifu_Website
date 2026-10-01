@@ -5680,3 +5680,83 @@ html body #about .about-visual-image-wrap.integrity-empty { display: none; }
     color: var(--p-text-2, rgba(245, 244, 241, 0.7));
 }
 #adminPanel.hm-admin .af-preview .af-empty i { font-size: 1.4rem; opacity: 0.6; }
+
+/* 11.5 Top advert = a small square paper note that drops from the top (calm, not a bar).
+   Floats under the menu on the right; never pushes the menu. Tones: orange (cream paper,
+   orange tape), dark (charcoal paper), light (white paper). */
+html body .r7-topbar {
+    --tb-bg: #fbf6ea;
+    --tb-fg: #1d1b16;
+    --tb-btn-bg: var(--p-accent);
+    --tb-btn-fg: var(--p-on-accent, #140c05);
+    --tb-tape: color-mix(in srgb, var(--p-accent) 62%, transparent);
+    left: auto;
+    right: 16px;
+    top: 86px;
+    width: min(232px, calc(100vw - 32px));
+    min-height: 0;
+    display: block;
+    padding: 20px 16px 14px;
+    border: 0;
+    border-radius: 3px 3px 12px 3px;
+    background: linear-gradient(170deg, color-mix(in srgb, var(--tb-bg) 100%, #fff 0%) 0%, color-mix(in srgb, var(--tb-bg) 92%, #000) 100%);
+    color: var(--tb-fg);
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.08), 0 14px 28px -12px rgba(0, 0, 0, 0.55);
+    transform-origin: 50% 0;
+    transform: translateY(calc(-100% - 120px)) rotate(-7deg);
+    opacity: 0;
+    transition: transform 0.38s cubic-bezier(0.55, 0, 0.75, 0.2), opacity 0.3s ease, top 0.45s var(--r7-ease-out);
+}
+html body .r7-topbar[data-tone='dark'] { --tb-bg: #1e1e20; --tb-fg: #f2f1ee; border: 0; }
+html body .r7-topbar[data-tone='light'] { --tb-bg: #ffffff; --tb-fg: #161617; --tb-btn-bg: #161617; --tb-btn-fg: #fff; --tb-tape: rgba(120, 120, 120, 0.28); border: 0; }
+html body .r7-topbar::before {
+    content: '';
+    position: absolute;
+    top: -9px;
+    left: 50%;
+    width: 58px;
+    height: 18px;
+    margin-left: -29px;
+    background: var(--tb-tape);
+    border-radius: 2px;
+    transform: rotate(-4deg);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+html body .r7-topbar.is-in {
+    opacity: 1;
+    transform: rotate(-1.5deg);
+    transition: transform 0.75s cubic-bezier(0.22, 1.25, 0.36, 1), opacity 0.25s ease, top 0.45s var(--r7-ease-out);
+}
+/* when the menu hides on scroll, the note moves up into its place instead of vanishing */
+html body:has(.main-nav.is-hidden) .r7-topbar.is-in:not(.is-preview) { transform: rotate(-1.5deg); top: 16px; }
+html body .r7-topbar-inner { flex-direction: column; align-items: flex-start; gap: 12px; }
+html body .r7-topbar-dot { display: none; }
+html body .r7-topbar-text {
+    padding-right: 14px;
+    white-space: normal;
+    font: 600 0.9rem/1.38 var(--p-font);
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+}
+html body .r7-topbar-cta { height: 30px; font-size: 0.8rem; }
+html body .r7-topbar-close { top: 6px; right: 6px; margin-top: 0; width: 28px; height: 28px; font-size: 0.8rem; opacity: 0.7; }
+html body .r7-topbar-close:hover { opacity: 1; }
+@media (max-width: 640px) {
+    html body .r7-topbar { top: 78px; right: 12px; width: min(196px, calc(100vw - 24px)); padding: 18px 14px 12px; }
+    html body .r7-topbar-text { font-size: 0.82rem; -webkit-line-clamp: 4; }
+    html body .r7-topbar-close { right: 4px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    html body .r7-topbar, html body .r7-topbar.is-in { transform: rotate(-1.5deg); transition: opacity 0.3s ease; }
+}
+/* admin preview: the note sits still in the middle of the preview box */
+#adminPanel .r7-tb-preview { display: grid; place-items: center; padding: 26px 16px 18px; overflow: visible; }
+#adminPanel .r7-tb-preview .r7-topbar { position: relative; top: auto; right: auto; left: auto; opacity: 1; transform: rotate(-1.5deg); }
+/* square, like a sticky note: grows only if the message is long */
+html body .r7-topbar { width: 200px; aspect-ratio: 1 / 1; display: flex; flex-direction: column; }
+html body .r7-topbar-inner { flex: 1 1 auto; }
+html body .r7-topbar-cta { margin-top: auto; }
+@media (max-width: 640px) {
+    html body .r7-topbar { width: 168px; }
+}
