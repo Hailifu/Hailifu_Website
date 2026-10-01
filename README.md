@@ -15,6 +15,8 @@ Every change to the site is logged here, newest first. Originals from before the
 | (git) | **Pushed to https://github.com/Hailifu/Hailifu_Website** (`main`). GitHub's history (up to 8 May 2026, identical to the files this rebuild started from) was kept underneath; the files are this version. GitHub Pages published it: hailifugh.com runs `script.js?v=8.2` / `premium.css?v=20261001r20`. |
 | `.github/workflows/e2e.yml` | The automatic test run ("Playwright smoke") failed on GitHub for 2 reasons, neither a website bug. **1.** It only installed Chrome, so the iPhone (WebKit) test could not start: it now installs WebKit too. **2.** Time limit raised from 20 to 30 minutes (the suite takes about 11 minutes on GitHub, 23 on this PC). |
 | `e2e/topbar.spec.js` | "The menu stays put" measured the menu while it was still sliding in on page load (GitHub's fast machine got there mid-slide: 5.9 px, then 12 px). It now waits for the slide-in to finish. Passes 3 out of 3. |
+| `e2e/round11.spec.js` | Second GitHub run: 161 of 162 passed. "Featured Work keeps changing on an iPhone" waited for exactly slide 3 within 12 s. On GitHub's slower iPhone engine the page was still settling, the carousel could slide off screen, and it rightly paused there. The test now keeps the carousel on screen and checks that it changes twice in a row (20 s each). The website itself was not changed. Passes 3 out of 3 here. |
+| (check) | Footer links on phones checked on Android and iPhone: Services, Work Showcase and Why Choose Us each scroll to the right section. Nothing needed fixing. |
 
 ### 2026-10-01 (round 20): Light / Dark / Auto in the admin portal
 

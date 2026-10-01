@@ -68,9 +68,14 @@ test('Featured Work keeps changing on an iPhone (WebKit)', async ({ baseURL }) =
         await mockSupabase(page, { installations: rows });
         await servePhotos(page);
         await page.goto('/', { waitUntil: 'load' });
-        await page.locator('#featuredLoop').scrollIntoViewIfNeeded();
         await expect(page.locator('#featuredLoop .featured-loop-slide')).toHaveCount(9, { timeout: 10000 });
-        await expect.poll(() => visibleSlide(page), { timeout: 12000 }).toBe('3');
+        // Re-scroll on every check: on slow CI machines late layout shifts can push the loop off screen
+        // (the loop rightly pauses then). Two changes in a row = it did not freeze after the first slide.
+        const seen = async () => { await page.locator('#featuredLoop').scrollIntoViewIfNeeded(); return visibleSlide(page); };
+        const first = await seen();
+        await expect.poll(seen, { timeout: 20000 }).not.toBe(first);
+        const second = await seen();
+        await expect.poll(seen, { timeout: 20000 }).not.toBe(second);
     } finally { await browser.close(); }
 });
 
