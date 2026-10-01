@@ -5634,3 +5634,34 @@ html[data-theme='light'] :is(#adminPanel.hm-admin, body) .hm-switch-thumb { back
     html body #featured-work .featured-loop.no-transition .featured-loop-track { transition: none; }
     html body #featured-work .featured-loop-slide { scroll-snap-align: none; }
 }
+
+/* 11.2 Photos and videos in full, site-wide (premium.js initFullMedia adds the classes).
+   Never cropped: the picture is contained; a blurred copy of it fills the space around. */
+html body .r11-fit-host { overflow: hidden; isolation: isolate; background-color: #0d0d0e; }
+html body .r11-fit-host > .r11-fill {
+    position: absolute;
+    inset: -24px;
+    z-index: -1;
+    background-size: cover;
+    background-position: center;
+    filter: blur(22px) saturate(1.15) brightness(0.62);
+    transform: scale(1.08);
+    pointer-events: none;
+}
+html body .r11-fit-host > .r11-fit {
+    object-fit: contain !important;
+    object-position: center !important;
+}
+@media (prefers-reduced-transparency: reduce) {
+    html body .r11-fit-host > .r11-fill { filter: blur(22px) brightness(0.35); }
+}
+/* Featured Work: the category chip sat on top of the title (shared .project-category
+   rule pins it absolutely). Keep it in the flow, above the title. */
+html body #featured-work .featured-card-content > .featured-card-category {
+    position: static;
+    inset: auto;
+    align-self: flex-start;
+    display: inline-flex;
+    width: max-content;
+    margin: 0 0 10px;
+}

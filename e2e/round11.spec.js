@@ -72,4 +72,39 @@ test('Featured Work keeps changing on an iPhone (WebKit)', async ({ baseURL }) =
     } finally { await browser.close(); }
 });
 
+// A wide 3:1 picture: cropping would cut its ends off.
+const WIDE = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="400"><rect width="1200" height="400" fill="#2a6"/><rect width="100" height="400" fill="#e33"/><rect x="1100" width="100" height="400" fill="#33e"/></svg>`;
+const serveWide = (page) => page.route(/res\.cloudinary\.com/, (route) => route.fulfill({ status: 200, contentType: 'image/svg+xml', body: WIDE }));
+
+test.describe('Photos and videos in full', () => {
+    for (const vp of [{ name: 'desktop', size: { width: 1280, height: 860 } }, { name: 'phone', size: { width: 390, height: 844 } }]) {
+        test(`work photos are never cropped and have a blurred fill (${vp.name})`, async ({ page }) => {
+            await page.setViewportSize(vp.size);
+            const rows = ['cctv', 'solar', 'electrical'].map((c, i) => galleryRow({ id: `p${i}`, category: c, featured: true, cover: true, order: i }));
+            await mockSupabase(page, { installations: rows });
+            await serveWide(page);
+            await page.goto('/', { waitUntil: 'load' });
+            await expect(page.locator('#featuredLoop .featured-loop-slide')).toHaveCount(3, { timeout: 10000 });
+            for (const sel of ['#featured-work .featured-card-media img', '#showcase .hm-sc-media img']) {
+                const img = page.locator(sel).first();
+                await img.scrollIntoViewIfNeeded();
+                await expect(img).toHaveCSS('object-fit', 'contain');
+                const info = await img.evaluate((el) => {
+                    const fill = el.parentElement.querySelector(':scope > .r11-fill');
+                    const host = getComputedStyle(el.parentElement).position;
+                    return { fill: fill ? getComputedStyle(fill).backgroundImage : '', host };
+                });
+                expect(info.fill, sel).toContain('cloudinary');
+                expect(info.host, `${sel} frame must be positioned`).not.toBe('static');
+            }
+        });
+    }
+
+    test('the hero background video still fills the screen (not a work photo)', async ({ page }) => {
+        await mockSupabase(page, {});
+        await page.goto('/', { waitUntil: 'load' });
+        await expect(page.locator('.hero-video-container video').first()).toHaveCSS('object-fit', 'cover');
+    });
+});
+
 module.exports = {};

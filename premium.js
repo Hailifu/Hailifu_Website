@@ -494,7 +494,76 @@
         nav.addEventListener('pointerleave', function () { nav.style.setProperty('--lo', '0'); }, { passive: true });
     }
 
+    /* ---------------- Round 11: photos and videos in full ----------------
+       Work photos/videos on the public site are shown whole (never cropped).
+       The empty space around them is filled with a blurred copy of the same
+       picture (videos: their poster / Cloudinary first frame). Watches the DOM,
+       so galleries rendered later by script.js are handled too. */
+    var FULL_MEDIA = [
+        '#featured-work .featured-card-media img', '#featured-work .featured-card-media video',
+        '#services .service-media img', '#services .service-media video',
+        '#showcase .hm-sc-media img', '#showcase .hm-sc-media video',
+        '#integrityContainer img', '#integrityContainer video',
+        '.featured-review-card .hm-rv-media img', '.featured-review-card .hm-rv-media video'
+    ].join(',');
+
+    function fillUrlFor(el) {
+        if (el.tagName === 'IMG') return el.currentSrc || el.getAttribute('src') || '';
+        var poster = el.getAttribute('poster');
+        if (poster) return poster;
+        var src = el.currentSrc || el.getAttribute('src') || '';
+        if (!src) { var s = el.querySelector('source'); src = s ? s.getAttribute('src') || '' : ''; }
+        // Cloudinary can serve a video's first frame as a picture.
+        if (/res\.cloudinary\.com\/.+\/video\/upload\//.test(src)) {
+            return src.replace('/video/upload/', '/video/upload/so_0/').replace(/\.[a-z0-9]+(\?.*)?$/i, '.jpg');
+        }
+        return '';
+    }
+
+    function fitMedia(el) {
+        var host = el.parentElement;
+        if (!host) return;
+        el.classList.add('r11-fit');
+        host.classList.add('r11-fit-host');
+        var fill = host.querySelector(':scope > .r11-fill');
+        if (!fill) {
+            fill = document.createElement('span');
+            fill.className = 'r11-fill';
+            fill.setAttribute('aria-hidden', 'true');
+            host.insertBefore(fill, host.firstChild);
+        }
+        var url = fillUrlFor(el);
+        var css = url ? 'url("' + url.replace(/["\\\n]/g, '') + '")' : '';
+        if (fill.style.backgroundImage !== css) fill.style.backgroundImage = css;
+    }
+
+    function initFullMedia() {
+        var queued = false;
+        function scan() {
+            queued = false;
+            var list = document.querySelectorAll(FULL_MEDIA);
+            for (var i = 0; i < list.length; i++) fitMedia(list[i]);
+        }
+        function queue() {
+            if (queued) return;
+            queued = true;
+            requestAnimationFrame(scan);
+        }
+        scan();
+        try {
+            new MutationObserver(queue).observe(document.body, {
+                childList: true, subtree: true, attributes: true, attributeFilter: ['src', 'poster']
+            });
+        } catch (e) {}
+        // Images that pick a different source (srcset) after loading.
+        document.addEventListener('load', function (e) {
+            var t = e.target;
+            if (t && t.tagName === 'IMG' && t.classList.contains('r11-fit')) fitMedia(t);
+        }, true);
+    }
+
     function start() {
+        initFullMedia();
         initAdminMotion();
         initNavLight();
         initQuoteChips();
