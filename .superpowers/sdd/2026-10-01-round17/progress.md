@@ -1,0 +1,4 @@
+# Ledger - round 17 (owner 2026-10-01): 'i should be able to upload file on the top drop adver banner' (+ 'There is problem on posting a review from phone')
+- Picture in top note: DONE. __topbar_settings.imageUrl (https only); admin #r7TbImage, draft uploaded on Save to media/site/topbar-*, old file removed, failed save removes new file; remove-image click listener in CAPTURE phase (admin panel stops bubbling). premium.css 17.1. round17.spec 4/4 (3 RED->GREEN), topbar.spec 4/4, round10:414 flaked once under load then 4/4.
+- Ruling: images only (JPG/PNG/WebP/GIF, 8 MB); SVG/HEIC refused (SVG can carry scripts; HEIC doesn't show in most browsers).
+- Phone review: NOT reproduced. Mock iPhone (WebKit) + Android (Chromium) post OK. Live: review r_mupwtl0uqsdkn (19:11, 2 photos) published, both photos in storage. Waiting for owner to say what they saw. Candidates: 10-min one-review-per-browser guard message; videos > 30 MB; slow mobile upload (120 s limit per file).

@@ -5919,3 +5919,32 @@ html body :is(#reviews, .modern-review-section) .featured-reviews-feed .featured
     #adminPanel.hm-admin .sc-ctrl .hm-switch { margin-left: auto; }
     #adminPanel.hm-admin .sc-row.is-locked { flex-wrap: nowrap; }
 }
+
+/* ============================================================
+   ROUND 17
+   ============================================================ */
+/* 17.1 Top advert note: optional picture above the message (flyer or offer photo).
+   The whole picture is shown (contain), never cropped, so text on a flyer stays readable. */
+html body .r7-topbar.has-img { aspect-ratio: auto; }
+html body .r7-topbar-img {
+    width: 100%;
+    border-radius: 6px;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--tb-fg) 6%, transparent);
+}
+html body .r7-topbar-img img { display: block; width: 100%; height: auto; max-height: 150px; object-fit: contain; }
+html body .r7-topbar.has-img .r7-topbar-inner { gap: 10px; }
+html body .r7-topbar.has-img .r7-topbar-close {
+    background: color-mix(in srgb, var(--tb-bg) 85%, transparent);
+    border-radius: 50%;
+    opacity: 0.9;
+    z-index: 1;
+}
+@media (max-width: 640px) {
+    html body .r7-topbar-img img { max-height: 120px; }
+}
+/* admin: picture field */
+#adminPanel .r7-tb-image-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+#adminPanel .r7-tb-image-row input[type='file'] { flex: 1 1 220px; min-width: 0; }
+#adminPanel .r7-tb-image-row [hidden] { display: none !important; }
+#adminPanel .r7-tb-image-help { display: block; margin-top: 6px; color: var(--a-muted, #a09d98); font-size: 0.8rem; line-height: 1.4; }

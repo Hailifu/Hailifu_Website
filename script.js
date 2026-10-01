@@ -7708,7 +7708,8 @@
                 ctaUrl: safeAdvertUrl(t.ctaUrl),
                 tone: TOPBAR_TONES.includes(t.tone) ? t.tone : 'orange',
                 startsOn: date(t.startsOn),
-                endsOn: date(t.endsOn)
+                endsOn: date(t.endsOn),
+                imageUrl: /^https:\/\/[^\s"'<>]+$/i.test(String(t.imageUrl || '').trim()) ? String(t.imageUrl).trim() : ''
             };
         }
 
@@ -7852,7 +7853,7 @@
         }
 
         function isTopbarLive(t) {
-            if (!t || !t.enabled || !t.message) return false;
+            if (!t || !t.enabled || (!t.message && !t.imageUrl)) return false;
             const today = todayIsoLocal();
             if (t.startsOn && today < t.startsOn) return false;
             if (t.endsOn && today > t.endsOn) return false;
@@ -7860,7 +7861,7 @@
         }
 
         function topbarDismissKey(t) {
-            return `hailifu_topbar_closed_${hashString(`${t.message}|${t.ctaLabel}|${t.ctaUrl}`)}`;
+            return `hailifu_topbar_closed_${hashString(`${t.message}|${t.ctaLabel}|${t.ctaUrl}|${t.imageUrl || ''}`)}`;
         }
 
         function hashString(value) {
@@ -7877,10 +7878,15 @@
             const cta = url
                 ? `<a class="r7-topbar-cta" href="${escapeHTML(url)}"${external ? ' target="_blank" rel="noopener"' : ''}>${label} <i class="fas fa-arrow-right" aria-hidden="true"></i></a>`
                 : `<button type="button" class="r7-topbar-cta" data-topbar-quote>${label} <i class="fas fa-arrow-right" aria-hidden="true"></i></button>`;
+            // round 17: optional picture (flyer, offer photo) above the message
+            const img = t.imageUrl
+                ? `<div class="r7-topbar-img"><img src="${escapeHTML(t.imageUrl)}" alt="${escapeHTML(t.message || 'Hailifu offer')}" decoding="async"></div>`
+                : '';
             return `
                 <div class="r7-topbar-inner">
                     <span class="r7-topbar-dot" aria-hidden="true"></span>
-                    <p class="r7-topbar-text">${escapeHTML(t.message)}</p>
+                    ${img}
+                    ${t.message ? `<p class="r7-topbar-text">${escapeHTML(t.message)}</p>` : ''}
                     ${cta}
                 </div>
                 <button type="button" class="r7-topbar-close" data-topbar-close aria-label="Close this notice"><i class="fas fa-times" aria-hidden="true"></i></button>`;
@@ -7912,6 +7918,7 @@
                 document.body.insertBefore(bar, document.body.firstChild);
             }
             bar.dataset.tone = t.tone;
+            bar.classList.toggle('has-img', !!t.imageUrl);
             bar.innerHTML = buildTopbarInner(t);
             bar.hidden = false;
             if (bar.classList.contains('is-in')) { setTopbarHeight(bar); scheduleTopbarCycle(bar); return; }
@@ -8095,14 +8102,33 @@
 
         function topbarStatusText(t) {
             if (!t.enabled) return 'Off';
-            if (!t.message) return 'On, but no message yet';
+            if (!t.message && !t.imageUrl) return 'On, but no message or picture yet';
             const today = todayIsoLocal();
             if (t.startsOn && today < t.startsOn) return `Scheduled from ${t.startsOn}`;
             if (t.endsOn && today > t.endsOn) return `Ended on ${t.endsOn}`;
             return t.endsOn ? `Live until ${t.endsOn}` : 'Live now';
         }
 
+        // round 17: picture chosen in the form but not saved yet (uploaded on Save)
+        const topbarImageDraft = { file: null, preview: '', cleared: false };
+        function resetTopbarImageDraft() {
+            if (topbarImageDraft.preview) { try { URL.revokeObjectURL(topbarImageDraft.preview); } catch {} }
+            topbarImageDraft.file = null;
+            topbarImageDraft.preview = '';
+            topbarImageDraft.cleared = false;
+        }
+        function topbarDraftImageUrl() {
+            if (topbarImageDraft.preview) return topbarImageDraft.preview;
+            if (topbarImageDraft.cleared) return '';
+            return normalizeTopbar(advertState.topbar).imageUrl;
+        }
+        function topbarImageStoragePath(url) {
+            const m = String(url || '').match(/\/storage\/v1\/object\/public\/media\/(site\/topbar-[^?#]+)/);
+            return m ? decodeURIComponent(m[1]) : '';
+        }
+
         function buildTopbarAdminPanel() {
+            resetTopbarImageDraft();
             const t = normalizeTopbar(advertState.topbar);
             const live = isTopbarLive(t);
             return `
@@ -8119,12 +8145,20 @@
                         </label>
                     </div>
                     <div class="r7-tb-preview" aria-hidden="true" inert>
-                        <div class="r7-topbar is-preview" id="r7TbPreview" data-tone="${t.tone}">${buildTopbarInner({ ...t, message: t.message || 'Your message appears here' })}</div>
+                        <div class="r7-topbar is-preview${t.imageUrl ? ' has-img' : ''}" id="r7TbPreview" data-tone="${t.tone}">${buildTopbarInner({ ...t, message: t.message || (t.imageUrl ? '' : 'Your message appears here') })}</div>
                     </div>
                     <div class="r7-tb-grid">
                         <div class="hm-ad-field r7-tb-wide">
                             <label for="r7TbMessage">Message <span id="r7TbCount">${t.message.length}/110</span></label>
                             <input id="r7TbMessage" maxlength="110" value="${escapeHTML(t.message)}" placeholder="e.g. Free CCTV site survey in Accra this month">
+                        </div>
+                        <div class="hm-ad-field r7-tb-wide r7-tb-image">
+                            <label for="r7TbImage">Picture <span>(optional: a flyer or offer photo)</span></label>
+                            <div class="r7-tb-image-row">
+                                <input type="file" id="r7TbImage" accept="image/png,image/jpeg,image/webp,image/gif">
+                                <button type="button" class="hm-btn" data-tb-action="remove-image"${t.imageUrl ? '' : ' hidden'}><i class="fas fa-trash-can"></i> Remove picture</button>
+                            </div>
+                            <small class="r7-tb-image-help">JPG, PNG, WebP or GIF, up to 8 MB. It shows at the top of the note, above the message. Uploaded when you press Save.</small>
                         </div>
                         <div class="hm-ad-field">
                             <label for="r7TbCta">Button text</label>
@@ -8168,18 +8202,22 @@
                 ctaUrlRaw: val('r7TbUrl'),
                 tone: document.querySelector('#r7TbForm input[name="r7TbTone"]:checked')?.value || 'orange',
                 startsOn: val('r7TbStart'),
-                endsOn: val('r7TbEnd')
+                endsOn: val('r7TbEnd'),
+                imageUrl: topbarDraftImageUrl()
             };
         }
 
         function paintTopbarPreview() {
             const f = readTopbarForm();
-            const t = normalizeTopbar({ ...f, ctaUrl: f.ctaUrlRaw });
+            const t = { ...normalizeTopbar({ ...f, ctaUrl: f.ctaUrlRaw }), imageUrl: f.imageUrl }; // blob: preview allowed here only
             const preview = document.getElementById('r7TbPreview');
             if (preview) {
                 preview.dataset.tone = t.tone;
-                preview.innerHTML = buildTopbarInner({ ...t, message: t.message || 'Your message appears here' });
+                preview.classList.toggle('has-img', !!t.imageUrl);
+                preview.innerHTML = buildTopbarInner({ ...t, message: t.message || (t.imageUrl ? '' : 'Your message appears here') });
             }
+            const removeBtn = document.querySelector('#r7TbForm [data-tb-action="remove-image"]');
+            if (removeBtn) removeBtn.hidden = !t.imageUrl;
             const count = document.getElementById('r7TbCount');
             if (count) count.textContent = `${f.message.length}/110`;
         }
@@ -8189,21 +8227,39 @@
             const errorNode = document.getElementById('r7TbError');
             const saveBtn = document.getElementById('r7TbSave');
             const showError = (msg) => { if (errorNode) { errorNode.textContent = msg; errorNode.hidden = !msg; } };
-            if (f.enabled && !f.message) { showError('Add a message, or switch the top bar off.'); document.getElementById('r7TbMessage')?.focus(); return; }
+            if (f.enabled && !f.message && !f.imageUrl) { showError('Add a message or a picture, or switch the top bar off.'); document.getElementById('r7TbMessage')?.focus(); return; }
             const ctaUrl = safeAdvertUrl(f.ctaUrlRaw);
             if (f.ctaUrlRaw && !ctaUrl) { showError('The button link must start with https://, tel:, mailto: or #.'); return; }
             if (f.startsOn && f.endsOn && f.endsOn < f.startsOn) { showError('"Show until" must be on or after "Show from".'); return; }
             const supabase = ensureSupabaseClient();
             if (!supabase) { showError('Storage is offline. Not saved.'); return; }
             showError('');
-            const record = normalizeTopbar({ ...f, ctaUrl });
+            const previousImage = normalizeTopbar(advertState.topbar).imageUrl;
             if (saveBtn) { saveBtn.disabled = true; saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...'; }
+            let uploadedPath = '';
             try {
+                let imageUrl = topbarImageDraft.cleared ? '' : previousImage;
+                if (topbarImageDraft.file) {
+                    if (saveBtn) saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading picture...';
+                    const blob = await optimizeImageForUpload(topbarImageDraft.file);
+                    uploadedPath = `site/topbar-${buildMediaObjectName(blob)}`;
+                    await uploadWithProgress(uploadedPath, blob, () => {});
+                    imageUrl = getMediaPublicUrl(uploadedPath);
+                    if (saveBtn) saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                }
+                const record = normalizeTopbar({ ...f, ctaUrl, imageUrl });
                 const row = toRemoteRow({ id: TOPBAR_SETTINGS_ID, type: 'settings', ...record });
                 const { data, error } = await withTimeout(supabase.from(ADVERTS_TABLE).upsert(row, { onConflict: 'id' }).select(), 10000, 'Saving');
                 if (error) throw error;
                 if (!Array.isArray(data) || !data.length) throw new Error('Not allowed. Sign in as admin.');
                 advertState.topbar = record;
+                uploadedPath = ''; // saved: keep it
+                const oldPath = topbarImageStoragePath(previousImage);
+                if (oldPath && oldPath !== topbarImageStoragePath(record.imageUrl)) {
+                    try { await ensureSupabaseClient().storage.from(MEDIA_BUCKET).remove([oldPath]); } catch {}
+                }
+                resetTopbarImageDraft();
+                paintTopbarPreview();
                 const status = document.getElementById('r7TbStatus');
                 if (status) { status.textContent = topbarStatusText(record); status.dataset.live = String(isTopbarLive(record)); }
                 showAdminMediaToast(isTopbarLive(record) ? 'Top bar is live' : 'Top bar saved', 'success');
@@ -8211,6 +8267,8 @@
             } catch (err) {
                 const msg = String(err?.message || err);
                 showError(/row-level security|not allowed|unauthori|401|403/i.test(msg) ? 'Not allowed. Sign in as admin.' : `Could not save: ${msg}`);
+                // the settings were not saved: don't leave the new picture behind in storage
+                if (uploadedPath) { try { await ensureSupabaseClient().storage.from(MEDIA_BUCKET).remove([uploadedPath]); } catch {} }
             } finally {
                 if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<i class="fas fa-check"></i> Save top bar'; }
             }
@@ -8356,9 +8414,33 @@
                 }
             });
             document.addEventListener('input', (e) => {
-                if (e.target && e.target.closest && e.target.closest('#r7TbForm')) paintTopbarPreview();
+                if (e.target && e.target.closest && e.target.closest('#r7TbForm') && e.target.id !== 'r7TbImage') paintTopbarPreview();
             });
+            document.addEventListener('click', (e) => {
+                if (!e.target || !e.target.closest || !e.target.closest('#r7TbForm [data-tb-action="remove-image"]')) return;
+                resetTopbarImageDraft();
+                topbarImageDraft.cleared = true;
+                paintTopbarPreview();
+            }, true); // capture: admin panel handlers stop clicks from bubbling
             document.addEventListener('change', (e) => {
+                if (e.target && e.target.id === 'r7TbImage') {
+                    const file = e.target.files && e.target.files[0];
+                    e.target.value = '';
+                    const errorNode = document.getElementById('r7TbError');
+                    const showError = (msg) => { if (errorNode) { errorNode.textContent = msg; errorNode.hidden = !msg; } };
+                    if (!file) return;
+                    if (getMediaKind(file.name, file.type) !== 'image' || /svg|heic|heif/i.test(`${file.type} ${file.name.split('.').pop()}`)) {
+                        showError('Choose a picture: JPG, PNG, WebP or GIF.');
+                        return;
+                    }
+                    if (file.size > 8 * 1024 * 1024) { showError('That picture is too big (max 8 MB).'); return; }
+                    showError('');
+                    resetTopbarImageDraft();
+                    topbarImageDraft.file = file;
+                    topbarImageDraft.preview = URL.createObjectURL(file);
+                    paintTopbarPreview();
+                    return;
+                }
                 if (e.target && e.target.closest && e.target.closest('#r7TbForm')) { paintTopbarPreview(); return; }
                 if (e.target && e.target.id === 'hmAdsBannerSwitch') { setBannerEnabled(e.target.checked); return; }
                 if (!e.target || e.target.id !== 'hmAdImage') return;

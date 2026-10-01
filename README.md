@@ -8,6 +8,17 @@ Paste this file (or its sections) into an AI when you want it to **understand th
 
 Every change to the site is logged here, newest first. Originals from before the premium rebuild are kept in `_backup-original-2026-09-28/`.
 
+### 2026-10-01 (round 17): Upload a picture to the top drop-down advert note
+
+Progress log: `.superpowers/sdd/2026-10-01-round17/progress.md`.
+
+| File | Change |
+|---|---|
+| `script.js` | **Picture in the top advert note.** Admin > Adverts > Top bar has a new **Picture** field (JPG, PNG, WebP or GIF, max 8 MB) with a live preview and a "Remove picture" button. On **Save top bar**, the picture is resized, uploaded to `media/site/topbar-...` and its address saved as `imageUrl` in the settings row `__topbar_settings`, so every visitor sees it. The note shows the whole picture (never cropped) above the message. A picture alone, with no message, is enough to turn the note on. Replacing or removing a picture deletes the old uploaded file. If saving fails, the just-uploaded file is deleted again. Only `https://` picture addresses are ever shown. Visitors who closed the note see it again when the picture changes. |
+| `premium.css` | 17.1: picture inside the paper note (up to 150 px tall, 120 px on phones; the note grows to fit) and the admin Picture field. Version `20261001r17`. |
+| `index.html` | Asset versions bumped (`script.js?v=7.9`, `premium.css?v=20261001r17`). |
+| `e2e/round17.spec.js` (new) | Tests: visitors see the picture (also with no message); a non-https picture address is ignored; the owner uploads, saves, removes and the old file is deleted; a picture alone switches the note on; other file types are refused. 3 failed before the change (the 4th is a safety check), all 4 pass now. The 4 existing top-bar tests still pass. |
+
 ### 2026-10-01 (round 16): No more dots under Featured Work
 
 | File | Change |
