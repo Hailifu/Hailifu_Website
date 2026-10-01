@@ -8550,7 +8550,7 @@
                         </div>
                         <div class="admin-card-v2 gp-card lg-card" id="lgCard">
                             <h3>Site logo</h3>
-                            <p class="gp-help">Your logo in the menu bar, footer, chat, quotes, reviews, admin and the browser tab. Saved for every visitor. A square PNG with a see-through background looks best.</p>
+                            <p class="gp-help">Your logo in the menu bar, footer, chat, quotes, reviews, admin and the browser tab. Saved for every visitor. A square PNG with a see-through background looks best. Links shared on WhatsApp, Facebook and X show it too (those apps can take a day to refresh old links).</p>
                             <div class="lg-preview" id="lgPreview"></div>
                             <input type="file" id="lgFile" accept="image/*" hidden>
                             <div class="gp-actions">
@@ -9612,6 +9612,121 @@
             return `<span class="lg-tile is-dark"><img src="${src}" alt="Logo on dark"></span><span class="lg-tile is-light"><img src="${src}" alt="Logo on light"></span>`;
         }
 
+        // --- Link preview picture (round 13) ---
+        // WhatsApp, Facebook, X etc. read og:image without running any script, so the picture
+        // must live at one fixed address: media/site/share-card.png (index.html points there).
+        // The admin browser draws it (1200 x 630, logo on the matte dark brand background) and
+        // overwrites that file every time the logo changes; Site Control also creates it when
+        // it is missing (first visit after this change).
+        const SHARE_CARD_PATH = 'site/share-card.png';
+
+        function loadCanvasImage(src) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                if (/^https?:/i.test(src) && new URL(src, location.href).origin !== location.origin) img.crossOrigin = 'anonymous';
+                img.onload = () => resolve(img);
+                img.onerror = () => reject(new Error('Logo could not be loaded'));
+                img.src = src;
+            });
+        }
+
+        // the part of the logo that is not see-through (logo files often have wide empty margins)
+        function logoVisibleBox(img) {
+            const iw = img.naturalWidth || 1, ih = img.naturalHeight || 1;
+            const full = { x: 0, y: 0, w: iw, h: ih };
+            try {
+                const k = Math.min(1, 400 / Math.max(iw, ih));
+                const sw = Math.max(1, Math.round(iw * k)), sh = Math.max(1, Math.round(ih * k));
+                const c = document.createElement('canvas');
+                c.width = sw;
+                c.height = sh;
+                const x = c.getContext('2d');
+                x.drawImage(img, 0, 0, sw, sh);
+                const px = x.getImageData(0, 0, sw, sh).data;
+                let x0 = sw, y0 = sh, x1 = -1, y1 = -1;
+                for (let y = 0; y < sh; y++) {
+                    for (let xx = 0; xx < sw; xx++) {
+                        if (px[(y * sw + xx) * 4 + 3] > 16) {
+                            if (xx < x0) x0 = xx;
+                            if (xx > x1) x1 = xx;
+                            if (y < y0) y0 = y;
+                            if (y > y1) y1 = y;
+                        }
+                    }
+                }
+                if (x1 < 0) return full;
+                return { x: x0 / k, y: y0 / k, w: (x1 - x0 + 1) / k, h: (y1 - y0 + 1) / k };
+            } catch {
+                return full;
+            }
+        }
+
+        async function drawShareCard(logoUrl) {
+            const W = 1200, H = 630;
+            const canvas = document.createElement('canvas');
+            canvas.width = W;
+            canvas.height = H;
+            const ctx = canvas.getContext('2d');
+            const accent = normalizeBrandHex(getComputedStyle(document.documentElement).getPropertyValue('--brand-primary')) || '#e8741e';
+            ctx.fillStyle = '#111112';
+            ctx.fillRect(0, 0, W, H);
+            ctx.fillStyle = accent;
+            ctx.fillRect(0, H - 10, W, 10);
+
+            const img = await loadCanvasImage(cleanAftercareUrl(logoUrl) || DEFAULT_SITE_LOGO);
+            const crop = logoVisibleBox(img);
+            const boxW = 420, boxH = 260, boxTop = 95;
+            const scale = Math.min(boxW / crop.w, boxH / crop.h);
+            const w = crop.w * scale, h = crop.h * scale;
+            ctx.drawImage(img, crop.x, crop.y, crop.w, crop.h, (W - w) / 2, boxTop + (boxH - h) / 2, w, h);
+
+            try { await document.fonts.load('700 50px "Bricolage Grotesque"'); } catch {}
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'alphabetic';
+            ctx.fillStyle = '#f4f1ec';
+            ctx.font = '700 50px "Bricolage Grotesque", "Segoe UI", Arial, sans-serif';
+            ctx.fillText('Brilliant Installation', W / 2, 455);
+            ctx.fillStyle = '#a9a49c';
+            ctx.font = '500 27px "Bricolage Grotesque", "Segoe UI", Arial, sans-serif';
+            ctx.fillText('CCTV  ·  Electrical  ·  Smart Home  ·  Accra', W / 2, 505);
+            ctx.fillStyle = accent;
+            ctx.font = '600 25px "Bricolage Grotesque", "Segoe UI", Arial, sans-serif';
+            ctx.fillText('hailifugh.com', W / 2, 560);
+
+            return new Promise((resolve, reject) => {
+                try { canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('Could not draw'))), 'image/png'); } catch (err) { reject(err); }
+            });
+        }
+
+        async function publishShareCard(logoUrl) {
+            const supabase = ensureSupabaseClient();
+            if (!supabase) return false;
+            try {
+                const blob = await drawShareCard(logoUrl);
+                const { error } = await withTimeout(
+                    supabase.storage.from(MEDIA_BUCKET).upload(SHARE_CARD_PATH, blob, { upsert: true, contentType: 'image/png', cacheControl: '300' }),
+                    60000,
+                    'Saving link preview'
+                );
+                if (error) throw error;
+                return true;
+            } catch {
+                return false;
+            }
+        }
+
+        async function ensureShareCard(logoUrl) {
+            try {
+                const publicUrl = getMediaPublicUrl(SHARE_CARD_PATH);
+                if (!publicUrl) return false;
+                const res = await fetch(`${publicUrl}?check=${Date.now()}`, { method: 'HEAD', cache: 'no-store' });
+                if (res.ok) return true;
+            } catch {
+                return false; // offline: try again next time
+            }
+            return publishShareCard(logoUrl);
+        }
+
         function bindLogoCard(scope) {
             const root = scope || document;
             const card = root.querySelector('#lgCard');
@@ -9626,6 +9741,7 @@
             const show = () => { if (preview) preview.innerHTML = logoPreviewHTML(current); };
             show();
             say(current ? 'Your own logo is showing.' : 'The original Hailifu logo is showing.', 'idle');
+            ensureShareCard(current);
 
             const commit = async (url, okText) => {
                 const previousPath = logoStoragePath(current);
@@ -9633,11 +9749,13 @@
                 if (!res.ok) { say(res.message, 'error'); return false; }
                 current = res.url;
                 show();
-                say(okText, 'ok');
                 showAdminMediaToast('Logo saved', 'success');
                 if (previousPath && previousPath !== logoStoragePath(current)) {
                     try { await ensureSupabaseClient().storage.from(MEDIA_BUCKET).remove([previousPath]); } catch {}
                 }
+                say('Saved. Updating the link preview picture...', 'busy');
+                const shared = await publishShareCard(current);
+                say(shared ? okText : `${okText} The link preview picture could not be updated; save the logo again to retry.`, shared ? 'ok' : 'error');
                 return true;
             };
             const run = async (job) => {
@@ -9663,7 +9781,7 @@
                     say(/not allowed|security|403|42501/i.test(String(err?.message || err)) ? 'Not allowed. Sign in again and retry.' : 'Upload failed. Check your connection.', 'error');
                     return;
                 }
-                const ok = await commit(getMediaPublicUrl(path), 'Saved. Every visitor now sees this logo.');
+                const ok = await commit(getMediaPublicUrl(path), 'Saved. Every visitor now sees this logo, and shared links show it too.');
                 if (!ok) { try { await ensureSupabaseClient().storage.from(MEDIA_BUCKET).remove([path]); } catch {} }
             }));
 

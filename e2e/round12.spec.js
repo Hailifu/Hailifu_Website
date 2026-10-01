@@ -60,8 +60,9 @@ test.describe('Clicking Featured Work', () => {
             const slide = page.locator('#featuredLoop .featured-loop-slide[data-media-src*="cctv-2"]');
             await page.locator(`#featuredLoopDots .featured-loop-dot >> nth=${await slide.getAttribute('data-featured-index')}`).click();
             await page.waitForTimeout(700);
-            const box = await page.locator('#featuredLoop .featured-loop-viewport').boundingBox();
-            await page.mouse.click(box.x + box.width / 2, box.y + box.height * 0.3);
+            // click the slide itself (a fixed screen point missed when the page was still settling)
+            const vpBox = await page.locator('#featuredLoop .featured-loop-viewport').boundingBox();
+            await page.locator('#featuredLoop .featured-loop-viewport').click({ position: { x: vpBox.width / 2, y: vpBox.height * 0.3 } });
             await expect(page.locator('#hmGallery')).toBeVisible();
             await expect(page.locator('#projectModal')).not.toHaveClass(/active|open/);
             await expect(page.locator('#hmGalFigure img')).toHaveAttribute('src', /cctv-2/); // the photo that was clicked
@@ -119,7 +120,7 @@ test.describe('Owner can upload a new logo', () => {
         await page.click('[data-lg-action="reset"]');
         await expect.poll(saved).toBe('');
         await expect.poll(() => logoSrcs(page)).toEqual(['/logo.webp', '/logo.webp', '/logo.webp', '/logo.webp']);
-        expect([...sb.storage.keys()].some((k) => k.startsWith('site/logo-'))).toBe(false); // the uploaded file is tidied away
+        await expect.poll(() => [...sb.storage.keys()].some((k) => k.startsWith('site/logo-'))).toBe(false); // the uploaded file is tidied away
     });
 });
 

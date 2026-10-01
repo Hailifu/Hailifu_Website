@@ -8,6 +8,20 @@ Paste this file (or its sections) into an AI when you want it to **understand th
 
 Every change to the site is logged here, newest first. Originals from before the premium rebuild are kept in `_backup-original-2026-09-28/`.
 
+### 2026-10-01 (round 13): Link previews show the logo
+
+Progress log: `.superpowers/sdd/2026-10-01-round13/progress.md`.
+
+| File | Change |
+|---|---|
+| `index.html` | **Link previews (WhatsApp, Facebook, X, Google) were blank.** `logo_k1iyvc.png`, the picture they used, is a 1×1 pixel placeholder. `og:image`, `og:image:secure_url`, `twitter:image` and the Google business `image` now point to one fixed address: `https://qcyhxurhbvcgftyzlqdu.supabase.co/storage/v1/object/public/media/site/share-card.png`. Picture description (alt text) updated to match. |
+| `script.js` | **The link preview picture follows your logo.** When you save a logo in Site Control (upload or "Use original logo"), the admin draws a 1200×630 picture: your logo (empty see-through edges cropped off) on the matte dark background, "Brilliant Installation", "CCTV · Electrical · Smart Home · Accra", "hailifugh.com" and a bar in your brand colour. It saves that picture over `media/site/share-card.png` (cached 5 minutes). The first time you open Site Control after this update, the picture is made automatically if it doesn't exist yet. If saving the picture fails, the status line says so; save the logo again to retry. Logo card help text now mentions link previews. |
+| `apple-touch-icon.png` (new), `index.html` | The iPhone home-screen icon was the same 1×1 placeholder. Now a real 180×180 icon (logo on matte dark). An uploaded logo still replaces it while the site is open, as before. |
+| `index.html` | Asset version bumped (`script.js?v=7.5`). |
+| `e2e/round13.spec.js` (new) | Tests: share tags point at the fixed address and the home-screen icon is 180×180; Site Control creates the missing picture once (a real 1200×630 PNG), doesn't redraw it when reopened, redraws it on upload and on reset, and never deletes it; a failed save is reported. 3/3 pass. |
+
+**What you need to do:** before or right after you put this version live, log in to the admin once (`/hailifu=access`) and open **Site Control**. That makes the link preview picture. WhatsApp and Facebook remember old previews for a while; to refresh one now, paste the link into https://developers.facebook.com/tools/debug/ and press "Scrape Again". `logo_k1iyvc.png` is no longer used anywhere and can be deleted.
+
 ### 2026-10-01 (round 12): No white haze after the admin, real log out, logo upload, Featured Work click
 
 Progress log: `.superpowers/sdd/2026-10-01-round12/progress.md`; git checkpoint before each step.
@@ -17,7 +31,7 @@ Progress log: `.superpowers/sdd/2026-10-01-round12/progress.md`; git checkpoint 
 | `script.js` | **White haze after closing the admin: fixed.** Opening the admin turned on a 20% white layer over the whole screen (`#adminBackdrop`), and closing never turned it off, so the site looked faded until a reload. It now fades out and is hidden on close. |
 | `script.js` | **"Log out" now really signs you out.** Before, it only closed the window: the code that ends the Supabase session never ran (other click handlers stopped the click first), so the admin could be reopened in that browser without the password. Every logout path now ends the session. |
 | `script.js` | **Clicking Featured Work** used to open an old, unstyled "project" window: plain text, a huge logo, raw grey buttons, a made-up "2.4k views" and the photo tiny in a corner. It now opens the **same gallery viewer as Work Showcase**, at the photo you clicked, with swipe, thumbnails and "Get a quote for this". The slider pauses while the viewer is open and carries on after. |
-| `script.js`, `index.html` | **Upload your own logo.** Admin > Site Control > **Site logo**: "Upload new logo" (PNG with a see-through background is best; SVG, WebP, JPG work; max 5 MB) or "Use original logo". It is saved for every visitor (settings row `__logo_settings` in `adverts`, file in `media/site/logo-...`) and replaces the logo in the menu bar, footer, chat, quote, review cards, admin portal, login screen and the browser-tab icon. A small script at the top of `index.html` swaps it in before the page shows, so returning visitors never see the old logo flash. Replacing or resetting deletes the previous uploaded file. Note: link previews on WhatsApp/Facebook still use `logo_k1iyvc.png` (those apps don't run the site's code); replace that file to change them. |
+| `script.js`, `index.html` | **Upload your own logo.** Admin > Site Control > **Site logo**: "Upload new logo" (PNG with a see-through background is best; SVG, WebP, JPG work; max 5 MB) or "Use original logo". It is saved for every visitor (settings row `__logo_settings` in `adverts`, file in `media/site/logo-...`) and replaces the logo in the menu bar, footer, chat, quote, review cards, admin portal, login screen and the browser-tab icon. A small script at the top of `index.html` swaps it in before the page shows, so returning visitors never see the old logo flash. Replacing or resetting deletes the previous uploaded file. Link previews on WhatsApp/Facebook: see round 13. |
 | `index.html` | Asset versions bumped (`script.js?v=7.4`, `premium.css?v=20261001r12`) so phones load the new files. |
 | `premium.css` | 12.2: Site logo card: preview on a dark and a light tile so you can see it works in both themes. |
 | `e2e/round12.spec.js` (new) | Tests: nothing covers the site after Log out or "Back to website"; Log out sends the sign-out and the password is asked again (both fail on the old code); Featured Work opens the gallery viewer at the clicked photo; a saved logo shows everywhere and straight away on the next visit; upload, wrong-file refusal and reset in Site Control. |
