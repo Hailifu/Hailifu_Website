@@ -430,8 +430,8 @@ test.describe('Admin login and switches redesign', () => {
             await expect.poll(() => input.isChecked(), { message: id }).toBe(!before);
         }
         await page.click('#adminPanel .nav-item[data-admin-tab="site-control"]');
-        await page.waitForSelector('[data-action="section-visible"]', { state: 'attached' });
-        const loose = await page.evaluate(() => [...document.querySelectorAll('[data-action="section-visible"]')].filter((i) => !i.closest('.hm-switch')).length);
+        await page.waitForSelector('#scCard input[data-sc-action="show"]', { state: 'attached' });
+        const loose = await page.evaluate(() => [...document.querySelectorAll('#scCard input[data-sc-action="show"]')].filter((i) => !i.closest('.hm-switch')).length);
         expect(loose).toBe(0);
     });
 });

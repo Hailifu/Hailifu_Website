@@ -92,7 +92,7 @@ test.describe('Owner can upload a new logo', () => {
         await servePhotos(page);
         await page.goto('/', { waitUntil: 'load' });
         await expect.poll(() => logoSrcs(page)).toEqual([NEW, NEW, NEW, NEW]);
-        await expect.poll(() => page.locator('link[rel="icon"]').getAttribute('href')).toBe(NEW);
+        await expect.poll(() => page.locator('link[rel="icon"]').first().getAttribute('href')).toBe(NEW);
         // next visit: the remembered logo is in place before the page finishes loading (no old-logo flash)
         await page.goto('/', { waitUntil: 'domcontentloaded' });
         expect(await page.locator('#admin-trigger').getAttribute('src')).toBe(NEW);
