@@ -6,3 +6,4 @@ Found: (a) Site Control is rendered into a temp div and only its first child is 
 - Tests: e2e/round14.spec.js 5/5 GREEN; same spec on start-of-round code (worktree e22d935) 5/5 RED.
 - README round 14 + script 7.6 committed. Full suite running.
 - Full suite: dev server hit 30-min limit mid-run (stale servers held ports). Updated round10:414 (new #scCard switches) + round12:95 (two icon links -> .first()). galleries:60/224/472 + round9:14 also fail on start-of-round code (same 22 'Unexpected identifier http' page errors and ~10-20 s loads on BOTH old and new code with clean servers -> pre-existing/network, not round 14).
+- FINAL: round10:414, round12 6/6, round13 3/3, round14 5/5 pass (clean servers, --workers=1). Pre-existing (also fail on start-of-round code): galleries:60/224/472, round9:14 - page errors 'Unexpected identifier http' from outside scripts on this network. Round 14 COMPLETE.
