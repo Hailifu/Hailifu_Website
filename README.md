@@ -8,6 +8,16 @@ Paste this file (or its sections) into an AI when you want it to **understand th
 
 Every change to the site is logged here, newest first. Originals from before the premium rebuild are kept in `_backup-original-2026-09-28/`.
 
+### 2026-10-01 (round 21): Phone menu links work again; why phone reviews fail
+
+| File | Change |
+|---|---|
+| `premium.js` | **Phone menu (☰) links did nothing.** Tapping Our Work / Services / Why Hailifu / Reviews closed the menu but the page stayed at the top (desktop menu was fine). Cause: while the menu is open the page is frozen in place (round 10 scroll lock), so the browser's jump to the section was lost, and the lock then put the page back where it was. Now the menu closes first and the jump happens once the page is free again (smooth, unless the phone asks for less motion). "Request a Quote" and "Share" in the menu are unchanged. |
+| `index.html` | `premium.js?v=20261001r21` so phones load the new file. |
+| `e2e/nav-sheet.spec.js` (new) | Test on Android and iPhone: open ☰, tap Services, then Reviews, and the page must land on that section. Failed before the fix (section stayed 8,834 px away), passes 4 out of 4 after. |
+| (live database, no file change) | **"Your review could not be sent" on phones.** Tested on the live database without saving anything: it refuses every review from a visitor who is not signed in (both "live" and "waiting"). A device signed in to the admin portal can still post, which is why it looked like a phone problem. The two owner steps were never run in Supabase → SQL Editor: `supabase/sql/reviews_public_submit.sql`, then `supabase/sql/reviews_instant_publish.sql`. |
+| (check) | Smart Home is on the live site: the 9th Services card, the "Smart home" Work Showcase tab and its gallery. Its card picture is the first photo in the Smart Home gallery (Admin → Galleries), which is a screenshot of a refrigerator shop page; choose another cover there. |
+
 ### 2026-10-01: Published to GitHub; automatic tests fixed
 
 | File | Change |

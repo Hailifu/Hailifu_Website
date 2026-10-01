@@ -1,0 +1,1 @@
+# Ledger round 21: phone menu links (scroll lock ate the anchor jump; premium.js initNavSheet now jumps after unlock), test e2e/nav-sheet.spec.js RED->GREEN 4/4. Reviews: live DB lacks public insert policy (owner SQL steps). Smart Home present live; cover = fridge screenshot. CI run on 0122478 failed - check log.

@@ -333,8 +333,26 @@
             if (restoreFocus !== false && lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
         }
         burger.addEventListener('click', function () { if (sheet.classList.contains('is-open')) close(); else open(); });
+        // Section links: the page is frozen while the menu is open (initScrollLock), so the
+        // browser's own jump was lost and the page went back to where it was. Jump after the
+        // menu has closed and the page is free again.
+        function goToSection(hash) {
+            var target = document.getElementById(hash.slice(1));
+            if (!target) return;
+            var tries = 0;
+            (function wait() {
+                if (document.documentElement.classList.contains('hm-scroll-locked') && tries++ < 30) { requestAnimationFrame(wait); return; }
+                if (location.hash === hash) target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+                else location.hash = hash;
+            })();
+        }
         sheet.addEventListener('click', function (e) {
-            if (e.target.closest('[data-r7-close]')) close(false);
+            if (!e.target.closest('[data-r7-close]')) return;
+            var link = e.target.closest('a[href^="#"]');
+            var hash = link && !link.hasAttribute('data-quote-open') ? link.getAttribute('href') : '';
+            if (hash && hash.length > 1) e.preventDefault();
+            close(false);
+            if (hash && hash.length > 1) requestAnimationFrame(function () { goToSection(hash); });
         });
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && sheet.classList.contains('is-open')) close();
