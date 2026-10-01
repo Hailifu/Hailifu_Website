@@ -8,6 +8,16 @@ Paste this file (or its sections) into an AI when you want it to **understand th
 
 Every change to the site is logged here, newest first. Originals from before the premium rebuild are kept in `_backup-original-2026-09-28/`.
 
+### 2026-10-01 (round 11): Featured Work on phones, … (in progress)
+
+Backup of the files before this round: `_backup-before-round11-2026-10-01/`. Progress log (survives a PC shutdown): `.superpowers/sdd/2026-10-01-round11/progress.md`.
+
+| File | Change |
+|---|---|
+| (project) | **Crash safety:** the project folder is now a local **git** repository. A checkpoint commit is made after every finished step, so a sudden shutdown loses at most the step in progress. Nothing is uploaded anywhere. To see checkpoints: `git log --oneline`. |
+| `script.js`, `premium.css` (11.1) | **Featured Work changes by itself on phones again.** On iPhone it moved once and then froze; on Android it jumped. Phones now use the same sliding track as desktop (swipe with a finger, arrows, dots). Also fixed: after the galleries loaded, the slider was rebuilt but the "is it on screen" watcher kept watching the old copy and could stop the slider for good. |
+| `e2e/round11.spec.js` | Featured Work tests check the photo actually **on screen**, including on the iPhone engine (WebKit) with 9 photos (fails on the old code, passes now). |
+
 ### 2026-10-01 (round 10): New admin address, Google-style reviews, smooth gallery swipe, still page behind popups, Aftercare photo, login + switches
 
 Approved in chat as a bounded design (no spec file). Backup of the files before this round: `_backup-before-round10-2026-10-01/`.

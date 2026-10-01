@@ -500,12 +500,10 @@
         let featuredLoopIsVisible = true;
         let featuredRenderDebounceTimer = null;
 
+        // Round 11: phones use the same sliding track as desktop. The old phone mode
+        // (smooth scrollTo inside a scroll-snap box) froze on iPhone after one slide.
         function featuredLoopPrefersNativeScroll() {
-            try {
-                return !!window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
-            } catch {
-                return false;
-            }
+            return false;
         }
 
         function featuredLoopIsProbablyVisible() {
@@ -15335,7 +15333,14 @@
             const viewport = featuredLoop.querySelector('.featured-loop-viewport');
             const swipeTarget = viewport || featuredLoop;
 
-            if (!featuredLoopObserver && viewport && typeof IntersectionObserver !== 'undefined') {
+            // The loop is rebuilt when galleries load: watch the NEW node, not the removed one
+            // (the removed one reports "not visible" and stopped the loop for good).
+            if (featuredLoopObserver) {
+                try { featuredLoopObserver.disconnect(); } catch {}
+                featuredLoopObserver = null;
+                featuredLoopIsVisible = featuredLoopIsProbablyVisible();
+            }
+            if (viewport && typeof IntersectionObserver !== 'undefined') {
                 featuredLoopObserver = new IntersectionObserver((entries) => {
                     const entry = Array.isArray(entries) ? entries[0] : null;
                     const nextVisible = !!entry && entry.isIntersecting && (Number(entry.intersectionRatio || 0) > 0);

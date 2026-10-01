@@ -5615,3 +5615,22 @@ html[data-theme='light'] :is(#adminPanel.hm-admin, body) .hm-switch-thumb { back
     html body #reviewModal .hm-review-brand h2 { font-size: 1.12rem; line-height: 1.25; letter-spacing: -0.015em; }
     html body #reviewModal .hm-review-brand .hm-review-public { font-size: 0.78rem; }
 }
+
+/* =====================================================================
+   ROUND 11 (2026-10-01) - r11- prefix
+   ===================================================================== */
+
+/* 11.1 Featured Work on phones: one sliding track (like desktop), swipe by touch. */
+@media (max-width: 768px) {
+    html body #featured-work .featured-loop-viewport {
+        overflow: hidden;
+        scroll-snap-type: none;
+        scroll-behavior: auto;
+        touch-action: pan-y;
+    }
+    html body #featured-work .featured-loop-track {
+        transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    html body #featured-work .featured-loop.no-transition .featured-loop-track { transition: none; }
+    html body #featured-work .featured-loop-slide { scroll-snap-align: none; }
+}

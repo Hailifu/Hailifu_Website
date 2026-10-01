@@ -17,3 +17,5 @@ Restarted after PC shutdown. Owner's words (re-pasted 2026-10-01):
 Rule for this round: update this file after EVERY finished step, and make a git checkpoint commit.
 
 ## Status
+- Item 12 (crash safety): DONE. git repo created, checkpoint commit after every step. core.autocrlf=false.
+- Item 1 (featured on phone): DONE. Cause: phone mode = smooth scrollTo in scroll-snap box froze on WebKit after 1 slide; also IntersectionObserver kept watching the removed node after re-render. Fix: phones use transform track (featuredLoopPrefersNativeScroll -> false), observer re-attached per render, premium.css 11.1. WebKit test 9 photos RED->GREEN.
