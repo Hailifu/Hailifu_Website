@@ -123,4 +123,25 @@ test.describe('Admin PIN removed', () => {
     });
 });
 
+test.describe('Aftercare without a built-in photo', () => {
+    test('with nothing saved the Aftercare card shows no photo', async ({ page }) => {
+        await mockSupabase(page, {});
+        await page.goto('/', { waitUntil: 'load' });
+        await page.locator('#integrityPanel').scrollIntoViewIfNeeded();
+        await page.waitForTimeout(1500);
+        await expect(page.locator('#integrityContainer')).toBeHidden();
+        expect(await page.locator('#integrityImage').getAttribute('src') || '').not.toContain('field-technician');
+    });
+
+    test('a saved Aftercare photo still shows', async ({ page }) => {
+        const row = { id: '__aftercare_settings', data: { id: '__aftercare_settings', type: 'settings', imageUrl: 'https://res.cloudinary.com/daovfi3i5/image/upload/v1/af.jpg' }, updated_at: '' };
+        await mockSupabase(page, { adverts: [row] });
+        await servePhotos(page);
+        await page.goto('/', { waitUntil: 'load' });
+        await page.locator('#integrityPanel').scrollIntoViewIfNeeded();
+        await expect(page.locator('#integrityImage')).toBeVisible();
+        await expect(page.locator('#integrityContainer')).toBeVisible();
+    });
+});
+
 module.exports = {};

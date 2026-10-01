@@ -150,7 +150,7 @@ test.describe('Aftercare photo the owner can change', () => {
 
         await page.click('[data-af-action="reset"]');
         await expect.poll(saved).toBe('');
-        await expect(page.locator('#afPreview img')).toHaveAttribute('src', /field-technician/);
+        await expect(page.locator('#afPreview .af-empty')).toBeVisible(); // round 11: no built-in photo
     });
 });
 

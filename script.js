@@ -739,7 +739,8 @@
         const defaultFirestoreReviewsCollection = 'reviews';
         const expectedFirestoreProjectId = 'hailifu-brilliant';
         const integrityImageStorageKey = 'hailifu_integrity_image_url';
-        const defaultIntegrityMediaUrl = './assets/img/field-technician.webp';
+        // Round 11: no built-in Aftercare photo. Nothing saved = the card shows no photo.
+        const defaultIntegrityMediaUrl = '';
         const remoteConfigPublicIdStorageKey = 'hailifu_remote_config_public_id';
         const remoteConfigUrlStorageKey = 'hailifu_remote_config_url';
         const defaultRemoteConfigPublicId = 'hailifu_site_config';
@@ -8433,7 +8434,7 @@
                                 <input type="url" class="admin-input-v2" id="afLink" placeholder="or paste a link: https://..." autocomplete="off" spellcheck="false">
                                 <button type="button" class="hm-btn" data-af-action="link">Use link</button>
                             </div>
-                            <button type="button" class="hm-btn af-reset" data-af-action="reset"><i class="fas fa-rotate-left"></i> Reset to default photo</button>
+                            <button type="button" class="hm-btn af-reset" data-af-action="reset"><i class="fas fa-trash-can"></i> Remove photo</button>
                             <p class="gp-status" id="afStatus" aria-live="polite"></p>
                         </div>
                         <div class="admin-card-v2">
@@ -9229,8 +9230,8 @@
 
         // --- Aftercare photo (round 10) ---
         // One photo or video for the Aftercare card, saved for every visitor in the
-        // adverts settings row "__aftercare_settings" { imageUrl }. Empty = the
-        // built-in photo. Replaces the old per-browser / Firebase "integrity" image.
+        // adverts settings row "__aftercare_settings" { imageUrl }. Empty = no photo
+        // (round 11: the built-in photo was removed). Replaces the old per-browser / Firebase "integrity" image.
         function readAftercareCache() {
             try { return String(localStorage.getItem('hailifu_aftercare_v1') || '').trim(); } catch { return ''; }
         }
@@ -9251,7 +9252,7 @@
         }
 
         function showAftercarePhoto(url) {
-            loadIntegrityImage(cleanAftercareUrl(url) || defaultIntegrityMediaUrl);
+            loadIntegrityImage(cleanAftercareUrl(url));
         }
 
         async function loadAftercareSettings() {
@@ -9299,7 +9300,8 @@
         }
 
         function aftercarePreviewHTML(url) {
-            const src = cleanAftercareUrl(url) || defaultIntegrityMediaUrl;
+            const src = cleanAftercareUrl(url);
+            if (!src) return '<p class="af-empty"><i class="fas fa-image" aria-hidden="true"></i> No photo yet. The card shows without a photo until you add one.</p>';
             return isIntegrityVideoUrl(src)
                 ? `<video src="${escapeHTML(src)}" muted playsinline loop autoplay></video>`
                 : `<img src="${escapeHTML(src)}" alt="Aftercare photo">`;
@@ -9320,7 +9322,7 @@
             const say = (text, tone) => { if (status) { status.textContent = text; status.dataset.tone = tone; } };
             const show = () => { if (preview) preview.innerHTML = aftercarePreviewHTML(current); };
             show();
-            say(current ? 'Your own photo is showing.' : 'The built-in photo is showing.', 'idle');
+            say(current ? 'Your own photo is showing.' : 'No photo yet: the card shows without one.', 'idle');
 
             const commit = async (url, okText) => {
                 const previousPath = aftercareStoragePath(current);
@@ -9381,7 +9383,7 @@
                     if (!cleanAftercareUrl(url)) { say('Use a link that starts with https://', 'error'); return; }
                     run(async () => { if (await commit(url, 'Saved. Every visitor now sees this photo.') && linkInput) linkInput.value = ''; });
                 } else if (action === 'reset') {
-                    run(() => commit('', 'Saved. The built-in photo is back for everyone.'));
+                    run(() => commit('', 'Removed. The card now shows without a photo.'));
                 } else if (action === 'library' && library) {
                     if (!library.hidden) { library.hidden = true; return; }
                     library.hidden = false;

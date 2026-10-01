@@ -89,7 +89,7 @@ The form works like Google's: **no name and no phone**. Visitors tap stars (the 
 
 ## Aftercare photo
 
-Admin → **Site Control** → **Aftercare photo**: **Upload photo or video**, pick one from the **Media Library**, or paste an `https://` link → **Use link**. It changes the photo in "Looked after after we leave" for every visitor. **Reset to default photo** brings back the built-in one. A photo you uploaded here is deleted from storage when you replace it.
+Admin → **Site Control** → **Aftercare photo**: **Upload photo or video**, pick one from the **Media Library**, or paste an `https://` link → **Use link**. It changes the photo in "Looked after after we leave" for every visitor. **Remove photo** takes it off: there is no built-in photo, so the card then shows without a photo. A photo you uploaded here is deleted from storage when you replace it.
 
 ## Google reviews on the website
 

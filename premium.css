@@ -5665,3 +5665,18 @@ html body #featured-work .featured-card-content > .featured-card-category {
     width: max-content;
     margin: 0 0 10px;
 }
+
+/* 11.4 Aftercare: no built-in photo. With nothing saved the photo area is hidden. */
+html body #about .about-visual-image-wrap.integrity-empty { display: none; }
+#adminPanel.hm-admin .af-preview .af-empty {
+    margin: 0;
+    height: 100%;
+    display: grid;
+    place-content: center;
+    gap: 8px;
+    padding: 16px;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--p-text-2, rgba(245, 244, 241, 0.7));
+}
+#adminPanel.hm-admin .af-preview .af-empty i { font-size: 1.4rem; opacity: 0.6; }
