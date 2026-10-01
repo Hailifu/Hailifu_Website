@@ -125,4 +125,4 @@ Admin → **Adverts** → the switch at the top right (**Banner is on / off**) s
 
 - `?dev=hailifu_access` no longer opens the portal; it now shows the login screen.
 - Access saved in a browser from the old link is revoked automatically unless that browser is signed in.
-- The 4-digit Admin PIN still guards some older delete buttons in other tabs (leads, reviews). Change it in **Site Control**.
+- There is no Admin PIN any more (removed 2026-10-01): it was saved only in one browser and defaulted to 2026, so it gave no real protection. Deletes are protected by your Supabase login and database rules, and every delete still asks you to confirm.

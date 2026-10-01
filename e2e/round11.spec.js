@@ -107,4 +107,20 @@ test.describe('Photos and videos in full', () => {
     });
 });
 
+test.describe('Admin PIN removed', () => {
+    test('Site Control has no PIN card and the old stored PIN is cleared', async ({ page }) => {
+        await page.addInitScript(() => { try { if (!sessionStorage.getItem('pinSeeded')) { localStorage.setItem('hailifu_admin_control_pin', '9999'); sessionStorage.setItem('pinSeeded', '1'); } } catch {} });
+        await mockSupabase(page, {});
+        await loginAdmin(page);
+        const menuBtn = page.locator('#hmAdminMenuBtn');
+        if (await menuBtn.isVisible()) await menuBtn.click();
+        await page.click('#adminPanel .nav-item[data-admin-tab="site-control"]');
+        await page.waitForSelector('#afCard');
+        await expect(page.locator('#adminControlPinInput')).toHaveCount(0);
+        await expect(page.locator('#saveAdminPinBtn')).toHaveCount(0);
+        await expect(page.getByText('Destructive Action PIN')).toHaveCount(0);
+        expect(await page.evaluate(() => localStorage.getItem('hailifu_admin_control_pin'))).toBeNull();
+    });
+});
+
 module.exports = {};

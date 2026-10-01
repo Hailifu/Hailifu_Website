@@ -784,20 +784,9 @@
             saveAdminNotifications(next);
         }
 
-        function getAdminControlPin() {
-            return String(localStorage.getItem(adminControlPinStorageKey) || '2026').trim() || '2026';
-        }
-
-        let adminPinVerifiedUntil = 0;
-        function verifyAdminControlPin() {
-            const now = Date.now();
-            if (now < adminPinVerifiedUntil) return true;
-            const expected = getAdminControlPin();
-            const entered = prompt('Enter Admin PIN to confirm destructive action:');
-            const ok = String(entered || '').trim() === expected;
-            if (ok) adminPinVerifiedUntil = now + (2 * 60 * 1000); // allow duplicate handlers for 2 minutes
-            return ok;
-        }
+        // Round 11: the browser-only "Destructive Action PIN" was removed (Supabase login + RLS
+        // protect the admin; every delete still asks to confirm). Clear the old stored PIN.
+        try { localStorage.removeItem(adminControlPinStorageKey); } catch {}
 
         function recordDeletedReviewId(id) {
             const ids = getDeletedReviewIds();
@@ -6113,10 +6102,6 @@
                             }
                             const name = String(candidate.name || '').trim();
                             if (!confirm(`Delete latest uploaded media: ${name}?`)) return;
-                            if (!verifyAdminControlPin()) {
-                                showAdminMediaToast('Incorrect PIN. Action blocked.', 'warning');
-                                return;
-                            }
                             e.stopPropagation();
                             e.stopImmediatePropagation();
                             const supabase = ensureSupabaseClient();
@@ -6144,10 +6129,6 @@
                             const leadId = String(trigger.dataset.leadId || '').trim();
                             if (!leadId) return;
                             if (!confirm('Delete this lead permanently?')) return;
-                            if (!verifyAdminControlPin()) {
-                                showAdminMediaToast('Incorrect PIN. Action blocked.', 'warning');
-                                return;
-                            }
                             e.stopPropagation();
                             e.stopImmediatePropagation();
                             await deleteLeadById(leadId);
@@ -8500,14 +8481,6 @@
                             <button class="admin-btn-premium" id="saveServiceCardBtn">Save Service Card</button>
                             <button class="admin-btn-premium" id="previewServiceCardBtn">Live Preview Service</button>
                         </div>
-                        <div class="admin-card-v2">
-                            <h3>Admin Security</h3>
-                            <div class="form-group-v2">
-                                <label>Destructive Action PIN</label>
-                                <input type="password" class="admin-input-v2" id="adminControlPinInput" value="${escapeHTML(getAdminControlPin())}">
-                            </div>
-                            <button class="admin-btn-premium" id="saveAdminPinBtn">Save Admin PIN</button>
-                        </div>
                     </div>
                 </div>
             `;
@@ -8522,7 +8495,6 @@
             const saveServiceCardBtn = container.querySelector('#saveServiceCardBtn');
             const previewHeroContentBtn = container.querySelector('#previewHeroContentBtn');
             const previewServiceCardBtn = container.querySelector('#previewServiceCardBtn');
-            const saveAdminPinBtn = container.querySelector('#saveAdminPinBtn');
             const serviceCardSelector = container.querySelector('#serviceCardSelector');
             const serviceTitleInput = container.querySelector('#serviceTitleInput');
             const serviceDescInput = container.querySelector('#serviceDescInput');
@@ -8619,17 +8591,6 @@
                     };
                     applyServiceCardContentSettings(draft);
                     showAdminMediaToast('Service preview updated.', 'info');
-                });
-            }
-            if (saveAdminPinBtn) {
-                saveAdminPinBtn.addEventListener('click', () => {
-                    const pin = String(container.querySelector('#adminControlPinInput')?.value || '').trim();
-                    if (!pin || pin.length < 4) {
-                        showAdminMediaToast('PIN must be at least 4 characters.', 'warning');
-                        return;
-                    }
-                    localStorage.setItem(adminControlPinStorageKey, pin);
-                    showAdminMediaToast('Admin PIN updated.', 'success');
                 });
             }
 
@@ -10023,10 +9984,6 @@
                     const mediaId = mediaDeleteBtn.getAttribute('data-media-delete');
                     if (!mediaId) return;
                     if (!confirm('Permanently delete this media from the library?')) return;
-                    if (!verifyAdminControlPin()) {
-                        showAdminMediaToast('Incorrect PIN. Action blocked.', 'warning');
-                        return;
-                    }
                     removeMediaLibraryRecord(mediaId)
                         .then(() => showAdminMediaToast('Media deleted from library.', 'success'))
                         .catch((err) => showAdminMediaToast(`Delete failed: ${String(err?.message || err || 'Unknown error')}`, 'error'));
@@ -11369,17 +11326,15 @@
 
         // Deletes a project everywhere. Returns { ok, message }.
         // The admin is already signed in with Supabase (and RLS decides what may be deleted),
-        // so the old client-side PIN prompt is only kept for callers outside the admin UI.
+        // so without a session the delete is refused (the old PIN prompt was removed in round 11).
         async function deleteProjectById(projectId, opts = {}) {
             if (!projectId) return { ok: false, message: 'No project id' };
             const id = String(projectId);
             if (!opts.confirmed) {
                 try {
                     if (adminPanel && adminPanel.classList.contains('active') && !(await hasAdminAuthSession())) {
-                        if (!verifyAdminControlPin()) {
-                            showAdminMediaToast('Incorrect PIN. Action blocked.', 'warning');
-                            return { ok: false, message: 'Blocked' };
-                        }
+                        showAdminMediaToast('Please sign in again to delete.', 'warning');
+                        return { ok: false, message: 'Blocked' };
                     }
                 } catch {}
             }
