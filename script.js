@@ -13196,7 +13196,9 @@
                 const date = escapeHTML(toDisplayReviewDate(review.date || 'Recent'));
                 const comment = escapeHTML(review.comment);
                 const ownerReply = escapeHTML(String(review.ownerReply || '').trim());
-                const source = escapeHTML(review.source || REVIEW_SOURCE_GOOGLE);
+                // round 11: never show the internal word "Native" to visitors
+                const sourceRaw = String(review.source || REVIEW_SOURCE_GOOGLE).trim();
+                const source = escapeHTML(/^native$/i.test(sourceRaw) ? 'Customer review' : sourceRaw);
                 const stars = buildStarText(review.rating);
                 
                 // Use a small data URI fallback if ui-avatars fails
@@ -13207,7 +13209,7 @@
                     ? '<span class="native-verified-badge" title="Native review approved in admin panel">Verified</span>'
                     : '';
                 const responseMarkup = ownerReply
-                    ? `<div class="featured-review-response"><span class="featured-review-response-label">Response</span><p>${ownerReply}</p></div>`
+                    ? `<div class="featured-review-response"><span class="featured-review-response-label">Reply from Hailifu</span><p>${ownerReply}</p></div>`
                     : '';
                 return `
                     <article class="featured-review-card" data-rating="${toSafeRating(review.rating)}">

@@ -453,4 +453,24 @@ test.describe('Theme follows the device unless the visitor chose one', () => {
     });
 });
 
+test.describe('Review cards show everything', () => {
+    test('comment, photo and owner reply are visible (not squeezed away), no "Native" label', async ({ page }) => {
+        const d = { id: 'r_full', name: 'Hailifu customer', rating: 5, comment: 'Neat CCTV job, the team explained everything.', status: 'published', services: ['CCTV installation'], likes: ['Clean finish'], media: [{ path: 'reviews/r_full/1-a.webp', type: 'image' }], ownerReply: 'Thank you for choosing Hailifu!', createdAt: new Date().toISOString() };
+        await mockSupabase(page, { reviews: [{ id: d.id, data: d, updated_at: d.createdAt }] });
+        await page.route(/\/storage\/v1\/object\/public\//, (route) => route.fulfill({ status: 200, contentType: 'image/png', body: PNG }));
+        await page.goto('/', { waitUntil: 'load' });
+        await page.evaluate(() => document.querySelector('.featured-reviews-track').scrollIntoView({ block: 'center' }));
+        await page.waitForTimeout(1500);
+        const sizes = await page.evaluate(() => {
+            const card = Array.from(document.querySelectorAll('.featured-reviews-track .featured-review-card')).find((c) => c.textContent.includes('Neat CCTV job'));
+            const h = (sel) => { const el = card.querySelector(sel); if (!el) return -1; const r = el.getBoundingClientRect(); const c = card.getBoundingClientRect(); return r.bottom <= c.bottom + 1 ? r.height : -2; };
+            return { comment: h('p'), media: h('.hm-rv-media'), reply: h('.featured-review-response'), labels: Array.from(document.querySelectorAll('.featured-reviews-track .review-source')).map((s) => s.textContent.trim()) };
+        });
+        expect(sizes.comment).toBeGreaterThan(15);
+        expect(sizes.media).toBeGreaterThan(40);
+        expect(sizes.reply).toBeGreaterThan(20);
+        expect(sizes.labels.some((l) => /^native$/i.test(l))).toBe(false);
+    });
+});
+
 module.exports = {};
