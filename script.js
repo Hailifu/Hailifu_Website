@@ -9874,6 +9874,7 @@
                     e.preventDefault();
                     e.stopPropagation();
                     adminGatekeeper.clearPersistedVisibilityGrant();
+                    signOutAdminSession(); // round 12: "Log out" really signs out
                     haltDataSync();
                     return;
                 }
@@ -10004,6 +10005,7 @@
                         adminGatekeeper.clearPersistedVisibilityGrant();
                         updateAdminEntryButtonVisibility();
                         pushAdminLog('Admin session terminated. Visibility grant revoked.');
+                        signOutAdminSession(); // round 12: "Log out" really signs out
                     }
                     haltDataSync();
                     return;
@@ -10344,6 +10346,12 @@
             startAdminLazyLoop();
         }
 
+        // Round 12: the document-level logout handler (which signed out) never ran, because
+        // the admin panel handlers stop the click first. Every logout path calls this now.
+        function signOutAdminSession() {
+            try { const sb = ensureSupabaseClient(); if (sb && sb.auth) sb.auth.signOut(); } catch {}
+        }
+
         function haltDataSync() {
             try { stopAdminLazyLoop(); } catch {}
             stopFirestorePendingReviewsSync();
@@ -10354,6 +10362,14 @@
                 // Remove backdrop filter to prevent blur on site after closing
                 adminBackdrop.style.backdropFilter = 'none';
                 adminBackdrop.style.webkitBackdropFilter = 'none';
+                // Round 12: opening sets display:block + opacity:1 inline, so removing the class
+                // left a 20% white layer over the whole site ("white blur"). Fade it, then hide it.
+                adminBackdrop.style.opacity = '0';
+                const backdrop = adminBackdrop;
+                setTimeout(() => {
+                    if (backdrop.classList.contains('active')) return; // reopened meanwhile
+                    backdrop.style.display = 'none';
+                }, 320);
             }
             if (adminPanel) {
                 adminPanel.classList.remove('active');

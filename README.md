@@ -8,6 +8,16 @@ Paste this file (or its sections) into an AI when you want it to **understand th
 
 Every change to the site is logged here, newest first. Originals from before the premium rebuild are kept in `_backup-original-2026-09-28/`.
 
+### 2026-10-01 (round 12): No white haze after the admin, real log out, logo upload, Featured Work click
+
+Progress log: `.superpowers/sdd/2026-10-01-round12/progress.md`; git checkpoint before each step.
+
+| File | Change |
+|---|---|
+| `script.js` | **White haze after closing the admin: fixed.** Opening the admin turned on a 20% white layer over the whole screen (`#adminBackdrop`), and closing never turned it off, so the site looked faded until a reload. It now fades out and is hidden on close. |
+| `script.js` | **"Log out" now really signs you out.** Before, it only closed the window: the code that ends the Supabase session never ran (other click handlers stopped the click first), so the admin could be reopened in that browser without the password. Every logout path now ends the session. |
+| `e2e/round12.spec.js` (new) | Tests: nothing covers the site after Log out or "Back to website"; Log out sends the sign-out and the password is asked again (both fail on the old code). |
+
 ### 2026-10-01 (round 11): Featured Work on phones, photos in full, reviews live at once, paper-note advert, coloured switches, pull-to-close, auto theme, crash safety
 
 Backup of the files before this round: `_backup-before-round11-2026-10-01/`. Progress log (survives a PC shutdown): `.superpowers/sdd/2026-10-01-round11/progress.md`.
