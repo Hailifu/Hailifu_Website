@@ -412,4 +412,45 @@ test.describe('Pull down to close', () => {
     });
 });
 
+test.describe('Theme follows the device unless the visitor chose one', () => {
+    const theme = (page) => page.evaluate(() => [document.documentElement.getAttribute('data-theme'), document.documentElement.getAttribute('data-theme-mode')]);
+
+    test('no choice: light device shows light, dark device shows dark, and it follows changes', async ({ page }) => {
+        await mockSupabase(page, {});
+        await page.emulateMedia({ colorScheme: 'light' });
+        await page.goto('/', { waitUntil: 'load' });
+        expect(await theme(page)).toEqual(['light', 'system']);
+        await page.emulateMedia({ colorScheme: 'dark' });
+        await expect.poll(() => theme(page)).toEqual(['dark', 'system']);
+    });
+
+    test('the very first paint already has the right theme (no dark flash on a light phone)', async ({ page }) => {
+        await mockSupabase(page, {});
+        await page.emulateMedia({ colorScheme: 'light' });
+        await page.goto('/', { waitUntil: 'commit' });
+        await page.waitForSelector('html[data-theme]', { state: 'attached' });
+        expect(await page.evaluate(() => document.documentElement.getAttribute('data-theme'))).toBe('light');
+    });
+
+    test('the button cycles: opposite of the device, the other, then Auto; a choice beats the device', async ({ page }) => {
+        await mockSupabase(page, {});
+        await page.emulateMedia({ colorScheme: 'dark' });
+        await page.goto('/', { waitUntil: 'load' });
+        const btn = page.locator('#themeToggle');
+        await expect(btn).toHaveAttribute('title', /Auto/);
+        await btn.click();
+        expect(await theme(page)).toEqual(['light', 'light']);
+        await expect(btn).toHaveAttribute('title', 'Theme: Light');
+        await page.emulateMedia({ colorScheme: 'dark' });
+        await page.reload({ waitUntil: 'load' });
+        expect(await theme(page)).toEqual(['light', 'light']); // the choice is kept
+        await btn.click();
+        expect(await theme(page)).toEqual(['dark', 'dark']);
+        await btn.click();
+        expect(await theme(page)).toEqual(['dark', 'system']);
+        expect(await page.evaluate(() => localStorage.getItem('hailifu_theme'))).toBeNull();
+        await expect(page.locator('#themeToggle .theme-icon--auto')).toHaveCSS('opacity', '1');
+    });
+});
+
 module.exports = {};

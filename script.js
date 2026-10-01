@@ -924,33 +924,56 @@
 
         const themeStorageKey = 'hailifu_theme';
 
-        function applyTheme(theme) {
-            const normalized = theme === 'light' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', normalized);
-            document.body.setAttribute('data-theme', normalized);
+        // Round 11: three modes. 'light' / 'dark' = the visitor chose it (saved); 'system' =
+        // nothing chosen, so the site follows the device setting and changes with it.
+        const systemThemeQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: light)') : null;
+        const THEME_LABELS = { light: 'Light', dark: 'Dark', system: 'Auto (follows your device)' };
+
+        function getThemeMode() {
+            let stored = '';
+            try { stored = String(localStorage.getItem(themeStorageKey) || '').trim().toLowerCase(); } catch {}
+            return stored === 'light' || stored === 'dark' ? stored : 'system';
+        }
+
+        function resolveTheme(mode) {
+            if (mode === 'light' || mode === 'dark') return mode;
+            return systemThemeQuery && systemThemeQuery.matches ? 'light' : 'dark';
+        }
+
+        function applyTheme(mode) {
+            const safeMode = mode === 'light' || mode === 'dark' ? mode : 'system';
+            const theme = resolveTheme(safeMode);
+            document.documentElement.setAttribute('data-theme', theme);
+            document.documentElement.setAttribute('data-theme-mode', safeMode);
+            document.body.setAttribute('data-theme', theme);
             if (themeToggle) {
-                themeToggle.setAttribute('aria-pressed', String(normalized === 'light'));
-                const icon = themeToggle.querySelector('i');
-                if (icon) {
-                    icon.className = normalized === 'light' ? 'fas fa-moon' : 'fas fa-sun';
-                }
+                themeToggle.title = `Theme: ${THEME_LABELS[safeMode]}`;
+                themeToggle.setAttribute('aria-label', `Theme: ${THEME_LABELS[safeMode].toLowerCase()}. Tap to change.`);
             }
         }
 
-        function getInitialTheme() {
-            const stored = String(localStorage.getItem(themeStorageKey) || '').trim().toLowerCase();
-            if (stored === 'light' || stored === 'dark') return stored;
-            return 'dark';
-        }
-
+        // Auto -> the opposite of what the device shows (so the first tap always changes
+        // something) -> the other one -> back to Auto.
         function toggleTheme() {
-            const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
-            const next = current === 'light' ? 'dark' : 'light';
+            const mode = getThemeMode();
+            let next;
+            if (mode === 'system') next = resolveTheme('system') === 'dark' ? 'light' : 'dark';
+            else if (mode !== resolveTheme('system')) next = mode === 'light' ? 'dark' : 'light';
+            else next = 'system';
+            try {
+                if (next === 'system') localStorage.removeItem(themeStorageKey);
+                else localStorage.setItem(themeStorageKey, next);
+            } catch {}
             applyTheme(next);
-            localStorage.setItem(themeStorageKey, next);
+            try { if (typeof showSiteShareSnackbar === 'function') showSiteShareSnackbar(`Theme: ${THEME_LABELS[next]}`); } catch {}
         }
 
-        applyTheme(getInitialTheme());
+        applyTheme(getThemeMode());
+        if (systemThemeQuery) {
+            const onSystemTheme = () => { if (getThemeMode() === 'system') applyTheme('system'); };
+            if (typeof systemThemeQuery.addEventListener === 'function') systemThemeQuery.addEventListener('change', onSystemTheme);
+            else if (typeof systemThemeQuery.addListener === 'function') systemThemeQuery.addListener(onSystemTheme);
+        }
 
         if (themeToggle) {
             themeToggle.addEventListener('click', (e) => {

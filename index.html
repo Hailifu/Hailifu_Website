@@ -3,6 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark light">
+    <!-- Theme before first paint (round 11): the visitor's choice, else their device setting -->
+    <script>
+        (function () {
+            try {
+                var m = localStorage.getItem('hailifu_theme');
+                var chosen = m === 'light' || m === 'dark';
+                var t = chosen ? m : (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+                document.documentElement.setAttribute('data-theme', t);
+                document.documentElement.setAttribute('data-theme-mode', chosen ? m : 'system');
+            } catch (e) {}
+        })();
+    </script>
     <title>HAILIFU | Brilliant Installation</title>
     <meta name="description" content="Accra's premier CCTV and Electrical installation experts. Verified 5.0-star smart home and security systems.">
     <meta name="keywords" content="CCTV, Installer, Electrician, Technician, HAILIFU">
@@ -712,10 +725,11 @@
                 <span class="site-share-btn-icon" aria-hidden="true"><i class="fas fa-share-alt"></i></span>
                 <span class="site-share-btn-label">Share Site</span>
             </button>
-            <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme" aria-pressed="false" title="Theme">
+            <button class="theme-toggle" id="themeToggle" type="button" aria-label="Theme: auto, follows your device. Tap to change." title="Theme: Auto (follows your device)">
                 <span class="theme-toggle-icon" aria-hidden="true">
                     <span class="theme-icon theme-icon--moon"><i class="fas fa-moon"></i></span>
                     <span class="theme-icon theme-icon--sun"><i class="fas fa-sun"></i></span>
+                    <span class="theme-icon theme-icon--auto"><i class="fas fa-circle-half-stroke"></i></span>
                 </span>
             </button>
             <button class="admin-entry-btn" id="adminEntryBtn" type="button" aria-label="Open Admin Portal" aria-hidden="true">

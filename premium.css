@@ -5804,3 +5804,10 @@ html body .hm-trap { position: absolute !important; left: -9999px; width: 1px; h
 #adminPanel.hm-admin .sg-lib-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 12px; }
 #adminPanel.hm-admin .sg-lib-msg { font-size: 0.82rem; color: var(--a-muted, #a09d98); }
 #adminPanel.hm-admin :is(.sg-lib, .sg-lib-actions) .hm-btn { min-height: 38px; padding: 0 14px; gap: 8px; }
+
+/* 11.11 Theme: Auto (device), Light, Dark. The icon shows the current mode. */
+html body .theme-toggle .theme-icon { opacity: 0; transform: scale(0.6) rotate(-30deg); transition: opacity 0.2s ease, transform 0.3s var(--r7-ease-out, ease); }
+html[data-theme-mode='dark'] body .theme-toggle .theme-icon--moon,
+html[data-theme-mode='light'] body .theme-toggle .theme-icon--sun,
+html[data-theme-mode='system'] body .theme-toggle .theme-icon--auto,
+html:not([data-theme-mode]) body .theme-toggle .theme-icon--auto { opacity: 1; transform: none; }
