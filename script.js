@@ -3558,7 +3558,7 @@
         }
 
         // ---------- Website reviews (Supabase "reviews" table, 2026-10-01) ----------
-        // Visitors add rows with status "pending"; the owner approves them in Admin > Reviews.
+        // Round 11: visitors add rows as "published" (live at once); the owner can hide ("pending"), reply or delete in Admin > Reviews.
         const REVIEWS_TABLE = 'reviews';
         const siteReviews = { items: [], loaded: false, error: '', confirming: '' };
 
@@ -3758,7 +3758,18 @@
             });
         }
 
-        async function fetchSiteReviews() {
+        // Round 11: reviews go live at once, so the amount paid is kept OUT of the public
+        // reviews row, in the admin-only table review_private { id, data: { id, amount } }.
+        const REVIEWS_PRIVATE_TABLE = 'review_private';
+
+        // The row written to the public reviews table: never the amount; no phone once live.
+        function reviewPublicRow(review) {
+            const { amount, ...rest } = review || {};
+            if (rest.status === 'published') rest.phone = '';
+            return toRemoteRow(rest);
+        }
+
+        async function fetchSiteReviews(opts = {}) {
             const supabase = ensureSupabaseClient();
             if (!supabase) {
                 siteReviews.error = 'Supabase is not configured (see ADMIN_SETUP.md).';
@@ -3767,8 +3778,17 @@
             try {
                 const { data, error } = await withTimeout(supabase.from(REVIEWS_TABLE).select('*'), 10000, 'Loading reviews');
                 if (error) throw error;
+                // admin only: the private amounts (visitors get nothing back from this table)
+                let privateById = new Map();
+                if (opts.withPrivate) {
+                    try {
+                        const res = await withTimeout(supabase.from(REVIEWS_PRIVATE_TABLE).select('*'), 8000, 'Loading review amounts');
+                        if (!res.error && Array.isArray(res.data)) privateById = new Map(res.data.map((row) => [String(row.id), fromRemoteRow(row)]));
+                    } catch {}
+                }
                 siteReviews.items = (Array.isArray(data) ? data : [])
                     .map(fromRemoteRow)
+                    .map((r) => (privateById.has(String(r?.id)) ? { ...r, amount: privateById.get(String(r.id)).amount || r.amount } : r))
                     .map(cleanSiteReview)
                     .filter(Boolean)
                     .sort((x, y) => String(y.createdAt).localeCompare(String(x.createdAt)));
@@ -3784,17 +3804,31 @@
             }
         }
 
+        // Round 11: a review is published at once. If the database still has the older
+        // "waiting only" rule (reviews_instant_publish.sql not run yet), it is sent as
+        // waiting instead, so nothing is lost. Returns { ok, live }.
         async function submitPublicReview(review) {
             const supabase = ensureSupabaseClient();
             if (!supabase || !review) return { ok: false };
+            const send = (r) => withTimeout(supabase.from(REVIEWS_TABLE).insert(reviewPublicRow(r)), 10000, 'Sending review');
             try {
-                // no .select(): visitors may add a waiting review but not read it back
-                const { error } = await withTimeout(supabase.from(REVIEWS_TABLE).insert(toRemoteRow(review)), 10000, 'Sending review');
+                // no .select(): visitors may add a review but not read it back
+                let live = review.status === 'published';
+                let { error } = await send(review);
+                if (error && live && /42501|row-level security|violates/i.test(`${error.code || ''} ${error.message || ''}`)) {
+                    live = false;
+                    ({ error } = await send({ ...review, status: 'pending', publishedAt: '' }));
+                }
                 if (error) throw error;
-                return { ok: true };
+                if (review.amount) {
+                    try {
+                        await withTimeout(supabase.from(REVIEWS_PRIVATE_TABLE).insert(toRemoteRow({ id: review.id, amount: review.amount })), 8000, 'Sending amount');
+                    } catch {}
+                }
+                return { ok: true, live };
             } catch (err) {
                 console.warn('[Reviews] Could not send review:', err);
-                return { ok: false };
+                return { ok: false, message: /too many/i.test(String(err?.message || '')) ? 'busy' : '' };
             }
         }
 
@@ -3803,7 +3837,7 @@
             if (!supabase) return { ok: false, message: 'Storage is offline.' };
             try {
                 const { data, error } = await withTimeout(
-                    supabase.from(REVIEWS_TABLE).upsert([toRemoteRow(next)], { onConflict: 'id' }).select(),
+                    supabase.from(REVIEWS_TABLE).upsert([reviewPublicRow(next)], { onConflict: 'id' }).select(),
                     10000,
                     'Saving review'
                 );
@@ -3828,6 +3862,7 @@
                 const gone = siteReviews.items.find((r) => r.id === id);
                 siteReviews.items = siteReviews.items.filter((r) => r.id !== id);
                 refreshPublicSiteReviews();
+                try { await supabase.from(REVIEWS_PRIVATE_TABLE).delete().eq('id', id); } catch {}
                 const paths = (gone?.media || []).map((m) => m.path).filter((p) => REVIEW_MEDIA_PATH.test(p));
                 if (paths.length) { try { await supabase.storage.from(MEDIA_BUCKET).remove(paths); } catch {} }
                 return { ok: true };
@@ -5358,7 +5393,7 @@
         }
 
         // 2026-10-01: simple review form. No Google sign-in (Firebase was never set up, so
-        // posting always failed). Reviews are saved as "pending" and appear after the owner approves.
+        // posting always failed). Round 11: reviews go live at once (owner can hide or delete them in Admin).
         if (reviewForm) {
             reviewForm.setAttribute('novalidate', '');
             reviewForm.addEventListener('submit', async function(e) {
@@ -5375,6 +5410,22 @@
                     try { field?.focus({ preventScroll: false }); } catch {}
                 };
                 if (!(rating >= 1 && rating <= 5)) return fail('Please tap a star to rate us.', document.querySelector('#googleStarRating .google-star'));
+                if (/(https?:\/\/|www\.)/i.test(comment)) return fail('Please remove web links from your review.', reviewForm.querySelector('[name="comment"]'));
+
+                // Spam guards (round 11). Robots fill the hidden trap field or post within a
+                // second of opening; they get a normal-looking thank-you and nothing is sent.
+                const openedAt = Number(reviewForm.dataset.openedAt || 0);
+                if (String(formData.get('website') || '').trim() || (openedAt && Date.now() - openedAt < 3000)) {
+                    formSuccess?.classList.add('is-thanks');
+                    showReviewFormNotice('Thank you! Your review is now on the website.');
+                    return;
+                }
+                const REVIEW_GAP_MS = 10 * 60 * 1000;
+                let lastSent = 0;
+                try { lastSent = Number(localStorage.getItem('hailifu_review_last_sent') || 0); } catch {}
+                if (lastSent && Date.now() - lastSent < REVIEW_GAP_MS) {
+                    return fail('Thank you, your review is already on the website. You can post another one in a few minutes.');
+                }
 
                 const questionnaireState = collectReviewQuestionnaireState();
                 const now = new Date().toISOString();
@@ -5389,9 +5440,10 @@
                     price: syncReviewSingleChoice('price'),
                     amount: syncReviewSingleChoice('amount'),
                     speed: syncReviewSingleChoice('speed'),
-                    status: 'pending',
+                    status: 'published', // round 11: live at once; the owner can hide or delete it
                     source: 'website',
-                    createdAt: now
+                    createdAt: now,
+                    publishedAt: now
                 };
 
                 const submitBtn = reviewSubmitBtn || reviewForm.querySelector('.submit-btn');
@@ -5415,11 +5467,22 @@
                     const review = cleanSiteReview(draft);
                     const res = await submitPublicReview(review);
                     if (!res.ok) {
-                        showReviewFormNotice('Your review could not be sent. Please check your connection and try again.');
+                        showReviewFormNotice(res.message === 'busy'
+                            ? 'Lots of reviews are coming in right now. Please try again in a few minutes.'
+                            : 'Your review could not be sent. Please check your connection and try again.');
                         return;
                     }
+                    try { localStorage.setItem('hailifu_review_last_sent', String(Date.now())); } catch {}
                     formSuccess?.classList.add('is-thanks');
-                    showReviewFormNotice('Thank you! Your review will appear on the site once we check it.');
+                    if (res.live) {
+                        // show it straight away (amount stays private, never on the page)
+                        const shown = { ...review, amount: '' };
+                        siteReviews.items = [shown, ...siteReviews.items.filter((r) => r.id !== shown.id)];
+                        refreshPublicSiteReviews();
+                        showReviewFormNotice('Thank you! Your review is now on the website.');
+                    } else {
+                        showReviewFormNotice('Thank you! Your review will appear on the site shortly.');
+                    }
                     if (formSuccess) {
                         const google = document.createElement('a');
                         google.className = 'hm-rv-google';
@@ -5458,6 +5521,7 @@
             if (reviewForm) {
                 clearTimeout(reviewForm._closeTimer);
                 reviewForm.classList.remove('is-sent');
+                reviewForm.dataset.openedAt = String(Date.now()); // spam guard: no 1-second robots
             }
             formSuccess?.classList.remove('is-thanks');
             clearReviewIdentityFailureState();
@@ -6430,16 +6494,18 @@
         }
 
         async function loadReviewsFromSupabase() {
-            await fetchSiteReviews();
+            await fetchSiteReviews({ withPrivate: true });
             adminState.data.reviews = siteReviews.items.slice();
             syncReviewsNavBadge();
         }
 
-        // Small count on the Reviews menu item when reviews are waiting
+        // Small count on the Reviews menu item: reviews posted in the last 2 days
+        // (round 11: they go live at once, so "new" matters more than "waiting")
         function syncReviewsNavBadge() {
             const item = document.querySelector('#adminPanel .nav-item[data-admin-tab="reviews"]');
             if (!item) return;
-            const waiting = siteReviews.items.filter((r) => r.status !== 'published').length;
+            const since = Date.now() - 2 * 24 * 60 * 60 * 1000;
+            const waiting = siteReviews.items.filter((r) => (Date.parse(r.createdAt) || 0) >= since).length;
             let badge = item.querySelector('.rv-nav-badge');
             if (!waiting) { badge?.remove(); return; }
             if (!badge) {
@@ -6448,7 +6514,7 @@
                 item.appendChild(badge);
             }
             badge.textContent = String(waiting);
-            badge.setAttribute('aria-label', `${waiting} waiting`);
+            badge.setAttribute('aria-label', `${waiting} new in the last 2 days`);
         }
 
         // ------------------------------------------------------------------
@@ -8252,7 +8318,7 @@
             return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
         }
 
-        // Admin > Reviews (2026-10-01): waiting reviews to approve, published ones to manage.
+        // Admin > Reviews (round 11): live reviews first, hidden ones below; hide / show / reply / delete.
         function renderAdminReviewsV2(container) {
             container.innerHTML = `<div class="admin-v2-section rv-admin" id="rvAdmin">${buildAdminReviewsBody()}</div>`;
             bindAdminReviewActions();
@@ -8268,7 +8334,7 @@
                     <button type="button" class="hm-btn is-danger" data-rv-action="delete-yes">Delete</button>
                     <button type="button" class="hm-btn" data-rv-action="delete-no">Keep</button>`
                 : `${waiting
-                        ? '<button type="button" class="hm-btn is-primary" data-rv-action="approve"><i class="fas fa-check"></i> Approve</button>'
+                        ? '<button type="button" class="hm-btn is-primary" data-rv-action="approve"><i class="fas fa-eye"></i> Show on website</button>'
                         : '<button type="button" class="hm-btn" data-rv-action="unpublish"><i class="fas fa-eye-slash"></i> Hide</button>'}
                     <button type="button" class="hm-btn" data-rv-action="reply-save"><i class="fas fa-reply"></i> Save reply</button>
                     <button type="button" class="hm-btn is-ghost-danger" data-rv-action="delete"><i class="fas fa-trash"></i> Delete</button>`;
@@ -8307,15 +8373,15 @@
             const published = siteReviews.items.filter((r) => r.status === 'published');
             const empty = (text) => `<div class="rv-empty">${text}</div>`;
             return `
-                <p class="rv-lead">New reviews from the website wait here until you approve them. On the site they show as "Hailifu customer" with the stars, text, photos and tags. The amount paid is only ever shown to you.</p>
+                <p class="rv-lead">Reviews from the website go live as soon as a customer sends them. You stay in control: <strong>Hide</strong> takes one off the website, <strong>Save reply</strong> adds your answer under it, <strong>Delete</strong> removes it with its photos. On the site they show as "Hailifu customer". The amount paid is only ever shown to you.</p>
                 ${siteReviews.error ? `<div class="rv-error" role="alert">${escapeHTML(siteReviews.error)}</div>` : ''}
                 <section class="rv-group">
-                    <h3>Waiting for approval <span class="rv-count">${waiting.length}</span></h3>
-                    <div class="rv-list" data-rv-list="pending">${waiting.map(buildAdminReviewCard).join('') || empty('No reviews waiting. New ones from the website appear here.')}</div>
+                    <h3>On the website <span class="rv-count">${published.length}</span></h3>
+                    <div class="rv-list" data-rv-list="published">${published.map(buildAdminReviewCard).join('') || empty('No reviews yet. New ones from the website appear here straight away.')}</div>
                 </section>
                 <section class="rv-group">
-                    <h3>On the website <span class="rv-count">${published.length}</span></h3>
-                    <div class="rv-list" data-rv-list="published">${published.map(buildAdminReviewCard).join('') || empty('Approved reviews show here.')}</div>
+                    <h3>Hidden <span class="rv-count">${waiting.length}</span></h3>
+                    <div class="rv-list" data-rv-list="pending">${waiting.map(buildAdminReviewCard).join('') || empty('Reviews you hide show here. Press "Show on website" to bring one back.')}</div>
                 </section>`;
         }
 
@@ -8348,7 +8414,7 @@
                     const reply = String(card.querySelector('[data-rv-reply]')?.value || '').trim().slice(0, 800);
                     const next = { ...review, ownerReply: reply };
                     // approved rows are public, so the phone number is removed at this point
-                    if (action === 'approve') { next.status = 'published'; next.phone = ''; next.publishedAt = new Date().toISOString(); done = 'Approved. It now shows on the website'; }
+                    if (action === 'approve') { next.status = 'published'; next.phone = ''; next.publishedAt = new Date().toISOString(); done = 'It shows on the website again'; }
                     if (action === 'unpublish') { next.status = 'pending'; done = 'Hidden from the website'; }
                     if (action === 'reply-save') done = 'Reply saved';
                     res = await saveSiteReview(next);
@@ -8798,10 +8864,10 @@
                 case 'reviews': {
                     await loadReviewsFromSupabase();
                     if (siteReviews.error) return { state: 'bad', text: siteReviews.error, fix: 'reviews' };
-                    const waiting = siteReviews.items.filter((r) => r.status !== 'published').length;
-                    const published = siteReviews.items.length - waiting;
-                    if (waiting) return { state: 'warn', text: `${waiting} waiting for your approval, ${published} published.`, fix: 'reviews' };
-                    return { state: 'ok', text: `${published} published, none waiting.`, fix: 'reviews' };
+                    // round 11: reviews go live at once; hidden ones are the owner's choice, not a problem
+                    const hidden = siteReviews.items.filter((r) => r.status !== 'published').length;
+                    const published = siteReviews.items.length - hidden;
+                    return { state: 'ok', text: `${published} on the website${hidden ? `, ${hidden} hidden` : ''}.`, fix: 'reviews' };
                 }
                 case 'topbar':
                 case 'banner': {

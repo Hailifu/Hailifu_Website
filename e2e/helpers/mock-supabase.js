@@ -86,6 +86,10 @@ async function mockSupabase(page, tables = {}) {
                 if (sb.refuseWrites) return json(403, { code: '42501', message: 'new row violates row-level security policy for table "' + table + '"' });
                 let body = JSON.parse(req.postData() || '[]');
                 body = Array.isArray(body) ? body : [body];
+                // optional per-row rule, like a database policy: sb.insertGuard = (table, row) => boolean
+                if (sb.insertGuard && body.some((r) => !sb.insertGuard(table, r))) {
+                    return json(403, { code: '42501', message: 'new row violates row-level security policy for table "' + table + '"' });
+                }
                 body.forEach((r) => {
                     const i = rows.findIndex((x) => x.id === r.id);
                     if (i >= 0) rows[i] = { ...rows[i], ...r }; else rows.push(r);

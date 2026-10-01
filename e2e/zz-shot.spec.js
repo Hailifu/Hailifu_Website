@@ -1,16 +1,16 @@
-const { test } = require('@playwright/test');
-const { mockSupabase, loginAdmin } = require('./helpers/mock-supabase');
-test('switches', async ({ page }) => {
-  await mockSupabase(page, {});
-  await loginAdmin(page);
-  const m = page.locator('#hmAdminMenuBtn'); if (await m.isVisible()) await m.click();
-  await page.click('#adminPanel .nav-item[data-admin-tab="adverts"]');
-  await page.waitForSelector('#hmAdActive', { state: 'attached' });
-  await page.waitForTimeout(800);
-  const first = page.locator('#adminPanel .hm-switch').first();
-  await first.scrollIntoViewIfNeeded();
-  const box = await page.locator('#adminMainContent').boundingBox();
-  await page.screenshot({ path: 'C:/Users/01hai/AppData/Local/Temp/claude/C--Users-01hai-OneDrive-Desktop-Hailifu-Website-main/daa9bb4c-fdec-4bb2-a91a-ea95e88ecc1e/scratchpad/switch-ads.png', clip: { x: box.x, y: box.y, width: Math.min(box.width, 1100), height: 520 } });
-  await page.locator('label.hm-switch:has(#hmAdActive)').click();
-  await page.locator('label.hm-switch:has(#hmAdActive)').screenshot({ path: 'C:/Users/01hai/AppData/Local/Temp/claude/C--Users-01hai-OneDrive-Desktop-Hailifu-Website-main/daa9bb4c-fdec-4bb2-a91a-ea95e88ecc1e/scratchpad/switch-off.png' });
+const { test, expect } = require('@playwright/test');
+const { mockSupabase } = require('./helpers/mock-supabase');
+test('debug gap', async ({ page }) => {
+  const sb = await mockSupabase(page);
+  const open = async () => { await page.goto('/', { waitUntil: 'load' }); await page.locator('.hm-cta-review [data-review-modal-open]').click(); await expect(page.locator('#reviewModal')).toHaveClass(/active/); };
+  const back = () => page.evaluate(() => { document.getElementById('reviewForm').dataset.openedAt = String(Date.now() - 60000); });
+  await open();
+  await page.click('#googleStarRating .google-star[data-rating="4"]');
+  await page.fill('#reviewComment', 'Good work on our solar.');
+  await back();
+  await page.locator('#reviewForm .submit-btn').click();
+  await expect.poll(() => sb.db.reviews.length).toBe(1);
+  console.log('ls after send', await page.evaluate(() => localStorage.getItem('hailifu_review_last_sent')));
+  await open();
+  console.log('ls after reload', await page.evaluate(() => localStorage.getItem('hailifu_review_last_sent')));
 });

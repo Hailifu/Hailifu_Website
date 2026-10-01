@@ -243,7 +243,11 @@ test.describe('Review form like Google (no name or phone)', () => {
         await page.locator('.hm-cta-review [data-review-modal-open]').click();
         await expect(page.locator('#reviewModal')).toHaveClass(/active/);
     }
-    const submit = (page) => page.locator('#reviewForm .submit-btn').click();
+    // round 11 spam guard ignores forms sent within 3 s of opening: tests act faster than people
+    const submit = async (page) => {
+        await page.evaluate(() => { const f = document.getElementById('reviewForm'); if (f) f.dataset.openedAt = String(Date.now() - 60000); });
+        await page.locator('#reviewForm .submit-btn').click();
+    };
     const pick = (page, group, value) => page.click(`#reviewForm [data-review-single="${group}"] [data-value="${value}"]`);
     const siteRow = (partial = {}) => {
         const data = { id: 'r_photo1', name: 'Hailifu customer', rating: 5, comment: 'Neat CCTV job.', status: 'published', services: ['CCTV installation'], likes: ['Clean finish'], used: 'service', price: 'fair', amount: '2k-5k', speed: 'same-day', media: [{ path: 'reviews/r_photo1/1-a.webp', type: 'image' }], createdAt: new Date().toISOString(), ...partial };
@@ -262,7 +266,7 @@ test.describe('Review form like Google (no name or phone)', () => {
         }
     });
 
-    test('a visitor answers everything and adds photos; all of it is saved as waiting', async ({ page }) => {
+    test('a visitor answers everything and adds photos; it goes live, the amount is kept private', async ({ page }) => {
         const sb = await mockSupabase(page);
         await openForm(page);
         await page.click('#googleStarRating .google-star[data-rating="4"]');
@@ -280,13 +284,16 @@ test.describe('Review form like Google (no name or phone)', () => {
         await expect(page.locator('#formSuccess a[href*="g.page"]')).toBeVisible();
         await expect.poll(() => sb.db.reviews.length).toBe(1);
         const d = sb.db.reviews[0].data;
-        expect(d.status).toBe('pending');
+        expect(d.status).toBe('published'); // round 11: live at once
         expect(d.name).toBe('Hailifu customer');
         expect(d.phone || '').toBe('');
         expect(d.rating).toBe(4);
         expect(d.likes).toContain('Clean finish');
         expect(d.services).toContain('CCTV installation');
-        expect([d.used, d.price, d.amount, d.speed]).toEqual(['service', 'fair', '500-2k', 'same-day']);
+        expect([d.used, d.price, d.speed]).toEqual(['service', 'fair', 'same-day']);
+        expect(d.amount).toBeUndefined(); // round 11: never in the public row
+        await expect.poll(() => (sb.db.review_private || []).length).toBe(1);
+        expect(sb.db.review_private[0]).toMatchObject({ id: d.id, data: { id: d.id, amount: '500-2k' } });
         expect(d.media.length).toBe(2);
         for (const m of d.media) {
             expect(m.path.startsWith(`reviews/${d.id}/`)).toBe(true);

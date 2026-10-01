@@ -77,15 +77,16 @@ The website cannot list your Cloudinary account (that needs your secret key, whi
 3. It writes **cloudinary-links.html** in the project folder. Open it: one box per service (sorted by your Cloudinary **folder names**, e.g. `cctv`, `electrical`, `electric-fence`, `ac`, `solar`, `gates`, `blinds`, `smart-home`), plus **Unsorted** for folders it could not match.
 4. For each box: **Copy links** → Admin → **Galleries** → same service → **Paste links** → **Add links**. Links already in a gallery are skipped, so repeating is safe.
 
-## Website reviews (visitors write, you approve)
+## Website reviews (live at once, you stay in control)
 
-The form works like Google's: **no name and no phone**. Visitors tap stars (the only required answer) and can add: their experience in words, up to 5 photos and 1 video (max 30 MB), what they liked, whether they got a service, which services, how they'd describe the price, how much they paid, and how quickly you responded. **No Google sign-in needed.** Nothing appears on the site until you approve it.
+The form works like Google's: **no name and no phone**. Visitors tap stars (the only required answer) and can add: their experience in words, up to 5 photos and 1 video (max 30 MB), what they liked, whether they got a service, which services, how they'd describe the price, how much they paid, and how quickly you responded. **No Google sign-in needed.** Since 2026-10-01 (round 11) a review **goes live as soon as it is sent**.
 
-1. **One-time (run it again after the 2026-10-01 round 10 update):** Supabase Dashboard → **SQL Editor** → paste `supabase/sql/reviews_public_submit.sql` → **Run**. Safe to run again. Without it, reviews are refused; without the round 10 version, reviews **with photos** are refused (the visitor sees "photos could not be uploaded").
-2. New reviews show in Admin → **Reviews** under **Waiting** (the Reviews menu item shows a count) with every answer and photo. **Approve** puts it on the website; **Delete** removes it and its photos.
-3. On the website a review shows as "Hailifu customer" with the stars, text, photos and tags (services, what they liked, response speed, price). **The amount paid is only ever shown to you.**
-4. After posting, visitors get an **Also post it on Google** button.
-5. Photos visitors upload go to the `media` bucket under `reviews/` (not into your Media Library list). They can only add files there, never change or delete anything.
+1. **One-time:** Supabase Dashboard → **SQL Editor** → run `supabase/sql/reviews_public_submit.sql` (if you have not yet run the round 10 version), then run `supabase/sql/reviews_instant_publish.sql`. Both are safe to run again. Until the second one is run, new reviews still arrive but wait in **Hidden** until you press **Show on website**.
+2. Admin → **Reviews**: **On the website** lists live reviews (newest first), **Hidden** lists ones you took off. **Hide** takes a review off the site, **Show on website** brings it back, **Save reply** adds your answer under it, **Delete** removes it and its photos. The Reviews menu item shows how many came in during the last 2 days.
+3. On the website a review shows as "Hailifu customer" with the stars, text, photos and tags (services, what they liked, response speed, price). **The amount paid is only ever shown to you:** it is stored in a separate table (`review_private`) that only your login can read.
+4. **Spam protection:** web links in the text are refused; robots that fill a hidden field or send within 3 seconds are ignored; one review per browser every 10 minutes; and the database accepts at most 8 new reviews in any 10 minutes across the whole site.
+5. After posting, visitors get an **Also post it on Google** button.
+6. Photos visitors upload go to the `media` bucket under `reviews/` (not into your Media Library list). They can only add files there, never change or delete anything.
 
 ## Aftercare photo
 

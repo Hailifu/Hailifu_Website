@@ -1280,6 +1280,8 @@
                     <input type="hidden" id="reviewerEmail" name="email" required>
                     <input type="hidden" id="reviewLikesInput" name="likes">
                     <input type="hidden" id="reviewServicesInput" name="services">
+                    <!-- spam trap: people never see or fill this; bots that fill every field are ignored -->
+                    <div class="hm-trap" aria-hidden="true"><label>Website <input type="text" name="website" id="reviewWebsite" tabindex="-1" autocomplete="off"></label></div>
                     <input type="hidden" id="reviewPhotoNamesInput" name="photoNames">
                     <div class="review-flow-shell" id="reviewFlowShell">
                         <div class="review-shared-fields hm-review-step" id="reviewSharedFields" style="--i:0">

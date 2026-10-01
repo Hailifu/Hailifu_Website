@@ -5784,3 +5784,6 @@ html[data-theme='light'] :is(#adminPanel.hm-admin, body) .hm-switch input:checke
 }
 :is(#adminPanel.hm-admin, html body) .hm-switch input:checked + .hm-switch-track .hm-switch-thumb::after { content: '\2713'; color: var(--sw-on); }
 :is(#adminPanel.hm-admin, html body) .hm-switch input:focus-visible + .hm-switch-track { outline-color: var(--p-accent); }
+
+/* 11.7 Review spam trap: off-screen, never seen or tabbed to by people */
+html body .hm-trap { position: absolute !important; left: -9999px; width: 1px; height: 1px; overflow: hidden; }

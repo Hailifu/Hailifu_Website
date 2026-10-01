@@ -166,4 +166,102 @@ test.describe('Switches in colour', () => {
     });
 });
 
+test.describe('Reviews go live at once', () => {
+    async function openForm(page) {
+        await page.goto('/', { waitUntil: 'load' });
+        await page.locator('.hm-cta-review [data-review-modal-open]').click();
+        await expect(page.locator('#reviewModal')).toHaveClass(/active/);
+    }
+    const backdate = (page) => page.evaluate(() => { document.getElementById('reviewForm').dataset.openedAt = String(Date.now() - 60000); });
+    const send = (page) => page.locator('#reviewForm .submit-btn').click();
+
+    test('a posted review shows on the website straight away', async ({ page }) => {
+        const sb = await mockSupabase(page);
+        await openForm(page);
+        await page.click('#googleStarRating .google-star[data-rating="5"]');
+        await page.fill('#reviewComment', 'Fast gate motor repair, thank you.');
+        await backdate(page);
+        await send(page);
+        await expect(page.locator('#formSuccess')).toContainText('now on the website');
+        await expect.poll(() => sb.db.reviews.length).toBe(1);
+        expect(sb.db.reviews[0].data.status).toBe('published');
+        await expect(page.locator('.featured-reviews-track')).toContainText('Fast gate motor repair');
+    });
+
+    test('robots are ignored: the hidden trap field, or sending within a second', async ({ page }) => {
+        const sb = await mockSupabase(page);
+        await openForm(page);
+        await page.click('#googleStarRating .google-star[data-rating="5"]');
+        await page.evaluate(() => { document.getElementById('reviewWebsite').value = 'http://spam.example'; });
+        await backdate(page);
+        await send(page);
+        await expect(page.locator('#formSuccess')).toContainText('Thank you');
+        await page.waitForTimeout(800);
+        expect(sb.db.reviews.length).toBe(0);
+
+        await openForm(page);
+        await page.click('#googleStarRating .google-star[data-rating="5"]');
+        await page.evaluate(() => { document.getElementById('reviewForm').dataset.openedAt = String(Date.now()); });
+        await send(page); // straight after opening, faster than a person
+        await expect(page.locator('#formSuccess')).toContainText('Thank you');
+        await page.waitForTimeout(800);
+        expect(sb.db.reviews.length).toBe(0);
+    });
+
+    test('web links in the text are refused; one review per browser every 10 minutes', async ({ page }) => {
+        const sb = await mockSupabase(page);
+        await openForm(page);
+        await page.click('#googleStarRating .google-star[data-rating="4"]');
+        await page.fill('#reviewComment', 'Cheap pills at www.spam.example');
+        await backdate(page);
+        await send(page);
+        await expect(page.locator('#formSuccess')).toContainText('remove web links');
+        await page.fill('#reviewComment', 'Good work on our solar.');
+        await send(page);
+        await expect(page.locator('#formSuccess')).toContainText('now on the website');
+        expect(sb.db.reviews.length).toBe(1);
+
+        await openForm(page);
+        await page.click('#googleStarRating .google-star[data-rating="5"]');
+        await backdate(page);
+        await send(page);
+        await expect(page.locator('#formSuccess')).toContainText('few minutes');
+        expect(sb.db.reviews.length).toBe(1);
+    });
+
+    test('before the new SQL is run, a review is still saved (as waiting)', async ({ page }) => {
+        const sb = await mockSupabase(page);
+        sb.insertGuard = (table, row) => table !== 'reviews' || row.data.status === 'pending';
+        await openForm(page);
+        await page.click('#googleStarRating .google-star[data-rating="5"]');
+        await backdate(page);
+        await send(page);
+        await expect(page.locator('#formSuccess')).toContainText('shortly');
+        await expect.poll(() => sb.db.reviews.length).toBe(1);
+        expect(sb.db.reviews[0].data.status).toBe('pending');
+    });
+
+    test('admin: live reviews first, Hide / Show on website, and saving never puts the amount back', async ({ page }) => {
+        const data = { id: 'r_old1', name: 'Hailifu customer', rating: 5, comment: 'Old review with amount inside.', status: 'published', amount: '2k-5k', source: 'website', createdAt: new Date().toISOString() };
+        const sb = await mockSupabase(page, { reviews: [{ id: data.id, data, updated_at: data.createdAt }], review_private: [] });
+        await loginAdmin(page);
+        const menuBtn = page.locator('#hmAdminMenuBtn');
+        if (await menuBtn.isVisible()) await menuBtn.click();
+        await page.click('#adminPanel .nav-item[data-admin-tab="reviews"]');
+        const groups = page.locator('#rvAdmin .rv-group h3');
+        await expect(groups.first()).toContainText('On the website');
+        await expect(groups.nth(1)).toContainText('Hidden');
+        const card = page.locator('#rvAdmin .rv-list[data-rv-list="published"] .rv-card').first();
+        await expect(card).toContainText('only you see this');
+        await card.locator('[data-rv-reply]').fill('Thank you!');
+        await card.locator('[data-rv-action="reply-save"]').click();
+        await expect.poll(() => sb.db.reviews[0].data.ownerReply).toBe('Thank you!');
+        expect(sb.db.reviews[0].data.amount).toBeUndefined();
+        await page.locator('#rvAdmin .rv-list[data-rv-list="published"] [data-rv-action="unpublish"]').click();
+        await expect.poll(() => sb.db.reviews[0].data.status).toBe('pending');
+        await page.locator('#rvAdmin .rv-list[data-rv-list="pending"] [data-rv-action="approve"]').click();
+        await expect.poll(() => sb.db.reviews[0].data.status).toBe('published');
+    });
+});
+
 module.exports = {};

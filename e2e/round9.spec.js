@@ -137,9 +137,13 @@ test.describe('Reviews: simple form + owner approval', () => {
         if (stars) await page.click(`#googleStarRating .google-star[data-rating="${stars}"]`);
         if (text) await page.fill('#reviewComment', text);
     }
-    const submit = (page) => page.locator('#reviewForm .submit-btn').click();
+    // round 11 spam guard ignores forms sent within 3 s of opening: tests act faster than people
+    const submit = async (page) => {
+        await page.evaluate(() => { const f = document.getElementById('reviewForm'); if (f) f.dataset.openedAt = String(Date.now() - 60000); });
+        await page.locator('#reviewForm .submit-btn').click();
+    };
 
-    test('visitor posts a review: saved as waiting, thank-you shown', async ({ page }) => {
+    test('visitor posts a review: live at once (round 11), thank-you shown', async ({ page }) => {
         const sb = await mockSupabase(page);
         await openForm(page);
         await fillForm(page);
@@ -147,7 +151,7 @@ test.describe('Reviews: simple form + owner approval', () => {
         await expect(page.locator('#formSuccess')).toContainText('Thank you');
         await expect.poll(() => sb.db.reviews.length).toBe(1);
         const row = sb.db.reviews[0];
-        expect(row.data.status).toBe('pending');
+        expect(row.data.status).toBe('published'); // round 11: no approval step
         expect(row.data.name).toBe('Hailifu customer'); // round 10: no name field
         expect(row.data.rating).toBe(5);
         expect(row.data.comment).toBe('They fixed our Wi-Fi in one visit.');
@@ -174,7 +178,7 @@ test.describe('Reviews: simple form + owner approval', () => {
         await expect(page.locator('#reviewComment')).toHaveValue('They fixed our Wi-Fi in one visit.');
     });
 
-    test('owner approves a waiting review and it shows on the site', async ({ page }) => {
+    test('owner shows a hidden review again and it shows on the site', async ({ page }) => {
         const sb = await mockSupabase(page, { reviews: [reviewRow({ phone: '0240000000' })] });
         await loginAdmin(page);
         const menuBtn = page.locator('#hmAdminMenuBtn');
