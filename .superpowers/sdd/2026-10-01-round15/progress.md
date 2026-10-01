@@ -3,3 +3,4 @@ Found: the 22x "Unexpected identifier 'http'" = renderFeaturedReviewsFeed avatar
 Plan: local initials SVG (no outside service), data-avatar-fallback + one capture-phase error listener.
 ## Status
 - Test 'Reviewer pictures' (round14.spec.js) RED.
+- DONE: reviewInitialAvatar/reviewAvatarAttrs + capture error listener; ui-avatars removed; test GREEN; diag: 0 page errors, load ~4 s (was 10-12 s); galleries 60/224/472 + round9:14 now pass; screenshots dark/light ok; script v7.7; README round 15. Round 15 COMPLETE.

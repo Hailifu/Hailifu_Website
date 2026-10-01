@@ -13314,6 +13314,41 @@
         let modernReviewTerminalTimer = null;
         let googleBusinessSyncActive = false;
 
+        // --- Reviewer pictures (round 15) ---
+        // A reviewer without a photo gets their initial drawn here, in the brand colour: no outside
+        // avatar service (ui-avatars.com was slow/unreachable, held up page load and got every name).
+        // A photo that fails to load swaps to the same picture via data-avatar-fallback and the one
+        // listener below. (The old inline onerror code had quotes inside quotes and threw
+        // "Unexpected identifier 'http'" instead of working.)
+        function reviewInitialAvatar(name) {
+            const initial = (String(name || '').trim().match(/\p{L}|\p{N}/u) || ['H'])[0].toUpperCase();
+            let bg = '#E8741E';
+            let fg = '#ffffff';
+            try {
+                const css = getComputedStyle(document.documentElement);
+                bg = css.getPropertyValue('--p-accent').trim() || bg;
+                fg = css.getPropertyValue('--p-on-accent').trim() || fg;
+            } catch {}
+            const esc = (s) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><rect width="80" height="80" fill="${esc(bg)}"/><text x="40" y="40" dy=".35em" text-anchor="middle" font-family="Sora, Arial, sans-serif" font-size="34" font-weight="600" fill="${esc(fg)}">${esc(initial)}</text></svg>`;
+            return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+        }
+
+        // src and fallback attributes for a reviewer <img> (already escaped for HTML)
+        function reviewAvatarAttrs(review, name) {
+            const fallback = reviewInitialAvatar(name);
+            const photo = String(review?.authorImage || review?.profile_photo_url || '').trim();
+            const usePhoto = /^(https:\/\/|\/(?!\/))/i.test(photo) && !/ui-avatars\.com/i.test(photo);
+            return `src="${escapeHTML(usePhoto ? photo : fallback)}" data-avatar-fallback="${escapeHTML(fallback)}"`;
+        }
+
+        document.addEventListener('error', (event) => {
+            const img = event.target;
+            if (!img || img.tagName !== 'IMG' || !img.dataset.avatarFallback) return;
+            if (img.getAttribute('src') === img.dataset.avatarFallback) return;
+            img.setAttribute('src', img.dataset.avatarFallback);
+        }, true);
+
         function renderReviews() {
             const container = document.getElementById('reviewsContainer');
             const showMoreBtn = document.getElementById('reviewsShowMore');
@@ -13328,7 +13363,6 @@
                 const safeName = toSafeReviewerName(review.name);
                 const name = escapeHTML(safeName);
                 const nameClass = isFallbackReviewerName(safeName) ? 'review-name is-verified-name' : 'review-name';
-                const authorImage = review.authorImage || review.profile_photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(safeName)}&background=E8741E&color=fff`;
                 const comment = escapeHTML(review.comment);
                 const date = escapeHTML(toDisplayReviewDate(review.date));
                 const meta = escapeHTML(review.meta);
@@ -13348,7 +13382,7 @@
                     <article class="review-card">
                         <div class="review-card-header">
                             <div class="review-meta">
-                                <img src="${escapeHTML(authorImage)}" alt="${name}" class="reviewer-avatar" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(safeName)}&background=E8741E&color=fff'">
+                                <img ${reviewAvatarAttrs(review, safeName)} alt="${name}" class="reviewer-avatar">
                                 <div>
                                     <span class="${nameClass}">${name}</span>
                                     ${metaLine}
@@ -13576,11 +13610,8 @@
                 const sourceRaw = String(review.source || REVIEW_SOURCE_GOOGLE).trim();
                 const source = escapeHTML(/^native$/i.test(sourceRaw) ? 'Customer review' : sourceRaw);
                 const stars = buildStarText(review.rating);
-                
-                // Use a small data URI fallback if ui-avatars fails
-                const fallbackAvatar = `data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Crect width='100%25' height='100%25' fill='%23E8741E'/%3E%3Ctext x='50%25' y='50%25' font-family='Sora, sans-serif' font-size='16' font-weight='600' fill='white' text-anchor='middle' dy='.3em'%3E${rawName.charAt(0).toUpperCase()}%3C/text%3E%3C/svg%3E`;
-                const authorImage = review.authorImage || review.profile_photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(rawName)}&background=E8741E&color=fff`;
-                
+
+
                 const nativeBadge = review.isNative && review.verified
                     ? '<span class="native-verified-badge" title="Native review approved in admin panel">Verified</span>'
                     : '';
@@ -13594,10 +13625,7 @@
                         </button>
                         <div class="featured-review-meta">
                             <div class="featured-review-identity">
-                                <img src="${escapeHTML(authorImage)}" 
-                                     alt="${name}" 
-                                     class="reviewer-avatar" 
-                                     onerror="this.onerror=null; this.src='${fallbackAvatar}';">
+                                <img ${reviewAvatarAttrs(review, rawName)} alt="${name}" class="reviewer-avatar">
                                 <div class="featured-review-meta-copy">
                                     <span class="review-source">${source}</span>
                                     <div class="reviewer-name-row">

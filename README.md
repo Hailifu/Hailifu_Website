@@ -8,6 +8,17 @@ Paste this file (or its sections) into an AI when you want it to **understand th
 
 Every change to the site is logged here, newest first. Originals from before the premium rebuild are kept in `_backup-original-2026-09-28/`.
 
+### 2026-10-01 (round 15): Script errors on the homepage tracked down and fixed
+
+Progress log: `.superpowers/sdd/2026-10-01-round15/progress.md`.
+
+| File | Change |
+|---|---|
+| `script.js` | **22 script errors on every page load ("Unexpected identifier 'http'") came from the reviewer pictures.** Every review without a photo loaded a picture from an outside site, ui-avatars.com. When that failed, the backup code was meant to show the reviewer's initial, but it had quotes inside quotes, so it crashed instead and visitors saw a broken-image icon. The other review list's backup retried the same failing site with no limit. Now each reviewer's initial is drawn on the page itself, in your brand colour with matching text colour, so nothing is loaded from ui-avatars.com and no reviewer names go to an outside site. A real photo (Google or uploaded) that fails to load switches to the initial through one safe listener instead of inline code. Both review lists (`renderReviews`, `renderFeaturedReviewsFeed`) use the new `reviewAvatarAttrs`. |
+| — | **Faster page load:** the browser no longer waits on ~22 outside picture requests. In tests the page's load time went from about 10–12 s to about 4 s while ui-avatars.com was dropping connections. |
+| `index.html` | Asset version bumped (`script.js?v=7.7`). |
+| `e2e/round14.spec.js` | New test "Reviewer pictures": no request to ui-avatars.com, no script errors, every avatar shows, and a broken photo falls back to the initial (name with an apostrophe included). It failed before the fix and passes after. The 4 older tests that had been failing (`galleries.spec.js` 60/224/472, `round9.spec.js` 14) pass again. |
+
 ### 2026-10-01 (round 14): Homepage sections really work, browser-tab icon, old placeholder deleted
 
 Progress log: `.superpowers/sdd/2026-10-01-round14/progress.md`; git checkpoint after each step.
