@@ -8719,7 +8719,7 @@
                                 <label>Select Service Card</label>
                                 <select class="admin-input-v2" id="serviceCardSelector">
                                     <option value="">Choose card...</option>
-                                    ${Array.from(document.querySelectorAll('#services .services-grid .card')).map((card) => `<option value="${card.id}">${escapeHTML(String(card.id || 'service'))}</option>`).join('')}
+                                    ${Array.from(document.querySelectorAll('#services .services-grid .card')).map((card) => `<option value="${card.id}">${escapeHTML(String(card.querySelector('h3')?.textContent || card.id || 'service').trim())}</option>`).join('')}
                                 </select>
                             </div>
                             <div class="form-group-v2">

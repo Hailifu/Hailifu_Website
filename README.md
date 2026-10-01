@@ -8,6 +8,20 @@ Paste this file (or its sections) into an AI when you want it to **understand th
 
 Every change to the site is logged here, newest first. Originals from before the premium rebuild are kept in `_backup-original-2026-09-28/`.
 
+### 2026-10-01 (round 18): Smart Home service card; dropdowns and ticks follow the brand colour
+
+Progress log: `.superpowers/sdd/2026-10-01-round18/progress.md`.
+
+| File | Change |
+|---|---|
+| `index.html` | **Smart Home service card added** to "Specialized Engineering Services" (`#service-smarthome`, icon `fa-house-signal`: "Lights, sockets, cameras and gates you control from your phone, with scenes and schedules."). The site never had one, even though the quote form, review form, galleries and price list already knew the service. Its "Request a Quote" picks Smart Home in the quote form; a Smart Home gallery's cover photo shows on the card, like the other services. |
+| `script.js` | **Chat assistant offers Smart Home** ("What would you like to control from your phone?": lights and sockets / cameras and gate / whole home / not sure yet), and typing "smart home" or "home automation" picks it. |
+| `premium.css` | 18.1: **services grid without gaps.** With 8 cards the desktop grid already left empty spaces; now CCTV is large with Electrical, Networking, Fence and AC beside it, then Solar + Blinds, then Gates + Smart Home. Tablets: CCTV full width, the rest in pairs. Phones: one column (unchanged). |
+| `script.js` | **Site Control > Service Card Editor:** the "Select Service Card" list shows the card names ("CCTV Installation", "Smart Home"...) instead of codes like `service-cctv`. |
+| `premium.css` | 18.2: **the browser's own controls follow the brand colour.** Checking every admin tab with a test brand colour (purple) showed everything the site draws already followed it (the only other colours are on purpose: WhatsApp green, red delete buttons, Site health dots, green/red switches). What did not were the browser's parts: **the open list of a dropdown** (Windows blue), ticks, radios and date pickers. Dropdowns now open as a dark panel with the chosen option in the brand colour and a brand-tinted hover (Chrome and Edge 135+; Safari on iPhone keeps its own list). Ticks, radios, sliders and date pickers use the brand colour everywhere (`accent-color`). Version `20261001r18`. |
+| `index.html` | Asset versions bumped (`script.js?v=8.0`, `premium.css?v=20261001r18`). |
+| `e2e/round18.spec.js` (new) | Tests: Smart Home appears everywhere on the public site (card, galleries, quote form, review form, chat, cover photo) and in admin (gallery tab, Service Card list); the Service Card list shows names, opens as a styled list and uses the brand colour; ticks and date pickers follow the brand colour. All 4 failed before and pass now. |
+
 ### 2026-10-01 (round 17): Upload a picture to the top drop-down advert note
 
 Progress log: `.superpowers/sdd/2026-10-01-round17/progress.md`.
