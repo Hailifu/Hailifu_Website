@@ -299,4 +299,35 @@ test.describe('Admin account menu', () => {
     }
 });
 
+test.describe('Media Library linked to the galleries', () => {
+    test('owner adds Media Library files to a service gallery', async ({ page }) => {
+        const sb = await mockSupabase(page, { installations: [galleryRow({ id: 'g_exist', category: 'cctv' })] });
+        sb.storage.set('lib-camera.jpg', { size: 100, type: 'image/jpeg' });
+        sb.storage.set('lib-walkthrough.mp4', { size: 100, type: 'video/mp4' });
+        await page.route(/\/storage\/v1\/object\/public\//, (route) => route.fulfill({ status: 200, contentType: 'image/png', body: PNG }));
+        await loginAdmin(page);
+        const menuBtn = page.locator('#hmAdminMenuBtn');
+        if (await menuBtn.isVisible()) await menuBtn.click();
+        await page.click('#adminPanel .nav-item[data-admin-tab="projects"]');
+        await page.waitForSelector('#sgAdmin [data-sg-lib="toggle"]');
+        await page.click('#sgAdmin .sg-tab[data-sg-cat="cctv"]');
+        await page.click('#sgAdmin [data-sg-lib="toggle"]');
+        const panel = page.locator('#sgLibPanel');
+        await expect(panel.locator('.sg-lib-item')).toHaveCount(2);
+        const add = panel.locator('[data-sg-lib="add"]');
+        await expect(add).toBeDisabled();
+        await panel.locator('.sg-lib-item:has(img) input').check();
+        await panel.locator('.sg-lib-item:has(video) input').check();
+        await expect(add).toContainText('Add 2 to');
+        await add.click();
+        await expect.poll(() => sb.db.installations.length).toBe(3);
+        const added = sb.db.installations.filter((r) => r.id !== 'g_exist').map((r) => r.data);
+        expect(added.every((d) => d.kind === 'gallery' && d.category === 'cctv' && d.source === 'supabase')).toBe(true);
+        expect(added.map((d) => d.mediaType).sort()).toEqual(['image', 'video']);
+        expect(added.map((d) => d.storagePath).sort()).toEqual(['lib-camera.jpg', 'lib-walkthrough.mp4']);
+        await expect(panel.locator('.sg-lib-item.is-added')).toHaveCount(2); // marked "In this gallery"
+        await expect(page.locator('#sgGrid .sg-tile')).toHaveCount(3);
+    });
+});
+
 module.exports = {};

@@ -1,26 +1,17 @@
 const { test } = require('@playwright/test');
-const { mockSupabase, loginAdmin } = require('./helpers/mock-supabase');
-for (const [n, vp] of [['desk', { width: 1366, height: 860 }], ['phone', { width: 390, height: 844 }]]) {
-test('menu on top ' + n, async ({ page }) => {
-  test.setTimeout(120000);
-  await page.setViewportSize(vp);
-  await mockSupabase(page, {});
+const { mockSupabase, loginAdmin, galleryRow } = require('./helpers/mock-supabase');
+const SVG = (c) => '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="400" height="300" fill="' + c + '"/></svg>';
+test('lib picker', async ({ page }) => {
+  const sb = await mockSupabase(page, { installations: [galleryRow({ id: 'g1', category: 'cctv' })] });
+  ['a','b','c','d','e'].forEach((n) => sb.storage.set('lib-' + n + '.jpg', { size: 1, type: 'image/jpeg' }));
+  let i = 0; await page.route(/storage\/v1\/object\/public\/|res\.cloudinary/, (r) => r.fulfill({ status: 200, contentType: 'image/svg+xml', body: SVG(['#3a6','#a63','#36a','#a36','#6a3','#888'][i++ % 6]) }));
   await loginAdmin(page);
-  for (const tab of ['overview', 'leads', 'projects', 'media', 'reviews', 'adverts', 'site-control', 'control-center', 'notifications']) {
-    const nb = page.locator('#hmAdminMenuBtn'); if (await nb.isVisible()) await nb.click();
-    await page.click(`#adminPanel .nav-item[data-admin-tab="${tab}"]`);
-    await page.waitForTimeout(500);
-    await page.evaluate(() => window.scrollTo(0, 0));
-    const r = await page.evaluate(() => {
-      const btn = document.getElementById('hmAccountBtn'); const b = btn.getBoundingClientRect();
-      const hitBtn = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2);
-      btn.click();
-      const items = Array.from(document.querySelectorAll('#hmAccountMenu [role="menuitem"]'));
-      const res = items.map((it) => { const q = it.getBoundingClientRect(); const h = document.elementFromPoint(q.left + q.width / 2, q.top + q.height / 2); return it.contains(h) ? 'ok' : (h ? (h.id || h.className || h.tagName) : 'none'); });
-      btn.click();
-      return { btn: btn.contains(hitBtn) ? 'ok' : (hitBtn ? (hitBtn.id || hitBtn.className || hitBtn.tagName) : 'none'), items: res };
-    });
-    console.log(n, tab, JSON.stringify(r));
-  }
+  await page.click('#adminPanel .nav-item[data-admin-tab="projects"]');
+  await page.click('#sgAdmin .sg-tab[data-sg-cat="cctv"]');
+  await page.click('#sgAdmin [data-sg-lib="toggle"]');
+  await page.locator('#sgLibPanel .sg-lib-item input').nth(1).check();
+  await page.locator('#sgLibPanel .sg-lib-item input').nth(3).check();
+  await page.waitForTimeout(500);
+  const a = await page.locator('#sgAdmin .sg-add').boundingBox(); const b = await page.locator('#sgLibPanel').boundingBox();
+  await page.screenshot({ path: 'C:/Users/01hai/AppData/Local/Temp/claude/C--Users-01hai-OneDrive-Desktop-Hailifu-Website-main/daa9bb4c-fdec-4bb2-a91a-ea95e88ecc1e/scratchpad/lib-picker.png', clip: { x: a.x - 10, y: a.y - 10, width: a.width + 20, height: (b.y + b.height) - a.y + 20 } });
 });
-}

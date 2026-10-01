@@ -14311,7 +14311,12 @@
                                 <button type="submit" class="hm-btn"><i class="fas fa-link"></i> Add links</button>
                                 <p class="sg-links-msg" id="sgLinksMsg" role="status" hidden></p>
                             </form>
+                            <div class="sg-lib">
+                                <button type="button" class="hm-btn" data-sg-lib="toggle" aria-expanded="false" aria-controls="sgLibPanel"><i class="fas fa-photo-film"></i> From Media Library</button>
+                                <span class="sg-lib-help">Use photos and videos you already uploaded to the Media Library.</span>
+                            </div>
                         </div>
+                        <div class="sg-lib-panel" id="sgLibPanel" hidden></div>
                         <div class="sg-queue" id="sgQueue" aria-live="polite">${buildServiceGalleryQueue()}</div>
                         <div class="sg-bulk${sgAdmin.selected.size ? ' has-selection' : ''}" id="sgBulk" aria-live="polite">${buildServiceGalleryBulk()}</div>
                         <div class="sg-grid" id="sgGrid">${buildServiceGalleryTiles()}</div>`}
@@ -14537,6 +14542,75 @@
             refreshAdminServiceGalleries();
         }
 
+        // Round 11: link the Media Library to the galleries. The owner ticks files already in
+        // the Media Library and adds them to the open service gallery. Library files live at
+        // the bucket root, and deleting a gallery item never deletes them (see delete code).
+        const sgLib = { selected: new Set() };
+
+        function buildServiceGalleryLibrary() {
+            const files = (adminState.data.media || []).filter((m) => (m.kind === 'image' || m.kind === 'video') && m.url);
+            const label = SHOWCASE_CATEGORY_LABELS[sgAdmin.category] || sgAdmin.category;
+            if (!files.length) return '<p class="sg-lib-note">No photos or videos in the Media Library yet. Upload them in Admin → Media Library, or add them here directly above.</p>';
+            const inGallery = new Set(sgItemsFor(sgAdmin.category).map((it) => it.src));
+            const tiles = files.map((m) => {
+                const added = inGallery.has(m.url);
+                const thumb = m.kind === 'video'
+                    ? `<video src="${escapeHTML(m.url)}#t=0.5" muted preload="metadata" playsinline></video><span class="sg-kind"><i class="fas fa-play"></i> Video</span>`
+                    : `<img src="${escapeHTML(m.url)}" alt="" loading="lazy">`;
+                return `<label class="sg-lib-item${added ? ' is-added' : ''}" title="${escapeHTML(m.name)}">
+                        <input type="checkbox" data-sg-lib-pick="${escapeHTML(m.url)}"${added ? ' disabled' : ''}${sgLib.selected.has(m.url) ? ' checked' : ''}>
+                        ${thumb}
+                        ${added ? '<span class="sg-lib-added">In this gallery</span>' : ''}
+                    </label>`;
+            }).join('');
+            const n = sgLib.selected.size;
+            return `<div class="sg-lib-grid">${tiles}</div>
+                <div class="sg-lib-actions">
+                    <button type="button" class="hm-btn is-primary" data-sg-lib="add"${n ? '' : ' disabled'}><i class="fas fa-plus"></i> Add ${n || ''} to ${escapeHTML(label)}</button>
+                    <button type="button" class="hm-btn" data-sg-lib="close">Close</button>
+                    <span class="sg-lib-msg" id="sgLibMsg" role="status"></span>
+                </div>`;
+        }
+
+        async function toggleServiceGalleryLibrary(btn) {
+            const panel = document.getElementById('sgLibPanel');
+            if (!panel) return;
+            if (!panel.hidden) { panel.hidden = true; btn?.setAttribute('aria-expanded', 'false'); return; }
+            panel.hidden = false;
+            btn?.setAttribute('aria-expanded', 'true');
+            sgLib.selected.clear();
+            panel.innerHTML = '<p class="sg-lib-note">Loading your Media Library...</p>';
+            try { await loadMediaFromSupabase(); } catch {}
+            if (!panel.hidden) panel.innerHTML = buildServiceGalleryLibrary();
+        }
+
+        async function addLibraryFilesToServiceGallery() {
+            const files = (adminState.data.media || []).filter((m) => sgLib.selected.has(m.url));
+            if (!files.length) return;
+            const category = sgAdmin.category;
+            let maxOrder = sgItemsFor(category).reduce((m, it) => Math.max(m, it.order), 0);
+            const records = files.map((m) => ({
+                id: newServiceGalleryId(),
+                kind: 'gallery',
+                category,
+                mediaType: m.kind === 'video' ? 'video' : 'image',
+                src: m.url,
+                thumb: '',
+                source: 'supabase',
+                storagePath: m.name, // bucket root: never removed when the gallery item is deleted
+                caption: '',
+                order: (maxOrder += 1),
+                createdAt: new Date().toISOString()
+            }));
+            const res = await insertServiceGalleryItems(records);
+            if (res.ok) sgLib.selected.clear();
+            const label = SHOWCASE_CATEGORY_LABELS[category] || category;
+            showAdminMediaToast(res.ok ? `${records.length} added to ${label}` : `Could not add: ${res.message}`, res.ok ? 'success' : 'error');
+            refreshAdminServiceGalleries();
+            const panel = document.getElementById('sgLibPanel');
+            if (panel && !panel.hidden) panel.innerHTML = buildServiceGalleryLibrary();
+        }
+
         function sgSourceForUrl(src) {
             if (/res\.cloudinary\.com/i.test(src)) return 'cloudinary';
             if (/youtube\.com|youtu\.be/i.test(src)) return 'youtube';
@@ -14658,6 +14732,25 @@
         function bindAdminServiceGalleriesOnce() {
             if (window.__sgBound) return;
             window.__sgBound = true;
+            document.addEventListener('click', (e) => {
+                const btn = e.target.closest && e.target.closest('#sgAdmin [data-sg-lib]');
+                if (!btn || btn.disabled) return;
+                const action = btn.dataset.sgLib;
+                if (action === 'toggle') toggleServiceGalleryLibrary(btn);
+                if (action === 'close') toggleServiceGalleryLibrary(document.querySelector('#sgAdmin [data-sg-lib="toggle"]'));
+                if (action === 'add') { btn.disabled = true; addLibraryFilesToServiceGallery(); }
+            });
+            document.addEventListener('change', (e) => {
+                const pick = e.target && e.target.closest && e.target.closest('#sgLibPanel [data-sg-lib-pick]');
+                if (!pick) return;
+                if (pick.checked) sgLib.selected.add(pick.dataset.sgLibPick); else sgLib.selected.delete(pick.dataset.sgLibPick);
+                const addBtn = document.querySelector('#sgLibPanel [data-sg-lib="add"]');
+                if (addBtn) {
+                    const n = sgLib.selected.size;
+                    addBtn.disabled = !n;
+                    addBtn.innerHTML = `<i class="fas fa-plus"></i> Add ${n || ''} to ${escapeHTML(SHOWCASE_CATEGORY_LABELS[sgAdmin.category] || sgAdmin.category)}`;
+                }
+            });
             document.addEventListener('submit', (e) => {
                 if (!e.target || e.target.id !== 'sgLinksForm') return;
                 e.preventDefault();
@@ -14777,6 +14870,8 @@
                     sgAdmin.selected.clear();
                     sgAdmin.bulkConfirm = false;
                     refreshAdminServiceGalleries();
+                    const libPanel = document.getElementById('sgLibPanel');
+                    if (libPanel && !libPanel.hidden) { sgLib.selected.clear(); libPanel.innerHTML = buildServiceGalleryLibrary(); }
                     return;
                 }
                 const importBtn = e.target.closest('#sgAdmin [data-sg-action="import"]');
