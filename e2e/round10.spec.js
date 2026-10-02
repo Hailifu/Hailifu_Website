@@ -164,6 +164,7 @@ test.describe('Gallery viewer: smooth swipe', () => {
         await page.goto('/', { waitUntil: 'load' });
         await page.evaluate(() => document.querySelector('#showcase .hm-sc-card').click());
         await expect(page.locator('#hmGallery')).toHaveClass(/is-open/);
+        if (n > 1) await page.locator('#hmGalGrid [data-gal-tile="0"]').click(); // card opens the photo grid first
         await expect(page.locator('#hmGalCounter')).toHaveText(`1 / ${n}`);
         await page.waitForTimeout(500);
         const box = await page.locator('#hmGalFigure').boundingBox();

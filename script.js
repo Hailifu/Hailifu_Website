@@ -950,7 +950,7 @@
                 themeToggle.setAttribute('aria-label', `Theme: ${THEME_LABELS[safeMode].toLowerCase()}. Tap to change.`);
             }
             // round 20: the admin's Light / Dark / Auto buttons show the same setting
-            document.querySelectorAll('#hmAdminTheme [data-theme-set]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.themeSet === safeMode)));
+            document.querySelectorAll('#hmAdminTheme [data-theme-set], #hmLoginTheme [data-theme-set]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.themeSet === safeMode)));
         }
 
         // round 20: pick a mode directly (admin buttons); same saved setting as the site's button
@@ -964,7 +964,7 @@
         }
         // admin panel handlers stop clicks from bubbling, so listen in the capture phase
         window.addEventListener('click', (e) => {
-            const btn = e.target instanceof Element ? e.target.closest('#hmAdminTheme [data-theme-set]') : null;
+            const btn = e.target instanceof Element ? e.target.closest('#hmAdminTheme [data-theme-set], #hmLoginTheme [data-theme-set]') : null;
             if (!btn) return;
             e.preventDefault();
             setThemeMode(btn.dataset.themeSet);
@@ -8856,6 +8856,24 @@
                             <button type="button" class="hm-btn af-reset" data-af-action="reset"><i class="fas fa-trash-can"></i> Remove photo</button>
                             <p class="gp-status" id="afStatus" aria-live="polite"></p>
                         </div>
+                        <div class="admin-card-v2 gp-card af-card lp-card" id="lpCard">
+                            <h3>Login photo</h3>
+                            <p class="gp-help">The photo beside the admin sign-in (hailifugh.com/hailifu=access). Saved for every device.</p>
+                            <div class="af-preview" id="lpPreview"></div>
+                            <input type="file" id="lpFile" accept="image/*" hidden>
+                            <div class="gp-actions">
+                                <button type="button" class="hm-btn is-primary" data-lp-action="upload"><i class="fas fa-upload"></i> Upload photo</button>
+                                <button type="button" class="hm-btn" data-lp-action="library"><i class="fas fa-photo-film"></i> Media Library</button>
+                            </div>
+                            <div class="af-library" id="lpLibrary" hidden></div>
+                            <div class="af-link-row">
+                                <label class="hm-sr" for="lpLink">Photo link</label>
+                                <input type="url" class="admin-input-v2" id="lpLink" placeholder="or paste a link: https://..." autocomplete="off" spellcheck="false">
+                                <button type="button" class="hm-btn" data-lp-action="link">Use link</button>
+                            </div>
+                            <button type="button" class="hm-btn af-reset" data-lp-action="reset"><i class="fas fa-rotate-left"></i> Use original photo</button>
+                            <p class="gp-status" id="lpStatus" aria-live="polite"></p>
+                        </div>
                         <div class="admin-card-v2 gp-card sc-card" id="scCard">
                             <h3>Homepage sections</h3>
                             <p class="gp-help">Choose the order of the homepage sections and which ones show. Saved for every visitor as soon as you change it. A hidden section's menu links are hidden too.</p>
@@ -8914,6 +8932,7 @@
             fillGoogleSettingsCard().catch(() => {});
             bindBrandCard(container);
             bindAftercareCard(container);
+            bindLoginPhotoCard(container);
             bindLogoCard(container);
             bindSectionsCard(container);
             const saveSeoBtn = container.querySelector('#saveSeoBtn');
@@ -9749,6 +9768,170 @@
                         const files = (adminState.data.media || []).filter((m) => (m.kind === 'image' || m.kind === 'video') && m.url);
                         library.innerHTML = files.length
                             ? files.map((m) => `<button type="button" class="af-pick" data-af-pick="${escapeHTML(m.url)}" title="${escapeHTML(m.name)}">${m.kind === 'video' ? `<video src="${escapeHTML(m.url)}" muted preload="metadata"></video>` : `<img src="${escapeHTML(m.url)}" alt="" loading="lazy">`}</button>`).join('')
+                            : '<p class="af-library-note">No photos in the Media Library yet.</p>';
+                    });
+                }
+            });
+        }
+
+        // --- Login photo (2026-10-02) ---
+        // The photo on the left of the admin login (/hailifu=access), saved in the adverts
+        // settings row "__login_settings" { imageUrl }. Empty = the built-in field photo.
+        // Admin -> Site Control -> "Login photo". Same upload / library / link flow as Aftercare.
+        const LOGIN_PHOTO_DEFAULT = '/assets/img/field-technician.webp';
+        const LOGIN_PHOTO_CACHE = 'hailifu_login_photo_v1';
+
+        function readLoginPhotoCache() {
+            try { return cleanAftercareUrl(localStorage.getItem(LOGIN_PHOTO_CACHE) || ''); } catch { return ''; }
+        }
+
+        function writeLoginPhotoCache(url) {
+            try {
+                if (url) localStorage.setItem(LOGIN_PHOTO_CACHE, url);
+                else localStorage.removeItem(LOGIN_PHOTO_CACHE);
+            } catch {}
+        }
+
+        function loginPhotoUrl() {
+            return readLoginPhotoCache() || LOGIN_PHOTO_DEFAULT;
+        }
+
+        // swaps the photo on an open login screen (and the admin preview) without a reload
+        function showLoginPhoto(url) {
+            const src = cleanAftercareUrl(url) || LOGIN_PHOTO_DEFAULT;
+            document.querySelectorAll('#hmAdminLogin .hm-login-art-img').forEach((img) => {
+                if (img.getAttribute('src') !== src) img.setAttribute('src', src);
+            });
+        }
+
+        async function loadLoginPhotoSettings() {
+            const supabase = ensureSupabaseClient();
+            if (!supabase) return;
+            try {
+                const { data, error } = await withTimeout(
+                    supabase.from('adverts').select('*').eq('id', '__login_settings'),
+                    8000,
+                    'Loading login photo'
+                );
+                if (error || !Array.isArray(data)) return;
+                const url = data[0] ? cleanAftercareUrl(fromRemoteRow(data[0]).imageUrl) : '';
+                writeLoginPhotoCache(url);
+                showLoginPhoto(url);
+            } catch {}
+        }
+
+        async function saveLoginPhotoUrl(url) {
+            const imageUrl = url ? cleanAftercareUrl(url) : '';
+            if (url && !imageUrl) return { ok: false, message: 'Use a link that starts with https://' };
+            const supabase = ensureSupabaseClient();
+            if (!supabase) return { ok: false, message: 'Storage is offline.' };
+            try {
+                const record = { id: '__login_settings', type: 'settings', imageUrl };
+                const { data, error } = await withTimeout(
+                    supabase.from('adverts').upsert([toRemoteRow(record)], { onConflict: 'id' }).select(),
+                    10000,
+                    'Saving login photo'
+                );
+                if (error) throw error;
+                if (!Array.isArray(data) || !data.length) throw new Error('not allowed');
+                writeLoginPhotoCache(imageUrl);
+                showLoginPhoto(imageUrl);
+                return { ok: true, imageUrl };
+            } catch (err) {
+                return { ok: false, message: /not allowed|security|42501|jwt/i.test(String(err?.message || err)) ? 'Not allowed. Sign in again and retry.' : 'Could not save. Check your connection.' };
+            }
+        }
+
+        // storage path of a photo this card uploaded itself (only those are removed when replaced)
+        function loginPhotoStoragePath(url) {
+            const m = String(url || '').match(/\/storage\/v1\/object\/public\/media\/(site\/login-[^?#]+)/);
+            return m ? decodeURIComponent(m[1]) : '';
+        }
+
+        function bindLoginPhotoCard(scope) {
+            const root = scope || document;
+            const card = root.querySelector('#lpCard');
+            if (!card || card.dataset.bound) return;
+            card.dataset.bound = '1';
+            const preview = card.querySelector('#lpPreview');
+            const status = card.querySelector('#lpStatus');
+            const fileInput = card.querySelector('#lpFile');
+            const linkInput = card.querySelector('#lpLink');
+            const library = card.querySelector('#lpLibrary');
+            let current = readLoginPhotoCache();
+            let busy = false;
+            const say = (text, tone) => { if (status) { status.textContent = text; status.dataset.tone = tone; } };
+            const show = () => { if (preview) preview.innerHTML = `<img src="${escapeHTML(current || LOGIN_PHOTO_DEFAULT)}" alt="Login photo">`; };
+            show();
+            say(current ? 'Your own photo is showing on the login.' : 'The original field photo is showing on the login.', 'idle');
+
+            const commit = async (url, okText) => {
+                const previousPath = loginPhotoStoragePath(current);
+                const res = await saveLoginPhotoUrl(url);
+                if (!res.ok) { say(res.message, 'error'); return false; }
+                current = res.imageUrl;
+                show();
+                say(okText, 'ok');
+                showAdminMediaToast('Login photo saved', 'success');
+                if (previousPath && previousPath !== loginPhotoStoragePath(current)) {
+                    try { await ensureSupabaseClient().storage.from(MEDIA_BUCKET).remove([previousPath]); } catch {}
+                }
+                return true;
+            };
+            const run = async (job) => {
+                if (busy) return;
+                busy = true;
+                card.classList.add('is-busy');
+                try { await job(); } finally { busy = false; card.classList.remove('is-busy'); }
+            };
+
+            fileInput?.addEventListener('change', () => run(async () => {
+                const file = fileInput.files && fileInput.files[0];
+                fileInput.value = '';
+                if (!file) return;
+                if (getMediaKind(file.name, file.type) !== 'image') { say('Choose a photo.', 'error'); return; }
+                let path = '';
+                try {
+                    say('Uploading...', 'busy');
+                    const blob = await optimizeImageForUpload(file);
+                    path = `site/login-${buildMediaObjectName(blob)}`;
+                    await uploadWithProgress(path, blob, (pct) => say(`Uploading... ${Math.round(pct)}%`, 'busy'));
+                } catch (err) {
+                    say(/not allowed|security|403|42501/i.test(String(err?.message || err)) ? 'Not allowed. Sign in again and retry.' : 'Upload failed. Check your connection.', 'error');
+                    return;
+                }
+                const ok = await commit(getMediaPublicUrl(path), 'Saved. The login now shows this photo.');
+                if (!ok) { try { await ensureSupabaseClient().storage.from(MEDIA_BUCKET).remove([path]); } catch {} }
+            }));
+
+            card.addEventListener('click', (e) => {
+                const pick = e.target.closest('[data-lp-pick]');
+                if (pick) {
+                    const url = pick.dataset.lpPick;
+                    run(async () => {
+                        if (await commit(url, 'Saved. The login now shows this photo.') && library) library.hidden = true;
+                    });
+                    return;
+                }
+                const btn = e.target.closest('[data-lp-action]');
+                if (!btn) return;
+                const action = btn.dataset.lpAction;
+                if (action === 'upload') fileInput?.click();
+                else if (action === 'link') {
+                    const url = String(linkInput?.value || '').trim();
+                    if (!cleanAftercareUrl(url)) { say('Use a link that starts with https://', 'error'); return; }
+                    run(async () => { if (await commit(url, 'Saved. The login now shows this photo.') && linkInput) linkInput.value = ''; });
+                } else if (action === 'reset') {
+                    run(() => commit('', 'Back to the original field photo.'));
+                } else if (action === 'library' && library) {
+                    if (!library.hidden) { library.hidden = true; return; }
+                    library.hidden = false;
+                    library.innerHTML = '<p class="af-library-note">Loading your Media Library...</p>';
+                    run(async () => {
+                        await loadMediaFromSupabase();
+                        const files = (adminState.data.media || []).filter((m) => m.kind === 'image' && m.url);
+                        library.innerHTML = files.length
+                            ? files.map((m) => `<button type="button" class="af-pick" data-lp-pick="${escapeHTML(m.url)}" title="${escapeHTML(m.name)}"><img src="${escapeHTML(m.url)}" alt="" loading="lazy"></button>`).join('')
                             : '<p class="af-library-note">No photos in the Media Library yet.</p>';
                     });
                 }
@@ -11081,40 +11264,60 @@
             adminLoginOpen = true;
             const overlay = document.createElement('div');
             overlay.id = 'hmAdminLogin';
-            overlay.className = 'hm-login';
+            overlay.className = 'hm-login hm-login--split';
             overlay.setAttribute('role', 'dialog');
             overlay.setAttribute('aria-modal', 'true');
             overlay.setAttribute('aria-labelledby', 'hmLoginTitle');
+            // 2026-10-02 redesign: split screen. A real site photo with the wordmark on one
+            // side, a quiet form on the other (no card). Same IDs/classes as before.
             overlay.innerHTML = `
-                <div class="hm-login-backdrop" aria-hidden="true"></div>
-                <form class="hm-login-card" novalidate data-mode="signin">
-                    <div class="hm-login-mark"><img src="/logo.webp" alt="" class="hm-login-logo"></div>
-                    <h2 id="hmLoginTitle">Welcome back</h2>
-                    <p class="hm-login-sub">Sign in to manage Hailifu Brilliant Installation.</p>
-                    <div class="hm-login-field">
-                        <label for="hmLoginEmail">Email</label>
-                        <div class="hm-login-input">
-                            <i class="fas fa-envelope" aria-hidden="true"></i>
-                            <input type="email" id="hmLoginEmail" autocomplete="username" inputmode="email" spellcheck="false" required>
+                <aside class="hm-login-art" aria-hidden="true">
+                    <span class="hm-login-blob is-a"></span><span class="hm-login-blob is-b"></span>
+                    <img class="hm-login-art-img" src="${escapeHTML(loginPhotoUrl())}" alt="" decoding="async">
+                    <div class="hm-login-art-copy">
+                        <span class="hm-login-word">${'HAILIFU'.split('').map((ch, i) => `<span style="--i:${i}">${ch}</span>`).join('')}</span>
+                        <span class="hm-login-word-sub">Brilliant Installation</span>
+                        <p>Galleries, reviews, leads and adverts. Everything visitors see, managed from here.</p>
+                    </div>
+                </aside>
+                <div class="hm-login-pane">
+                    <div class="hm-login-top">
+                        <div class="hm-login-theme" id="hmLoginTheme" role="group" aria-label="Colour theme">
+                            <span class="hm-login-theme-thumb" aria-hidden="true"></span>
+                            <button type="button" data-theme-set="light" aria-pressed="false" title="Light"><i class="fas fa-sun" aria-hidden="true"></i><span class="hm-sr">Light</span></button>
+                            <button type="button" data-theme-set="dark" aria-pressed="false" title="Dark"><i class="fas fa-moon" aria-hidden="true"></i><span class="hm-sr">Dark</span></button>
+                            <button type="button" data-theme-set="system" aria-pressed="false" title="Auto (follows your device)"><i class="fas fa-circle-half-stroke" aria-hidden="true"></i><span class="hm-sr">Auto</span></button>
                         </div>
                     </div>
-                    <div class="hm-login-pwblock hm-login-field">
-                        <label for="hmLoginPassword">Password</label>
-                        <div class="hm-login-input">
-                            <i class="fas fa-lock" aria-hidden="true"></i>
-                            <input type="password" id="hmLoginPassword" autocomplete="current-password" required>
-                            <button type="button" class="hm-login-eye" id="hmLoginPwToggle" aria-label="Show password" aria-pressed="false" aria-controls="hmLoginPassword"><i class="fas fa-eye" aria-hidden="true"></i></button>
+                    <form class="hm-login-card" novalidate data-mode="signin">
+                        <h2 id="hmLoginTitle">Welcome back</h2>
+                        <p class="hm-login-sub">Sign in to manage Hailifu Brilliant Installation.</p>
+                        <div class="hm-login-field">
+                            <label for="hmLoginEmail">Email</label>
+                            <div class="hm-login-input">
+                                <i class="fas fa-envelope" aria-hidden="true"></i>
+                                <input type="email" id="hmLoginEmail" autocomplete="username" inputmode="email" spellcheck="false" required>
+                            </div>
                         </div>
-                        <p class="hm-login-caps" id="hmLoginCaps" role="status" hidden><i class="fas fa-arrow-up" aria-hidden="true"></i> Caps Lock is on</p>
-                    </div>
-                    <p class="hm-login-error" role="alert" hidden></p>
-                    <p class="hm-login-ok" role="status" hidden></p>
-                    <button type="submit" class="hm-login-submit"><span class="hm-login-spin" aria-hidden="true"></span><span class="hm-login-submit-text">Sign in</span></button>
-                    <div class="hm-login-foot">
-                        <button type="button" class="hm-login-link" data-login-mode>Forgot password?</button>
-                        <button type="button" class="hm-login-cancel"><i class="fas fa-arrow-left" aria-hidden="true"></i> Back to website</button>
-                    </div>
-                </form>
+                        <div class="hm-login-pwblock hm-login-field">
+                            <div class="hm-login-label-row">
+                                <label for="hmLoginPassword">Password</label>
+                                <button type="button" class="hm-login-link" data-login-mode>Forgot password?</button>
+                            </div>
+                            <div class="hm-login-input">
+                                <i class="fas fa-lock" aria-hidden="true"></i>
+                                <input type="password" id="hmLoginPassword" autocomplete="current-password" required>
+                                <button type="button" class="hm-login-eye" id="hmLoginPwToggle" aria-label="Show password" aria-pressed="false" aria-controls="hmLoginPassword"><i class="fas fa-eye" aria-hidden="true"></i></button>
+                            </div>
+                            <p class="hm-login-caps" id="hmLoginCaps" role="status" hidden><i class="fas fa-arrow-up" aria-hidden="true"></i> Caps Lock is on</p>
+                        </div>
+                        <p class="hm-login-error" role="alert" hidden></p>
+                        <p class="hm-login-ok" role="status" hidden></p>
+                        <button type="submit" class="hm-login-submit"><span class="hm-login-spin" aria-hidden="true"></span><span class="hm-login-submit-text">Sign in</span></button>
+                        <button type="button" class="hm-login-link hm-login-back-signin" data-login-mode hidden>Back to sign in</button>
+                    </form>
+                    <button type="button" class="hm-login-cancel"><i class="fas fa-arrow-left" aria-hidden="true"></i> Back to website</button>
+                </div>
             `;
             document.body.appendChild(overlay);
 
@@ -11127,7 +11330,8 @@
             const errorNode = overlay.querySelector('.hm-login-error');
             const okNode = overlay.querySelector('.hm-login-ok');
             const submitBtn = overlay.querySelector('.hm-login-submit');
-            const modeBtn = overlay.querySelector('[data-login-mode]');
+            const modeBtns = overlay.querySelectorAll('[data-login-mode]');
+            const backBtn = overlay.querySelector('.hm-login-back-signin');
             const submitText = overlay.querySelector('.hm-login-submit-text');
             const eyeBtn = overlay.querySelector('#hmLoginPwToggle');
             const capsNode = overlay.querySelector('#hmLoginCaps');
@@ -11172,7 +11376,7 @@
                 sub.textContent = reset ? 'Enter your admin email and we will send you a reset link.' : 'Sign in to manage Hailifu Brilliant Installation.';
                 pwBlock.hidden = reset;
                 submitText.textContent = reset ? 'Send reset link' : 'Sign in';
-                modeBtn.textContent = reset ? 'Back to sign in' : 'Forgot password?';
+                backBtn.hidden = !reset;
                 showError('');
                 showOk('');
                 form.classList.remove('is-switching');
@@ -11180,7 +11384,28 @@
                 form.classList.add('is-switching');
                 emailInput.focus();
             };
-            modeBtn.addEventListener('click', () => setMode(form.dataset.mode === 'reset' ? 'signin' : 'reset'));
+            modeBtns.forEach((b) => b.addEventListener('click', () => setMode(form.dataset.mode === 'reset' ? 'signin' : 'reset')));
+            applyTheme(getThemeMode()); // marks the current Light / Dark / Auto button
+            // The site is often still busy loading when the login opens, which used to eat the
+            // bounce before it was ever painted. Start it once the browser is idle and has drawn.
+            const startEntrance = () => requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add('is-ready')));
+            if ('requestIdleCallback' in window) requestIdleCallback(startEntrance, { timeout: 700 }); else setTimeout(startEntrance, 120);
+            // liquid glass: a soft light follows the mouse over the glass panel (desktop only, one style write per frame)
+            const glass = overlay.querySelector('.hm-login-pane');
+            if (glass && window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                let frame = 0;
+                glass.addEventListener('pointermove', (e) => {
+                    if (frame) return;
+                    frame = requestAnimationFrame(() => {
+                        frame = 0;
+                        const r = glass.getBoundingClientRect();
+                        glass.style.setProperty('--lg-mx', `${e.clientX - r.left}px`);
+                        glass.style.setProperty('--lg-my', `${e.clientY - r.top}px`);
+                    });
+                });
+                glass.addEventListener('pointerenter', () => glass.classList.add('is-lit'));
+                glass.addEventListener('pointerleave', () => glass.classList.remove('is-lit'));
+            }
 
             overlay.querySelector('.hm-login-cancel').addEventListener('click', closeAdminLogin);
             overlay.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAdminLogin(); });
@@ -14488,7 +14713,7 @@
         };
         const SHOWCASE_PAGE_SIZE = 9;
         const showcaseState = { filter: 'all', query: '', limit: SHOWCASE_PAGE_SIZE, projects: [], bound: false };
-        const galleryState = { project: null, index: 0, open: false, lastFocus: null, touchX: null };
+        const galleryState = { project: null, index: 0, open: false, lastFocus: null, touchX: null, grid: false, fromGrid: false };
 
         function normalizeShowcaseCategory(value) {
             const key = String(value || '').toLowerCase().replace(/[^a-z]/g, '');
@@ -14602,6 +14827,7 @@
         function renderShowcase(projectsOverride) {
             const root = document.getElementById('hmShowcase');
             if (!root) return;
+            bindServiceCardGrids();
             if (serviceGallery.gate) { paintShowcaseSkeleton(); return; }
             // Service galleries (Supabase) win over every legacy source once they exist,
             // so items deleted in the admin cannot come back from localStorage/remote copies.
@@ -15603,6 +15829,7 @@
                         </div>
                         <div class="hm-gal-tools">
                             <span class="hm-gal-counter" id="hmGalCounter" aria-live="polite"></span>
+                            <button type="button" class="hm-gal-btn" data-gal="grid" aria-label="Show all photos" hidden><i class="fas fa-table-cells-large"></i></button>
                             <button type="button" class="hm-gal-btn" data-gal="share" aria-label="Share this project"><i class="fas fa-share-nodes"></i></button>
                             <button type="button" class="hm-gal-btn" data-gal="close" aria-label="Close gallery"><i class="fas fa-xmark"></i></button>
                         </div>
@@ -15617,6 +15844,7 @@
                         <button type="button" class="hm-gal-quote" data-gal="quote">Get a quote for this <i class="fas fa-arrow-right" aria-hidden="true"></i></button>
                     </div>
                     <div class="hm-gal-thumbs" id="hmGalThumbs" role="tablist" aria-label="Photos"></div>
+                    <div class="hm-gal-grid" id="hmGalGrid" hidden></div>
                 </div>`);
             return document.getElementById('hmGallery');
         }
@@ -15650,7 +15878,45 @@
             });
         }
 
-        function openGallery(projectId, startIndex = 0) {
+        // Grid view (2026-10-02): a service opens as a grid of all its photos first;
+        // a tap on a tile opens that photo in the viewer, the grid button goes back.
+        function paintGalleryGrid() {
+            const p = galleryState.project;
+            const grid = document.getElementById('hmGalGrid');
+            if (!p || !grid) return;
+            grid.innerHTML = p.media.map((m, i) => {
+                const label = m.caption || `${p.title} photo ${i + 1}`;
+                const thumb = m.mediaType === 'image' ? (m.thumbSrc || m.mediaSrc) : m.thumbSrc;
+                return `<button type="button" class="hm-gal-tile" data-gal-tile="${i}" aria-label="Open ${escapeHTML(label)}" style="--i:${Math.min(i, 14)}">
+                    ${thumb ? `<img src="${escapeHTML(thumb)}" alt="" loading="${i < 8 ? 'eager' : 'lazy'}" decoding="async">` : '<span class="hm-gal-tile-blank" aria-hidden="true"></span>'}
+                    ${m.mediaType !== 'image' ? '<span class="hm-gal-tile-play" aria-hidden="true"><i class="fas fa-play"></i></span>' : ''}
+                    ${m.caption ? `<span class="hm-gal-tile-cap">${escapeHTML(m.caption)}</span>` : ''}
+                </button>`;
+            }).join('');
+        }
+
+        function setGalleryMode(grid, index) {
+            const gal = document.getElementById('hmGallery');
+            const p = galleryState.project;
+            if (!gal || !p) return;
+            galleryState.grid = grid;
+            gal.classList.toggle('is-grid', grid);
+            document.getElementById('hmGalGrid').hidden = !grid;
+            gal.querySelector('[data-gal="grid"]').hidden = grid || p.media.length < 2;
+            const figure = document.getElementById('hmGalFigure');
+            if (grid) {
+                if (figure) figure.innerHTML = ''; // stops a playing video
+                document.getElementById('hmGalCounter').textContent = ''; // the description already counts photos and videos
+                document.getElementById('hmGalDesc').textContent = p.description;
+                const tile = document.querySelector(`#hmGalGrid [data-gal-tile="${galleryState.index}"]`);
+                if (tile && typeof index === 'number') tile.focus({ preventScroll: false });
+                return;
+            }
+            galleryState.index = Math.max(0, Math.min(Number(index) || 0, p.media.length - 1));
+            paintGallery(0);
+        }
+
+        function openGallery(projectId, startIndex = 0, opts = {}) {
             const p = showcaseState.projects.find((x) => x.id === projectId);
             if (!p) return;
             const gal = ensureGalleryShell();
@@ -15667,7 +15933,10 @@
             document.body.classList.add('modal-open', 'hm-gal-open');
             requestAnimationFrame(() => gal.classList.add('is-open'));
             galleryState.open = true;
-            paintGallery(0);
+            paintGalleryGrid();
+            const grid = !!opts.grid && p.media.length > 1;
+            galleryState.fromGrid = grid;
+            setGalleryMode(grid, grid ? undefined : startIndex);
             try { history.replaceState(null, '', `#project=${encodeURIComponent(p.id)}`); } catch {}
             gal.querySelector('[data-gal="close"]').focus();
         }
@@ -15721,7 +15990,48 @@
             const m = String(location.hash || '').match(/^#project=(.+)$/);
             if (!m || galleryState.open) return;
             const id = decodeURIComponent(m[1]);
-            if (showcaseState.projects.some((p) => p.id === id)) openGallery(id, 0);
+            if (showcaseState.projects.some((p) => p.id === id)) openGallery(id, 0, { grid: true });
+        }
+
+        // Services section (2026-10-02): a click on a service card opens that service's
+        // photos as a grid. The "Request a Quote" button keeps its own popup. A service
+        // with no photos yet opens the quote form instead.
+        async function openServiceGrid(category) {
+            const find = () => showcaseState.projects.find((p) => p.category === category && p.media.length);
+            let p = find();
+            if (!p && (serviceGallery.gate || serviceGallery.inflight)) {
+                try { await loadServiceGallery(); } catch {}
+                await new Promise((r) => setTimeout(r, 50)); // renderShowcase runs when the gate opens
+                p = find();
+            }
+            if (p) openGallery(p.id, 0, { grid: true });
+            else window.hailifuOpenQuote(category);
+        }
+
+        function bindServiceCardGrids() {
+            if (showcaseState.serviceCardsBound) return;
+            showcaseState.serviceCardsBound = true;
+            const cardFor = (e) => {
+                const card = e.target.closest && e.target.closest('#services .card[data-service-category]');
+                return card && !e.target.closest('a, button') ? card : null;
+            };
+            document.querySelectorAll('#services .card[data-service-category]').forEach((card) => {
+                card.classList.add('hm-svc-open');
+                card.setAttribute('tabindex', '0');
+                card.setAttribute('role', 'button');
+                card.setAttribute('aria-label', `See ${card.querySelector('h3')?.textContent?.trim() || 'service'} photos`);
+                const quoteBtn = card.querySelector('.request-quote-btn');
+                if (quoteBtn && !card.querySelector('.hm-svc-hint')) quoteBtn.insertAdjacentHTML('beforebegin', '<span class="hm-svc-hint" aria-hidden="true"><i class="fas fa-table-cells-large"></i> See photos</span>');
+            });
+            document.addEventListener('click', (e) => {
+                const card = cardFor(e);
+                if (card) openServiceGrid(normalizeShowcaseCategory(card.dataset.serviceCategory));
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key !== 'Enter' && e.key !== ' ') return;
+                const card = cardFor(e);
+                if (card && e.target === card) { e.preventDefault(); openServiceGrid(normalizeShowcaseCategory(card.dataset.serviceCategory)); }
+            });
         }
 
         async function shareGalleryProject() {
@@ -15769,16 +16079,19 @@
                     return;
                 }
                 const card = e.target.closest('#hmShowcase [data-sc-open]');
-                if (card) { openGallery(card.dataset.scOpen, 0); return; }
+                if (card) { openGallery(card.dataset.scOpen, 0, { grid: true }); return; }
 
                 const gal = e.target.closest('#hmGallery');
                 if (!gal) return;
                 // the click that ends a swipe must not zoom or close
                 if (galleryState.suppressClick && e.target.closest('#hmGalStage') && !e.target.closest('button')) { galleryState.suppressClick = false; return; }
+                const tile = e.target.closest('[data-gal-tile]');
+                if (tile) { setGalleryMode(false, Number(tile.dataset.galTile) || 0); return; }
                 const go = e.target.closest('[data-gal-go]');
                 if (go) { const i = Number(go.dataset.galGo) || 0; const d = i - galleryState.index; galleryState.index = i; paintGallery(d); return; }
                 const action = e.target.closest('[data-gal]')?.dataset.gal;
                 if (action === 'close') closeGallery();
+                else if (action === 'grid') setGalleryMode(true, galleryState.index);
                 else if (action === 'prev') stepGallery(-1);
                 else if (action === 'next') stepGallery(1);
                 else if (action === 'share') shareGalleryProject();
@@ -15795,13 +16108,19 @@
 
             document.addEventListener('keydown', (e) => {
                 const card = e.target.closest && e.target.closest('#hmShowcase [data-sc-open]');
-                if (card && (e.key === 'Enter' || e.key === ' ') && !e.target.closest('button')) { e.preventDefault(); openGallery(card.dataset.scOpen, 0); return; }
+                if (card && (e.key === 'Enter' || e.key === ' ') && !e.target.closest('button')) { e.preventDefault(); openGallery(card.dataset.scOpen, 0, { grid: true }); return; }
                 if (!galleryState.open) return;
-                if (e.key === 'Escape') { e.preventDefault(); closeGallery(); }
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    // from a photo opened out of the grid, Escape goes back to the grid first
+                    if (!galleryState.grid && galleryState.fromGrid) setGalleryMode(true, galleryState.index);
+                    else closeGallery();
+                }
+                else if (galleryState.grid) { /* arrows scroll the grid */ }
                 else if (e.key === 'ArrowRight') stepGallery(1);
                 else if (e.key === 'ArrowLeft') stepGallery(-1);
                 else if (e.key === 'Tab') {
-                    const focusables = Array.from(document.querySelectorAll('#hmGallery button:not([hidden])'));
+                    const focusables = Array.from(document.querySelectorAll('#hmGallery button:not([hidden])')).filter((b) => b.getClientRects().length);
                     if (!focusables.length) return;
                     const first = focusables[0];
                     const last = focusables[focusables.length - 1];
@@ -17909,8 +18228,10 @@
             if (!cards.length) return;
 
             cards.forEach((card) => {
-                card.removeAttribute('role');
-                card.removeAttribute('tabindex');
+                if (!card.classList.contains('hm-svc-open')) { // these open their photo grid
+                    card.removeAttribute('role');
+                    card.removeAttribute('tabindex');
+                }
                 card.removeAttribute('onclick');
                 card.classList.remove('has-media', 'highlight', 'highlight-service');
 
@@ -18593,6 +18914,7 @@
         bindQuoteOpenTriggers();
 
         document.querySelectorAll('#service-cctv, #service-electrical, #service-airconditioning, #service-gates, #service-fencing, #service-solar, #service-smarthome, #service-blindcurtain').forEach((card) => {
+            if (card.classList.contains('hm-svc-open')) return; // the card opens its photo grid
             card.removeAttribute('role');
             card.removeAttribute('tabindex');
         });
@@ -19563,6 +19885,7 @@
         // Execute activation
         loadBrandSettings();
         loadAftercareSettings();
+        loadLoginPhotoSettings();
         loadLogoSettings();
         loadSectionsSettings();
         initGoogleReviews();

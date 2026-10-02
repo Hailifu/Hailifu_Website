@@ -405,6 +405,7 @@ test.describe('Pull down to close', () => {
         await card.scrollIntoViewIfNeeded();
         await card.click();
         await expect(page.locator('#hmGallery')).toBeVisible();
+        await page.locator('#hmGalGrid [data-gal-tile="0"]').click(); // cards open the photo grid first (2026-10-02)
         await page.waitForTimeout(500);
         await page.evaluate(() => document.getElementById('hmGalFigure').classList.add('is-zoomed'));
         await pull(page, '#hmGallery .hm-gal-stage', 220);
@@ -423,6 +424,7 @@ test.describe('Pull down to close', () => {
         await card.scrollIntoViewIfNeeded();
         await card.click();
         await expect(page.locator('#hmGallery')).toBeVisible();
+        await page.locator('#hmGalGrid [data-gal-tile="0"]').click(); // cards open the photo grid first (2026-10-02)
         await page.waitForTimeout(500);
         const box = await page.locator('#hmGallery .hm-gal-stage').boundingBox();
         const cdp = await page.context().newCDPSession(page);

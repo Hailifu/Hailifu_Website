@@ -46,6 +46,9 @@ test.describe('Service galleries — public', () => {
         await expect(cards(page)).toHaveCount(1);
         await cards(page).first().click();
         await expect(page.locator('#hmGallery')).toBeVisible();
+        // opens as a grid of all photos first (2026-10-02); a tile opens the photo
+        await expect(page.locator('#hmGalGrid .hm-gal-tile')).toHaveCount(3);
+        await page.locator('#hmGalGrid [data-gal-tile="0"]').click();
         await expect(page.locator('#hmGalCounter')).toHaveText('1 / 3');
         await expect.poll(() => page.evaluate(() => location.hash)).toBe('#project=cctv');
     });
@@ -493,6 +496,7 @@ test.describe('Service galleries — review fixes', () => {
         await mockSupabase(page, { installations: [galleryRow({ category: 'cctv', cover: true, caption: 'Villa, East Legon' }), galleryRow({ category: 'cctv', caption: 'Shop, Tema' })] });
         await openHome(page);
         await cards(page).first().click();
+        await page.locator('#hmGalGrid [data-gal-tile="0"]').click();
         await expect(page.locator('#hmGalDesc')).toContainText('Villa, East Legon');
         await page.keyboard.press('ArrowRight');
         await expect(page.locator('#hmGalDesc')).toContainText('Shop, Tema');
@@ -586,6 +590,7 @@ test.describe('Service galleries — minor fixes', () => {
         await openHome(page);
         await expect(cards(page).first().locator('.hm-sc-media img')).toHaveAttribute('src', /second\.jpg/);
         await cards(page).first().click();
+        await page.locator('#hmGalGrid [data-gal-tile="0"]').click();
         await expect(page.locator('#hmGalDesc')).toContainText('First');
     });
 

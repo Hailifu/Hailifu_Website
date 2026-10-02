@@ -6126,3 +6126,390 @@ html[data-theme='light'] #adminPanel.hm-admin { --a-bad-text: #b42318; }
 /* logo card: while it saves or redraws the link preview picture, its buttons are visibly paused
    (a click then used to be ignored without a sign) */
 #adminPanel.hm-admin .lg-card.is-busy [data-lg-action] { opacity: 0.55; pointer-events: none; cursor: progress; }
+
+/* ==========================================================================
+   2026-10-02: service photo grid
+   A service card (Services section) or a Work Showcase card opens the gallery
+   viewer as a grid of all that service's photos; a tile opens the photo, the
+   grid button in the top bar goes back. Hooks: .hm-gal.is-grid, #hmGalGrid,
+   [data-gal-tile], [data-gal="grid"], .hm-svc-open, .hm-svc-hint.
+   ========================================================================== */
+html body #services .services-grid > .card.hm-svc-open { cursor: pointer; }
+html body #services .services-grid > .card.hm-svc-open:focus-visible { outline: 2px solid var(--p-accent); outline-offset: 3px; }
+html body #services .services-grid > .card .hm-svc-hint {
+    position: relative; z-index: 2;
+    display: inline-flex; align-items: center; gap: 7px;
+    margin: 0 0 14px;
+    font-size: 0.84rem; font-weight: 600; color: var(--p-accent);
+    transition: gap 0.25s var(--p-ease-out);
+}
+html body #services .services-grid > .card .hm-svc-hint i { font-size: 0.8em; }
+html body #services .services-grid > .card.hm-svc-open:hover .hm-svc-hint { gap: 10px; }
+
+.hm-gal.is-grid { grid-template-rows: auto minmax(0, 1fr) auto; }
+.hm-gal.is-grid .hm-gal-stage,
+.hm-gal.is-grid .hm-gal-thumbs { display: none; }
+.hm-gal.is-grid .hm-gal-grid { grid-row: 2; }
+.hm-gal.is-grid .hm-gal-bottom { grid-row: 3; padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+.hm-gal-grid[hidden], .hm-gal-btn[hidden] { display: none; }
+.hm-gal-grid {
+    min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(min(200px, 44vw), 1fr));
+    grid-auto-rows: max-content; gap: 10px; align-content: start;
+    padding: 6px clamp(12px, 3vw, 28px) 16px;
+    scrollbar-width: thin;
+}
+.hm-gal-tile {
+    position: relative; display: block; width: 100%; aspect-ratio: 4 / 3;
+    padding: 0; margin: 0; border: 0; border-radius: 14px; overflow: hidden; cursor: zoom-in;
+    background: rgba(255, 255, 255, 0.06); color: #f5f4f1;
+}
+.hm-gal-tile img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.5s var(--p-ease-out), opacity 0.2s ease; }
+.hm-gal-tile-blank { position: absolute; inset: 0; background: rgba(255, 255, 255, 0.08); }
+.hm-gal-tile-play {
+    position: absolute; left: 50%; top: 50%; translate: -50% -50%;
+    width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center;
+    background: rgba(9, 9, 10, 0.6); border: 1px solid rgba(255, 255, 255, 0.25); font-size: 0.95rem;
+}
+.hm-gal-tile-cap {
+    position: absolute; inset: auto 0 0 0; padding: 22px 10px 8px; text-align: left;
+    font-size: 0.78rem; line-height: 1.3; color: #f5f4f1;
+    background: linear-gradient(0deg, rgba(9, 9, 10, 0.85), rgba(9, 9, 10, 0));
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.hm-gal-tile:focus-visible { outline: 2px solid var(--p-accent); outline-offset: 2px; }
+@media (hover: hover) {
+    .hm-gal-tile:hover img { transform: scale(1.05); }
+}
+.hm-gal-tile:active img { opacity: 0.85; }
+@media (prefers-reduced-motion: no-preference) {
+    .hm-gal.is-open.is-grid .hm-gal-tile { animation: hm-gal-tile-in 0.45s var(--p-ease-out) both; animation-delay: calc(var(--i, 0) * 35ms); }
+}
+@keyframes hm-gal-tile-in { from { opacity: 0; translate: 0 14px; } to { opacity: 1; translate: 0 0; } }
+@media (max-width: 560px) {
+    .hm-gal-grid { gap: 6px; padding-inline: 8px; }
+    .hm-gal-tile { border-radius: 10px; aspect-ratio: 1; }
+    .hm-gal.is-grid .hm-gal-bottom { flex-direction: column; align-items: stretch; gap: 10px; }
+}
+
+/* Photo grid + viewer follow the site theme (Light / Dark / System). html[data-theme] is
+   always the resolved theme (System is resolved by the head script), so these rules also
+   switch live when the visitor flips the theme or the phone changes to night mode. */
+.hm-gal { color-scheme: dark; }
+html[data-theme='light'] .hm-gal { color-scheme: light; background: var(--p-bg, #f4f4f2); color: var(--p-text, #131417); }
+html[data-theme='light'] .hm-gal-heading h3 { color: var(--p-text, #131417); }
+html[data-theme='light'] .hm-gal-counter,
+html[data-theme='light'] .hm-gal-desc { color: var(--p-muted, #575a61); }
+html[data-theme='light'] :is(.hm-gal-btn, .hm-gal-nav) {
+    border-color: rgba(18, 19, 22, 0.14); background: rgba(18, 19, 22, 0.05); color: var(--p-text, #131417);
+}
+html[data-theme='light'] :is(.hm-gal-btn, .hm-gal-nav):hover { background: rgba(18, 19, 22, 0.1); }
+html[data-theme='light'] .hm-gal-thumb { background: rgba(18, 19, 22, 0.06); color: var(--p-text, #131417); }
+html[data-theme='light'] .hm-gal-tile { background: rgba(18, 19, 22, 0.06); color: var(--p-text, #131417); box-shadow: 0 1px 2px rgba(18, 19, 22, 0.08); }
+html[data-theme='light'] .hm-gal-tile-blank { background: rgba(18, 19, 22, 0.06); }
+html[data-theme='light'] .hm-gal-peek i { color: rgba(18, 19, 22, 0.7); }
+@media (max-width: 640px) {
+    html[data-theme='light'] .hm-gal-nav { background: rgba(255, 255, 255, 0.82); }
+}
+
+/* ==========================================================================
+   2026-10-02: admin login redesign (#hmAdminLogin.hm-login--split)
+   Design read: owner sign-in, Operate mode, matte dark + brand orange.
+   Split screen: real site photo + wordmark | quiet form, no card.
+   Shape rule: controls 12px, theme switch is a pill, panels are full bleed.
+   Motion: one entrance (photo settles, fields rise 8px with a 40ms stagger,
+   ease-out, under 450ms), 0.97 press, shake on a wrong password. All movement
+   is off under prefers-reduced-motion. The set-password screen keeps its own look.
+   ========================================================================== */
+html body .hm-login.hm-login--split {
+    --lg-ease: cubic-bezier(0.23, 1, 0.32, 1);
+    --lg-bg: #111112; --lg-text: #f2f0ec; --lg-muted: #a9a6a0; --lg-label: #dcd9d4;
+    --lg-field: #1b1b1d; --lg-line: rgba(255, 255, 255, 0.12); --lg-line-2: rgba(255, 255, 255, 0.22);
+    --lg-icon: #8d8a85; --lg-seg: rgba(255, 255, 255, 0.06);
+    display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr); place-items: stretch;
+    padding: 0; overflow: hidden; background: var(--lg-bg); color: var(--lg-text);
+}
+html[data-theme='light'] body .hm-login.hm-login--split {
+    --lg-bg: #f4f4f2; --lg-text: #141416; --lg-muted: #5c5a56; --lg-label: #2c2b29;
+    --lg-field: #ffffff; --lg-line: rgba(20, 20, 22, 0.14); --lg-line-2: rgba(20, 20, 22, 0.28);
+    --lg-icon: #6f6c67; --lg-seg: rgba(20, 20, 22, 0.05);
+}
+
+/* photo side: stays dark in both themes (it is a photograph) */
+html body .hm-login--split .hm-login-art { position: relative; overflow: hidden; min-height: 0; background: #0b0b0c; isolation: isolate; }
+html body .hm-login--split .hm-login-art-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 35%; }
+html body .hm-login--split .hm-login-art::after {
+    content: ''; position: absolute; inset: 0; z-index: 1;
+    background: linear-gradient(180deg, rgba(10, 10, 11, 0.15) 0%, rgba(10, 10, 11, 0.25) 45%, rgba(10, 10, 11, 0.9) 100%);
+}
+html body .hm-login--split .hm-login-art-copy {
+    position: absolute; z-index: 2; left: clamp(28px, 4vw, 56px); right: clamp(28px, 4vw, 56px); bottom: clamp(28px, 5vh, 56px);
+    display: flex; flex-direction: column; gap: 6px; color: #f5f3ef;
+}
+html body .hm-login--split .hm-login-word {
+    font-family: 'Unbounded', 'Bricolage Grotesque', var(--p-font), sans-serif; font-weight: 700;
+    font-size: clamp(2.2rem, 4.6vw, 3.8rem); line-height: 1; letter-spacing: -0.02em;
+}
+html body .hm-login--split .hm-login-word-sub { font-size: 1rem; font-weight: 600; color: var(--p-accent); }
+html body .hm-login--split .hm-login-art-copy p { margin: 12px 0 0; max-width: 34ch; font-size: 0.98rem; line-height: 1.5; color: rgba(245, 243, 239, 0.8); }
+
+/* form side */
+html body .hm-login--split .hm-login-pane {
+    position: relative; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+    display: grid; grid-template-rows: auto 1fr auto; justify-items: center;
+    padding: max(20px, env(safe-area-inset-top)) clamp(20px, 5vw, 64px) max(20px, env(safe-area-inset-bottom));
+}
+html body .hm-login--split .hm-login-top { width: 100%; display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+html body .hm-login--split .hm-login-top .hm-login-logo { width: 40px; height: 40px; margin: 0; border-radius: 12px; object-fit: contain; }
+html body .hm-login--split .hm-login-theme { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--lg-seg); border: 1px solid var(--lg-line); }
+html body .hm-login--split .hm-login-theme button {
+    width: 36px; height: 32px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 999px;
+    background: transparent; color: var(--lg-muted); font-size: 0.85rem; cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.16s var(--lg-ease);
+}
+html body .hm-login--split .hm-login-theme button:hover { color: var(--lg-text); }
+html body .hm-login--split .hm-login-theme button:active { transform: scale(0.94); }
+html body .hm-login--split .hm-login-theme button[aria-pressed='true'] { background: var(--lg-field); color: var(--p-accent); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18), inset 0 0 0 1px var(--lg-line); }
+html body .hm-login--split .hm-login-theme button:focus-visible { outline: 2px solid var(--p-accent); outline-offset: 1px; }
+
+html body .hm-login.hm-login--split .hm-login-card {
+    align-self: center; width: min(100%, 380px); margin: 32px 0; padding: 0;
+    display: flex; flex-direction: column; gap: 0; text-align: left;
+    background: none; border: 0; border-radius: 0; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+html body .hm-login.hm-login--split .hm-login-card h2 {
+    margin: 0; font-family: var(--r7-display, var(--p-font)); font-size: clamp(1.9rem, 3vw, 2.4rem);
+    font-weight: 700; letter-spacing: -0.035em; line-height: 1.1; color: var(--lg-text);
+}
+html body .hm-login.hm-login--split .hm-login-sub { margin: 8px 0 28px; font-size: 0.97rem; line-height: 1.5; color: var(--lg-muted); }
+html body .hm-login.hm-login--split .hm-login-field { gap: 8px; margin: 0 0 18px; }
+/* reset mode hides the password block: [hidden] must beat the field's display: flex */
+html body .hm-login .hm-login-field[hidden] { display: none; }
+html body .hm-login.hm-login--split .hm-login-field label { font-size: 0.86rem; font-weight: 600; color: var(--lg-label); }
+html body .hm-login--split .hm-login-label-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+html body .hm-login.hm-login--split .hm-login-input > i { color: var(--lg-icon); }
+html body .hm-login.hm-login--split .hm-login-input:focus-within > i { color: var(--p-accent); }
+html body .hm-login.hm-login--split .hm-login-input input {
+    height: 52px; border-radius: 12px; background: var(--lg-field); border: 1px solid var(--lg-line); color: var(--lg-text);
+}
+html body .hm-login.hm-login--split .hm-login-input input:hover { border-color: var(--lg-line-2); }
+html body .hm-login.hm-login--split .hm-login-input input:focus { background: var(--lg-field); border-color: var(--p-accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--p-accent) 22%, transparent); }
+html body .hm-login.hm-login--split .hm-login-eye { color: var(--lg-icon); }
+html body .hm-login.hm-login--split .hm-login-eye:hover { color: var(--lg-text); background: var(--lg-seg); }
+html body .hm-login.hm-login--split .hm-login-submit {
+    height: 52px; margin: 6px 0 0; border-radius: 12px;
+    /* colours come from the site-wide orange glass button (owner request, section 4) */
+}
+html body .hm-login.hm-login--split .hm-login-submit:active:not(:disabled) { transform: scale(0.97); }
+html body .hm-login.hm-login--split .hm-login-submit:focus-visible { outline: 2px solid var(--p-accent); outline-offset: 3px; }
+html body .hm-login.hm-login--split .hm-login-link {
+    height: auto; padding: 2px 0; border: 0; background: none; cursor: pointer;
+    font: 600 0.86rem/1.3 var(--p-font); color: var(--p-accent); text-underline-offset: 3px;
+}
+html body .hm-login.hm-login--split .hm-login-link:hover { text-decoration: underline; }
+html body .hm-login.hm-login--split .hm-login-link:focus-visible { outline: 2px solid var(--p-accent); outline-offset: 2px; border-radius: 4px; }
+html body .hm-login.hm-login--split .hm-login-link[hidden] { display: none; }
+html body .hm-login.hm-login--split .hm-login-back-signin { align-self: center; margin-top: 16px; }
+html body .hm-login.hm-login--split .hm-login-cancel {
+    height: 40px; padding: 0 4px; border: 0; background: none; cursor: pointer;
+    font: 500 0.9rem/1 var(--p-font); color: var(--lg-muted);
+}
+html body .hm-login.hm-login--split .hm-login-cancel:hover { color: var(--lg-text); }
+html body .hm-login.hm-login--split .hm-login-caps { color: #f2c46d; }
+html[data-theme='light'] body .hm-login.hm-login--split .hm-login-caps { color: #8a5d00; }
+
+/* one entrance: the photo settles, the form rises in order */
+@media (prefers-reduced-motion: no-preference) {
+    html body .hm-login--split .hm-login-art-img { animation: hm-lg-settle 1.1s var(--lg-ease) both; }
+    html body .hm-login--split .hm-login-art-copy { animation: hm-lg-rise 0.5s var(--lg-ease) 0.12s both; }
+    html body .hm-login--split .hm-login-card > * { animation: hm-lg-rise 0.42s var(--lg-ease) both; }
+    html body .hm-login--split .hm-login-card > :nth-child(2) { animation-delay: 40ms; }
+    html body .hm-login--split .hm-login-card > :nth-child(3) { animation-delay: 80ms; }
+    html body .hm-login--split .hm-login-card > :nth-child(4) { animation-delay: 120ms; }
+    html body .hm-login--split .hm-login-card > :nth-child(n+5) { animation-delay: 160ms; }
+}
+@keyframes hm-lg-settle { from { transform: scale(1.06); opacity: 0.6; } to { transform: none; opacity: 1; } }
+@keyframes hm-lg-rise { from { opacity: 0; translate: 0 8px; } to { opacity: 1; translate: 0 0; } }
+
+/* tablets and phones: the photo becomes a short band on top, the form follows */
+@media (max-width: 899px) {
+    html body .hm-login.hm-login--split { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); overflow-y: auto; }
+    html body .hm-login--split .hm-login-art { height: clamp(150px, 26vh, 240px); }
+    html body .hm-login--split .hm-login-art-copy { left: 20px; right: 20px; bottom: 18px; gap: 4px; }
+    html body .hm-login--split .hm-login-word { font-size: clamp(1.7rem, 8vw, 2.4rem); }
+    html body .hm-login--split .hm-login-art-copy p { display: none; }
+    html body .hm-login--split .hm-login-pane { overflow: visible; padding-top: 16px; }
+    html body .hm-login.hm-login--split .hm-login-card { align-self: start; margin: 24px 0 20px; }
+}
+
+/* ==========================================================================
+   2026-10-02 (owner request): admin login, bouncy + liquid glass
+   The photo now fills the whole screen; the form sits on a liquid-glass panel
+   that springs in. HAILIFU letters drop in and bounce, fields bounce up in turn,
+   inputs give a jelly pop on focus, the Light / Dark / Auto thumb springs between
+   options, buttons squish and bounce back, a soft light follows the mouse.
+   Movement plays on arrival and on touch only: nothing loops behind the blurred
+   glass (looping under backdrop-filter made the site slow before).
+   Everything that moves is off under prefers-reduced-motion.
+   ========================================================================== */
+html body .hm-login.hm-login--split {
+    --lg-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --lg-glass: linear-gradient(140deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04) 55%, rgba(255, 255, 255, 0.08)), rgba(17, 17, 19, 0.58);
+    --lg-glass-edge: rgba(255, 255, 255, 0.2);
+    --lg-glass-shine: rgba(255, 255, 255, 0.32);
+    --lg-field: rgba(10, 10, 12, 0.5);
+    --lg-seg: rgba(255, 255, 255, 0.07);
+    --lg-thumb: rgba(255, 255, 255, 0.14);
+}
+@supports (animation-timing-function: linear(0, 1)) {
+    /* a real spring: overshoots ~16%, settles with one small wobble */
+    html body .hm-login.hm-login--split {
+        --lg-spring: linear(0, 0.009, 0.035 2.1%, 0.141 4.4%, 0.723 12.9%, 0.938 16.7%, 1.017, 1.077, 1.121, 1.149 24.3%, 1.159, 1.163, 1.161, 1.154 29.9%, 1.129 32.8%, 1.051 39.6%, 1.017 43.1%, 0.991, 0.977 51%, 0.974 53.8%, 0.975 57.1%, 0.997 69.8%, 1.003 76.9%, 1.004 83.8%, 1);
+    }
+}
+html[data-theme='light'] body .hm-login.hm-login--split {
+    --lg-glass: linear-gradient(140deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.62) 55%, rgba(255, 255, 255, 0.78));
+    --lg-glass-edge: rgba(255, 255, 255, 0.85);
+    --lg-glass-shine: #ffffff;
+    --lg-field: rgba(255, 255, 255, 0.82);
+    --lg-seg: rgba(20, 20, 22, 0.06);
+    --lg-thumb: #ffffff;
+}
+
+/* the photo fills the screen behind the glass */
+html body .hm-login.hm-login--split .hm-login-art { grid-column: 1 / -1; grid-row: 1 / -1; }
+html body .hm-login.hm-login--split .hm-login-art::after {
+    background:
+        linear-gradient(90deg, rgba(10, 10, 11, 0.1) 0%, rgba(10, 10, 11, 0.2) 45%, rgba(10, 10, 11, 0.55) 100%),
+        linear-gradient(180deg, rgba(10, 10, 11, 0) 50%, rgba(10, 10, 11, 0.85) 100%);
+}
+html body .hm-login.hm-login--split .hm-login-art-copy { right: auto; max-width: min(44vw, 560px); z-index: 3; }
+
+/* liquid colour behind the glass (drawn once, then still) */
+html body .hm-login--split .hm-login-blob {
+    position: absolute; z-index: 2; pointer-events: none; border-radius: 42% 58% 63% 37% / 41% 44% 56% 59%;
+    background: radial-gradient(circle at 40% 40%, color-mix(in srgb, var(--p-accent) 70%, #fff 10%), color-mix(in srgb, var(--p-accent) 35%, transparent) 45%, transparent 70%);
+    opacity: 0.55; mix-blend-mode: screen;
+}
+html body .hm-login--split .hm-login-blob.is-a { width: 34vmax; height: 34vmax; right: 18%; top: -6%; }
+html body .hm-login--split .hm-login-blob.is-b { width: 26vmax; height: 26vmax; right: -4%; bottom: -8%; opacity: 0.4; border-radius: 58% 42% 38% 62% / 52% 61% 39% 48%; }
+html[data-theme='light'] body .hm-login--split .hm-login-blob { opacity: 0.35; }
+
+/* the glass panel */
+html body .hm-login.hm-login--split .hm-login-pane {
+    grid-column: 2; grid-row: 1; z-index: 4; isolation: isolate;
+    margin: clamp(14px, 2.4vw, 28px); border-radius: 30px;
+    background: var(--lg-glass);
+    border: 1px solid var(--lg-glass-edge);
+    box-shadow: inset 0 1px 0 var(--lg-glass-shine), inset 0 -1px 0 rgba(255, 255, 255, 0.06), 0 40px 100px -30px rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(28px) saturate(175%);
+    -webkit-backdrop-filter: blur(28px) saturate(175%);
+}
+/* curved highlight along the top edge, like light on a water drop */
+html body .hm-login.hm-login--split .hm-login-pane::before {
+    content: ''; position: absolute; inset: 0; z-index: 0; border-radius: inherit; pointer-events: none;
+    background: radial-gradient(120% 60% at 20% -10%, rgba(255, 255, 255, 0.22), transparent 55%);
+}
+/* soft light under the mouse */
+html body .hm-login.hm-login--split .hm-login-pane::after {
+    content: ''; position: absolute; inset: 0; z-index: 0; border-radius: inherit; pointer-events: none;
+    background: radial-gradient(260px circle at var(--lg-mx, 50%) var(--lg-my, 0%), rgba(255, 255, 255, 0.13), transparent 65%);
+    opacity: 0; transition: opacity 0.35s ease;
+}
+html body .hm-login.hm-login--split .hm-login-pane.is-lit::after { opacity: 1; }
+html body .hm-login.hm-login--split .hm-login-pane > * { position: relative; z-index: 1; }
+
+/* Light / Dark / Auto: a liquid thumb slides under the chosen option */
+html body .hm-login--split .hm-login-theme { position: relative; }
+html body .hm-login--split .hm-login-theme button { position: relative; z-index: 1; }
+html body .hm-login--split .hm-login-theme-thumb { display: none; }
+@supports selector(:has(*)) {
+    html body .hm-login--split .hm-login-theme-thumb {
+        display: block; position: absolute; z-index: 0; top: 3px; left: 3px; width: 36px; height: 32px; border-radius: 999px;
+        background: var(--lg-thumb); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    }
+    html body .hm-login--split .hm-login-theme:has([data-theme-set='dark'][aria-pressed='true']) .hm-login-theme-thumb { translate: 38px 0; }
+    html body .hm-login--split .hm-login-theme:has([data-theme-set='system'][aria-pressed='true']) .hm-login-theme-thumb { translate: 76px 0; }
+    html body .hm-login--split .hm-login-theme button[aria-pressed='true'] { background: transparent; box-shadow: none; }
+}
+
+html body .hm-login.hm-login--split .hm-login-input input { backdrop-filter: none; }
+html body .hm-login--split .hm-login-word { display: inline-flex; }
+html body .hm-login--split .hm-login-word > span { display: inline-block; font: inherit; letter-spacing: inherit; } /* a site-wide span rule would swap in the body font */
+
+@media (prefers-reduced-motion: no-preference) {
+    /* until the screen is ready (script adds .is-ready), the animated parts wait unseen */
+    html body .hm-login.hm-login--split:not(.is-ready) :is(.hm-login-pane, .hm-login-blob, .hm-login-word > span, .hm-login-word-sub, .hm-login-art-copy p, .hm-login-art-img) { opacity: 0; animation-play-state: paused; }
+    html body .hm-login.hm-login--split:not(.is-ready) .hm-login-pane * { animation-play-state: paused; }
+    /* the glass springs up into place */
+    html body .hm-login.hm-login--split .hm-login-pane { animation: hm-lq-panel 0.95s var(--lg-spring) 0.05s both; }
+    /* the liquid colour swells in and settles its shape */
+    html body .hm-login--split .hm-login-blob { animation: hm-lq-blob 1.6s var(--lg-spring) 0.1s both; }
+    html body .hm-login--split .hm-login-blob.is-b { animation-delay: 0.3s; }
+    /* HAILIFU: letters drop in one by one and bounce */
+    html body .hm-login--split .hm-login-word > span { animation: hm-lq-drop 0.85s cubic-bezier(0.23, 1, 0.32, 1) calc(0.25s + var(--i, 0) * 70ms) both; transform-origin: 50% 100%; }
+    html body .hm-login.hm-login--split .hm-login-word-sub,
+    html body .hm-login.hm-login--split .hm-login-art-copy p { animation: hm-lq-up 0.8s var(--lg-spring) 0.8s both; }
+    html body .hm-login.hm-login--split .hm-login-art-copy { animation: none; }
+    /* form lines bounce up in turn, after the glass lands */
+    html body .hm-login.hm-login--split .hm-login-card > * { animation: hm-lq-up 0.8s var(--lg-spring) 0.32s both; }
+    html body .hm-login.hm-login--split .hm-login-card > :nth-child(2) { animation-delay: 0.38s; }
+    html body .hm-login.hm-login--split .hm-login-card > :nth-child(3) { animation-delay: 0.44s; }
+    html body .hm-login.hm-login--split .hm-login-card > :nth-child(4) { animation-delay: 0.5s; }
+    html body .hm-login.hm-login--split .hm-login-card > :nth-child(n+5) { animation-delay: 0.56s; }
+    html body .hm-login.hm-login--split .hm-login-top,
+    html body .hm-login.hm-login--split .hm-login-cancel { animation: hm-lq-up 0.8s var(--lg-spring) 0.6s both; }
+    /* Forgot password / back: the heading bounces in again */
+    html body .hm-login.hm-login--split .hm-login-card.is-switching > :is(h2, .hm-login-sub) { animation: hm-lq-up-again 0.7s var(--lg-spring) both; }
+    /* tapping a field: a small jelly pop */
+    html body .hm-login.hm-login--split .hm-login-input:focus-within { animation: hm-lq-jelly 0.55s var(--lg-spring); }
+    /* the eye icon pops when it changes */
+    html body .hm-login.hm-login--split .hm-login-eye i { animation: hm-lq-pop 0.5s var(--lg-spring); }
+    /* messages bounce in */
+    html body .hm-login.hm-login--split :is(.hm-login-error, .hm-login-ok, .hm-login-caps):not([hidden]) { animation: hm-lq-up-again 0.55s var(--lg-spring) both; }
+    /* the theme thumb springs across */
+    html body .hm-login--split .hm-login-theme-thumb { transition: translate 0.6s var(--lg-spring); }
+    html body .hm-login--split .hm-login-theme button i { transition: scale 0.45s var(--lg-spring); }
+    html body .hm-login--split .hm-login-theme button[aria-pressed='true'] i { scale: 1.15; }
+    /* Sign in: lifts on hover, squishes on press, bounces back on release */
+    html body .hm-login.hm-login--split .hm-login-submit { transition: scale 0.55s var(--lg-spring), translate 0.55s var(--lg-spring), opacity 0.2s ease; }
+    html body .hm-login.hm-login--split .hm-login-submit:active:not(:disabled) { scale: 0.94 0.9; transition-duration: 0.12s; }
+    html body .hm-login.hm-login--split :is(.hm-login-eye, .hm-login-theme button, .hm-login-cancel, .hm-login-link) { transition: scale 0.5s var(--lg-spring), color 0.2s ease, background-color 0.2s ease; }
+    html body .hm-login.hm-login--split :is(.hm-login-eye, .hm-login-theme button, .hm-login-cancel, .hm-login-link):active { scale: 0.88; transition-duration: 0.1s; }
+}
+@media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+    html body .hm-login.hm-login--split .hm-login-submit:hover:not(:disabled) { translate: 0 -2px; }
+}
+@keyframes hm-lq-panel { from { opacity: 0; translate: 0 56px; scale: 0.9; } to { opacity: 1; translate: 0 0; scale: 1; } }
+@keyframes hm-lq-blob {
+    from { opacity: 0; scale: 0.3; border-radius: 50%; }
+    to { scale: 1; }
+}
+@keyframes hm-lq-drop {
+    0% { opacity: 0; translate: 0 -90%; scale: 1 1; }
+    45% { opacity: 1; translate: 0 0; scale: 1.12 0.82; }
+    65% { translate: 0 -14%; scale: 0.95 1.06; }
+    82% { translate: 0 0; scale: 1.04 0.96; }
+    100% { translate: 0 0; scale: 1 1; }
+}
+@keyframes hm-lq-up { from { opacity: 0; translate: 0 22px; } to { opacity: 1; translate: 0 0; } }
+@keyframes hm-lq-up-again { from { opacity: 0; translate: 0 12px; } to { opacity: 1; translate: 0 0; } }
+@keyframes hm-lq-jelly { 0% { scale: 0.97 1.03; } 100% { scale: 1 1; } }
+@keyframes hm-lq-pop { from { scale: 0.4; rotate: -20deg; } to { scale: 1; rotate: 0deg; } }
+
+/* phones and tablets: wordmark on the photo at the top, glass panel below */
+@media (max-width: 899px) {
+    html body .hm-login.hm-login--split { grid-template-columns: 1fr; grid-template-rows: clamp(150px, 24vh, 220px) auto; overflow-y: auto; }
+    html body .hm-login.hm-login--split .hm-login-art { grid-row: 1 / -1; height: auto; min-height: 100%; }
+    html body .hm-login.hm-login--split .hm-login-art-copy { top: auto; bottom: auto; position: absolute; left: 20px; right: 20px; max-width: none; top: max(28px, calc(env(safe-area-inset-top) + 16px)); }
+    html body .hm-login.hm-login--split .hm-login-pane { grid-column: 1; grid-row: 2; margin: 0 10px max(10px, env(safe-area-inset-bottom)); border-radius: 26px; overflow: visible; padding: 16px 18px 12px; }
+    html body .hm-login.hm-login--split .hm-login-card { margin: 18px 0 8px; }
+    html body .hm-login--split .hm-login-blob.is-a { right: -20%; top: 10%; width: 70vmax; height: 70vmax; }
+    html body .hm-login--split .hm-login-blob.is-b { display: none; }
+    /* keeps the wordmark readable over bright photos */
+    html body .hm-login.hm-login--split .hm-login-art::after { background: linear-gradient(180deg, rgba(10, 10, 11, 0.78) 0%, rgba(10, 10, 11, 0.35) 22%, rgba(10, 10, 11, 0.15) 45%, rgba(10, 10, 11, 0.6) 100%); }
+}
+@media (prefers-reduced-transparency: reduce) {
+    html body .hm-login.hm-login--split .hm-login-pane { background: #19191b; backdrop-filter: none; -webkit-backdrop-filter: none; }
+    html[data-theme='light'] body .hm-login.hm-login--split .hm-login-pane { background: #ffffff; }
+}
