@@ -762,7 +762,7 @@
             }
         </style>
         <!-- Premium design layer (2026 rebuild). Loaded last so it overrides style.css and the inline styles above. -->
-        <link rel="stylesheet" href="/premium.css?v=20261002g3">
+        <link rel="stylesheet" href="/premium.css?v=20261002r1">
 </head>
  <body>
 
@@ -1385,7 +1385,7 @@
                         <div class="review-composer" id="reviewComposer">
                             <div class="form-group hm-review-step" style="--i:1">
                                 <label for="reviewComment" class="hm-review-label">Share details of your own experience <span class="review-sublabel">(optional)</span></label>
-                                <textarea id="reviewComment" name="comment" rows="4" maxlength="1500" placeholder="e.g. They installed 6 cameras at our shop, clean wiring and showed us how to view them on the phone."></textarea>
+                                <textarea id="reviewComment" name="comment" rows="3" maxlength="1500" placeholder="e.g. They installed 6 cameras at our shop, clean wiring and showed us how to view them on the phone."></textarea>
                             </div>
                             <div class="review-questionnaire-section hm-review-step hm-rv-media-field" style="--i:2">
                                 <span class="hm-review-label">Add photos &amp; videos <span class="review-sublabel">(optional, up to 5 photos and 1 video)</span></span>
@@ -1395,7 +1395,11 @@
                                 </div>
                                 <p class="hm-rv-media-note" id="reviewMediaNote" aria-live="polite"></p>
                             </div>
-                            <div class="review-questionnaire-section hm-review-step" style="--i:3">
+                            <!-- 2026-10-02: the form is stars, comment, photos. The other questions wait here, closed. -->
+                            <details class="hm-rv-more hm-review-step" id="reviewMoreDetails" style="--i:3">
+                                <summary><span>Add more details <span class="review-sublabel">(optional)</span></span><i class="fas fa-chevron-down" aria-hidden="true"></i></summary>
+                                <div class="hm-rv-more-body">
+                            <div class="review-questionnaire-section ">
                                 <span class="hm-review-label">What do you like about this business? <span class="review-sublabel">(select all that apply)</span></span>
                                 <div class="review-tag-group google-style" id="reviewLikeTags">
                                     <button type="button" class="review-tag-btn google-pill" data-review-like-tag="Quality of work" aria-pressed="false">Quality of work</button>
@@ -1407,7 +1411,7 @@
                                     <button type="button" class="review-tag-btn google-pill" data-review-like-tag="Friendly team" aria-pressed="false">Friendly team</button>
                                 </div>
                             </div>
-                            <div class="review-questionnaire-section hm-review-step" style="--i:4">
+                            <div class="review-questionnaire-section">
                                 <span class="hm-review-label">Did you use this business?</span>
                                 <div class="review-tag-group google-style" data-review-single="used" role="radiogroup">
                                     <button type="button" class="review-tag-btn google-pill" data-value="service" role="radio" aria-checked="false">Yes, I got a service</button>
@@ -1415,7 +1419,7 @@
                                 </div>
                                 <input type="hidden" id="review_used" name="used">
                             </div>
-                            <div class="review-questionnaire-section hm-review-step" style="--i:5">
+                            <div class="review-questionnaire-section">
                                 <span class="hm-review-label">Which services did you get? <span class="review-sublabel">(select all that apply)</span></span>
                                 <div class="review-service-grid google-style" id="reviewServiceGrid">
                                     <label class="review-service-option google-pill"><input type="checkbox" name="reviewServiceOption" value="CCTV installation"><span>CCTV</span></label>
@@ -1429,7 +1433,7 @@
                                     <label class="review-service-option google-pill"><input type="checkbox" name="reviewServiceOption" value="Blinds and curtains"><span>Blinds &amp; curtains</span></label>
                                 </div>
                             </div>
-                            <div class="review-questionnaire-section hm-review-step" style="--i:6">
+                            <div class="review-questionnaire-section">
                                 <span class="hm-review-label">How would you describe the price you paid?</span>
                                 <div class="review-tag-group google-style" data-review-single="price" role="radiogroup">
                                     <button type="button" class="review-tag-btn google-pill" data-value="inexpensive" role="radio" aria-checked="false">Inexpensive</button>
@@ -1438,7 +1442,7 @@
                                 </div>
                                 <input type="hidden" id="review_price" name="price">
                             </div>
-                            <div class="review-questionnaire-section hm-review-step" style="--i:7">
+                            <div class="review-questionnaire-section">
                                 <span class="hm-review-label">How much did you pay? <span class="review-sublabel">(only Hailifu sees this)</span></span>
                                 <div class="review-tag-group google-style" data-review-single="amount" role="radiogroup">
                                     <button type="button" class="review-tag-btn google-pill" data-value="u500" role="radio" aria-checked="false">Under ₵500</button>
@@ -1449,7 +1453,7 @@
                                 </div>
                                 <input type="hidden" id="review_amount" name="amount">
                             </div>
-                            <div class="review-questionnaire-section hm-review-step" style="--i:8">
+                            <div class="review-questionnaire-section">
                                 <span class="hm-review-label">How quickly did they respond?</span>
                                 <div class="review-tag-group google-style" data-review-single="speed" role="radiogroup">
                                     <button type="button" class="review-tag-btn google-pill" data-value="same-day" role="radio" aria-checked="false">Same day</button>
@@ -1458,12 +1462,14 @@
                                 </div>
                                 <input type="hidden" id="review_speed" name="speed">
                             </div>
+                                </div>
+                            </details>
                             <div class="review-questionnaire-section hm-review-step hm-review-photos" style="--i:5" hidden>
                                 <input type="file" id="reviewPhotoInput" accept="image/*" multiple hidden>
                                 <button type="button" class="review-photo-btn" id="reviewPhotoBtn"><i class="fas fa-camera" aria-hidden="true"></i> Add photos</button>
                                 <div class="review-photo-status" id="reviewPhotoStatus">No photos selected</div>
                             </div>
-                            <button type="submit" class="submit-btn hm-review-step" style="--i:9">
+                            <button type="submit" class="submit-btn hm-review-step" style="--i:4">
                                 <i class="fas fa-paper-plane" aria-hidden="true"></i> Post review
                             </button>
                         </div>
@@ -2486,7 +2492,7 @@
     })();
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="script.js?v=8.6" defer></script>
+    <script src="script.js?v=8.8" defer></script>
     <script src="premium.js?v=20261001r21" defer></script>
 
     <!-- Photo Gallery Modal -->

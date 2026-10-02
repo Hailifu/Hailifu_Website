@@ -274,6 +274,7 @@ test.describe('Review form like Google (no name or phone)', () => {
         await page.fill('#reviewComment', 'Clean wiring, cameras work on my phone.');
         await page.setInputFiles('#reviewMediaInput', [png(1), png(2)]);
         await expect(page.locator('#reviewMediaList .hm-rv-thumb')).toHaveCount(2);
+        await page.click('#reviewMoreDetails > summary'); // the optional questions are folded away (2026-10-02)
         await page.click('#reviewForm [data-review-like-tag="Clean finish"]');
         await pick(page, 'used', 'service');
         await page.click('#reviewServiceGrid label:has(input[value="CCTV installation"])');

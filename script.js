@@ -4017,7 +4017,9 @@
                 return { ok: true, live };
             } catch (err) {
                 console.warn('[Reviews] Could not send review:', err);
-                return { ok: false, message: /too many/i.test(String(err?.message || '')) ? 'busy' : '' };
+                const text = `${err?.code || ''} ${err?.message || err || ''}`;
+                // 42501 = the database refused it (the visitor review rule is missing in Supabase), not the connection
+                return { ok: false, message: /too many/i.test(text) ? 'busy' : /42501|row-level security|violates/i.test(text) ? 'refused' : '' };
             }
         }
 
@@ -4333,6 +4335,8 @@
 
         // Review Form Submission
         const reviewForm = document.getElementById('reviewForm');
+        // 2026-10-02: the optional questions sit in a closed 'Add more details' section; close it again for the next review
+        if (reviewForm) reviewForm.addEventListener('reset', () => { const more = document.getElementById('reviewMoreDetails'); if (more) more.open = false; });
         const formSuccess = document.getElementById('formSuccess');
         const reviewModal = document.getElementById('reviewModal');
         const reviewModalClose = document.getElementById('reviewModalClose');
@@ -5690,8 +5694,8 @@
                     const res = await submitPublicReview(review);
                     if (!res.ok) {
                         showReviewFormProblem(
-                            res.message === 'busy' ? 'Lots of reviews are coming in right now' : 'Your review could not be sent',
-                            res.message === 'busy' ? 'Please try again in a few minutes.' : 'Please check your connection and try again. Your text is kept.',
+                            res.message === 'busy' ? 'Lots of reviews are coming in right now' : res.message === 'refused' ? 'Reviews can\'t be posted right now' : 'Your review could not be sent',
+                            res.message === 'busy' ? 'Please try again in a few minutes.' : res.message === 'refused' ? 'The problem is on our side, not your connection. Your text is kept, please try again later.' : 'Please check your connection and try again. Your text is kept.',
                             [{ id: 'retry', label: 'Try again', icon: 'fa-rotate-right', primary: true }]
                         );
                         return;

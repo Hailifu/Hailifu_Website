@@ -8,6 +8,18 @@ Paste this file (or its sections) into an AI when you want it to **understand th
 
 Every change to the site is logged here, newest first. Originals from before the premium rebuild are kept in `_backup-original-2026-09-28/`.
 
+### 2026-10-02: Simpler review form
+
+| File | Change |
+|---|---|
+| `index.html` | **The review form shows only what matters:** stars, comment, photos, Post. The six optional questions (what you liked, did you use the business, which services, price, amount paid, response speed) are now inside one closed section, **"Add more details (optional)"** (`<details id="reviewMoreDetails">`). Nothing was removed: the answers save as before, the admin still sees them, and the amount paid stays private. The comment box is a line shorter, so Post fits on a phone screen without scrolling. `script.js?v=8.7`, `premium.css?v=20261002r1`. |
+| `script.js` | The "Add more details" section closes again when the form resets after a review is posted. |
+| `premium.css` | Styles for the section: a full-width row with a chevron that turns when open, and its questions fade up in turn (off when the device asks for less motion). Comment box min height 88 px. |
+| `e2e/review-simple.spec.js` (new) | Desktop and phone: only stars, comment and photos show, and the extra questions open from the section. A star-only review posts, and the section closes again afterwards. |
+| `e2e/round10.spec.js` | "A visitor answers everything" opens the section before answering the extra questions. |
+| `script.js` | **Phone reviews: an honest message.** Checked again on 2026-10-02 with a test that saves nothing: the live database still refuses every review from a visitor who is not signed in (`42501`, row-level security), both live and waiting. The laptop works only because it is signed in to the admin portal. When the database refuses a review, the form now says "Reviews can't be posted right now. The problem is on our side, not your connection" instead of asking people to check their connection, and the text is kept. `script.js?v=8.8`. **Owner fix (Supabase → SQL Editor):** run `supabase/sql/reviews_public_submit.sql`, then `supabase/sql/reviews_instant_publish.sql`. |
+| `e2e/review-simple.spec.js` | Plus: when the database refuses a review, the message does not blame the connection and the text stays. |
+
 ### 2026-10-02: Admin login, bouncy liquid glass (owner request: "add more bouncing liquid glass")
 
 | File | Change |
