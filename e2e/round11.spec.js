@@ -67,6 +67,9 @@ test('Featured Work keeps changing on an iPhone (WebKit)', async ({ baseURL }) =
         const rows = [1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => galleryRow({ id: `w${i}`, category: 'cctv', featured: true, order: i, src: `https://res.cloudinary.com/daovfi3i5/image/upload/v1/w-${i}.jpg` }));
         await mockSupabase(page, { installations: rows });
         await servePhotos(page);
+        // GitHub runs WebKit on Linux, where playing the homepage cover video crashed the page
+        // ('Target crashed') on every run since 2026-10-01. This test is about the carousel, so no videos.
+        await page.route(/\.(mp4|webm|mov|m4v)(\?|$)/i, (route) => route.abort());
         await page.goto('/', { waitUntil: 'load' });
         await expect(page.locator('#featuredLoop .featured-loop-slide')).toHaveCount(9, { timeout: 10000 });
         // Re-scroll on every check: on slow CI machines late layout shifts can push the loop off screen
