@@ -8,6 +8,18 @@ Paste this file (or its sections) into an AI when you want it to **understand th
 
 Every change to the site is logged here, newest first. Originals from before the premium rebuild are kept in `_backup-original-2026-09-28/`.
 
+### 2026-10-02: Reviews with Google accounts; admin refresh
+
+| File | Change |
+|---|---|
+| `supabase/sql/reviews_google_accounts.sql` (new, owner runs it once) | **One review per Google account.** Visitors can no longer add review rows directly; a review is posted only through `submit_google_review()`. That function checks the visitor is signed in with Google and takes the name and photo from the Google account itself (`auth.identities`, which users cannot edit). It refuses a second review from the same email (`P0002`) and keeps the email in the admin-only table `review_authors`, never in the public review. Deleting the review frees the email again. It also has `my_review_status()` (the form asks it before showing itself), the review photo upload rule (Google sign-ins only), the 8-per-10-minutes flood guard and `review_private` for the amount paid. It works whether or not the older review SQL files were run. |
+| `script.js` | **Review form like Google Business.** If Google sign-in is switched on in Supabase (checked from the public `/auth/v1/settings`), the form first asks **Continue with Google**. After signing in it shows "Posting as [photo] Name. Your email stays private" with **Not you?**, and an account that already reviewed sees "You've already reviewed Hailifu". It posts through the database function, then signs the visitor out so nothing stays signed in on a shared phone. Coming back from Google reopens the form. Review cards show the Google name and photo plus "1 review · 1 photo" under the name. While Google sign-in is off, the form works as before. A visitor signed in with Google is never treated as the admin. **Admin refresh:** reloading the page (or pull-to-refresh on a phone) while the admin is open now comes back to the admin on the same tab, without signing in again (sessionStorage `hailifu_admin_open`, this browser tab only, cleared on close or Log out). There is a new **Refresh** button in the admin top bar (icon only on phones). `script.js?v=9.0`. |
+| `premium.css` | Styles for the Google step, "Posting as" row, thank-you, the count line on cards, and the admin Refresh button. `premium.css?v=20261002g4`. |
+| `ADMIN_SETUP.md` | New section **Reviews with Google accounts**: owner steps (Google Cloud OAuth client, Supabase Google provider, sign-ups on, redirect URL, run the SQL, test). |
+| `e2e/helpers/mock-supabase.js` | Test mock: Google sign-in switch, `/auth/v1/settings`, `/auth/v1/authorize`, the two database functions, and `googleReviewer()` for a signed-in visitor. Off by default, so older tests are unchanged. |
+| `e2e/review-google.spec.js` (new) | Google off: the old form. Not signed in: Continue with Google opens Google. Signed in: posts with the Google name and photo, the email is never in the public review, and the visitor is signed out after. Already reviewed: the thank-you shows. The database says "already" on posting: the thank-you shows. The card shows the name, photo and "1 review · 1 photo". A Google visitor never opens the admin. |
+| `e2e/admin-refresh.spec.js` (new) | A reload (twice) keeps the admin on the same tab, on desktop and phone. The Refresh button does the same. After Log out a reload shows the website. A new browser tab never opens the admin. |
+
 ### 2026-10-02: Simpler review form
 
 | File | Change |

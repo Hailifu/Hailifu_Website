@@ -230,15 +230,35 @@
         const adminSecretParamKey = 'dev';
         // Admin entry (round 10): hailifugh.com/hailifu=access sets a one-time flag
         // for this tab and opens the site. The old ?admin / #admin no longer work.
+        // 2026-10-02: while the admin is open, sessionStorage "hailifu_admin_open" holds the
+        // current admin tab, so reloading the page (or pull-to-refresh on a phone) comes back
+        // to the admin on the same tab. Cleared on close / log out; per browser tab only.
+        const ADMIN_OPEN_KEY = 'hailifu_admin_open';
+        let adminRestoreTab = '';
+        try { adminRestoreTab = String(sessionStorage.getItem(ADMIN_OPEN_KEY) || ''); } catch {}
         const ADMIN_ENTRY_REQUESTED = (() => {
             try {
                 const asked = sessionStorage.getItem('hailifu_admin_entry') === '1';
                 sessionStorage.removeItem('hailifu_admin_entry');
-                return asked;
+                return asked || !!adminRestoreTab;
             } catch {
                 return false;
             }
         })();
+        function rememberAdminOpen(tab) {
+            try { sessionStorage.setItem(ADMIN_OPEN_KEY, String(tab || 'overview')); } catch {}
+        }
+        function forgetAdminOpen() {
+            adminRestoreTab = '';
+            try { sessionStorage.removeItem(ADMIN_OPEN_KEY); } catch {}
+        }
+        // the first tab after opening: the one open before a reload, else the Dashboard
+        // (the portal opens through two start-up paths, so both get the restored tab for a few seconds)
+        function takeAdminStartTab() {
+            const tab = adminRestoreTab;
+            if (tab && !takeAdminStartTab.timer) takeAdminStartTab.timer = setTimeout(() => { adminRestoreTab = ''; }, 4000);
+            return tab || 'overview';
+        }
         let adminEntryPending = ADMIN_ENTRY_REQUESTED;
         window.__hailifuAdminEntry = ADMIN_ENTRY_REQUESTED;
 
@@ -962,6 +982,15 @@
             } catch {}
             applyTheme(next);
         }
+        // Refresh button (2026-10-02): reloads the page; the admin reopens on the same tab
+        window.addEventListener('click', (e) => {
+            const btn = e.target instanceof Element ? e.target.closest('#hmAdminRefresh') : null;
+            if (!btn) return;
+            e.preventDefault();
+            btn.classList.add('is-spinning');
+            btn.disabled = true;
+            setTimeout(() => window.location.reload(), 150);
+        }, true);
         // admin panel handlers stop clicks from bubbling, so listen in the capture phase
         window.addEventListener('click', (e) => {
             const btn = e.target instanceof Element ? e.target.closest('#hmAdminTheme [data-theme-set], #hmLoginTheme [data-theme-set]') : null;
@@ -2695,6 +2724,7 @@
             if (!supabase || !supabase.auth) return false;
             try {
                 const { data } = await supabase.auth.getSession();
+                if (isGoogleUser(data?.session?.user)) return false; // a reviewer, not the admin
                 return !!data?.session;
             } catch {
                 return false;
@@ -3913,10 +3943,23 @@
                     .filter((m) => REVIEW_MEDIA_PATH.test(m.path))
                     .slice(0, REVIEW_MAX_PHOTOS + 1),
                 status: raw.status === 'published' ? 'published' : 'pending',
+                // Google reviews (2026-10-02): photo and "verified" come from the Google account
+                authorImage: /^https:\/\/[^\s"'<>]+$/i.test(String(raw.authorImage || '')) ? String(raw.authorImage).slice(0, 500) : '',
+                identityProvider: raw.identityProvider === 'google' ? 'google' : '',
+                verified: raw.verified === true && raw.identityProvider === 'google',
                 source: 'website',
                 createdAt: text(raw.createdAt, 40) || new Date().toISOString(),
                 publishedAt: text(raw.publishedAt, 40)
             };
+        }
+
+        function reviewCountLine(r) {
+            const photos = r.media.filter((m) => m.type === 'image').length;
+            const videos = r.media.filter((m) => m.type === 'video').length;
+            const parts = ['1 review'];
+            if (photos) parts.push(`${photos} ${photos === 1 ? 'photo' : 'photos'}`);
+            if (videos) parts.push(`${videos} ${videos === 1 ? 'video' : 'videos'}`);
+            return parts.join(' · ');
         }
 
         function getPublishedSiteReviews() {
@@ -3927,7 +3970,8 @@
                     source: 'Hailifu website',
                     siteReview: true,
                     siteTags: publicReviewTags(r),
-                    siteMedia: r.media.map((m) => ({ url: reviewMediaUrl(m), type: m.type })).filter((m) => m.url)
+                    siteMedia: r.media.map((m) => ({ url: reviewMediaUrl(m), type: m.type })).filter((m) => m.url),
+                    siteCount: r.identityProvider === 'google' ? reviewCountLine(r) : ''
                 }));
         }
 
@@ -3997,6 +4041,7 @@
         // "waiting only" rule (reviews_instant_publish.sql not run yet), it is sent as
         // waiting instead, so nothing is lost. Returns { ok, live }.
         async function submitPublicReview(review) {
+            if (review && googleReviews.mode === 'google') return submitGoogleReview(review);
             const supabase = ensureSupabaseClient();
             if (!supabase || !review) return { ok: false };
             const send = (r) => withTimeout(supabase.from(REVIEWS_TABLE).insert(reviewPublicRow(r)), 10000, 'Sending review');
@@ -4020,6 +4065,224 @@
                 const text = `${err?.code || ''} ${err?.message || err || ''}`;
                 // 42501 = the database refused it (the visitor review rule is missing in Supabase), not the connection
                 return { ok: false, message: /too many/i.test(text) ? 'busy' : /42501|row-level security|violates/i.test(text) ? 'refused' : '' };
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // REVIEWS WITH GOOGLE ACCOUNTS (2026-10-02)
+        // Like Google Business reviews: the visitor signs in with Google, their Google name
+        // and photo show on the review, one review per Google account, email kept private.
+        // The database does the checking (supabase/sql/reviews_google_accounts.sql:
+        // submit_google_review / my_review_status). Until Google sign-in is switched on in
+        // Supabase (Authentication > Providers > Google) the old form keeps working as before.
+        // ------------------------------------------------------------------
+        const googleReviews = { enabled: null, checking: null, mode: 'off', status: null };
+
+        // Is Google sign-in switched on in Supabase? (public settings, cached for this visit)
+        function googleReviewsEnabled() {
+            if (googleReviews.enabled !== null) return Promise.resolve(googleReviews.enabled);
+            if (googleReviews.checking) return googleReviews.checking;
+            googleReviews.checking = (async () => {
+                try {
+                    const cached = sessionStorage.getItem('hailifu_google_reviews');
+                    if (cached === '1' || cached === '0') return (googleReviews.enabled = cached === '1');
+                } catch {}
+                const base = String(window.SUPABASE_URL || '').replace(/\/+$/, '');
+                const key = String(window.SUPABASE_ANON_KEY || '');
+                if (!base || !key) return (googleReviews.enabled = false);
+                try {
+                    const res = await withTimeout(fetch(`${base}/auth/v1/settings`, { headers: { apikey: key } }), 6000, 'Checking Google sign-in');
+                    const json = res && res.ok ? await res.json() : null;
+                    googleReviews.enabled = !!(json && json.external && json.external.google);
+                } catch {
+                    googleReviews.enabled = false;
+                }
+                try { sessionStorage.setItem('hailifu_google_reviews', googleReviews.enabled ? '1' : '0'); } catch {}
+                return googleReviews.enabled;
+            })();
+            return googleReviews.checking;
+        }
+
+        function isGoogleUser(user) {
+            if (!user) return false;
+            if (String(user.app_metadata?.provider || '') === 'google') return true;
+            return Array.isArray(user.identities) && user.identities.some((i) => i && i.provider === 'google');
+        }
+
+        // The visitor signed in with Google (name/photo only for "Posting as"; the database
+        // takes the real ones from the Google account itself)
+        async function currentGoogleReviewer() {
+            const supabase = ensureSupabaseClient();
+            if (!supabase || !supabase.auth) return null;
+            try {
+                const { data } = await supabase.auth.getSession();
+                const user = data?.session?.user;
+                if (!isGoogleUser(user)) return null;
+                const meta = user.user_metadata || {};
+                return {
+                    name: String(meta.full_name || meta.name || 'Google user').slice(0, 60),
+                    photo: /^https:\/\//i.test(String(meta.avatar_url || meta.picture || '')) ? String(meta.avatar_url || meta.picture) : ''
+                };
+            } catch {
+                return null;
+            }
+        }
+
+        function ensureGoogleReviewChrome() {
+            const body = reviewModal ? reviewModal.querySelector('.review-modal-body') : null;
+            if (!body || document.getElementById('hmRvGate')) return;
+            body.insertAdjacentHTML('afterbegin', `
+                <div class="hm-rv-gate" id="hmRvGate" hidden>
+                    <span class="hm-rv-gate-icon" aria-hidden="true"><i class="fab fa-google"></i></span>
+                    <h3>Post your review with Google</h3>
+                    <p>Your Google name and photo show on your review. Your email stays private. One review per Google account.</p>
+                    <button type="button" class="hm-rv-google" id="hmRvGoogleBtn"><i class="fab fa-google" aria-hidden="true"></i> Continue with Google</button>
+                    <p class="hm-rv-gate-note" id="hmRvGateNote" role="status" aria-live="polite"></p>
+                </div>
+                <div class="hm-rv-gate hm-rv-done" id="hmRvDone" hidden>
+                    <span class="hm-rv-gate-icon is-done" aria-hidden="true"><i class="fas fa-check"></i></span>
+                    <h3>You've already reviewed Hailifu</h3>
+                    <p>Thank you! Each Google account can post one review.</p>
+                    <button type="button" class="hm-rv-switch" id="hmRvSwitch">Use another Google account</button>
+                </div>
+                <div class="hm-rv-who" id="hmRvWho" hidden>
+                    <img class="hm-rv-who-img" id="hmRvWhoImg" alt="">
+                    <div class="hm-rv-who-copy">
+                        <strong id="hmRvWhoName"></strong>
+                        <span>Posting publicly. Your email stays private.</span>
+                    </div>
+                    <button type="button" class="hm-rv-switch" id="hmRvNotYou">Not you?</button>
+                </div>`);
+            document.getElementById('hmRvGoogleBtn').addEventListener('click', startGoogleReviewSignIn);
+            document.getElementById('hmRvSwitch').addEventListener('click', switchGoogleReviewAccount);
+            document.getElementById('hmRvNotYou').addEventListener('click', switchGoogleReviewAccount);
+        }
+
+        // view = 'off' (old form) | 'signin' | 'done' | 'ready'
+        function showGoogleReviewView(view, who) {
+            ensureGoogleReviewChrome();
+            const gate = document.getElementById('hmRvGate');
+            const done = document.getElementById('hmRvDone');
+            const whoRow = document.getElementById('hmRvWho');
+            if (!gate || !done || !whoRow) return;
+            gate.hidden = view !== 'signin';
+            done.hidden = view !== 'done';
+            whoRow.hidden = view !== 'ready';
+            if (reviewForm) reviewForm.hidden = view === 'signin' || view === 'done';
+            if (reviewModal) reviewModal.dataset.googleReview = view;
+            if (view === 'ready' && who) {
+                document.getElementById('hmRvWhoName').textContent = who.name;
+                const img = document.getElementById('hmRvWhoImg');
+                const fallback = reviewInitialAvatar(who.name);
+                img.dataset.avatarFallback = fallback;
+                img.src = who.photo || fallback;
+            }
+        }
+
+        async function syncGoogleReviewGate() {
+            if (!(await googleReviewsEnabled())) {
+                googleReviews.mode = 'off';
+                showGoogleReviewView('off');
+                return;
+            }
+            googleReviews.mode = 'google';
+            const who = await currentGoogleReviewer();
+            if (!who) { showGoogleReviewView('signin'); return; }
+            let status = null;
+            try {
+                const { data, error } = await withTimeout(ensureSupabaseClient().rpc('my_review_status'), 8000, 'Checking your review');
+                if (!error) status = data;
+            } catch {}
+            googleReviews.status = status;
+            if (status && status.reviewed) { showGoogleReviewView('done'); return; }
+            showGoogleReviewView('ready', { name: (status && status.name) || who.name, photo: (status && status.photo) || who.photo });
+        }
+
+        async function startGoogleReviewSignIn() {
+            const supabase = ensureSupabaseClient();
+            const note = document.getElementById('hmRvGateNote');
+            const btn = document.getElementById('hmRvGoogleBtn');
+            if (!supabase || !supabase.auth) { if (note) note.textContent = 'Sign-in is not available right now.'; return; }
+            if (btn) { btn.disabled = true; btn.classList.add('is-busy'); }
+            if (note) note.textContent = 'Opening Google...';
+            // come back to the review form after Google
+            try { sessionStorage.setItem('hailifu_review_resume', '1'); } catch {}
+            try {
+                const { error } = await supabase.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: { redirectTo: `${window.location.origin}/`, queryParams: { prompt: 'select_account' } }
+                });
+                if (error) throw error;
+            } catch (err) {
+                console.warn('[Reviews] Google sign-in failed:', err);
+                try { sessionStorage.removeItem('hailifu_review_resume'); } catch {}
+                if (note) note.textContent = 'Google sign-in could not start. Please try again.';
+                if (btn) { btn.disabled = false; btn.classList.remove('is-busy'); }
+            }
+        }
+
+        // sign the visitor out (never the admin's email/password session), then pick again
+        async function signOutGoogleReviewer() {
+            const supabase = ensureSupabaseClient();
+            if (!supabase || !supabase.auth) return;
+            try {
+                const { data } = await supabase.auth.getSession();
+                if (isGoogleUser(data?.session?.user)) await supabase.auth.signOut({ scope: 'local' });
+            } catch {}
+        }
+
+        async function switchGoogleReviewAccount() {
+            await signOutGoogleReviewer();
+            showGoogleReviewView('signin');
+            startGoogleReviewSignIn();
+        }
+
+        // Back from Google: reopen the review form
+        (function resumeReviewAfterGoogle() {
+            let resume = false;
+            try { resume = sessionStorage.getItem('hailifu_review_resume') === '1'; sessionStorage.removeItem('hailifu_review_resume'); } catch {}
+            if (!resume) return;
+            const open = () => {
+                try { document.getElementById('reviews')?.scrollIntoView({ block: 'start' }); } catch {}
+                openReviewModal();
+            };
+            if (document.readyState === 'complete') setTimeout(open, 400);
+            else window.addEventListener('load', () => setTimeout(open, 400), { once: true });
+        })();
+
+        async function submitGoogleReview(review) {
+            const supabase = ensureSupabaseClient();
+            if (!supabase) return { ok: false };
+            if (!(await currentGoogleReviewer())) return { ok: false, message: 'signin' };
+            const payload = {
+                rating: review.rating,
+                comment: review.comment,
+                likes: review.likes,
+                services: review.services,
+                used: review.used,
+                price: review.price,
+                speed: review.speed,
+                media: review.media
+            };
+            try {
+                const { error } = await withTimeout(
+                    supabase.rpc('submit_google_review', { p_id: review.id, p_data: payload, p_amount: review.amount || '' }),
+                    12000,
+                    'Sending review'
+                );
+                if (error) throw error;
+                await signOutGoogleReviewer(); // nothing stays signed in on a shared phone
+                return { ok: true, live: true };
+            } catch (err) {
+                console.warn('[Reviews] Could not send review:', err);
+                const text = `${err?.code || ''} ${err?.message || err || ''}`;
+                return {
+                    ok: false,
+                    message: /P0002|already posted/i.test(text) ? 'already'
+                        : /P0003|sign in with google/i.test(text) ? 'signin'
+                        : /P0001|too many/i.test(text) ? 'busy'
+                        : /42501|row-level security|violates|PGRST202|function/i.test(text) ? 'refused' : ''
+                };
             }
         }
 
@@ -5692,6 +5955,8 @@
                     }
                     const review = cleanSiteReview(draft);
                     const res = await submitPublicReview(review);
+                    if (!res.ok && res.message === 'already') { showGoogleReviewView('done'); return; }
+                    if (!res.ok && res.message === 'signin') { showGoogleReviewView('signin'); return; }
                     if (!res.ok) {
                         showReviewFormProblem(
                             res.message === 'busy' ? 'Lots of reviews are coming in right now' : res.message === 'refused' ? 'Reviews can\'t be posted right now' : 'Your review could not be sent',
@@ -5774,6 +6039,7 @@
                 try { reviewModalClose.focus({ preventScroll: true }); } catch {}
             }
             focusReviewCommentField();
+            syncGoogleReviewGate().catch(() => {});
             return { identity: { ...emptyReviewIdentityState }, code: '' };
         }
 
@@ -6321,6 +6587,7 @@
                                 <i class="fas fa-search"></i>
                                 <input type="text" id="adminGlobalSearch" placeholder="Search leads, projects, media..." aria-label="Search">
                             </div>
+                            <button type="button" class="hm-admin-refresh" id="hmAdminRefresh" aria-label="Refresh" title="Refresh: reload the latest data"><i class="fas fa-rotate-right" aria-hidden="true"></i><span>Refresh</span></button>
                             <div class="header-user">
                                 <button type="button" class="hm-account" id="hmAccountBtn" aria-haspopup="menu" aria-expanded="false">
                                     <span class="user-avatar"><img src="/logo.webp" alt=""></span>
@@ -6345,8 +6612,8 @@
             adminPanel = document.getElementById('adminPanel');
             applyTheme(getThemeMode()); // marks the current Light / Dark / Auto button
             
-            // Set initial tab content
-            setAdminTab('overview');
+            // Set initial tab content (the tab open before a reload, else the Dashboard)
+            setAdminTab(takeAdminStartTab());
 
             // Global delegated handlers (survive tab caching/cloning)
             try {
@@ -6555,6 +6822,7 @@
             // same tab is still loading, and drop any render that a newer call replaced
             // (otherwise slow tabs like Adverts flash loading/content several times).
             if (setAdminTab.pending === normalizedKey) return;
+            if (adminPanel && adminPanel.classList.contains('active')) rememberAdminOpen(normalizedKey);
             setAdminTab.pending = normalizedKey;
             const renderToken = (setAdminTab.token = (setAdminTab.token || 0) + 1);
             const isStale = () => renderToken !== setAdminTab.token;
@@ -11141,7 +11409,7 @@
                 adminPanel.classList.add('active');
                 adminPanel.setAttribute('aria-hidden', 'false');
             }
-            if (!wasAlreadyOpen) setAdminTab('overview');
+            if (!wasAlreadyOpen) setAdminTab(takeAdminStartTab());
             refreshOverview();
             renderAdminLazyLoop();
             startAdminLazyLoop();
@@ -11150,10 +11418,12 @@
         // Round 12: the document-level logout handler (which signed out) never ran, because
         // the admin panel handlers stop the click first. Every logout path calls this now.
         function signOutAdminSession() {
+            forgetAdminOpen();
             try { const sb = ensureSupabaseClient(); if (sb && sb.auth) sb.auth.signOut(); } catch {}
         }
 
         function haltDataSync() {
+            forgetAdminOpen();
             try { stopAdminLazyLoop(); } catch {}
             stopFirestorePendingReviewsSync();
             renderMediaLibraryAndSections();
@@ -11211,6 +11481,7 @@
         }
 
         function openAdminPortalNow() {
+            rememberAdminOpen(adminRestoreTab || adminState?.activeTab || 'overview');
             try { bindAdminChromeOnce(); } catch {}
             setTimeout(() => { try { syncAdminAccountEmail(); syncAdminPageChrome(adminState?.activeTab || 'overview'); } catch {} }, 400);
             // Execute multiple times with small delays to overcome any DOM race conditions
@@ -13549,6 +13820,7 @@
                 comment: safeComment || '',
                 siteTags: Array.isArray(review.siteTags) ? review.siteTags.slice(0, 10) : [],
                 siteMedia: Array.isArray(review.siteMedia) ? review.siteMedia.slice(0, 6) : [],
+                siteCount: String(review.siteCount || '').slice(0, 60),
                 date: toDisplayReviewDate(review.publishedAt || review.createdAt || review.updatedAt || review.date),
                 ownerReply: toSafeOwnerReply(
                     review.ownerReply ||
@@ -14115,6 +14387,7 @@
                                         <span class="reviewer-name${isFallbackName ? ' is-verified-name' : ''}">${name}</span>
                                         ${nativeBadge}
                                     </div>
+                                    ${review.siteCount ? `<span class="hm-rv-count">${escapeHTML(review.siteCount)}</span>` : ''}
                                 </div>
                             </div>
                             <span class="review-time">${date}</span>

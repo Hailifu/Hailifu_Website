@@ -6541,3 +6541,72 @@ html body #reviewModal .hm-rv-more-body { display: grid; gap: 20px; padding: 6px
 }
 @keyframes hm-rv-more-in { from { opacity: 0; translate: 0 8px; } to { opacity: 1; translate: 0 0; } }
 html body #reviewModal #reviewComment { min-height: 88px; } /* a line shorter so Post fits on a phone screen */
+
+/* 2026-10-02: admin Refresh button (top bar). Reloads the page; the admin reopens on the same tab. */
+#adminPanel.hm-admin .hm-admin-refresh {
+    display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; height: 38px; padding: 0 12px; margin-left: auto;
+    border-radius: 10px; border: 1px solid var(--a-line-2); background: var(--a-panel); color: var(--a-text);
+    font: 600 0.86rem/1 var(--p-font); cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.16s cubic-bezier(0.23, 1, 0.32, 1);
+}
+#adminPanel.hm-admin .hm-admin-refresh i { font-size: 0.85rem; color: var(--p-accent); }
+#adminPanel.hm-admin .hm-admin-refresh:hover { background: var(--a-raise, var(--a-panel)); }
+#adminPanel.hm-admin .hm-admin-refresh:active { transform: scale(0.95); }
+#adminPanel.hm-admin .hm-admin-refresh:focus-visible { outline: 2px solid var(--p-accent); outline-offset: 2px; }
+#adminPanel.hm-admin .hm-admin-refresh:disabled { cursor: progress; opacity: 0.8; }
+@media (prefers-reduced-motion: no-preference) {
+    #adminPanel.hm-admin .hm-admin-refresh.is-spinning i { animation: hm-login-spin 0.6s linear infinite; }
+}
+/* phones: icon only */
+@media (max-width: 640px) {
+    #adminPanel.hm-admin .hm-admin-refresh { width: 38px; padding: 0; justify-content: center; }
+    #adminPanel.hm-admin .hm-admin-refresh span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+
+/* ==========================================================================
+   2026-10-02: reviews with Google accounts (#hmRvGate, #hmRvDone, #hmRvWho)
+   ========================================================================== */
+html body #reviewModal .hm-rv-gate {
+    display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px;
+    padding: 18px 8px 8px;
+}
+html body #reviewModal .hm-rv-gate[hidden],
+html body #reviewModal .hm-rv-who[hidden],
+html body #reviewModal #reviewForm[hidden] { display: none; }
+html body #reviewModal .hm-rv-gate-icon {
+    width: 56px; height: 56px; display: grid; place-items: center; border-radius: 16px;
+    background: color-mix(in srgb, var(--p-accent) 14%, transparent); color: var(--p-accent); font-size: 1.4rem;
+}
+html body #reviewModal .hm-rv-gate-icon.is-done { background: color-mix(in srgb, #1f9d55 16%, transparent); color: #1f9d55; }
+html body #reviewModal .hm-rv-gate h3 { margin: 4px 0 0; font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; color: var(--p-text); }
+html body #reviewModal .hm-rv-gate p { margin: 0; max-width: 36ch; font-size: 0.95rem; line-height: 1.5; color: var(--p-muted); }
+html body #reviewModal .hm-rv-google {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    width: min(100%, 320px); height: 50px; margin-top: 8px; padding: 0 20px; border-radius: 999px;
+    border: 1px solid var(--p-line-strong); background: var(--p-surface); color: var(--p-text);
+    font: 600 0.98rem/1 var(--p-font); cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.16s cubic-bezier(0.23, 1, 0.32, 1);
+}
+html body #reviewModal .hm-rv-google i { color: #ea4335; font-size: 1.05rem; }
+html body #reviewModal .hm-rv-google:hover { background: color-mix(in srgb, var(--p-text) 5%, var(--p-surface)); }
+html body #reviewModal .hm-rv-google:active { transform: scale(0.97); }
+html body #reviewModal .hm-rv-google:focus-visible,
+html body #reviewModal .hm-rv-switch:focus-visible { outline: 2px solid var(--p-accent); outline-offset: 2px; }
+html body #reviewModal .hm-rv-google.is-busy { opacity: 0.7; cursor: progress; }
+html body #reviewModal .hm-rv-gate-note { min-height: 1.2em; font-size: 0.85rem; }
+html body #reviewModal .hm-rv-switch {
+    border: 0; background: none; padding: 6px 4px; cursor: pointer;
+    font: 600 0.88rem/1.2 var(--p-font); color: var(--p-accent); text-underline-offset: 3px;
+}
+html body #reviewModal .hm-rv-switch:hover { text-decoration: underline; }
+/* "Posting as" row above the form */
+html body #reviewModal .hm-rv-who {
+    display: flex; align-items: center; gap: 12px; margin: 4px 0 14px; padding: 10px 12px;
+    border-radius: 14px; border: 1px solid var(--p-line); background: color-mix(in srgb, var(--p-text) 3%, transparent);
+}
+html body #reviewModal .hm-rv-who-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+html body #reviewModal .hm-rv-who-copy { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+html body #reviewModal .hm-rv-who-copy strong { font-size: 0.95rem; color: var(--p-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html body #reviewModal .hm-rv-who-copy span { font-size: 0.8rem; color: var(--p-muted); }
+/* "1 review · 2 photos" under the reviewer's name, like Google Business */
+html body .featured-review-card .hm-rv-count { display: block; margin-top: 2px; font-size: 0.8rem; color: var(--p-muted); }

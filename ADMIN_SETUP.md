@@ -89,6 +89,24 @@ The form works like Google's: **no name and no phone**. Visitors tap stars (the 
 5. After posting, visitors get an **Also post it on Google** button.
 6. Photos visitors upload go to the `media` bucket under `reviews/` (not into your Media Library list). They can only add files there, never change or delete anything.
 
+## Reviews with Google accounts (one review per person, name and photo shown)
+
+Like Google Business reviews: the visitor taps **Continue with Google**, and their **Google name and profile photo** show on the review with "1 review · 1 photo", the stars, the time and the text. **One review per Google account.** Their **email stays private**: it is stored in `review_authors`, which only your admin login can read. Photos and videos work as before. Someone who already reviewed sees "You've already reviewed Hailifu" instead of the form. If you **Delete** their review in Admin → Reviews, they can post again.
+
+Until steps 1 to 4 are done, the website keeps the current form (no Google step). Do them in this order:
+
+1. **Google Cloud** (console.cloud.google.com, signed in as 01hailifu@gmail.com):
+   - **APIs & Services → OAuth consent screen**: User type **External**, App name **Hailifu Brilliant Installation**, support email and developer email = your email. Save. Under **Audience/Publishing status** press **Publish app** (otherwise only test users can sign in).
+   - **APIs & Services → Credentials → Create credentials → OAuth client ID**: Application type **Web application**, name "Hailifu website".
+     - Authorized JavaScript origins: `https://hailifugh.com`
+     - Authorized redirect URIs: `https://qcyhxurhbvcgftyzlqdu.supabase.co/auth/v1/callback`
+   - **Create**, then copy the **Client ID** and **Client secret** (keep the secret private: paste it only into Supabase, never in a chat).
+2. **Supabase → Authentication → Sign In / Providers → Google**: switch it **on**, paste the Client ID and Client secret, **Save**.
+3. **Supabase → Authentication → Sign In / Providers** (or Settings): **Allow new users to sign up** must be **on** (each reviewer becomes a user). Keep **Confirm email** on. This does not give anyone admin rights: the admin is only your email (`is_hailifu_admin()`), and reviewers can only post through the review function.
+4. **Supabase → Authentication → URL Configuration → Redirect URLs**: add `https://hailifugh.com/**` (and `http://localhost:3000/**` for testing on this PC).
+5. **Supabase → SQL Editor**: run `supabase/sql/reviews_google_accounts.sql` (safe to run again). From then on, reviews can only be posted through Google, one per account.
+6. Test: open hailifugh.com on your phone (not signed in to the admin), **Leave a review → Continue with Google**, post, and check the card shows your Google name and photo. Try again with the same account: you should see "You've already reviewed Hailifu".
+
 ## Aftercare photo
 
 Admin → **Site Control** → **Aftercare photo**: **Upload photo or video**, pick one from the **Media Library**, or paste an `https://` link → **Use link**. It changes the photo in "Looked after after we leave" for every visitor. **Remove photo** takes it off: there is no built-in photo, so the card then shows without a photo. A photo you uploaded here is deleted from storage when you replace it.

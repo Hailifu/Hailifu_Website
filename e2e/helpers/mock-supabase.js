@@ -41,7 +41,9 @@ function matchesFilters(row, params) {
 
 async function mockSupabase(page, tables = {}) {
     const db = { leads: [], adverts: [], reviews: [], installations: [], ...tables };
-    const sb = { db, storage: new Map(), calls: [], refuseDeletes: false, refuseUploads: false, refuseWrites: false, refuseDeleteIds: new Set(), offlineTables: new Set() };
+    const sb = { db, storage: new Map(), calls: [], refuseDeletes: false, refuseUploads: false, refuseWrites: false, refuseDeleteIds: new Set(), offlineTables: new Set(),
+        // Google reviews (2026-10-02): sb.googleEnabled = true switches Google sign-in on; sb.googleUser = signed-in reviewer
+        googleEnabled: false, googleUser: null, reviewedEmails: new Set(), oauthUrl: '' };
     await page.route('**/*.supabase.co/**', async (route) => {
         const req = route.request();
         const url = new URL(req.url());
@@ -54,7 +56,9 @@ async function mockSupabase(page, tables = {}) {
             if (body.password === 'correct-horse' || body.refresh_token) return json(200, session);
             return json(400, { code: 400, error_code: 'invalid_credentials', msg: 'Invalid login credentials' });
         }
-        if (url.pathname.includes('/auth/v1/user')) return json(200, user);
+        if (url.pathname.includes('/auth/v1/settings')) return json(200, { external: { google: !!sb.googleEnabled, email: true } });
+        if (url.pathname.includes('/auth/v1/authorize')) { sb.oauthUrl = url.toString(); return route.fulfill({ status: 200, contentType: 'text/html', body: '<p>Google sign-in</p>' }); }
+        if (url.pathname.includes('/auth/v1/user')) return json(200, sb.googleUser || user);
         if (url.pathname.includes('/auth/v1/logout')) return route.fulfill({ status: 204 });
 
         // Storage
@@ -72,6 +76,25 @@ async function mockSupabase(page, tables = {}) {
             const { prefixes = [] } = JSON.parse(req.postData() || '{}');
             const removed = prefixes.filter((p) => sb.storage.delete(p));
             return json(200, removed.map((name) => ({ name, bucket_id: 'media' })));
+        }
+
+        // database functions (supabase/sql/reviews_google_accounts.sql)
+        const rpc = url.pathname.match(/\/rest\/v1\/rpc\/(\w+)/);
+        if (rpc) {
+            const g = sb.googleUser;
+            const meta = (g && g.user_metadata) || {};
+            if (rpc[1] === 'my_review_status') return json(200, g ? { google: true, reviewed: sb.reviewedEmails.has(g.email), name: meta.full_name, photo: meta.avatar_url } : { google: false, reviewed: false });
+            if (rpc[1] === 'submit_google_review') {
+                if (!g) return json(400, { code: 'P0003', message: 'Sign in with Google to post a review' });
+                if (sb.reviewedEmails.has(g.email)) return json(400, { code: 'P0002', message: 'This Google account has already posted a review' });
+                const body = JSON.parse(req.postData() || '{}');
+                const data = { ...body.p_data, id: body.p_id, name: meta.full_name, authorImage: meta.avatar_url, identityProvider: 'google', verified: true, status: 'published', source: 'website', createdAt: new Date().toISOString() };
+                db.reviews.push({ id: body.p_id, data, updated_at: data.createdAt });
+                sb.reviewedEmails.add(g.email);
+                sb.lastAmount = body.p_amount;
+                return json(200, { ok: true, id: body.p_id });
+            }
+            return json(404, { code: 'PGRST202', message: 'function not found' });
         }
 
         // REST
@@ -119,4 +142,10 @@ async function loginAdmin(page) {
     await page.waitForTimeout(800);
 }
 
-module.exports = { mockSupabase, loginAdmin, galleryRow };
+// a visitor signed in with Google (put in the browser before the page loads)
+function googleReviewer(name = 'Mohammed Desheni Alhassan', email = 'mohammed@example.com') {
+    const u = { id: 'g1', aud: 'authenticated', role: 'authenticated', email, app_metadata: { provider: 'google', providers: ['google'] }, user_metadata: { full_name: name, avatar_url: 'https://lh3.googleusercontent.com/a/test-photo' }, identities: [{ provider: 'google' }], created_at: new Date().toISOString() };
+    return { user: u, session: { access_token: 'header.eyJzdWIiOiJnMSJ9.sig', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600, refresh_token: 'refresh-g', user: u } };
+}
+
+module.exports = { mockSupabase, loginAdmin, galleryRow, googleReviewer };
