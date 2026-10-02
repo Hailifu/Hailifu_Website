@@ -174,7 +174,8 @@ test.describe('Reviews: simple form + owner approval', () => {
         await openForm(page);
         await fillForm(page);
         await submit(page);
-        await expect(page.locator('#formSuccess')).toContainText('could not be sent');
+        // 2026-10-02: a refusal by the database says so, instead of blaming the connection
+        await expect(page.locator('#reviewModal')).toContainText("Reviews can't be posted right now");
         await expect(page.locator('#reviewComment')).toHaveValue('They fixed our Wi-Fi in one visit.');
     });
 

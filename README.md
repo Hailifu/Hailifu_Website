@@ -8,6 +8,14 @@ Paste this file (or its sections) into an AI when you want it to **understand th
 
 Every change to the site is logged here, newest first. Originals from before the premium rebuild are kept in `_backup-original-2026-09-28/`.
 
+### 2026-10-02: Automatic tests on GitHub fixed
+
+| File | Change |
+|---|---|
+| `e2e/round9.spec.js` | "A refused save shows a friendly message" still expected the old wording "could not be sent". The form now says "Reviews can't be posted right now" when the database refuses a review (changed earlier today), so the test checks that. This test failed on GitHub after each push today. |
+| `script.js` | **Bug fix (admin):** when the admin opens, it opens itself 3 more times over the first second as a safety net. Logging out (or closing) within that second made it pop open again, and a reload then showed the sign-in screen. Closing now cancels those pending re-opens. Found by the new "after Log out, a reload shows the normal website" test, which failed now and then. `script.js?v=9.1`. |
+| (check) | The whole suite run on this PC exactly like GitHub (`CI=true`, all 195 tests): everything passed apart from that one test, now fixed. The GitHub email's "Node.js 20 is deprecated" and "Ubuntu 26" lines are only notices, not failures. |
+
 ### 2026-10-02: Reviews with Google accounts; admin refresh
 
 | File | Change |

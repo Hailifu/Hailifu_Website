@@ -11423,6 +11423,8 @@
         }
 
         function haltDataSync() {
+            (openAdminPortalNow.retries || []).forEach(clearTimeout);
+            openAdminPortalNow.retries = [];
             forgetAdminOpen();
             try { stopAdminLazyLoop(); } catch {}
             stopFirestorePendingReviewsSync();
@@ -11506,9 +11508,10 @@
                 }
             };
             forceOpen();
-            setTimeout(forceOpen, 100);
-            setTimeout(forceOpen, 500);
-            setTimeout(forceOpen, 1000);
+            // 2026-10-02: closing or logging out within the first second cancels these, or the
+            // admin popped open again (and a reload then showed the sign-in screen)
+            (openAdminPortalNow.retries || []).forEach(clearTimeout);
+            openAdminPortalNow.retries = [100, 500, 1000].map((ms) => setTimeout(forceOpen, ms));
         }
 
         // ------------------------------------------------------------------
