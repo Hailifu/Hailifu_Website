@@ -12,7 +12,8 @@ module.exports = defineConfig({
     forbidOnly: !!process.env.CI,
     retries: process.env.CI ? 2 : 0,
     workers: process.env.CI ? 1 : undefined,
-    reporter: [['list'], ['html', { open: 'never' }]],
+    // on GitHub, failing tests also show as notes on the run (readable without signing in)
+    reporter: process.env.CI ? [['github'], ['list'], ['html', { open: 'never' }]] : [['list'], ['html', { open: 'never' }]],
     use: {
         baseURL,
         trace: 'on-first-retry',
