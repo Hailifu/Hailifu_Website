@@ -8,6 +8,25 @@ Paste this file (or its sections) into an AI when you want it to **understand th
 
 Every change to the site is logged here, newest first. Originals from before the premium rebuild are kept in `_backup-original-2026-09-28/`.
 
+### 2026-10-03: "Leave a Review" at the top; close (X) buttons act like it
+
+| File | Change |
+|---|---|
+| `index.html` | The top bar button "Request a Quote" is now **"Leave a Review"** and opens the review form (desktop bar and the phone menu). The quote button in the hero and on the service cards is unchanged. |
+| `premium.css`, `premium.js` | Every close (X) button (review form, quote form, project popup, chat, gallery, photo viewer, top notice, previews) now acts like the top button: brand-orange fill on hover/keyboard focus, and the same squash-and-bounce when pressed. They still close as before. `premium.css` / `premium.js?v=20261003b1`. |
+| `premium.css`, `premium.js` | **X buttons animated** (owner: "the x must be animated"): when a popup opens its X spins in from half a turn with a small overshoot; on hover it turns 90° and grows slightly; on tap it twists and squashes. It replays every time the popup opens (the release bounce is skipped on X buttons so it can). The quote form's X spins in too (a more specific rule beats the quote form's row slide-in; `premium.css?v=20261003d1`). Nothing moves for visitors who switch on "reduce motion". `premium.css` / `premium.js?v=20261003c1`. |
+| `e2e/round10.spec.js` | The "quote form freezes the page" test opened the quote form via the top button; it now uses the hero quote button. |
+| (check) | Checked in a browser: top button opens the review form on desktop and in the phone menu; review X turns orange on hover, bounces on press and closes; quote X still closes. |
+
+### 2026-10-03: Customer review photos show clearly
+
+| File | Change |
+|---|---|
+| `premium.js` | **Bug fix:** review photos looked unclear on the website. The round 11 "photos in full" effect (blurred copy of the picture behind it) was also applied to review thumbnails. Their holder is a small link, so the blurred copy spread over the whole review card and the photo itself was shrunk to fit. Review photos are now left out of that effect. The uploaded files were fine (kept up to 2400 px). `premium.js?v=20261003a1`. |
+| `premium.css` | Review photo links are now neat 84 px squares (72 px in the reviews feed): the photo fills the square sharply, with rounded corners. Tapping one still opens the full-size photo. `premium.css?v=20261003a1`. |
+| `index.html` | Cache versions bumped so visitors get the new files. |
+| (check) | Review tests (round 10, 11, 19, Google reviews): 64 of 64 passed. One iPhone Featured Work test failed once in the full run but passed when run again alone. |
+
 ### 2026-10-02: Automatic tests on GitHub fixed
 
 | File | Change |

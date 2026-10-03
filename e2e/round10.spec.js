@@ -43,7 +43,7 @@ test.describe('Page stays still behind popups', () => {
         await mockSupabase(page);
         await page.goto('/', { waitUntil: 'load' });
         const y = await scrollTo(page, 1400);
-        await page.evaluate(() => document.querySelector('#heroQuoteBtn, .premium-nav-cta').click());
+        await page.evaluate(() => document.querySelector('#heroQuoteBtn').click());
         await expect(page.locator('#popupOverlay')).toHaveClass(/active/);
         await expect.poll(() => locked(page)).toBe(true);
         await page.mouse.wheel(0, 1200);
@@ -65,6 +65,7 @@ test.describe('Page stays still behind popups', () => {
         await page.keyboard.press('Escape');
         await expect.poll(() => locked(page)).toBe(false);
 
+        await page.locator('#showcase .hm-sc-card').first().waitFor({ state: 'attached', timeout: 20000 }); // slow CI: cards render late
         await page.evaluate(() => document.querySelector('#showcase .hm-sc-card').click());
         await expect(page.locator('#hmGallery')).toHaveClass(/is-open/);
         await expect.poll(() => locked(page)).toBe(true);
@@ -162,6 +163,7 @@ test.describe('Gallery viewer: smooth swipe', () => {
         await mockSupabase(page, { installations: rows(n) });
         await page.route(/res\.cloudinary\.com/, (route) => route.fulfill({ status: 200, contentType: 'image/png', body: PNG }));
         await page.goto('/', { waitUntil: 'load' });
+        await page.locator('#showcase .hm-sc-card').first().waitFor({ state: 'attached', timeout: 20000 }); // slow CI: cards render late
         await page.evaluate(() => document.querySelector('#showcase .hm-sc-card').click());
         await expect(page.locator('#hmGallery')).toHaveClass(/is-open/);
         if (n > 1) await page.locator('#hmGalGrid [data-gal-tile="0"]').click(); // card opens the photo grid first

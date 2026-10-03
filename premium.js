@@ -153,7 +153,10 @@
     }
 
     /* Spring press: squash on press, bounce on release (mouse and touch, round 9) */
-    var PRESS_SELECTOR = '.hm-btn, .hm-chip, .hm-sc-chip, .filter-btn, .premium-nav-cta, .hm-cta-btn, .request-quote-btn, .hm-ad-cta, .hm-sc-quote, .hm-gal-quote, .btn, .submit-btn, .site-share-btn, .theme-toggle, .r7-burger, .social-links a, .hm-sc-more, .google-star';
+    // close (X) buttons squash on press like the top "Leave a Review" button (2026-10-03);
+    // no release bounce: their popup closes, and a leftover .hm-bounce would block the X spin-in next time
+    var CLOSE_X_SELECTOR = '#reviewModalClose, #popupClose, #projectModalClose, #chatbotClose, #brilliantChatClose, #galleryCloseBtn, .preview-close, .r7-topbar-close, .r7-teaser-close, .media-lightbox-close, [data-gal="close"], .hm-gal-close';
+    var PRESS_SELECTOR = '.hm-btn, .hm-chip, .hm-sc-chip, .filter-btn, .premium-nav-cta, .hm-cta-btn, .request-quote-btn, .hm-ad-cta, .hm-sc-quote, .hm-gal-quote, .btn, .submit-btn, .site-share-btn, .theme-toggle, .r7-burger, .social-links a, .hm-sc-more, .google-star, ' + CLOSE_X_SELECTOR;
     function initSpringPress() {
         if (reduceMotion) return;
         var pressed = null;
@@ -162,6 +165,7 @@
             var el = pressed;
             pressed = null;
             el.classList.remove('hm-pressing');
+            if (el.matches(CLOSE_X_SELECTOR)) return;
             void el.offsetWidth; // restart the bounce
             el.classList.add('hm-bounce');
         }
@@ -521,8 +525,9 @@
         '#featured-work .featured-card-media img', '#featured-work .featured-card-media video',
         '#services .service-media img', '#services .service-media video',
         '#showcase .hm-sc-media img', '#showcase .hm-sc-media video',
-        '#integrityContainer img', '#integrityContainer video',
-        '.featured-review-card .hm-rv-media img', '.featured-review-card .hm-rv-media video'
+        '#integrityContainer img', '#integrityContainer video'
+        // Review photos are left out (2026-10-03): their host is a small <a>, so the blurred
+        // copy spread over the whole review card and the photo looked unclear.
     ].join(',');
 
     function fillUrlFor(el) {

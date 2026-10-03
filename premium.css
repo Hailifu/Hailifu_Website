@@ -5429,6 +5429,7 @@ html body .featured-review-card .hm-rv-tags { display: flex; flex-wrap: wrap; ga
 html body .featured-review-card .hm-rv-tags span { padding: 4px 10px; border-radius: 999px; font-size: 0.74rem; background: var(--p-surface-2); border: 1px solid var(--p-line); color: var(--p-muted); }
 html body .featured-review-card .hm-rv-media { display: flex; gap: 8px; margin-top: 12px; overflow-x: auto; scrollbar-width: none; }
 html body .featured-review-card .hm-rv-media :is(img, video) { width: 84px; height: 84px; object-fit: cover; border-radius: 10px; display: block; flex: none; }
+html body .featured-review-card .hm-rv-media > a { display: block; flex: none; border-radius: 10px; overflow: hidden; }
 
 /* admin review cards */
 #adminPanel.hm-admin .rv-comment.is-empty { color: var(--a-muted); font-style: italic; }
@@ -6610,3 +6611,33 @@ html body #reviewModal .hm-rv-who-copy strong { font-size: 0.95rem; color: var(-
 html body #reviewModal .hm-rv-who-copy span { font-size: 0.8rem; color: var(--p-muted); }
 /* "1 review · 2 photos" under the reviewer's name, like Google Business */
 html body .featured-review-card .hm-rv-count { display: block; margin-top: 2px; font-size: 0.8rem; color: var(--p-muted); }
+
+/* 2026-10-03: every close (X) button acts like the top "Leave a Review" button:
+   brand-colour fill on hover/focus, squash + bounce on press (premium.js PRESS_SELECTOR). */
+html body :is(#reviewModalClose, #popupClose, #projectModalClose, #chatbotClose, #brilliantChatClose, #galleryCloseBtn, .preview-close, .r7-topbar-close, .r7-teaser-close, .media-lightbox-close, [data-gal="close"], .hm-gal-close) {
+    transition: transform 0.2s var(--p-ease), background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease !important;
+}
+html body :is(#reviewModalClose, #popupClose, #projectModalClose, #chatbotClose, #brilliantChatClose, #galleryCloseBtn, .preview-close, .r7-topbar-close, .r7-teaser-close, .media-lightbox-close, [data-gal="close"], .hm-gal-close):is(:hover, :focus-visible) {
+    background: var(--p-accent-strong) !important;
+    border-color: var(--p-accent-strong) !important;
+    color: var(--p-on-accent) !important;
+}
+html body :is(#reviewModalClose, #popupClose, #projectModalClose, #chatbotClose, #brilliantChatClose, #galleryCloseBtn, .preview-close, .r7-topbar-close, .r7-teaser-close, .media-lightbox-close, [data-gal="close"], .hm-gal-close):is(:hover, :focus-visible) i {
+    color: inherit !important;
+    -webkit-text-fill-color: currentColor !important;
+}
+html body :is(#reviewModalClose, #popupClose, #projectModalClose, #chatbotClose, #brilliantChatClose, #galleryCloseBtn, .preview-close, .r7-topbar-close, .r7-teaser-close, .media-lightbox-close, [data-gal="close"], .hm-gal-close):active { transform: scale(0.97); }
+/* X animation (2026-10-03): spins + pops in when its popup opens, turns 90deg and grows on
+   hover, twists on tap. The second keyframe name restarts it when a popup gains .active/.is-open. */
+@media (prefers-reduced-motion: no-preference) {
+    html body :is(#reviewModalClose, #popupClose, #projectModalClose, #chatbotClose, #brilliantChatClose, #galleryCloseBtn, .preview-close, .r7-topbar-close, .r7-teaser-close, .media-lightbox-close, [data-gal="close"], .hm-gal-close) { animation: hm-x-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.12s both; }
+    html body :is(.active, .is-open, [open]) :is(#reviewModalClose, #popupClose, #projectModalClose, #chatbotClose, #brilliantChatClose, #galleryCloseBtn, .preview-close, .r7-topbar-close, .r7-teaser-close, .media-lightbox-close, [data-gal="close"], .hm-gal-close) { animation-name: hm-x-in-open; }
+    /* the quote form's slide-in for each row (r7-item-in) is more specific; the X spins instead */
+    html body #popupOverlay.active > .popup-form > #popupClose { animation: hm-x-in-open 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.12s both; }
+    @media (hover: hover) and (pointer: fine) {
+        html body :is(#reviewModalClose, #popupClose, #projectModalClose, #chatbotClose, #brilliantChatClose, #galleryCloseBtn, .preview-close, .r7-topbar-close, .r7-teaser-close, .media-lightbox-close, [data-gal="close"], .hm-gal-close):hover { transform: rotate(90deg) scale(1.08) !important; }
+    }
+    html body :is(#reviewModalClose, #popupClose, #projectModalClose, #chatbotClose, #brilliantChatClose, #galleryCloseBtn, .preview-close, .r7-topbar-close, .r7-teaser-close, .media-lightbox-close, [data-gal="close"], .hm-gal-close):active { transform: rotate(90deg) scale(0.9) !important; }
+}
+@keyframes hm-x-in { 0% { opacity: 0; rotate: -180deg; scale: 0.3; } 100% { opacity: 1; rotate: 0deg; scale: 1; } }
+@keyframes hm-x-in-open { 0% { opacity: 0; rotate: -180deg; scale: 0.3; } 100% { opacity: 1; rotate: 0deg; scale: 1; } }
