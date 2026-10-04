@@ -8,6 +8,20 @@ Paste this file (or its sections) into an AI when you want it to **understand th
 
 Every change to the site is logged here, newest first. Originals from before the premium rebuild are kept in `_backup-original-2026-09-28/`.
 
+### 2026-10-04: Phones no longer freeze; Featured Work fixed on phones; hero video can be changed
+
+Owner: "the site keep freezing on phones and the feature work is not working properly on phone also i must be able to change Hero background video".
+
+**What was wrong (measured on a simulated mid-range phone, live data):** Featured Work builds a slide for every featured photo (62 on the live site). Every slide had a blurred background copy, colour filters, and two endless "loading" shimmer animations: **120 endless animations** on the page, 108 of them on slides nobody could see. With the page just sitting open, the phone was busy **72% of the time**, so scrolling and taps froze. The carousel also moved every 2 s with a slow slide animation, so on a phone it was almost always moving and you could not look at a photo.
+
+| File | Change |
+|---|---|
+| `script.js` | Featured Work marks the shown slide's two neighbours `.is-near`. Phones and tablets wait **4.5 s** per slide (desktop keeps 2 s). Swipe and arrows unchanged. `script.js?v=9.4`. |
+| `premium.css` | New block at the end: slides that are not shown or next to the shown one are hidden and have no animations, filters or blurred background. `premium.css?v=20261004b1`. |
+| `script.js`, `index.html` | **Hero video the owner can change:** Admin > Site Control > **Hero video**: upload a video (up to 50 MB; MP4 plays on every phone), pick one from the Media Library, or paste a link; **Use original video** goes back to `cover-video.mp4`. Saved for every visitor in the adverts settings row `__hero_settings` `{ videoUrl }`, uploads go to `media/site/hero-*` (the replaced upload is removed). A small script beside the video in `index.html` uses the copy from the last visit (`hailifu_hero_video_v1`) so the old video isn't downloaded first. |
+| `e2e/hero-video.spec.js` | New: saved hero video plays and is remembered; nothing saved = original; Site Control upload / photo refused / link / bad link / library / original; on a phone only 3 Featured slides are drawn, none of the hidden ones animate, and slides wait 4.5 s. |
+| (check) | After the fix: idle phone load 72% → about 43%; endless animations 120 → 18. Desktop 3D flip still works. |
+
 ### 2026-10-04: Advert button opens the advertised product
 
 Owner: "when click on advert button it should land you to the advertising product". Owner chose the product popup.

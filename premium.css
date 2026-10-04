@@ -6684,3 +6684,21 @@ html body #hmAds .hm-ad-media[data-ad-view] { cursor: zoom-in; }
     html body #hmAdView.active .hm-adview-panel { animation: hm-adview-in 0.42s cubic-bezier(0.23, 1, 0.32, 1) both; }
 }
 @keyframes hm-adview-in { from { opacity: 0; transform: translateY(24px) scale(0.97); } to { opacity: 1; transform: none; } }
+
+/* =====================================================================
+   2026-10-04 PHONE SPEED: Featured Work draws only 3 slides
+   The carousel holds every featured photo (62 on the live site). Each slide had a
+   blurred background copy, colour filters and two endless "loading" shimmer
+   animations, all redrawn on every frame, which froze phones. Now only the shown
+   slide and its two neighbours (.is-near, set in script.js) are drawn at all.
+   ===================================================================== */
+html body #featured-work .featured-loop-slide:not(.is-active):not(.is-near) {
+    visibility: hidden;
+}
+html body #featured-work .featured-loop-slide:not(.is-active):not(.is-near) *,
+html body #featured-work .featured-loop-slide:not(.is-active):not(.is-near) *::before,
+html body #featured-work .featured-loop-slide:not(.is-active):not(.is-near) *::after {
+    animation: none !important;
+    filter: none !important;
+}
+html body #featured-work .featured-loop-slide:not(.is-active):not(.is-near) .r11-fill { display: none; }

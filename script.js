@@ -9247,6 +9247,24 @@
                             <button type="button" class="hm-btn af-reset" data-lp-action="reset"><i class="fas fa-rotate-left"></i> Use original photo</button>
                             <p class="gp-status" id="lpStatus" aria-live="polite"></p>
                         </div>
+                        <div class="admin-card-v2 gp-card af-card hv-card" id="hvCard">
+                            <h3>Hero video</h3>
+                            <p class="gp-help">The background video at the top of the homepage. Saved for every visitor. Use a short MP4 (under 50 MB; 10 MB or less loads fast on phones).</p>
+                            <div class="af-preview" id="hvPreview"></div>
+                            <input type="file" id="hvFile" accept="video/mp4,video/webm,video/quicktime,video/*" hidden>
+                            <div class="gp-actions">
+                                <button type="button" class="hm-btn is-primary" data-hv-action="upload"><i class="fas fa-upload"></i> Upload video</button>
+                                <button type="button" class="hm-btn" data-hv-action="library"><i class="fas fa-photo-film"></i> Media Library</button>
+                            </div>
+                            <div class="af-library" id="hvLibrary" hidden></div>
+                            <div class="af-link-row">
+                                <label class="hm-sr" for="hvLink">Video link</label>
+                                <input type="url" class="admin-input-v2" id="hvLink" placeholder="or paste a video link: https://...mp4" autocomplete="off" spellcheck="false">
+                                <button type="button" class="hm-btn" data-hv-action="link">Use link</button>
+                            </div>
+                            <button type="button" class="hm-btn af-reset" data-hv-action="reset"><i class="fas fa-rotate-left"></i> Use original video</button>
+                            <p class="gp-status" id="hvStatus" aria-live="polite"></p>
+                        </div>
                         <div class="admin-card-v2 gp-card sc-card" id="scCard">
                             <h3>Homepage sections</h3>
                             <p class="gp-help">Choose the order of the homepage sections and which ones show. Saved for every visitor as soon as you change it. A hidden section's menu links are hidden too.</p>
@@ -9306,6 +9324,7 @@
             bindBrandCard(container);
             bindAftercareCard(container);
             bindLoginPhotoCard(container);
+            bindHeroVideoCard(container);
             bindLogoCard(container);
             bindSectionsCard(container);
             const saveSeoBtn = container.querySelector('#saveSeoBtn');
@@ -10306,6 +10325,179 @@
                         library.innerHTML = files.length
                             ? files.map((m) => `<button type="button" class="af-pick" data-lp-pick="${escapeHTML(m.url)}" title="${escapeHTML(m.name)}"><img src="${escapeHTML(m.url)}" alt="" loading="lazy"></button>`).join('')
                             : '<p class="af-library-note">No photos in the Media Library yet.</p>';
+                    });
+                }
+            });
+        }
+
+        // --- Hero video (2026-10-04) ---
+        // The background video at the top of the homepage, saved in the adverts settings
+        // row "__hero_settings" { videoUrl }. Empty = the built-in /cover-video.mp4.
+        // Admin -> Site Control -> "Hero video". The copy from the last visit is kept in
+        // localStorage "hailifu_hero_video_v1"; an inline script beside #heroVideo in
+        // index.html uses it before the built-in video starts loading.
+        const HERO_VIDEO_DEFAULT = '/cover-video.mp4';
+        const HERO_VIDEO_CACHE = 'hailifu_hero_video_v1';
+
+        function readHeroVideoCache() {
+            try { return cleanAftercareUrl(localStorage.getItem(HERO_VIDEO_CACHE) || ''); } catch { return ''; }
+        }
+
+        function writeHeroVideoCache(url) {
+            try {
+                if (url) localStorage.setItem(HERO_VIDEO_CACHE, url);
+                else localStorage.removeItem(HERO_VIDEO_CACHE);
+            } catch {}
+        }
+
+        // swaps the homepage video without a reload (only when it really changed)
+        function showHeroVideo(url) {
+            const src = cleanAftercareUrl(url) || HERO_VIDEO_DEFAULT;
+            const video = document.getElementById('heroVideo');
+            if (!video || video.tagName !== 'VIDEO') return;
+            const sourceEl = video.querySelector('source');
+            const current = sourceEl ? sourceEl.getAttribute('src') : video.getAttribute('src');
+            if (current === src) return;
+            // the built-in <source> says type="video/mp4"; a .webm/.mov would be skipped with it
+            if (sourceEl) sourceEl.removeAttribute('type');
+            initHeroVideo(src);
+        }
+
+        async function loadHeroVideoSettings() {
+            const supabase = ensureSupabaseClient();
+            if (!supabase) return;
+            try {
+                const { data, error } = await withTimeout(
+                    supabase.from('adverts').select('*').eq('id', '__hero_settings'),
+                    8000,
+                    'Loading hero video'
+                );
+                if (error || !Array.isArray(data)) return;
+                const url = data[0] ? cleanAftercareUrl(fromRemoteRow(data[0]).videoUrl) : '';
+                writeHeroVideoCache(url);
+                showHeroVideo(url);
+            } catch {}
+        }
+
+        async function saveHeroVideoUrl(url) {
+            const videoUrl = url ? cleanAftercareUrl(url) : '';
+            if (url && !videoUrl) return { ok: false, message: 'Use a link that starts with https://' };
+            const supabase = ensureSupabaseClient();
+            if (!supabase) return { ok: false, message: 'Storage is offline.' };
+            try {
+                const record = { id: '__hero_settings', type: 'settings', videoUrl };
+                const { data, error } = await withTimeout(
+                    supabase.from('adverts').upsert([toRemoteRow(record)], { onConflict: 'id' }).select(),
+                    10000,
+                    'Saving hero video'
+                );
+                if (error) throw error;
+                if (!Array.isArray(data) || !data.length) throw new Error('not allowed');
+                writeHeroVideoCache(videoUrl);
+                showHeroVideo(videoUrl);
+                return { ok: true, videoUrl };
+            } catch (err) {
+                return { ok: false, message: /not allowed|security|42501|jwt/i.test(String(err?.message || err)) ? 'Not allowed. Sign in again and retry.' : 'Could not save. Check your connection.' };
+            }
+        }
+
+        // storage path of a video this card uploaded itself (only those are removed when replaced)
+        function heroVideoStoragePath(url) {
+            const m = String(url || '').match(/\/storage\/v1\/object\/public\/media\/(site\/hero-[^?#]+)/);
+            return m ? decodeURIComponent(m[1]) : '';
+        }
+
+        function bindHeroVideoCard(scope) {
+            const root = scope || document;
+            const card = root.querySelector('#hvCard');
+            if (!card || card.dataset.bound) return;
+            card.dataset.bound = '1';
+            const preview = card.querySelector('#hvPreview');
+            const status = card.querySelector('#hvStatus');
+            const fileInput = card.querySelector('#hvFile');
+            const linkInput = card.querySelector('#hvLink');
+            const library = card.querySelector('#hvLibrary');
+            let current = readHeroVideoCache();
+            let busy = false;
+            const say = (text, tone) => { if (status) { status.textContent = text; status.dataset.tone = tone; } };
+            const show = () => {
+                if (preview) preview.innerHTML = `<video src="${escapeHTML(current || HERO_VIDEO_DEFAULT)}" muted loop playsinline autoplay preload="metadata"></video>`;
+            };
+            show();
+            say(current ? 'Your own video is playing on the homepage.' : 'The original video is playing on the homepage.', 'idle');
+
+            const commit = async (url, okText) => {
+                const previousPath = heroVideoStoragePath(current);
+                const res = await saveHeroVideoUrl(url);
+                if (!res.ok) { say(res.message, 'error'); return false; }
+                current = res.videoUrl;
+                show();
+                say(okText, 'ok');
+                showAdminMediaToast('Hero video saved', 'success');
+                if (previousPath && previousPath !== heroVideoStoragePath(current)) {
+                    try { await ensureSupabaseClient().storage.from(MEDIA_BUCKET).remove([previousPath]); } catch {}
+                }
+                return true;
+            };
+            const run = async (job) => {
+                if (busy) return;
+                busy = true;
+                card.classList.add('is-busy');
+                try { await job(); } finally { busy = false; card.classList.remove('is-busy'); }
+            };
+
+            fileInput?.addEventListener('change', () => run(async () => {
+                const file = fileInput.files && fileInput.files[0];
+                fileInput.value = '';
+                if (!file) return;
+                if (getMediaKind(file.name, file.type) !== 'video') { say('Choose a video (MP4 works on every phone).', 'error'); return; }
+                if (file.size > MEDIA_MAX_VIDEO_BYTES) { say('Video is over 50 MB. Make it shorter or compress it first.', 'error'); return; }
+                // the bucket only accepts video/* types: name one when the phone leaves it empty
+                const ext = String(file.name || '').split('.').pop().toLowerCase();
+                const type = String(file.type || '').startsWith('video/') ? file.type
+                    : (ext === 'webm' ? 'video/webm' : ext === 'mov' ? 'video/quicktime' : 'video/mp4');
+                const blob = file.type === type ? file : new Blob([file], { type });
+                const path = `site/hero-${buildMediaObjectName(file)}`;
+                try {
+                    say('Uploading...', 'busy');
+                    await uploadWithProgress(path, blob, (pct) => say(`Uploading... ${Math.round(pct)}%`, 'busy'));
+                } catch (err) {
+                    say(/not allowed|security|403|42501/i.test(String(err?.message || err)) ? 'Not allowed. Sign in again and retry.' : String(err?.message || 'Upload failed. Check your connection.'), 'error');
+                    return;
+                }
+                const ok = await commit(getMediaPublicUrl(path), 'Saved. The homepage now plays this video.');
+                if (!ok) { try { await ensureSupabaseClient().storage.from(MEDIA_BUCKET).remove([path]); } catch {} }
+            }));
+
+            card.addEventListener('click', (e) => {
+                const pick = e.target.closest('[data-hv-pick]');
+                if (pick) {
+                    const url = pick.dataset.hvPick;
+                    run(async () => {
+                        if (await commit(url, 'Saved. The homepage now plays this video.') && library) library.hidden = true;
+                    });
+                    return;
+                }
+                const btn = e.target.closest('[data-hv-action]');
+                if (!btn) return;
+                const action = btn.dataset.hvAction;
+                if (action === 'upload') fileInput?.click();
+                else if (action === 'link') {
+                    const url = String(linkInput?.value || '').trim();
+                    if (!cleanAftercareUrl(url)) { say('Use a link that starts with https://', 'error'); return; }
+                    run(async () => { if (await commit(url, 'Saved. The homepage now plays this video.') && linkInput) linkInput.value = ''; });
+                } else if (action === 'reset') {
+                    run(() => commit('', 'Back to the original video.'));
+                } else if (action === 'library' && library) {
+                    if (!library.hidden) { library.hidden = true; return; }
+                    library.hidden = false;
+                    library.innerHTML = '<p class="af-library-note">Loading your Media Library...</p>';
+                    run(async () => {
+                        await loadMediaFromSupabase();
+                        const files = (adminState.data.media || []).filter((m) => m.kind === 'video' && m.url);
+                        library.innerHTML = files.length
+                            ? files.map((m) => `<button type="button" class="af-pick" data-hv-pick="${escapeHTML(m.url)}" title="${escapeHTML(m.name)}"><video src="${escapeHTML(m.url)}#t=0.5" muted playsinline preload="metadata"></video></button>`).join('')
+                            : '<p class="af-library-note">No videos in the Media Library yet.</p>';
                     });
                 }
             });
@@ -16827,9 +17019,14 @@
                 } catch {}
             }
 
+            // 2026-10-04: only the shown slide and its two neighbours are drawn (.is-near);
+            // the rest are hidden, so phones are not painting dozens of blurred photos.
+            const count = featuredLoopSlides.length;
             featuredLoopSlides.forEach((slide, idx) => {
                 const isActive = idx === featuredLoopIndex;
+                const gap = Math.abs(idx - featuredLoopIndex);
                 slide.classList.toggle('is-active', isActive);
+                slide.classList.toggle('is-near', !isActive && (gap === 1 || gap === count - 1));
                 const videos = Array.from(slide.querySelectorAll('video'));
                 videos.forEach((video) => {
                     if (isActive) {
@@ -16867,9 +17064,12 @@
             try { if (galleryState.open) return; } catch {} // round 12: paused while the gallery viewer is open
             if (!featuredLoopIsVisible) return;
             if (!featuredLoopObserver && !featuredLoopIsProbablyVisible()) return;
+            // Phones: 4.5 s per slide (2 s kept the track moving almost all the time and froze slow phones).
+            let touch = false;
+            try { touch = window.matchMedia('(hover: none), (max-width: 768px)').matches; } catch {}
             featuredLoopTimer = setInterval(() => {
                 advanceFeaturedLoop(1);
-            }, 2000);
+            }, touch ? 4500 : 2000);
         }
 
         function advanceFeaturedLoop(delta) {
@@ -20269,6 +20469,7 @@
         loadBrandSettings();
         loadAftercareSettings();
         loadLoginPhotoSettings();
+        loadHeroVideoSettings();
         loadLogoSettings();
         loadSectionsSettings();
         initGoogleReviews();

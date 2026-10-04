@@ -762,7 +762,7 @@
             }
         </style>
         <!-- Premium design layer (2026 rebuild). Loaded last so it overrides style.css and the inline styles above. -->
-        <link rel="stylesheet" href="/premium.css?v=20261004a1">
+        <link rel="stylesheet" href="/premium.css?v=20261004b1">
 </head>
  <body>
 
@@ -835,6 +835,19 @@
             >
                 <source src="/cover-video.mp4" type="video/mp4">
             </video>
+            <script>
+                /* Hero video chosen in Admin > Site Control (copy from the last visit), set before the
+                   browser starts loading the built-in one. script.js re-checks the saved one. */
+                (function () {
+                    try {
+                        var u = localStorage.getItem('hailifu_hero_video_v1') || '';
+                        if (!/^https:\/\/[^\s"'<>]+$/i.test(u)) return;
+                        var v = document.getElementById('heroVideo');
+                        var s = v && v.querySelector('source');
+                        if (s) { s.removeAttribute('type'); s.src = u; }
+                    } catch (e) {}
+                })();
+            </script>
         </div>
         <div class="hero-scrim" aria-hidden="true"></div>
         <div class="hero-content">
@@ -2492,7 +2505,7 @@
     })();
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="script.js?v=9.3" defer></script>
+    <script src="script.js?v=9.4" defer></script>
     <script src="premium.js?v=20261004a1" defer></script>
 
     <!-- Photo Gallery Modal -->
