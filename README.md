@@ -21,6 +21,7 @@ Owner: "the site keep freezing on phones and the feature work is not working pro
 | `script.js`, `index.html` | **Hero video the owner can change:** Admin > Site Control > **Hero video**: upload a video (up to 50 MB; MP4 plays on every phone), pick one from the Media Library, or paste a link; **Use original video** goes back to `cover-video.mp4`. Saved for every visitor in the adverts settings row `__hero_settings` `{ videoUrl }`, uploads go to `media/site/hero-*` (the replaced upload is removed). A small script beside the video in `index.html` uses the copy from the last visit (`hailifu_hero_video_v1`) so the old video isn't downloaded first. |
 | `e2e/hero-video.spec.js` | New: saved hero video plays and is remembered; nothing saved = original; Site Control upload / photo refused / link / bad link / library / original; on a phone only 3 Featured slides are drawn, none of the hidden ones animate, and slides wait 4.5 s. |
 | (check) | After the fix: idle phone load 72% → about 43%; endless animations 120 → 18. Desktop 3D flip still works. |
+| (check) | Full test suite: 204 of 206 passed. The 2 others are the iPhone (WebKit) tests: the WebKit test browser would not start on this PC (Windows is missing `icuuc77.dll`), so they never reached the site. The same carousel checks pass in Chrome with phone settings. |
 
 ### 2026-10-04: Advert button opens the advertised product
 
