@@ -6872,10 +6872,14 @@
 
                     switch (normalizedKey) {
                         case 'overview':
-                            // Load leads first so the numbers match the Leads tab (was showing 0 on login)
-                            try { await loadLeadsFromSupabase(); } catch {}
-                            if (!serviceGallery.loaded) { try { await loadServiceGallery(); } catch {} }
-                            loadReviewsFromSupabase().catch(() => {});
+                            // Every number fresh from the database before drawing, so it matches the
+                            // tabs and changes made on another device (2026-10-04: reviews, gallery, adverts too)
+                            await Promise.all([
+                                loadLeadsFromSupabase(),
+                                loadServiceGallery(true),
+                                loadReviewsFromSupabase(),
+                                loadAdverts()
+                            ].map((p) => Promise.resolve(p).catch(() => {})));
                             renderAdminDashboard(tmp);
                             break;
                         case 'leads':
@@ -6970,15 +6974,18 @@
                 const { data, error } = await withTimeout(supabase.from('leads').select('*').order('updated_at', { ascending: false }), 10000, 'Loading leads');
                 if (!error && data) {
                     adminState.data.leads = data.map(fromRemoteRow);
+                    adminState.leadsLive = true; // database answered: trust it, even when empty (2026-10-04)
                 } else if (error) {
                     console.warn('[Admin] Supabase leads table not found, using localStorage');
                     // Fallback to localStorage if table doesn't exist
                     adminState.data.leads = getLeads();
+                    adminState.leadsLive = false;
                 }
             } catch (err) {
                 console.warn('[Admin] Failed to load leads from Supabase, using localStorage:', err);
                 // Fallback to localStorage on error
                 adminState.data.leads = getLeads();
+                adminState.leadsLive = false;
             }
         }
 
@@ -7110,15 +7117,24 @@
             const galleryNote = galleryCount
                 ? `across ${galleryServices} service${galleryServices === 1 ? '' : 's'}`
                 : 'none yet: import in Galleries';
-            let reviews = [];
-            try { reviews = getReviews(); } catch {}
+            // Real website reviews (Supabase), not the old browser copy / built-in samples (2026-10-04)
+            const liveReviews = siteReviews.items.filter((r) => r.status === 'published').length;
+            const hiddenReviews = siteReviews.items.length - liveReviews;
+            const reviewsNote = siteReviews.error
+                ? 'could not load'
+                : (hiddenReviews ? `on the website, ${hiddenReviews} hidden` : 'on the website');
             const liveAds = advertState.items.filter((a) => a.active).length;
+            const adsNote = advertState.status === 'offline' || advertState.status === 'error'
+                ? 'could not load'
+                : (advertState.bannerEnabled === false ? 'banner is off' : 'banner is on');
+            const galleryNoteShown = serviceGallery.status === 'offline' || serviceGallery.status === 'error' ? 'could not load' : galleryNote;
+            const leadsNote = adminState.leadsLive === false ? 'could not load: saved copy' : `${newThisWeek} this week`;
             const kpis = [
-                { label: 'Leads', value: leads.length, note: `${newThisWeek} this week`, icon: 'fa-bolt', tab: 'leads' },
+                { label: 'Leads', value: leads.length, note: leadsNote, icon: 'fa-bolt', tab: 'leads' },
                 { label: 'Waiting for reply', value: openLeads, note: 'status: New', icon: 'fa-hourglass-half', tab: 'leads' },
-                { label: 'Gallery', value: galleryCount, note: galleryNote, icon: 'fa-images', tab: 'projects' },
-                { label: 'Reviews', value: reviews.length, note: 'on the website', icon: 'fa-star', tab: 'reviews' },
-                { label: 'Live adverts', value: liveAds, note: advertState.bannerEnabled === false ? 'banner is off' : 'banner is on', icon: 'fa-bullhorn', tab: 'adverts' }
+                { label: 'Gallery', value: galleryCount, note: galleryNoteShown, icon: 'fa-images', tab: 'projects' },
+                { label: 'Reviews', value: liveReviews, note: reviewsNote, icon: 'fa-star', tab: 'reviews' },
+                { label: 'Live adverts', value: liveAds, note: adsNote, icon: 'fa-bullhorn', tab: 'adverts' }
             ];
             const recent = leads.slice().sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || ''))).slice(0, 5);
             const logs = Array.isArray(adminLogs) ? adminLogs.slice(0, 6) : [];
@@ -8227,11 +8243,14 @@
         function buildPublicAdvertSlide(ad, index) {
             const url = safeAdvertUrl(ad.ctaUrl);
             const external = /^https?:\/\//i.test(url);
+            // No link set: the button opens the advertised product (2026-10-04). The default
+            // label "Request a Quote" reads "View offer" there; the quote button is in the product view.
+            const viewLabel = ad.ctaLabel === 'Request a Quote' ? 'View offer' : ad.ctaLabel;
             const cta = url
                 ? `<a class="hm-ad-cta" href="${escapeHTML(url)}"${external ? ' target="_blank" rel="noopener"' : ''}>${escapeHTML(ad.ctaLabel)} <i class="fas fa-arrow-right" aria-hidden="true"></i></a>`
-                : `<button type="button" class="hm-ad-cta" data-ad-quote>${escapeHTML(ad.ctaLabel)} <i class="fas fa-arrow-right" aria-hidden="true"></i></button>`;
+                : `<button type="button" class="hm-ad-cta" data-ad-view="${index}">${escapeHTML(viewLabel)} <i class="fas fa-arrow-right" aria-hidden="true"></i></button>`;
             const media = ad.imageUrl
-                ? `<div class="hm-ad-media"><img src="${escapeHTML(ad.imageUrl)}" alt="" loading="lazy" decoding="async"></div>`
+                ? `<div class="hm-ad-media"${url ? '' : ` data-ad-view="${index}" role="button" tabindex="0" aria-label="View ${escapeHTML(ad.title)}"`}><img src="${escapeHTML(ad.imageUrl)}" alt="" loading="lazy" decoding="async"></div>`
                 : '';
             return `
                 <article class="hm-ad${index === advertState.publicIndex ? ' is-active' : ''}${ad.imageUrl ? '' : ' no-media'}" data-ad-index="${index}" aria-roledescription="slide" aria-label="${index + 1} of ${getPublicAdverts().length}">
@@ -8424,7 +8443,89 @@
             if (!window.__hailifuAdminEntry) renderTopbar();
         }
 
+        // ---------- Advert product view (2026-10-04) ----------
+        // The advert button opens the advertised product: photo, title, text,
+        // Request a Quote and WhatsApp. premium.js locks the page and adds pull-to-close.
+        const advertView = { lastFocus: null };
+
+        function getAdvertViewEl() {
+            let el = document.getElementById('hmAdView');
+            if (el) return el;
+            el = document.createElement('div');
+            el.id = 'hmAdView';
+            el.className = 'hm-adview';
+            el.hidden = true;
+            el.setAttribute('role', 'dialog');
+            el.setAttribute('aria-modal', 'true');
+            el.setAttribute('aria-labelledby', 'hmAdViewTitle');
+            document.body.appendChild(el);
+            return el;
+        }
+
+        function openAdvertView(ad) {
+            if (!ad) return;
+            const el = getAdvertViewEl();
+            const wa = `https://wa.me/233550997270?text=${encodeURIComponent(`Hi Hailifu, I'm interested in your offer: ${ad.title}`)}`;
+            el.innerHTML = `
+                <div class="hm-adview-backdrop" data-adview-close></div>
+                <article class="hm-adview-panel">
+                    <button type="button" class="hm-adview-close" id="hmAdViewClose" data-adview-close aria-label="Close"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+                    ${ad.imageUrl ? `<div class="hm-adview-media"><img src="${escapeHTML(ad.imageUrl)}" alt="${escapeHTML(ad.title)}" decoding="async"></div>` : ''}
+                    <div class="hm-adview-body">
+                        <span class="hm-ad-tag"><i class="fas fa-bolt" aria-hidden="true"></i> Hailifu offer</span>
+                        <h3 id="hmAdViewTitle">${escapeHTML(ad.title)}</h3>
+                        ${ad.text ? `<p>${escapeHTML(ad.text)}</p>` : ''}
+                        <div class="hm-adview-actions">
+                            <button type="button" class="hm-ad-cta" data-adview-quote>Request a Quote <i class="fas fa-arrow-right" aria-hidden="true"></i></button>
+                            <a class="hm-adview-wa" href="${wa}" target="_blank" rel="noopener"><i class="fab fa-whatsapp" aria-hidden="true"></i> WhatsApp us about this</a>
+                        </div>
+                    </div>
+                </article>`;
+            advertView.lastFocus = document.activeElement;
+            el.hidden = false;
+            requestAnimationFrame(() => el.classList.add('active'));
+            if (advertState.publicTimer) { clearInterval(advertState.publicTimer); advertState.publicTimer = null; }
+            const closeBtn = el.querySelector('#hmAdViewClose');
+            if (closeBtn) closeBtn.focus({ preventScroll: true });
+        }
+
+        function closeAdvertView() {
+            const el = document.getElementById('hmAdView');
+            if (!el || el.hidden) return;
+            el.classList.remove('active');
+            el.hidden = true;
+            el.innerHTML = '';
+            restartPublicAdvertTimer();
+            const back = advertView.lastFocus;
+            advertView.lastFocus = null;
+            if (back && typeof back.focus === 'function' && document.contains(back)) back.focus({ preventScroll: true });
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.getElementById('hmAdView')?.classList.contains('active')) closeAdvertView();
+            if ((e.key === 'Enter' || e.key === ' ') && e.target.closest?.('#hmAds .hm-ad-media[data-ad-view]')) {
+                e.preventDefault();
+                openAdvertView(getPublicAdverts()[Number(e.target.closest('[data-ad-view]').dataset.adView) || 0]);
+            }
+        });
+
         document.addEventListener('click', (e) => {
+            const viewBtn = e.target.closest('#hmAds [data-ad-view]');
+            if (viewBtn) {
+                e.preventDefault();
+                openAdvertView(getPublicAdverts()[Number(viewBtn.dataset.adView) || 0]);
+                return;
+            }
+            if (e.target.closest('#hmAdView [data-adview-close]')) {
+                closeAdvertView();
+                return;
+            }
+            if (e.target.closest('#hmAdView [data-adview-quote]')) {
+                closeAdvertView();
+                if (typeof setQuoteService === 'function') setQuoteService('');
+                openQuotePopup();
+                return;
+            }
             const quoteBtn = e.target.closest('#hmAds [data-ad-quote]');
             if (quoteBtn) {
                 e.preventDefault();
@@ -12116,7 +12217,9 @@
         }
 
         function getActiveLeadRecords() {
-            const source = Array.isArray(adminState?.data?.leads) && adminState.data.leads.length
+            // Once the database has answered, use its list even when it is empty; otherwise an old
+            // copy of leads saved in this browser showed up as real leads (2026-10-04).
+            const source = Array.isArray(adminState?.data?.leads) && (adminState.data.leads.length || adminState.leadsLive)
                 ? adminState.data.leads
                 : getLeads();
             return normalizeLeadRecords(source).normalized;

@@ -61,3 +61,37 @@ test('a normal visit in a new tab never opens the admin', async ({ page, context
     await other.waitForTimeout(2500);
     expect(await other.evaluate(() => !!document.getElementById('adminPanel')?.classList.contains('active'))).toBe(false);
 });
+
+// 2026-10-04 owner: "on admin all the review is not accurate". The overview counted the old
+// browser copy / built-in sample reviews (about 20) instead of the real reviews in Supabase.
+test('overview Reviews number is the real count from the database', async ({ page }) => {
+    const row = (id, status) => {
+        const data = { id, name: 'Hailifu customer', rating: 5, comment: 'Good job.', status, source: 'website', media: [], createdAt: new Date().toISOString() };
+        return { id, data, updated_at: data.createdAt };
+    };
+    await mockSupabase(page, { reviews: [row('r_a', 'published'), row('r_b', 'published'), row('r_c', 'hidden')], review_private: [] });
+    await loginAdmin(page);
+    const kpi = page.locator('#hmDash .hm-kpi[data-tab="reviews"]');
+    await expect(kpi.locator('.hm-kpi-value')).toHaveAttribute('data-hm-count', '2');
+    await expect(kpi.locator('.hm-kpi-note')).toHaveText('on the website, 1 hidden');
+});
+
+test('overview Leads does not show an old copy saved in this browser when the database has none', async ({ page }) => {
+    await page.addInitScript(() => {
+        try { localStorage.setItem('hailifu_leads', JSON.stringify([{ id: 'lead_old', name: 'Old test lead', phone: '0550000000', service: 'cctv', status: 'new', createdAt: new Date().toISOString() }])); } catch {}
+    });
+    await mockSupabase(page, { leads: [] });
+    await loginAdmin(page);
+    const kpi = page.locator('#hmDash .hm-kpi[data-tab="leads"]').first();
+    await expect(kpi.locator('.hm-kpi-value')).toHaveAttribute('data-hm-count', '0');
+    await expect(page.locator('#hmDash .hm-mini-leads')).toHaveCount(0);
+});
+
+test('overview Live adverts counts adverts from the database', async ({ page }) => {
+    const ad = (id, active) => ({ id, data: { id, title: 'Ad ' + id, active, createdAt: new Date().toISOString() }, updated_at: new Date().toISOString() });
+    await mockSupabase(page, { adverts: [ad('a1', true), ad('a2', true), ad('a3', false)] });
+    await loginAdmin(page);
+    const kpi = page.locator('#hmDash .hm-kpi[data-tab="adverts"]');
+    await expect(kpi.locator('.hm-kpi-value')).toHaveAttribute('data-hm-count', '2');
+    await expect(kpi.locator('.hm-kpi-note')).toHaveText('banner is on');
+});

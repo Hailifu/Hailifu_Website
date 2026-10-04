@@ -8,6 +8,29 @@ Paste this file (or its sections) into an AI when you want it to **understand th
 
 Every change to the site is logged here, newest first. Originals from before the premium rebuild are kept in `_backup-original-2026-09-28/`.
 
+### 2026-10-04: Advert button opens the advertised product
+
+Owner: "when click on advert button it should land you to the advertising product". Owner chose the product popup.
+
+| File | Change |
+|---|---|
+| `script.js` | The advert button (and the advert photo) now opens a **product view**: big photo, title, description, **Request a Quote** (opens the quote form) and **WhatsApp us about this** (WhatsApp with "I'm interested in your offer: <title>" filled in). Closes with the X, a tap outside, Esc, or a pull down on phones. The advert slideshow pauses while it is open. Where the button label was the default "Request a Quote" it now reads **"View offer"** (a custom label is kept). An advert with a web link set in Admin > Adverts still goes to that link. `script.js?v=9.3`. |
+| `premium.css`, `premium.js` | Product view styles (light/dark), page stays still behind it, pull-to-close, and its X spins in like the others. `?v=20261004a1`. |
+| `e2e/advert-view.spec.js` | New: button opens the product (desktop + phone), quote and WhatsApp buttons, photo opens it, X / outside / Esc close it, a link advert still links. |
+| (check) | Advert, round 10, round 17 and smoke tests: 39 of 39 passed. Screenshots checked on desktop and phone. |
+
+### 2026-10-04: Admin dashboard numbers are the real ones
+
+Owner: "on admin all the review is not accurate" / "check dashboard if all is accurate and communicating with the site".
+
+| File | Change |
+|---|---|
+| `script.js` | **Bug fix, Reviews card:** it counted an old copy of reviews saved in the browser (or the built-in sample reviews), not the real reviews in the database, and didn't wait for them to load. It now waits and shows the reviews on the website, with "N hidden" in the note when some are hidden. |
+| `script.js` | **Bug fix, Leads cards:** when the database had no leads, the dashboard and Leads tab fell back to an old copy of leads saved in that browser and showed them as real. The database's answer is now trusted even when empty. If the database can't be reached, the note says "could not load: saved copy". |
+| `script.js` | **Gallery and Live adverts cards:** now reloaded from the database every time the overview opens (before, they could show old numbers until a page reload, e.g. after changes on another device). They say "could not load" when the database can't be reached. All four load at the same time, so the overview isn't slower. `script.js?v=9.2`. |
+| `e2e/admin-refresh.spec.js` | 3 new tests: Reviews card = real count (2 live, "1 hidden"); Leads card ignores an old browser copy when the database is empty; Live adverts card counts active adverts from the database. |
+| (check) | Admin, gallery, round 11 and round 20 tests: 75 of 75 passed. |
+
 ### 2026-10-03: "Leave a Review" at the top; close (X) buttons act like it
 
 | File | Change |

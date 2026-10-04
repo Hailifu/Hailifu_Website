@@ -6614,30 +6614,73 @@ html body .featured-review-card .hm-rv-count { display: block; margin-top: 2px; 
 
 /* 2026-10-03: every close (X) button acts like the top "Leave a Review" button:
    brand-colour fill on hover/focus, squash + bounce on press (premium.js PRESS_SELECTOR). */
-html body :is(#reviewModalClose, #popupClose, #projectModalClose, #chatbotClose, #brilliantChatClose, #galleryCloseBtn, .preview-close, .r7-topbar-close, .r7-teaser-close, .media-lightbox-close, [data-gal="close"], .hm-gal-close) {
+html body :is(#reviewModalClose, #popupClose, #projectModalClose, #chatbotClose, #brilliantChatClose, #galleryCloseBtn, .preview-close, .r7-topbar-close, .r7-teaser-close, .media-lightbox-close, [data-gal="close"], .hm-gal-close, #hmAdViewClose) {
     transition: transform 0.2s var(--p-ease), background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease !important;
 }
-html body :is(#reviewModalClose, #popupClose, #projectModalClose, #chatbotClose, #brilliantChatClose, #galleryCloseBtn, .preview-close, .r7-topbar-close, .r7-teaser-close, .media-lightbox-close, [data-gal="close"], .hm-gal-close):is(:hover, :focus-visible) {
+html body :is(#reviewModalClose, #popupClose, #projectModalClose, #chatbotClose, #brilliantChatClose, #galleryCloseBtn, .preview-close, .r7-topbar-close, .r7-teaser-close, .media-lightbox-close, [data-gal="close"], .hm-gal-close, #hmAdViewClose):is(:hover, :focus-visible) {
     background: var(--p-accent-strong) !important;
     border-color: var(--p-accent-strong) !important;
     color: var(--p-on-accent) !important;
 }
-html body :is(#reviewModalClose, #popupClose, #projectModalClose, #chatbotClose, #brilliantChatClose, #galleryCloseBtn, .preview-close, .r7-topbar-close, .r7-teaser-close, .media-lightbox-close, [data-gal="close"], .hm-gal-close):is(:hover, :focus-visible) i {
+html body :is(#reviewModalClose, #popupClose, #projectModalClose, #chatbotClose, #brilliantChatClose, #galleryCloseBtn, .preview-close, .r7-topbar-close, .r7-teaser-close, .media-lightbox-close, [data-gal="close"], .hm-gal-close, #hmAdViewClose):is(:hover, :focus-visible) i {
     color: inherit !important;
     -webkit-text-fill-color: currentColor !important;
 }
-html body :is(#reviewModalClose, #popupClose, #projectModalClose, #chatbotClose, #brilliantChatClose, #galleryCloseBtn, .preview-close, .r7-topbar-close, .r7-teaser-close, .media-lightbox-close, [data-gal="close"], .hm-gal-close):active { transform: scale(0.97); }
+html body :is(#reviewModalClose, #popupClose, #projectModalClose, #chatbotClose, #brilliantChatClose, #galleryCloseBtn, .preview-close, .r7-topbar-close, .r7-teaser-close, .media-lightbox-close, [data-gal="close"], .hm-gal-close, #hmAdViewClose):active { transform: scale(0.97); }
 /* X animation (2026-10-03): spins + pops in when its popup opens, turns 90deg and grows on
    hover, twists on tap. The second keyframe name restarts it when a popup gains .active/.is-open. */
 @media (prefers-reduced-motion: no-preference) {
-    html body :is(#reviewModalClose, #popupClose, #projectModalClose, #chatbotClose, #brilliantChatClose, #galleryCloseBtn, .preview-close, .r7-topbar-close, .r7-teaser-close, .media-lightbox-close, [data-gal="close"], .hm-gal-close) { animation: hm-x-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.12s both; }
-    html body :is(.active, .is-open, [open]) :is(#reviewModalClose, #popupClose, #projectModalClose, #chatbotClose, #brilliantChatClose, #galleryCloseBtn, .preview-close, .r7-topbar-close, .r7-teaser-close, .media-lightbox-close, [data-gal="close"], .hm-gal-close) { animation-name: hm-x-in-open; }
+    html body :is(#reviewModalClose, #popupClose, #projectModalClose, #chatbotClose, #brilliantChatClose, #galleryCloseBtn, .preview-close, .r7-topbar-close, .r7-teaser-close, .media-lightbox-close, [data-gal="close"], .hm-gal-close, #hmAdViewClose) { animation: hm-x-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.12s both; }
+    html body :is(.active, .is-open, [open]) :is(#reviewModalClose, #popupClose, #projectModalClose, #chatbotClose, #brilliantChatClose, #galleryCloseBtn, .preview-close, .r7-topbar-close, .r7-teaser-close, .media-lightbox-close, [data-gal="close"], .hm-gal-close, #hmAdViewClose) { animation-name: hm-x-in-open; }
     /* the quote form's slide-in for each row (r7-item-in) is more specific; the X spins instead */
     html body #popupOverlay.active > .popup-form > #popupClose { animation: hm-x-in-open 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.12s both; }
     @media (hover: hover) and (pointer: fine) {
-        html body :is(#reviewModalClose, #popupClose, #projectModalClose, #chatbotClose, #brilliantChatClose, #galleryCloseBtn, .preview-close, .r7-topbar-close, .r7-teaser-close, .media-lightbox-close, [data-gal="close"], .hm-gal-close):hover { transform: rotate(90deg) scale(1.08) !important; }
+        html body :is(#reviewModalClose, #popupClose, #projectModalClose, #chatbotClose, #brilliantChatClose, #galleryCloseBtn, .preview-close, .r7-topbar-close, .r7-teaser-close, .media-lightbox-close, [data-gal="close"], .hm-gal-close, #hmAdViewClose):hover { transform: rotate(90deg) scale(1.08) !important; }
     }
-    html body :is(#reviewModalClose, #popupClose, #projectModalClose, #chatbotClose, #brilliantChatClose, #galleryCloseBtn, .preview-close, .r7-topbar-close, .r7-teaser-close, .media-lightbox-close, [data-gal="close"], .hm-gal-close):active { transform: rotate(90deg) scale(0.9) !important; }
+    html body :is(#reviewModalClose, #popupClose, #projectModalClose, #chatbotClose, #brilliantChatClose, #galleryCloseBtn, .preview-close, .r7-topbar-close, .r7-teaser-close, .media-lightbox-close, [data-gal="close"], .hm-gal-close, #hmAdViewClose):active { transform: rotate(90deg) scale(0.9) !important; }
 }
 @keyframes hm-x-in { 0% { opacity: 0; rotate: -180deg; scale: 0.3; } 100% { opacity: 1; rotate: 0deg; scale: 1; } }
 @keyframes hm-x-in-open { 0% { opacity: 0; rotate: -180deg; scale: 0.3; } 100% { opacity: 1; rotate: 0deg; scale: 1; } }
+
+/* 2026-10-04: advert product view (script.js openAdvertView). Clicking an advert opens
+   the advertised product: photo, title, text, Request a Quote and WhatsApp. */
+html body #hmAdView { position: fixed; inset: 0; z-index: 10050; display: grid; place-items: center; padding: 16px; overscroll-behavior: contain; }
+html body #hmAdView[hidden] { display: none !important; }
+html body #hmAdView .hm-adview-backdrop { position: absolute; inset: 0; background: rgba(8, 8, 9, 0.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+html body #hmAdView .hm-adview-panel {
+    position: relative; width: min(560px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto; overscroll-behavior: contain;
+    border-radius: 24px; background: var(--p-surface); color: var(--p-text); border: 1px solid var(--p-line); box-shadow: var(--p-shadow);
+}
+html body #hmAdView .hm-adview-close {
+    position: absolute; top: 14px; right: 14px; z-index: 2; width: 40px; height: 40px; display: grid; place-items: center;
+    border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.2); background: rgba(12, 12, 13, 0.55); color: #fff; cursor: pointer;
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); font-size: 1.05rem;
+}
+html body #hmAdView .hm-adview-media { background: #0d0d0e; }
+html body #hmAdView .hm-adview-media img { display: block; width: 100%; max-height: 62dvh; object-fit: contain; }
+html body #hmAdView .hm-adview-body { display: grid; gap: 12px; justify-items: start; padding: 22px 24px 26px; }
+html body #hmAdView .hm-adview-panel:not(:has(.hm-adview-media)) .hm-adview-body { padding-top: 64px; }
+html body #hmAdView .hm-ad-tag {
+    display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px;
+    border: 1px solid var(--p-line); color: var(--p-accent); font-size: 0.78rem; font-weight: 600;
+}
+html body #hmAdView h3 { margin: 0; font-size: clamp(1.5rem, 5vw, 2rem); font-weight: 700; line-height: 1.1; letter-spacing: -0.03em; color: var(--p-text); text-transform: none; }
+html body #hmAdView p { margin: 0; font-size: 1rem; line-height: 1.6; color: var(--p-muted); white-space: pre-line; }
+html body #hmAdView .hm-adview-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; width: 100%; }
+html body #hmAdView .hm-adview-actions > * {
+    flex: 1 1 200px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; height: 50px; padding: 0 22px;
+    border-radius: 999px; font-family: var(--p-font); font-size: 0.98rem; font-weight: 700; text-decoration: none; cursor: pointer; white-space: nowrap;
+    transition: transform 0.2s var(--p-ease), background-color 0.2s ease, border-color 0.2s ease;
+}
+html body #hmAdView .hm-ad-cta { border: 0; background: var(--p-accent); color: var(--p-on-accent); }
+html body #hmAdView .hm-ad-cta:hover { background: var(--p-accent-strong); }
+html body #hmAdView .hm-adview-wa { border: 1px solid var(--p-line); background: transparent; color: var(--p-text); }
+html body #hmAdView .hm-adview-wa i { color: #25d366; font-size: 1.15rem; }
+html body #hmAdView .hm-adview-wa:hover { border-color: #25d366; }
+html body #hmAdView .hm-adview-actions > *:active { transform: scale(0.97); }
+html body #hmAds .hm-ad-media[data-ad-view] { cursor: zoom-in; }
+@media (prefers-reduced-motion: no-preference) {
+    html body #hmAdView.active .hm-adview-backdrop { animation: hm-backdrop-in 0.25s ease both; }
+    html body #hmAdView.active .hm-adview-panel { animation: hm-adview-in 0.42s cubic-bezier(0.23, 1, 0.32, 1) both; }
+}
+@keyframes hm-adview-in { from { opacity: 0; transform: translateY(24px) scale(0.97); } to { opacity: 1; transform: none; } }

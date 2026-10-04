@@ -155,7 +155,7 @@
     /* Spring press: squash on press, bounce on release (mouse and touch, round 9) */
     // close (X) buttons squash on press like the top "Leave a Review" button (2026-10-03);
     // no release bounce: their popup closes, and a leftover .hm-bounce would block the X spin-in next time
-    var CLOSE_X_SELECTOR = '#reviewModalClose, #popupClose, #projectModalClose, #chatbotClose, #brilliantChatClose, #galleryCloseBtn, .preview-close, .r7-topbar-close, .r7-teaser-close, .media-lightbox-close, [data-gal="close"], .hm-gal-close';
+    var CLOSE_X_SELECTOR = '#reviewModalClose, #popupClose, #projectModalClose, #chatbotClose, #brilliantChatClose, #galleryCloseBtn, .preview-close, .r7-topbar-close, .r7-teaser-close, .media-lightbox-close, [data-gal="close"], .hm-gal-close, #hmAdViewClose';
     var PRESS_SELECTOR = '.hm-btn, .hm-chip, .hm-sc-chip, .filter-btn, .premium-nav-cta, .hm-cta-btn, .request-quote-btn, .hm-ad-cta, .hm-sc-quote, .hm-gal-quote, .btn, .submit-btn, .site-share-btn, .theme-toggle, .r7-burger, .social-links a, .hm-sc-more, .google-star, ' + CLOSE_X_SELECTOR;
     function initSpringPress() {
         if (reduceMotion) return;
@@ -188,7 +188,7 @@
        by iPhones, so the page is pinned in place (position: fixed at its scroll
        offset) while anything below is open, then put back exactly where it was.
        Watches the DOM, so every popup is covered without touching its own code. */
-    var LOCK_SELECTORS = '#popupOverlay.active, #reviewModal.active, #hmGallery.is-open, #photoGalleryModal.active, #r7NavSheet.is-open, #hmAdminLogin, #hmSetPassword, #adminPanel.active';
+    var LOCK_SELECTORS = '#popupOverlay.active, #hmAdView.active, #reviewModal.active, #hmGallery.is-open, #photoGalleryModal.active, #r7NavSheet.is-open, #hmAdminLogin, #hmSetPassword, #adminPanel.active';
     function initScrollLock() {
         var root = document.documentElement;
         var body = document.body;
@@ -593,6 +593,7 @@
        Moves the panel with CSS `translate` (opening animations own `transform`). */
     var PULL_TARGETS = [
         { panel: '#popupOverlay .hm-quote', close: '#popupClose' },
+        { panel: '#hmAdView .hm-adview-panel', close: '#hmAdViewClose' },
         { panel: '#reviewModal .review-modal-dialog', close: '#reviewModalClose' },
         { panel: '#projectModal .project-modal-dialog', close: '#projectModalClose' },
         { panel: '#photoGalleryModal .gallery-container', close: '#galleryCloseBtn' },
