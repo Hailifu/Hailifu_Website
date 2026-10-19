@@ -4036,7 +4036,11 @@ html[data-theme='light'] body #showcase .hm-sc-card { background: #fbfaf8; }
     html body #showcase .hm-sc-card.is-feature .hm-sc-info { grid-column: 1; grid-row: 3; padding: 6px 20px 20px; }
 }
 @media (max-width: 600px) {
-    html body #showcase .hm-sc-grid { column-count: 1; }
+    /* Single column on phones: a flex stack, not multi-column. iOS WebKit reports
+       wrong card positions inside columns, so the scroll reveal never fired and
+       cards (e.g. Electrical) stayed invisible. */
+    html body #showcase .hm-sc-grid { display: flex; flex-direction: column; gap: 14px; column-count: auto; }
+    html body #showcase .hm-sc-card { margin-bottom: 0; }
     html body #showcase .hm-sc-card .hm-sc-media { aspect-ratio: 4 / 3 !important; }
 }
 

@@ -96,7 +96,8 @@
         document.documentElement.classList.add('hm-anim');
         var io = new IntersectionObserver(function (entries) {
             entries.forEach(function (entry) {
-                if (!entry.isIntersecting) return;
+                // also reveal tiles already scrolled past (fast jumps via nav links)
+                if (!entry.isIntersecting && entry.boundingClientRect.top >= 0) return;
                 var el = entry.target;
                 // stagger tiles that enter together (per row feel)
                 var siblings = Array.prototype.filter.call(el.parentElement.children, function (c) {
@@ -117,6 +118,22 @@
             });
         }
         observeAll();
+        // Safety net: IntersectionObserver can miss tiles on a fast jump or when the
+        // browser reports odd geometry; reveal anything at or above the fold on scroll.
+        var sweepQueued = false;
+        function sweep() {
+            sweepQueued = false;
+            var fold = window.innerHeight || document.documentElement.clientHeight;
+            document.querySelectorAll(TILE_SELECTOR).forEach(function (el) {
+                if (el.classList.contains('hm-in')) return;
+                if (el.getBoundingClientRect().top < fold) { el.classList.add('hm-in'); io.unobserve(el); }
+            });
+        }
+        window.addEventListener('scroll', function () {
+            if (sweepQueued) return;
+            sweepQueued = true;
+            setTimeout(sweep, 250);
+        }, { passive: true });
         // script.js renders some tiles later (projects, media)
         var grids = document.querySelectorAll('#hmScGrid, #services .services-grid');
         if ('MutationObserver' in window) {

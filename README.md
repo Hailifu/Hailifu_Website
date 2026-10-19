@@ -8,6 +8,18 @@ Paste this file (or its sections) into an AI when you want it to **understand th
 
 Every change to the site is logged here, newest first. Originals from before the premium rebuild are kept in `_backup-original-2026-09-28/`.
 
+### 2026-10-19: Work Showcase cards (Electrical) show on phones again
+
+Owner: "on phone at the show case the electrial section fail to show".
+
+**What was wrong:** Showcase cards start hidden and fade in when they scroll into view. On phones the grid was a one-column CSS *multi-column* layout, and iPhone Safari (WebKit) reports wrong card positions inside it, so the fade-in never fired and cards stayed invisible. Electrical is the 2nd card, so it was the one people noticed. Jumping straight to the section (e.g. via "Our Work") could also skip the first cards in other browsers.
+
+| File | Change |
+|---|---|
+| `premium.css` | Phones (≤600px): the showcase grid is a plain flex column, not multi-column. `premium.css?v=20261019a`. |
+| `premium.js` | Tile fade-in also shows cards that were scrolled past, plus a light scroll check that shows any card above the fold the observer missed. `premium.js?v=20261019a`. |
+| (check) | Simulated iPhone 13 (WebKit + Chromium), local copy: all 9 showcase cards become visible, including Electrical. |
+
 ### 2026-10-04: Phones no longer freeze; Featured Work fixed on phones; hero video can be changed
 
 Owner: "the site keep freezing on phones and the feature work is not working properly on phone also i must be able to change Hero background video".
